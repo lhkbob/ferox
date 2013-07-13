@@ -31,19 +31,17 @@ import java.nio.FloatBuffer;
 
 /**
  * <p/>
- * Matrix4 provides an implementation of a 4-by-4 mathematical matrix with many common
- * operations available from linear algebra. It's 16 components are exposed as public
- * fields for performance reasons. This means vectors are always mutable. The first number
- * in the field name is the row, the second is the column.
+ * Matrix4 provides an implementation of a 4-by-4 mathematical matrix with many common operations available
+ * from linear algebra. It's 16 components are exposed as public fields for performance reasons. This means
+ * vectors are always mutable. The first number in the field name is the row, the second is the column.
  * <p/>
- * The {@link Const} annotation can be used the same way that the 'const' token can modify
- * a type in C++. On input, it declares the method will not modify that instance; on
- * output, it declares that the returned instance should not be modified (internal code
- * might still modify it in some controlled manner).
+ * The {@link Const} annotation can be used the same way that the 'const' token can modify a type in C++. On
+ * input, it declares the method will not modify that instance; on output, it declares that the returned
+ * instance should not be modified (internal code might still modify it in some controlled manner).
  * <p/>
- * In all mathematical functions whose result is a matrix, the Matrix4 calling the method
- * will contain the result. The input matrices will be left unmodified. It is safe for the
- * calling matrix to be any matrix parameter into the function.
+ * In all mathematical functions whose result is a matrix, the Matrix4 calling the method will contain the
+ * result. The input matrices will be left unmodified. It is safe for the calling matrix to be any matrix
+ * parameter into the function.
  *
  * @author Michael Ludwig
  */
@@ -73,8 +71,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Construct a new Matrix4 that assigns each parameter value to the identically named
-     * field.
+     * Construct a new Matrix4 that assigns each parameter value to the identically named field.
      *
      * @param m00
      * @param m01
@@ -93,14 +90,13 @@ public final class Matrix4 implements Cloneable {
      * @param m32
      * @param m33
      *
-     * @see #set(double, double, double, double, double, double, double, double, double,
-     *      double, double, double, double, double, double, double)
+     * @see #set(double, double, double, double, double, double, double, double, double, double, double,
+     *      double, double, double, double, double)
      */
-    public Matrix4(double m00, double m01, double m02, double m03, double m10, double m11,
-                   double m12, double m13, double m20, double m21, double m22, double m23,
-                   double m30, double m31, double m32, double m33) {
-        set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32,
-            m33);
+    public Matrix4(double m00, double m01, double m02, double m03, double m10, double m11, double m12,
+                   double m13, double m20, double m21, double m22, double m23, double m30, double m31,
+                   double m32, double m33) {
+        set(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33);
     }
 
     @Override
@@ -109,9 +105,9 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Compute an affine transform that translates an object to <var>from</var>, and has
-     * it oriented towards the point, <var>lookAt</var>. The up axis is the orthogonal
-     * vector closest to <var>up</var> that has the above described direction vector.
+     * Compute an affine transform that translates an object to <var>from</var>, and has it oriented towards
+     * the point, <var>lookAt</var>. The up axis is the orthogonal vector closest to <var>up</var> that has
+     * the above described direction vector.
      *
      * @param lookAt The point to look at
      * @param from   The viewing location (e.g. where the camera or object is)
@@ -163,15 +159,13 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if a and b are null
      */
     public Matrix4 add(@Const Matrix4 a, @Const Matrix4 b) {
-        return set(a.m00 + b.m00, a.m01 + b.m01, a.m02 + b.m02, a.m03 + b.m03,
-                   a.m10 + b.m10, a.m11 + b.m11, a.m12 + b.m12, a.m13 + b.m13,
-                   a.m20 + b.m20, a.m21 + b.m21, a.m22 + b.m22, a.m23 + b.m23,
+        return set(a.m00 + b.m00, a.m01 + b.m01, a.m02 + b.m02, a.m03 + b.m03, a.m10 + b.m10, a.m11 + b.m11,
+                   a.m12 + b.m12, a.m13 + b.m13, a.m20 + b.m20, a.m21 + b.m21, a.m22 + b.m22, a.m23 + b.m23,
                    a.m30 + b.m30, a.m31 + b.m31, a.m32 + b.m32, a.m33 + b.m33);
     }
 
     /**
-     * Add <var>c</var> to each component of <var>m</var> and store the result in this
-     * matrix.
+     * Add <var>c</var> to each component of <var>m</var> and store the result in this matrix.
      *
      * @param m The matrix in the addition
      * @param c Constant factor added to each of m's value
@@ -181,15 +175,14 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 add(@Const Matrix4 m, double c) {
-        return set(m.m00 + c, m.m01 + c, m.m02 + c, m.m03 + c, m.m10 + c, m.m11 + c,
-                   m.m12 + c, m.m13 + c, m.m20 + c, m.m21 + c, m.m22 + c, m.m23 + c,
-                   m.m30 + c, m.m31 + c, m.m32 + c, m.m33 + c);
+        return set(m.m00 + c, m.m01 + c, m.m02 + c, m.m03 + c, m.m10 + c, m.m11 + c, m.m12 + c, m.m13 + c,
+                   m.m20 + c, m.m21 + c, m.m22 + c, m.m23 + c, m.m30 + c, m.m31 + c, m.m32 + c, m.m33 + c);
     }
 
     /**
-     * Compute and return the determinant for this matrix. If this value is 0, then the
-     * matrix is not invertible. If it is very close to 0, then the matrix may be
-     * ill-formed and inversions, multiplications and linear solving could be inaccurate.
+     * Compute and return the determinant for this matrix. If this value is 0, then the matrix is not
+     * invertible. If it is very close to 0, then the matrix may be ill-formed and inversions, multiplications
+     * and linear solving could be inaccurate.
      *
      * @return The matrix's determinant
      */
@@ -238,8 +231,7 @@ public final class Matrix4 implements Cloneable {
         double rb4 = m.m21 * m.m33 - m.m23 * m.m31;
         double rb5 = m.m22 * m.m33 - m.m23 * m.m32;
 
-        double invDet =
-                ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5 * rb0;
+        double invDet = ra0 * rb5 - ra1 * rb4 + ra2 * rb3 + ra3 * rb2 - ra4 * rb1 + ra5 * rb0;
         if (Math.abs(invDet) <= .00001) {
             throw new ArithmeticException("Singular matrix");
         }
@@ -262,15 +254,14 @@ public final class Matrix4 implements Cloneable {
         double t23 = m.m21 * ra2 - m.m23 * ra0 - m.m20 * ra4;
         double t33 = m.m20 * ra3 - m.m21 * ra1 + m.m22 * ra0;
 
-        return set(invDet * t00, invDet * t01, invDet * t02, invDet * t03, invDet * t10,
-                   invDet * t11, invDet * t12, invDet * t13, invDet * t20, invDet * t21,
-                   invDet * t22, invDet * t23, invDet * t30, invDet * t31, invDet * t32,
-                   invDet * t33);
+        return set(invDet * t00, invDet * t01, invDet * t02, invDet * t03, invDet * t10, invDet * t11,
+                   invDet * t12, invDet * t13, invDet * t20, invDet * t21, invDet * t22, invDet * t23,
+                   invDet * t30, invDet * t31, invDet * t32, invDet * t33);
     }
 
     /**
-     * Compute and return the length of this matrix. The length of a matrix is defined as
-     * the square root of the sum of the squared matrix values.
+     * Compute and return the length of this matrix. The length of a matrix is defined as the square root of
+     * the sum of the squared matrix values.
      *
      * @return The matrix's length
      */
@@ -313,9 +304,9 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Multiply <var>a</var> by the diagonal matrix that takes it's four diagonal entries
-     * from <var>b</var>, or compute <code>[a] X [m]</code>, where [m] is all 0s except
-     * m00 = b.x, m11 = b.y, m22 = b.z and m33 = b.w
+     * Multiply <var>a</var> by the diagonal matrix that takes it's four diagonal entries from <var>b</var>,
+     * or compute <code>[a] X [m]</code>, where [m] is all 0s except m00 = b.x, m11 = b.y, m22 = b.z and m33 =
+     * b.w
      *
      * @param a The left matrix in the multiplication
      * @param b Vector holding the four diagonal entries of the other matrix
@@ -325,16 +316,15 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Matrix4 mulDiagonal(@Const Matrix4 a, @Const Vector4 b) {
-        return set(a.m00 * b.x, a.m01 * b.y, a.m02 * b.z, a.m03 * b.w, a.m10 * b.x,
-                   a.m11 * b.y, a.m12 * b.z, a.m13 * b.w, a.m20 * b.x, a.m21 * b.y,
-                   a.m22 * b.z, a.m23 * b.w, a.m30 * b.x, a.m31 * b.y, a.m32 * b.z,
-                   a.m33 * b.w);
+        return set(a.m00 * b.x, a.m01 * b.y, a.m02 * b.z, a.m03 * b.w, a.m10 * b.x, a.m11 * b.y, a.m12 * b.z,
+                   a.m13 * b.w, a.m20 * b.x, a.m21 * b.y, a.m22 * b.z, a.m23 * b.w, a.m30 * b.x, a.m31 * b.y,
+                   a.m32 * b.z, a.m33 * b.w);
     }
 
     /**
      * <p/>
-     * Multiply the transpose of <var>a</var> by the transpose of <var>b</var>, or compute
-     * <code>[a]^T x [b]^T</code> and store it in this matrix.
+     * Multiply the transpose of <var>a</var> by the transpose of <var>b</var>, or compute <code>[a]^T x
+     * [b]^T</code> and store it in this matrix.
      * <p/>
      * Note that <code>[a]^T x [b]^T = ([b] x [a])^T</code>
      *
@@ -418,15 +408,15 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 scale(@Const Matrix4 m, double scalar) {
-        return set(scalar * m.m00, scalar * m.m01, scalar * m.m02, scalar * m.m03,
-                   scalar * m.m10, scalar * m.m11, scalar * m.m12, scalar * m.m13,
-                   scalar * m.m20, scalar * m.m21, scalar * m.m22, scalar * m.m23,
-                   scalar * m.m30, scalar * m.m31, scalar * m.m32, scalar * m.m33);
+        return set(scalar * m.m00, scalar * m.m01, scalar * m.m02, scalar * m.m03, scalar * m.m10,
+                   scalar * m.m11, scalar * m.m12, scalar * m.m13, scalar * m.m20, scalar * m.m21,
+                   scalar * m.m22, scalar * m.m23, scalar * m.m30, scalar * m.m31, scalar * m.m32,
+                   scalar * m.m33);
     }
 
     /**
-     * Compute the trace of this matrix. The trace is defined as the sum of the diagonal
-     * entries of the matrix.
+     * Compute the trace of this matrix. The trace is defined as the sum of the diagonal entries of the
+     * matrix.
      *
      * @return The matrix's trace
      */
@@ -444,8 +434,8 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 transpose(@Const Matrix4 m) {
-        return set(m.m00, m.m10, m.m20, m.m30, m.m01, m.m11, m.m21, m.m31, m.m02, m.m12,
-                   m.m22, m.m32, m.m03, m.m13, m.m23, m.m33);
+        return set(m.m00, m.m10, m.m20, m.m30, m.m01, m.m11, m.m21, m.m31, m.m02, m.m12, m.m22, m.m32, m.m03,
+                   m.m13, m.m23, m.m33);
     }
 
     /**
@@ -473,8 +463,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Invert this matrix in place, equivalent to {@link #inverse(Matrix4)} with the first
-     * parameter being this matrix.
+     * Invert this matrix in place, equivalent to {@link #inverse(Matrix4)} with the first parameter being
+     * this matrix.
      *
      * @return This matrix
      *
@@ -498,8 +488,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulDiagonal(Matrix4, Vector4)} with the first parameter being this
-     * matrix.
+     * As {@link #mulDiagonal(Matrix4, Vector4)} with the first parameter being this matrix.
      *
      * @param diag
      *
@@ -512,8 +501,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeBoth(Matrix4, Matrix4)} with the first parameter being this
-     * matrix.
+     * As {@link #mulTransposeBoth(Matrix4, Matrix4)} with the first parameter being this matrix.
      *
      * @param r
      *
@@ -526,8 +514,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeLeft(Matrix4, Matrix4)} with the first parameter being this
-     * matrix.
+     * As {@link #mulTransposeLeft(Matrix4, Matrix4)} with the first parameter being this matrix.
      *
      * @param r
      *
@@ -540,8 +527,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #mulTransposeRight(Matrix4, Matrix4)} with the first parameter being this
-     * matrix.
+     * As {@link #mulTransposeRight(Matrix4, Matrix4)} with the first parameter being this matrix.
      *
      * @param r
      *
@@ -565,8 +551,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Transpose this matrix in place, equivalent to {@link #transpose(Matrix4)} with the
-     * first parameter being this matrix.
+     * Transpose this matrix in place, equivalent to {@link #transpose(Matrix4)} with the first parameter
+     * being this matrix.
      *
      * @return This matrix
      */
@@ -575,8 +561,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set the matrix component at the given row and column to value. Both row and col
-     * must be in [0, 3].
+     * Set the matrix component at the given row and column to value. Both row and col must be in [0, 3].
      *
      * @param row   The matrix row, in [0, 3]
      * @param col   The matrix column, in [0, 3]
@@ -597,8 +582,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 m03 = value;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 1) {
             if (col == 0) {
@@ -610,8 +594,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 m13 = value;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 2) {
             if (col == 0) {
@@ -623,8 +606,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 m23 = value;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 3) {
             if (col == 0) {
@@ -636,8 +618,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 m33 = value;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else {
             throw new IndexOutOfBoundsException("Row is not 0, 1, 2, or 3: " + row);
@@ -646,9 +627,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set the given matrix column to the four values stored in the vector. The x
-     * component is the value used for the 1st row, the y is the 2nd row, the z is the 3rd
-     * row, and the w is the 4th row.
+     * Set the given matrix column to the four values stored in the vector. The x component is the value used
+     * for the 1st row, the y is the 2nd row, the z is the 3rd row, and the w is the 4th row.
      *
      * @param col    Matrix column to use, in [0, 3]
      * @param values Vector source for the four column values
@@ -686,9 +666,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set the given matrix row to the four values stored in the vector. The x component
-     * is the value used for the 1st column, the y is the 2nd column, the z is the 3rd
-     * column, and w is the 4th column
+     * Set the given matrix row to the four values stored in the vector. The x component is the value used for
+     * the 1st column, the y is the 2nd column, the z is the 3rd column, and w is the 4th column
      *
      * @param row    Matrix row to use, in [0, 3]
      * @param values Vector source for the four row values
@@ -726,10 +705,10 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set all sixteen values of this matrix from the given array values. If rowMajor is
-     * true, each set of four floats is treated as a row. If it is false, the values are
-     * column major, and each four represents a matrix column. The values are taken from
-     * the values array starting at offset; it is assumed that the array is long enough.
+     * Set all sixteen values of this matrix from the given array values. If rowMajor is true, each set of
+     * four floats is treated as a row. If it is false, the values are column major, and each four represents
+     * a matrix column. The values are taken from the values array starting at offset; it is assumed that the
+     * array is long enough.
      *
      * @param values   Double source for the new matrix data
      * @param offset   Start index of the float values
@@ -738,24 +717,19 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      *
      * @throws NullPointerException           if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
-     *                                        at offset
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting at offset
      */
     public Matrix4 set(double[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values[offset], values[offset + 1], values[offset + 2],
-                       values[offset + 3], values[offset + 4], values[offset + 5],
-                       values[offset + 6], values[offset + 7], values[offset + 8],
-                       values[offset + 9], values[offset + 10], values[offset + 11],
-                       values[offset + 12], values[offset + 13], values[offset + 14],
-                       values[offset + 15]);
+            return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3],
+                       values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7],
+                       values[offset + 8], values[offset + 9], values[offset + 10], values[offset + 11],
+                       values[offset + 12], values[offset + 13], values[offset + 14], values[offset + 15]);
         } else {
-            return set(values[offset], values[offset + 4], values[offset + 8],
-                       values[offset + 12], values[offset + 1], values[offset + 5],
-                       values[offset + 9], values[offset + 13], values[offset + 2],
-                       values[offset + 6], values[offset + 10], values[offset + 14],
-                       values[offset + 3], values[offset + 7], values[offset + 11],
-                       values[offset + 15]);
+            return set(values[offset], values[offset + 4], values[offset + 8], values[offset + 12],
+                       values[offset + 1], values[offset + 5], values[offset + 9], values[offset + 13],
+                       values[offset + 2], values[offset + 6], values[offset + 10], values[offset + 14],
+                       values[offset + 3], values[offset + 7], values[offset + 11], values[offset + 15]);
         }
     }
 
@@ -769,30 +743,24 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      *
      * @throws NullPointerException           if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
-     *                                        at offset
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting at offset
      */
     public Matrix4 set(float[] values, int offset, boolean rowMajor) {
         if (rowMajor) {
-            return set(values[offset], values[offset + 1], values[offset + 2],
-                       values[offset + 3], values[offset + 4], values[offset + 5],
-                       values[offset + 6], values[offset + 7], values[offset + 8],
-                       values[offset + 9], values[offset + 10], values[offset + 11],
-                       values[offset + 12], values[offset + 13], values[offset + 14],
-                       values[offset + 15]);
+            return set(values[offset], values[offset + 1], values[offset + 2], values[offset + 3],
+                       values[offset + 4], values[offset + 5], values[offset + 6], values[offset + 7],
+                       values[offset + 8], values[offset + 9], values[offset + 10], values[offset + 11],
+                       values[offset + 12], values[offset + 13], values[offset + 14], values[offset + 15]);
         } else {
-            return set(values[offset], values[offset + 4], values[offset + 8],
-                       values[offset + 12], values[offset + 1], values[offset + 5],
-                       values[offset + 9], values[offset + 13], values[offset + 2],
-                       values[offset + 6], values[offset + 10], values[offset + 14],
-                       values[offset + 3], values[offset + 7], values[offset + 11],
-                       values[offset + 15]);
+            return set(values[offset], values[offset + 4], values[offset + 8], values[offset + 12],
+                       values[offset + 1], values[offset + 5], values[offset + 9], values[offset + 13],
+                       values[offset + 2], values[offset + 6], values[offset + 10], values[offset + 14],
+                       values[offset + 3], values[offset + 7], values[offset + 11], values[offset + 15]);
         }
     }
 
     /**
-     * As {@link #set(double[], int, boolean)} except a DoubleBuffer is the source of
-     * values.
+     * As {@link #set(double[], int, boolean)} except a DoubleBuffer is the source of values.
      *
      * @param values   Double source for the new matrix data
      * @param offset   Start index of the float values
@@ -801,35 +769,29 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      *
      * @throws NullPointerException           if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
-     *                                        at offset
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting at offset
      */
     public Matrix4 set(DoubleBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
             return set(values.get(offset), values.get(offset + 1), values.get(offset + 2),
-                       values.get(offset + 3), values.get(offset + 4),
-                       values.get(offset + 5), values.get(offset + 6),
-                       values.get(offset + 7), values.get(offset + 8),
-                       values.get(offset + 9), values.get(offset + 10),
-                       values.get(offset + 11), values.get(offset + 12),
-                       values.get(offset + 13), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 4), values.get(offset + 5),
+                       values.get(offset + 6), values.get(offset + 7), values.get(offset + 8),
+                       values.get(offset + 9), values.get(offset + 10), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 13), values.get(offset + 14),
                        values.get(offset + 15));
         } else {
             return set(values.get(offset), values.get(offset + 4), values.get(offset + 8),
-                       values.get(offset + 12), values.get(offset + 1),
-                       values.get(offset + 5), values.get(offset + 9),
-                       values.get(offset + 13), values.get(offset + 2),
-                       values.get(offset + 6), values.get(offset + 10),
-                       values.get(offset + 14), values.get(offset + 3),
-                       values.get(offset + 7), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 1), values.get(offset + 5),
+                       values.get(offset + 9), values.get(offset + 13), values.get(offset + 2),
+                       values.get(offset + 6), values.get(offset + 10), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 7), values.get(offset + 11),
                        values.get(offset + 15));
         }
 
     }
 
     /**
-     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the source of
-     * values.
+     * As {@link #set(double[], int, boolean)} except a FloatBuffer is the source of values.
      *
      * @param values   Float source for the new matrix data
      * @param offset   Start index of the float values
@@ -838,35 +800,30 @@ public final class Matrix4 implements Cloneable {
      * @return This matrix
      *
      * @throws NullPointerException           if values is null
-     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting
-     *                                        at offset
+     * @throws ArrayIndexOutOfBoundsException if values doesn't have 16 elements starting at offset
      */
     public Matrix4 set(FloatBuffer values, int offset, boolean rowMajor) {
         if (rowMajor) {
             return set(values.get(offset), values.get(offset + 1), values.get(offset + 2),
-                       values.get(offset + 3), values.get(offset + 4),
-                       values.get(offset + 5), values.get(offset + 6),
-                       values.get(offset + 7), values.get(offset + 8),
-                       values.get(offset + 9), values.get(offset + 10),
-                       values.get(offset + 11), values.get(offset + 12),
-                       values.get(offset + 13), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 4), values.get(offset + 5),
+                       values.get(offset + 6), values.get(offset + 7), values.get(offset + 8),
+                       values.get(offset + 9), values.get(offset + 10), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 13), values.get(offset + 14),
                        values.get(offset + 15));
         } else {
             return set(values.get(offset), values.get(offset + 4), values.get(offset + 8),
-                       values.get(offset + 12), values.get(offset + 1),
-                       values.get(offset + 5), values.get(offset + 9),
-                       values.get(offset + 13), values.get(offset + 2),
-                       values.get(offset + 6), values.get(offset + 10),
-                       values.get(offset + 14), values.get(offset + 3),
-                       values.get(offset + 7), values.get(offset + 11),
+                       values.get(offset + 12), values.get(offset + 1), values.get(offset + 5),
+                       values.get(offset + 9), values.get(offset + 13), values.get(offset + 2),
+                       values.get(offset + 6), values.get(offset + 10), values.get(offset + 14),
+                       values.get(offset + 3), values.get(offset + 7), values.get(offset + 11),
                        values.get(offset + 15));
         }
 
     }
 
     /**
-     * Set the sixteen values of this matrix in bulk. This is equivalent to assigning each
-     * parameter to the matrix's public field of identical name.
+     * Set the sixteen values of this matrix in bulk. This is equivalent to assigning each parameter to the
+     * matrix's public field of identical name.
      *
      * @param m00 New value for 1st row and 1st column
      * @param m01 New value for 1st row and 2nd column
@@ -887,10 +844,9 @@ public final class Matrix4 implements Cloneable {
      *
      * @return This matrix
      */
-    public Matrix4 set(double m00, double m01, double m02, double m03, double m10,
-                       double m11, double m12, double m13, double m20, double m21,
-                       double m22, double m23, double m30, double m31, double m32,
-                       double m33) {
+    public Matrix4 set(double m00, double m01, double m02, double m03, double m10, double m11, double m12,
+                       double m13, double m20, double m21, double m22, double m23, double m30, double m31,
+                       double m32, double m33) {
         this.m00 = m00;
         this.m01 = m01;
         this.m02 = m02;
@@ -911,8 +867,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Set the upper 3x3 of this matrix to the 9 values stored in <var>m</var>. The 4th
-     * row and column of this matrix are not modified.
+     * Set the upper 3x3 of this matrix to the 9 values stored in <var>m</var>. The 4th row and column of this
+     * matrix are not modified.
      *
      * @param m The matrix copied into this matrix's upper 3x3
      *
@@ -921,8 +877,8 @@ public final class Matrix4 implements Cloneable {
      * @throws NullPointerException if m is null
      */
     public Matrix4 setUpper(@Const Matrix3 m) {
-        return set(m.m00, m.m01, m.m02, m03, m.m10, m.m11, m.m12, m13, m.m20, m.m21,
-                   m.m22, m23, m30, m31, m32, m33);
+        return set(m.m00, m.m01, m.m02, m03, m.m10, m.m11, m.m12, m13, m.m20, m.m21, m.m22, m23, m30, m31,
+                   m32, m33);
     }
 
     /**
@@ -964,8 +920,8 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Return the value of the matrix entry at the given row and column. row and col must
-     * both be within [0, 3], where 0 represents the 1st row or column.
+     * Return the value of the matrix entry at the given row and column. row and col must both be within [0,
+     * 3], where 0 represents the 1st row or column.
      *
      * @param row Row to access, in [0, 3]
      * @param col Col to access, in [0, 3]
@@ -985,8 +941,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 return m03;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 1) {
             if (col == 0) {
@@ -998,8 +953,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 return m13;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 2) {
             if (col == 0) {
@@ -1011,8 +965,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 return m23;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else if (row == 3) {
             if (col == 0) {
@@ -1024,8 +977,7 @@ public final class Matrix4 implements Cloneable {
             } else if (col == 3) {
                 return m33;
             } else {
-                throw new IndexOutOfBoundsException(
-                        "Column is not 0, 1, 2, or 3: " + col);
+                throw new IndexOutOfBoundsException("Column is not 0, 1, 2, or 3: " + col);
             }
         } else {
             throw new IndexOutOfBoundsException("Row is not 0, 1, 2, or 3: " + row);
@@ -1034,21 +986,20 @@ public final class Matrix4 implements Cloneable {
 
     /**
      * <p/>
-     * Store the entire matrix into an array, starting at offset. If rowMajor is true, the
-     * matrix should stored in row-major order (i.e. every 4 values constitutes a row). If
-     * it is false, then the matrix is stored in column-major order (every 4 values is a
-     * column of the matrix).
+     * Store the entire matrix into an array, starting at offset. If rowMajor is true, the matrix should
+     * stored in row-major order (i.e. every 4 values constitutes a row). If it is false, then the matrix is
+     * stored in column-major order (every 4 values is a column of the matrix).
      * <p/>
-     * It is assumed that there is enough space in store, starting at offset to hold the
-     * sixteen matrix values of this matrix.
+     * It is assumed that there is enough space in store, starting at offset to hold the sixteen matrix values
+     * of this matrix.
      *
      * @param store    Array to hold the sixteen matrix values.
      * @param offset   First index used to store the matrix data
      * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
      *
      * @throws NullPointerException           if store is null
-     * @throws ArrayIndexOutOfBoundsException if there isn't enough space in store to
-     *                                        contain the matrix, starting at offset
+     * @throws ArrayIndexOutOfBoundsException if there isn't enough space in store to contain the matrix,
+     *                                        starting at offset
      */
     public void get(double[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -1095,8 +1046,7 @@ public final class Matrix4 implements Cloneable {
      * @param offset   The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
      *
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
-     *                                        column
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the column
      */
     public void get(float[] store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -1137,15 +1087,14 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <var>offset</var>
-     * is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int, boolean)}, but with a DoubleBuffer. <var>offset</var> is measured from 0,
+     * not the buffer's position.
      *
      * @param store    The DoubleBuffer to hold the row values
      * @param offset   The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
      *
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
-     *                                        column
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the column
      */
     public void get(DoubleBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -1186,15 +1135,14 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <var>offset</var>
-     * is measured from 0, not the buffer's position.
+     * As {@link #get(double[], int, boolean)}, but with a FloatBuffer. <var>offset</var> is measured from 0,
+     * not the buffer's position.
      *
      * @param store    The FloatBuffer to hold the row values
      * @param offset   The first index to use in the store
      * @param rowMajor True if the matrix values are stored as rows, otherwise as columns
      *
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
-     *                                        column
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the column
      */
     public void get(FloatBuffer store, int offset, boolean rowMajor) {
         if (rowMajor) {
@@ -1235,8 +1183,7 @@ public final class Matrix4 implements Cloneable {
     }
 
     /**
-     * Return a new Matrix3 that contains the current upper 3x3 matrix of this 4x4
-     * matrix.
+     * Return a new Matrix3 that contains the current upper 3x3 matrix of this 4x4 matrix.
      *
      * @return A 3x3 matrix representing the upper 3x3 values of this matrix
      */
@@ -1296,8 +1243,7 @@ public final class Matrix4 implements Cloneable {
      * @param e   Matrix to check approximate equality to
      * @param eps Error tolerance of each component
      *
-     * @return True if all component values are within eps of the corresponding component
-     *         of e
+     * @return True if all component values are within eps of the corresponding component of e
      */
     public boolean epsilonEquals(@Const Matrix4 e, double eps) {
         if (e == null) {
@@ -1350,8 +1296,7 @@ public final class Matrix4 implements Cloneable {
         result += result * 31 + Double.doubleToLongBits(m32);
         result += result * 31 + Double.doubleToLongBits(m33);
 
-        return (int) (((result & 0xffffffff00000000L) >> 32) ^
-                      (result & 0x00000000ffffffffL));
+        return (int) (((result & 0xffffffff00000000L) >> 32) ^ (result & 0x00000000ffffffffL));
     }
 
     @Override

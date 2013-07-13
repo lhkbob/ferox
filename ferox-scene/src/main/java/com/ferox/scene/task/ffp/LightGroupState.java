@@ -19,16 +19,14 @@ public class LightGroupState implements State {
     private final LightBatch[] batches;
 
     public LightGroupState(Set<Component<? extends Light<?>>> lightGroup,
-                           Set<Component<? extends Light<?>>> shadowCastingLights,
-                           int maxLights, DirectionLight dl, SpotLight sl, PointLight pl,
-                           AmbientLight al, Transform t) {
+                           Set<Component<? extends Light<?>>> shadowCastingLights, int maxLights,
+                           DirectionLight dl, SpotLight sl, PointLight pl, AmbientLight al, Transform t) {
         this.shadowCastingLights = shadowCastingLights;
 
         List<LightBatch> states = new ArrayList<LightBatch>();
         List<Component<?>> unassignedAmbientLights = new ArrayList<Component<?>>();
 
-        LightBatch currentState = new LightBatch(
-                maxLights); // always have one state, even if empty
+        LightBatch currentState = new LightBatch(maxLights); // always have one state, even if empty
         states.add(currentState);
 
         int index = 0;
@@ -43,13 +41,12 @@ public class LightGroupState implements State {
             } else if (light.getType().equals(SpotLight.class) && e.get(sl)) {
                 gl = new GLLight();
                 e.get(t);
-                gl.setSpotLight(light, sl.getColor(), sl.getCutoffAngle(),
-                                sl.getFalloffDistance(), t.getMatrix());
+                gl.setSpotLight(light, sl.getColor(), sl.getCutoffAngle(), sl.getFalloffDistance(),
+                                t.getMatrix());
             } else if (light.getType().equals(PointLight.class) && e.get(pl)) {
                 gl = new GLLight();
                 e.get(t);
-                gl.setPointLight(light, pl.getColor(), pl.getFalloffDistance(),
-                                 t.getMatrix());
+                gl.setPointLight(light, pl.getColor(), pl.getFalloffDistance(), t.getMatrix());
             } else if (light.getType().equals(AmbientLight.class)) {
                 if (currentState.ambientColor == null) {
                     // merge ambient light with this state group
@@ -75,12 +72,10 @@ public class LightGroupState implements State {
 
         // process any ambient lights that need to go into a state group
         if (!unassignedAmbientLights.isEmpty()) {
-            for (int j = 0; j < states.size() && !unassignedAmbientLights.isEmpty();
-                 j++) {
+            for (int j = 0; j < states.size() && !unassignedAmbientLights.isEmpty(); j++) {
                 if (states.get(j).ambientColor == null) {
                     // this state can take an ambient light color
-                    Component<?> light = unassignedAmbientLights
-                            .remove(unassignedAmbientLights.size() - 1);
+                    Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
                     if (light.getEntity().get(al)) {
                         states.get(j).setAmbientLight(al.getColor());
                     }
@@ -90,8 +85,7 @@ public class LightGroupState implements State {
             // if there are still ambient lights, we need one state for
             // each ambient light without any other configuration
             while (!unassignedAmbientLights.isEmpty()) {
-                Component<?> light = unassignedAmbientLights
-                        .remove(unassignedAmbientLights.size() - 1);
+                Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
                 if (light.getEntity().get(al)) {
                     LightBatch state = new LightBatch(0);
                     state.setAmbientLight(al.getColor());
@@ -104,8 +98,7 @@ public class LightGroupState implements State {
     }
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         // we only do blending overriding when accumulating into the previous
         // lights that were already rendered. If we're in the shadowing pass, we
         // know that only a single light is active so it doesn't matter if the index > 0,
@@ -119,8 +112,7 @@ public class LightGroupState implements State {
 
         if (needsBlending) {
             // update blending state
-            batchEffects = effects
-                    .applyBlending(effects.getSourceBlendFactor(), BlendFactor.ONE);
+            batchEffects = effects.applyBlending(effects.getSourceBlendFactor(), BlendFactor.ONE);
             batchEffects.pushBlending(r);
         }
 
@@ -155,8 +147,7 @@ public class LightGroupState implements State {
 
         public void renderBatch(int batch, StateNode currentNode, AppliedEffects effects,
                                 HardwareAccessLayer access) {
-            FixedFunctionRenderer r = access.getCurrentContext()
-                                            .getFixedFunctionRenderer();
+            FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
             int numLights = 0;
 
             if (!effects.isShadowBeingRendered() && ambientColor != null) {
@@ -179,8 +170,8 @@ public class LightGroupState implements State {
                     // stage of shadow mapping
                     boolean ifInSM = effects.isShadowBeingRendered() &&
                                      light.source == effects.getShadowMappingLight();
-                    boolean notInSM = !effects.isShadowBeingRendered() &&
-                                      !shadowCastingLights.contains(light.source);
+                    boolean notInSM =
+                            !effects.isShadowBeingRendered() && !shadowCastingLights.contains(light.source);
 
                     if (ifInSM || notInSM) {
                         // enable and configure the light
@@ -190,15 +181,12 @@ public class LightGroupState implements State {
 
                         if (light.spotlightDirection != null) {
                             // configure additional spotlight parameters
-                            r.setSpotlight(i, light.spotlightDirection,
-                                           light.cutoffAngle);
+                            r.setSpotlight(i, light.spotlightDirection, light.cutoffAngle);
                             if (light.falloff >= 0) {
                                 // the constant 15 was chosen through experimentation, basically
                                 // a value that makes lights seem bright enough but still
                                 // drop off pretty well by the desired radius
-                                r.setLightAttenuation(i, 1.0, 0.0, (15.0 /
-                                                                    (light.falloff *
-                                                                     light.falloff)));
+                                r.setLightAttenuation(i, 1.0, 0.0, (15.0 / (light.falloff * light.falloff)));
                             } else {
                                 // disable attenuation
                                 r.setLightAttenuation(i, 1.0, 0.0, 0.0);
@@ -245,8 +233,8 @@ public class LightGroupState implements State {
             source = light;
         }
 
-        public void setSpotLight(Component<? extends Light<?>> light, ColorRGB color,
-                                 double cutoffAngle, double falloff, Matrix4 transform) {
+        public void setSpotLight(Component<? extends Light<?>> light, ColorRGB color, double cutoffAngle,
+                                 double falloff, Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
             this.color = convertColor(color);
             spotlightDirection = new Vector3(transform.m02, transform.m12, transform.m22);
@@ -255,12 +243,11 @@ public class LightGroupState implements State {
             source = light;
         }
 
-        public void setPointLight(Component<? extends Light<?>> light, ColorRGB color,
-                                  double falloff, Matrix4 transform) {
+        public void setPointLight(Component<? extends Light<?>> light, ColorRGB color, double falloff,
+                                  Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
             this.color = convertColor(color);
-            spotlightDirection = new Vector3(0.0, 0.0,
-                                             1.0); // any non-null direction is fine
+            spotlightDirection = new Vector3(0.0, 0.0, 1.0); // any non-null direction is fine
             this.cutoffAngle = 180.0;
             this.falloff = falloff;
             source = light;

@@ -28,8 +28,8 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.texture.Texture.Target;
@@ -41,9 +41,9 @@ import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 /**
- * JoglFboTextureSurface is a TextureSurface that uses FBOs to render into textures.
- * Because it uses FBOs it will not have its own JoglContext and is instead attached to a
- * context providing surface each time the surface must be used.
+ * JoglFboTextureSurface is a TextureSurface that uses FBOs to render into textures. Because it uses FBOs it
+ * will not have its own JoglContext and is instead attached to a context providing surface each time the
+ * surface must be used.
  *
  * @author Michael Ludwig
  */
@@ -128,8 +128,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                         "FramebufferObject's can only be constructed when there's a current context");
             }
             if (!context.getRenderCapabilities().getFboSupport()) {
-                throw new FrameworkException(
-                        "Current hardware doesn't support the creation of fbos");
+                throw new FrameworkException("Current hardware doesn't support the creation of fbos");
             }
 
             GL2GL3 gl = getGL(context);
@@ -144,8 +143,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
             fboId = id[0];
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
 
-            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0) : Utils
-                    .getGLTextureTarget(target));
+            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0)
+                                                       : Utils.getGLTextureTarget(target));
             TextureHandle depth = (TextureHandle) getDepthHandle();
             if (depth != null) {
                 // attach the depth texture
@@ -158,8 +157,7 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 renderBufferId = id[0];
 
                 gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderBufferId);
-                gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT,
-                                         width, height);
+                gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, width, height);
 
                 if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
@@ -169,8 +167,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
                 } else {
                     gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
                 }
-                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT,
-                                             GL.GL_RENDERBUFFER, renderBufferId);
+                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER,
+                                             renderBufferId);
             }
 
             colorImageIds = new int[getNumColorBuffers()];
@@ -232,13 +230,11 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
 
             // possibly re-attach the images (in the case of cubemaps or 3d textures)
             int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
-                                                       : Utils
-                                    .getGLTextureTarget(target));
+                                                       : Utils.getGLTextureTarget(target));
             if (layer != boundLayer) {
                 if (colorImageIds != null) {
                     for (int i = 0; i < colorImageIds.length; i++) {
-                        attachImage(gl, glTarget, colorImageIds[i], layer,
-                                    GL.GL_COLOR_ATTACHMENT0 + i);
+                        attachImage(gl, glTarget, colorImageIds[i], layer, GL.GL_COLOR_ATTACHMENT0 + i);
                     }
                 }
                 // we don't have to re-attach depth images -> 1 layer only
@@ -259,15 +255,13 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
         }
 
         // Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
-        private void attachImage(GL2GL3 gl, int target, int id, int layer,
-                                 int attachment) {
+        private void attachImage(GL2GL3 gl, int target, int id, int layer, int attachment) {
             switch (target) {
             case GL2GL3.GL_TEXTURE_1D:
                 gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
                 break;
             case GL2ES2.GL_TEXTURE_3D:
-                gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0,
-                                          layer);
+                gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0, layer);
                 break;
             default: // 2d or a cubemap face
                 gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);

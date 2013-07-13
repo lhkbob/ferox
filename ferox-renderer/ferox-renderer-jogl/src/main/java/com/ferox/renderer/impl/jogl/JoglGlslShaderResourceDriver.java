@@ -38,8 +38,8 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 
 /**
- * JoglGlslShaderResourceDriver is a concrete ResourceDriver that handles GlslShaders
- * using the JOGL OpenGL binding.
+ * JoglGlslShaderResourceDriver is a concrete ResourceDriver that handles GlslShaders using the JOGL OpenGL
+ * binding.
  *
  * @author Michael Ludwig
  */
@@ -60,8 +60,7 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
         GL2GL3 gl = getGL(context);
 
         // set the source code for the shader
-        gl.glShaderSource(shaderId, 1, new String[] { code }, new int[] { code.length() },
-                          0);
+        gl.glShaderSource(shaderId, 1, new String[] { code }, new int[] { code.length() }, 0);
         // compile the shader
         gl.glCompileShader(shaderId);
 
@@ -139,8 +138,7 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
         gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_ATTRIBUTES, query, 0);
         int numAttrs = query[0];
 
-        gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, query,
-                          0);
+        gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, query, 0);
         int maxAttributeNameLength = query[0];
         byte[] name = new byte[maxAttributeNameLength];
 
@@ -149,8 +147,8 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
         int[] type = new int[1];
         for (int i = 0; i < numAttrs; i++) {
             // read uniform properties
-            gl.glGetActiveAttrib(handle.programID, i, maxAttributeNameLength, nameLen, 0,
-                                 len, 0, type, 0, name, 0);
+            gl.glGetActiveAttrib(handle.programID, i, maxAttributeNameLength, nameLen, 0, len, 0, type, 0,
+                                 name, 0);
             String attrName = new String(name, 0, nameLen[0]);
             int index = gl.glGetAttribLocation(handle.programID, attrName);
             Attribute a = new Attribute(attrName, Utils.getAttributeType(type[0]), index);
@@ -167,8 +165,7 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
         gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_UNIFORMS, query, 0);
         int numUniforms = query[0];
 
-        gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_UNIFORM_MAX_LENGTH, query,
-                          0);
+        gl.glGetProgramiv(handle.programID, GL2ES2.GL_ACTIVE_UNIFORM_MAX_LENGTH, query, 0);
         int maxUniformNameLength = query[0];
         byte[] name = new byte[maxUniformNameLength];
 
@@ -177,11 +174,10 @@ public class JoglGlslShaderResourceDriver extends AbstractGlslShaderResourceDriv
         int[] type = new int[1];
         for (int i = 0; i < numUniforms; i++) {
             // read uniform properties
-            gl.glGetActiveUniform(handle.programID, i, maxUniformNameLength, nameLen, 0,
-                                  len, 0, type, 0, name, 0);
+            gl.glGetActiveUniform(handle.programID, i, maxUniformNameLength, nameLen, 0, len, 0, type, 0,
+                                  name, 0);
             String uniformName = new String(name, 0, nameLen[0]);
-            Uniform u = new Uniform(uniformName, Utils.getUniformType(type[0]),
-                                            len[0]);
+            Uniform u = new Uniform(uniformName, Utils.getUniformType(type[0]), len[0]);
 
             // get uniform location
             int location = gl.glGetUniformLocation(handle.programID, uniformName);

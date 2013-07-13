@@ -24,8 +24,7 @@ public class ShadowMapState implements State {
     }
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
         // render base pass with current configuration
@@ -34,8 +33,7 @@ public class ShadowMapState implements State {
         // configure global state for shadow mapping passes
         r.setDepthOffsetsEnabled(true);
         r.setDepthOffsets(0, -5); // offset depth in opposite direction from SM depth
-        AppliedEffects shadowEffects = effects
-                .applyBlending(BlendFactor.SRC_ALPHA, BlendFactor.ONE);
+        AppliedEffects shadowEffects = effects.applyBlending(BlendFactor.SRC_ALPHA, BlendFactor.ONE);
         shadowEffects.pushBlending(r); // this also sets the depth-mask/test appropriately
 
         // now apply shadow passes
@@ -46,16 +44,14 @@ public class ShadowMapState implements State {
         // restore state (since there won't be multiple shadow-map states
         // together we can do it this way instead of using a reset node like
         // textures and colors, etc)
-        r = access.getCurrentContext()
-                  .getFixedFunctionRenderer(); // must re-get renderer, though
+        r = access.getCurrentContext().getFixedFunctionRenderer(); // must re-get renderer, though
         effects.pushBlending(r);
         r.setDepthOffsetsEnabled(false);
         r.setTexture(shadowMapUnit, null);
     }
 
-    private void renderShadowPass(Component<? extends Light<?>> shadowCaster,
-                                  StateNode node, AppliedEffects effects,
-                                  HardwareAccessLayer access) {
+    private void renderShadowPass(Component<? extends Light<?>> shadowCaster, StateNode node,
+                                  AppliedEffects effects, HardwareAccessLayer access) {
         Frustum smFrustum = shadowMap.getShadowMapFrustum(shadowCaster);
         Texture shadowTexture = shadowMap.getShadowMap(shadowCaster, access);
 

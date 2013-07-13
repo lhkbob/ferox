@@ -127,8 +127,8 @@ public class Vector4Property implements ShareableProperty<Vector4> {
     }
 
     /**
-     * Default factory implementation for Vector4Properties, supports the {@link
-     * DefaultVector4} annotation to specify the default vector coordinates.
+     * Default factory implementation for Vector4Properties, supports the {@link DefaultVector4} annotation to
+     * specify the default vector coordinates.
      *
      * @author Michael Ludwig
      */
@@ -145,8 +145,7 @@ public class Vector4Property implements ShareableProperty<Vector4> {
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Vector4 v) {
@@ -165,8 +164,7 @@ public class Vector4Property implements ShareableProperty<Vector4> {
         }
 
         @Override
-        public void clone(Vector4Property src, int srcIndex, Vector4Property dst,
-                          int dstIndex) {
+        public void clone(Vector4Property src, int srcIndex, Vector4Property dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {

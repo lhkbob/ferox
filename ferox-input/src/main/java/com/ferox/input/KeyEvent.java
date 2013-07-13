@@ -28,25 +28,24 @@ package com.ferox.input;
 
 /**
  * <p/>
- * KeyEvent is the concrete event type representing a user's interactions with a keyboard.
- * KeyEvent's represent presses and releases of the keys on a keyboard.
+ * KeyEvent is the concrete event type representing a user's interactions with a keyboard. KeyEvent's
+ * represent presses and releases of the keys on a keyboard.
  *
  * @author Michael Ludwig
  */
 public class KeyEvent implements Event {
     /**
-     * Type represents the possible types of KeyEvents produced when a user interacts with
-     * a keyboard.
+     * Type represents the possible types of KeyEvents produced when a user interacts with a keyboard.
      */
     public static enum Type {
         /**
-         * A key is pressed. Some OS's might continue to send PRESS events even if there's
-         * been no subsequent RELEASE.
+         * A key is pressed. Some OS's might continue to send PRESS events even if there's been no subsequent
+         * RELEASE.
          */
         PRESS,
         /**
-         * A key that was pressed has been released. These events will only be sent for
-         * keys that have already produced at least one PRESS event.
+         * A key that was pressed has been released. These events will only be sent for keys that have already
+         * produced at least one PRESS event.
          */
         RELEASE
     }
@@ -57,9 +56,8 @@ public class KeyEvent implements Event {
     public static final int CHAR_UNKNOWN = '\0';
 
     /**
-     * KeyCode represents all supported keyboard buttons that can be identified in a press
-     * or release event. The key code can represent keys that are modifiers that would not
-     * produce characters by themselves.
+     * KeyCode represents all supported keyboard buttons that can be identified in a press or release event.
+     * The key code can represent keys that are modifiers that would not produce characters by themselves.
      */
     public static enum KeyCode {
         UNKNOWN("Unknown"),
@@ -217,9 +215,8 @@ public class KeyEvent implements Event {
     }
 
     /**
-     * Get the character typed by this event. This will correctly have any previously
-     * pressed modifier keys or language layouts applied to produce the expected character
-     * suitable for a text editor.
+     * Get the character typed by this event. This will correctly have any previously pressed modifier keys or
+     * language layouts applied to produce the expected character suitable for a text editor.
      *
      * @return The character typed by this event
      */
@@ -228,8 +225,7 @@ public class KeyEvent implements Event {
     }
 
     /**
-     * @return The KeyCode representing the physical key that was pressed or released for
-     *         this event
+     * @return The KeyCode representing the physical key that was pressed or released for this event
      */
     public KeyCode getKeyCode() {
         return keyCode;

@@ -33,15 +33,13 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 /**
  * <p/>
- * SpotLight is a light that shines light in a cone along a specific direction, with the
- * origin of the light (or apex of the cone) located at a specific position. The size of
- * the cone can be configured with a cutoff angle that describes how wide or narrow the
- * cone is.
+ * SpotLight is a light that shines light in a cone along a specific direction, with the origin of the light
+ * (or apex of the cone) located at a specific position. The size of the cone can be configured with a cutoff
+ * angle that describes how wide or narrow the cone is.
  * <p/>
- * A SpotLight should be combined with a {@link Transform} component to specify its
- * position and direction. The direction is stored in the 3rd column of the 4x4 affine
- * matrix. If there is no transform component, the direction vector defaults to the
- * positive z axis.
+ * A SpotLight should be combined with a {@link Transform} component to specify its position and direction.
+ * The direction is stored in the 3rd column of the 4x4 affine matrix. If there is no transform component, the
+ * direction vector defaults to the positive z axis.
  *
  * @author Michael Ludwig
  */
@@ -76,9 +74,9 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     }
 
     /**
-     * Return the cutoff angle, in degrees, representing the maximum angle light will
-     * spread from the {@link #getDirection() direction vector}. This creates a cone of
-     * light that is fat or thin depending on if the angle is large or small.
+     * Return the cutoff angle, in degrees, representing the maximum angle light will spread from the {@link
+     * #getDirection() direction vector}. This creates a cone of light that is fat or thin depending on if the
+     * angle is large or small.
      *
      * @return The cutoff angle in degrees, will be in [0, 90]
      */
@@ -87,9 +85,9 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
     }
 
     /**
-     * Set the cutoff angle for this SpotLight. The cutoff angle is the maximum angle, in
-     * degrees, from the {@link #getDirection() direction vector} that will be affected by
-     * the light. Thus an angle value of 90 would create a half-space that is lit.
+     * Set the cutoff angle for this SpotLight. The cutoff angle is the maximum angle, in degrees, from the
+     * {@link #getDirection() direction vector} that will be affected by the light. Thus an angle value of 90
+     * would create a half-space that is lit.
      *
      * @param angle The new cutoff angle, in [0, 90]
      *
@@ -99,8 +97,7 @@ public final class SpotLight extends AbstractPlacedLight<SpotLight> {
      */
     public SpotLight setCutoffAngle(double angle) {
         if (angle < 0 || angle > 90) {
-            throw new IllegalArgumentException(
-                    "Illegal cutoff angle, must be in [0, 90], not: " + angle);
+            throw new IllegalArgumentException("Illegal cutoff angle, must be in [0, 90], not: " + angle);
         }
         cutoffAngle.set(angle, getIndex());
         updateVersion();

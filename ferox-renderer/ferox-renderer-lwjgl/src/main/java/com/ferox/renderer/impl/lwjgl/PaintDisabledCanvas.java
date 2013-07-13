@@ -30,8 +30,8 @@ import java.awt.*;
 
 /**
  * <p/>
- * PaintDisabledCanvas is a Canvas that completely negates its paint() method and provides
- * a NullGraphics to prevent AWT from attempting any funny business.
+ * PaintDisabledCanvas is a Canvas that completely negates its paint() method and provides a NullGraphics to
+ * prevent AWT from attempting any funny business.
  *
  * @author Michael Ludwig
  */

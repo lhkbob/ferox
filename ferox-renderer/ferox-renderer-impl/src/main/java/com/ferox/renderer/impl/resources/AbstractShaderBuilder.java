@@ -13,8 +13,7 @@ import java.util.regex.Pattern;
 /**
  *
  */
-public abstract class AbstractShaderBuilder
-        extends AbstractBuilder<Shader, ShaderImpl.ShaderHandle>
+public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, ShaderImpl.ShaderHandle>
         implements ShaderBuilder {
     private static final Pattern VERSION = Pattern.compile("#VERSION (\\d+)[\\s]+.*");
 
@@ -94,22 +93,19 @@ public abstract class AbstractShaderBuilder
         int vertexVersion = extractShaderVersion(vertexCode);
         int fragmentVersion = extractShaderVersion(fragmentCode);
         if (fragmentVersion != vertexVersion) {
-            throw new ResourceException(
-                    "GLSL versions inconsistent between vertex (" + vertexVersion +
-                    ") and fragment (" + fragmentVersion + ") shaders");
+            throw new ResourceException("GLSL versions inconsistent between vertex (" + vertexVersion +
+                                        ") and fragment (" + fragmentVersion + ") shaders");
         }
 
         if (geometryCode != null) {
             if (!framework.getCapabilities().hasGeometryShaderSupport()) {
-                throw new ResourceException(
-                        "Geometry shaders are not supported on current hardware");
+                throw new ResourceException("Geometry shaders are not supported on current hardware");
             }
 
             int geometryVersion = extractShaderVersion(geometryCode);
             if (geometryVersion != vertexVersion) {
-                throw new ResourceException(
-                        "GLSL versions inconsistent between vertex (" + vertexVersion +
-                        ") and geometry (" + geometryVersion + ") shaders");
+                throw new ResourceException("GLSL versions inconsistent between vertex (" + vertexVersion +
+                                            ") and geometry (" + geometryVersion + ") shaders");
             }
 
             // FIXME is this the right version? is this even a valid check to perform?
@@ -125,12 +121,10 @@ public abstract class AbstractShaderBuilder
         for (String output : mappedBuffers.keySet()) {
             Integer buffer = mappedBuffers.get(output);
             if (buffer >= framework.getCapabilities().getMaxColorBuffers()) {
-                throw new ResourceException(
-                        "Current hardware cannot support a color buffer = " + buffer);
+                throw new ResourceException("Current hardware cannot support a color buffer = " + buffer);
             }
             if (buffer >= 0 && assignedBuffers.contains(buffer)) {
-                throw new ResourceException(
-                        "Multiple output variables mapped to the same color buffer");
+                throw new ResourceException("Multiple output variables mapped to the same color buffer");
             }
             assignedBuffers.add(buffer);
         }
@@ -141,8 +135,7 @@ public abstract class AbstractShaderBuilder
     @Override
     protected ShaderImpl.ShaderHandle allocate(OpenGLContext ctx) {
         int geometryID = (geometryCode == null ? 0 : createNewGeometryShader(ctx));
-        return new ShaderImpl.ShaderHandle(framework, createNewProgram(ctx),
-                                           createNewVertexShader(ctx),
+        return new ShaderImpl.ShaderHandle(framework, createNewProgram(ctx), createNewVertexShader(ctx),
                                            createNewFragmentShader(ctx), geometryID);
     }
 
@@ -163,8 +156,7 @@ public abstract class AbstractShaderBuilder
         // bind explicit varying outs before we link
         for (Map.Entry<String, Integer> binding : mappedBuffers.entrySet()) {
             if (binding.getValue() >= 0) {
-                bindFragmentLocation(ctx, handle.programID, binding.getKey(),
-                                     binding.getValue());
+                bindFragmentLocation(ctx, handle.programID, binding.getKey(), binding.getValue());
             }
         }
 
@@ -190,8 +182,8 @@ public abstract class AbstractShaderBuilder
 
     @Override
     protected Shader wrap(ShaderImpl.ShaderHandle handle) {
-        return new ShaderImpl(handle, detectedShaderVersion, detectedUniforms,
-                              detectedAttributes, detectedBufferMapping);
+        return new ShaderImpl(handle, detectedShaderVersion, detectedUniforms, detectedAttributes,
+                              detectedBufferMapping);
     }
 
     protected abstract int createNewProgram(OpenGLContext context);
@@ -202,25 +194,20 @@ public abstract class AbstractShaderBuilder
 
     protected abstract int createNewGeometryShader(OpenGLContext context);
 
-    protected abstract void compileShader(OpenGLContext context, int shaderID,
-                                          String code);
+    protected abstract void compileShader(OpenGLContext context, int shaderID, String code);
 
-    protected abstract void attachShader(OpenGLContext context, int programID,
-                                         int shaderID);
+    protected abstract void attachShader(OpenGLContext context, int programID, int shaderID);
 
     protected abstract void linkProgram(OpenGLContext context, int programID);
 
-    protected abstract List<Shader.Uniform> getUniforms(OpenGLContext context,
-                                                        int programID);
+    protected abstract List<Shader.Uniform> getUniforms(OpenGLContext context, int programID);
 
-    protected abstract List<Shader.Attribute> getAttributes(OpenGLContext context,
-                                                            int programID);
+    protected abstract List<Shader.Attribute> getAttributes(OpenGLContext context, int programID);
 
-    protected abstract void bindFragmentLocation(OpenGLContext context, int programID,
-                                                 String variable, int buffer);
+    protected abstract void bindFragmentLocation(OpenGLContext context, int programID, String variable,
+                                                 int buffer);
 
-    protected abstract int getFragmentLocation(OpenGLContext context, int programID,
-                                               String variable);
+    protected abstract int getFragmentLocation(OpenGLContext context, int programID, String variable);
 
     private int extractShaderVersion(String code) {
         Matcher m = VERSION.matcher(code);

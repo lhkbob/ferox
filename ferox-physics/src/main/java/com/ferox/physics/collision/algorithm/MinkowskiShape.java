@@ -50,8 +50,8 @@ public class MinkowskiShape {
     private final Vector3 pointTemp; // used in computePointOnA/B(), getClosestPair(), and getSupport()
     private final Vector3 inSupportTemp; // used in support()
 
-    public MinkowskiShape(ConvexShape shapeA, @Const Matrix4 transformA,
-                          ConvexShape shapeB, @Const Matrix4 transformB) {
+    public MinkowskiShape(ConvexShape shapeA, @Const Matrix4 transformA, ConvexShape shapeB,
+                          @Const Matrix4 transformB) {
         // We could keep these as Matrix4's and use Vector3.transform, but
         // separating them into rotation and translation is more convenient here
         rotationA = new Matrix3().setUpper(transformA);
@@ -71,8 +71,7 @@ public class MinkowskiShape {
 
     public void setAppliedMargins(int num) {
         if (num < 0) {
-            throw new IllegalArgumentException(
-                    "Applied margin count must be at least 0, not: " + num);
+            throw new IllegalArgumentException("Applied margin count must be at least 0, not: " + num);
         }
         numMargins = num;
     }
@@ -130,8 +129,7 @@ public class MinkowskiShape {
     private Vector3 computePointOnA(Simplex simplex) {
         Vector3 a = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeA, rotationA, translationA, simplex.getInput(i), false,
-                    pointTemp);
+            support(shapeA, rotationA, translationA, simplex.getInput(i), false, pointTemp);
             a.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return a;
@@ -140,8 +138,7 @@ public class MinkowskiShape {
     private Vector3 computePointOnB(Simplex simplex) {
         Vector3 b = new Vector3();
         for (int i = 0; i < simplex.getRank(); i++) {
-            support(shapeB, rotationB, translationB, simplex.getInput(i), true,
-                    pointTemp);
+            support(shapeB, rotationB, translationB, simplex.getInput(i), true, pointTemp);
             b.add(pointTemp.scale(simplex.getWeight(i)));
         }
         return b;
@@ -156,10 +153,9 @@ public class MinkowskiShape {
         return result.sub(pointTemp);
     }
 
-    private void support(ConvexShape shape, @Const Matrix3 r, @Const Vector3 t,
-                         @Const Vector3 d, boolean negate, Vector3 result) {
-        Vector3 transformedDir = (negate ? inSupportTemp.scale(d, -1.0)
-                                         : inSupportTemp.set(d));
+    private void support(ConvexShape shape, @Const Matrix3 r, @Const Vector3 t, @Const Vector3 d,
+                         boolean negate, Vector3 result) {
+        Vector3 transformedDir = (negate ? inSupportTemp.scale(d, -1.0) : inSupportTemp.set(d));
         transformedDir.mul(transformedDir, r);
 
         shape.computeSupport(transformedDir, result);

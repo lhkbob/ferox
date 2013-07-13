@@ -122,8 +122,8 @@ public class ColorRGBProperty implements ShareableProperty<ColorRGB> {
     }
 
     /**
-     * Default factory implementation for ColorRGBProperties, supports the {@link
-     * DefaultColor} annotation to specify the default color.
+     * Default factory implementation for ColorRGBProperties, supports the {@link DefaultColor} annotation to
+     * specify the default color.
      *
      * @author Michael Ludwig
      */
@@ -140,8 +140,7 @@ public class ColorRGBProperty implements ShareableProperty<ColorRGB> {
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const ColorRGB v) {
@@ -160,8 +159,7 @@ public class ColorRGBProperty implements ShareableProperty<ColorRGB> {
         }
 
         @Override
-        public void clone(ColorRGBProperty src, int srcIndex, ColorRGBProperty dst,
-                          int dstIndex) {
+        public void clone(ColorRGBProperty src, int srcIndex, ColorRGBProperty dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {

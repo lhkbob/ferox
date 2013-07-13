@@ -33,11 +33,10 @@ import com.ferox.physics.collision.Shape;
 import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 
 /**
- * ConvexShape is a Shape type that represents a convex hull. It itself is not a concrete
- * implementation, but instead, declares that all convex shapes can be described
- * implicitly by a support function. This function can be used by various collision
- * algorithms, such as GJK or EPA, to report collisions between any correctly implemented
- * convex shape.
+ * ConvexShape is a Shape type that represents a convex hull. It itself is not a concrete implementation, but
+ * instead, declares that all convex shapes can be described implicitly by a support function. This function
+ * can be used by various collision algorithms, such as GJK or EPA, to report collisions between any correctly
+ * implemented convex shape.
  *
  * @author Michael Ludwig
  * @see GjkEpaCollisionAlgorithm
@@ -53,14 +52,13 @@ public abstract class ConvexShape implements Shape {
 
     /**
      * <p/>
-     * Compute and return the evaluation of this convex shape's support function, on input
-     * <var>v</var>. The support should be stored and returned in <var>result</var>. If
-     * result is null, a new vector should be created and returned. The support function
-     * will not include the margin.
+     * Compute and return the evaluation of this convex shape's support function, on input <var>v</var>. The
+     * support should be stored and returned in <var>result</var>. If result is null, a new vector should be
+     * created and returned. The support function will not include the margin.
      * <p/>
-     * The support of a convex shape is a function <var>Sc</var> that maps a vector to a
-     * point on the shape, such that <code>dot(Sc, v)</code> maximizes <code>dot(x,
-     * v)</code> for all <var>x</var> on the shape's surface.
+     * The support of a convex shape is a function <var>Sc</var> that maps a vector to a point on the shape,
+     * such that <code>dot(Sc, v)</code> maximizes <code>dot(x, v)</code> for all <var>x</var> on the shape's
+     * surface.
      *
      * @param v      The support input
      * @param result A vector to contain the result
@@ -81,8 +79,7 @@ public abstract class ConvexShape implements Shape {
     @Override
     public void setMargin(double margin) {
         if (margin < 0.0) {
-            throw new IllegalArgumentException(
-                    "Margin must be at least 0, not: " + margin);
+            throw new IllegalArgumentException("Margin must be at least 0, not: " + margin);
         }
         this.margin = margin;
         updateBounds();
@@ -94,9 +91,8 @@ public abstract class ConvexShape implements Shape {
     }
 
     /**
-     * Recomputes the new bounds by evaluating the support function along the six
-     * principal axis. Subclasses should call this any time their parameters affecting the
-     * bounds are changed.
+     * Recomputes the new bounds by evaluating the support function along the six principal axis. Subclasses
+     * should call this any time their parameters affecting the bounds are changed.
      */
     protected void updateBounds() {
         Vector3 d = new Vector3();

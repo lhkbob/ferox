@@ -53,8 +53,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     private int detectedBaseMipmap;
     private int detectedMaxMipmap;
 
-    public AbstractSamplerBuilder(Class<B> builderType, Class<T> textureType,
-                                  TextureImpl.Target target, FrameworkImpl framework) {
+    public AbstractSamplerBuilder(Class<B> builderType, Class<T> textureType, TextureImpl.Target target,
+                                  FrameworkImpl framework) {
         super(framework);
         this.builderType = builderType;
         this.textureType = textureType;
@@ -137,8 +137,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     public B imageCount(int imageCount) {
         verifyImageState();
         if (imageCount <= 0) {
-            throw new IllegalArgumentException(
-                    "All samplers must have at least one image: " + imageCount);
+            throw new IllegalArgumentException("All samplers must have at least one image: " + imageCount);
         }
         this.imageCount = imageCount;
         return builderType.cast(this);
@@ -268,11 +267,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     @Override
     protected void validate() {
         // verify texture target support
-        if (!framework.getCapabilities().getSupportedTextureTargets()
-                      .contains(textureType)) {
+        if (!framework.getCapabilities().getSupportedTextureTargets().contains(textureType)) {
             throw new ResourceException(
-                    String.format("%s textures are not supported on current hardware",
-                                  textureType));
+                    String.format("%s textures are not supported on current hardware", textureType));
         }
 
         // FIXME verify texture target support
@@ -291,8 +288,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             }
         }
         if (detectedFormat == null) {
-            throw new ResourceException(
-                    "Must specify image format for at least one level");
+            throw new ResourceException("Must specify image format for at least one level");
         }
 
         // verify format support
@@ -370,15 +366,12 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
 
         if (width > maxSize || height > maxSize || depth > maxSize) {
-            throw new ResourceException(
-                    "Dimensions exceed supported maximum of " + maxSize);
+            throw new ResourceException("Dimensions exceed supported maximum of " + maxSize);
         }
 
-        if (target == TextureImpl.Target.TEX_1D_ARRAY ||
-            target == TextureImpl.Target.TEX_2D_ARRAY) {
+        if (target == TextureImpl.Target.TEX_1D_ARRAY || target == TextureImpl.Target.TEX_2D_ARRAY) {
             if (imageCount > framework.getCapabilities().getMaxTextureArrayImages()) {
-                throw new ResourceException(
-                        "Texture array has too many images for hardware");
+                throw new ResourceException("Texture array has too many images for hardware");
             }
         }
 
@@ -391,9 +384,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                 if (imageData[i][j] != null) {
                     int actualSize = BufferUtil.getArrayLength(imageData[i][j]);
                     if (actualSize != expectedSize) {
-                        throw new ResourceException(String.format(
-                                "Expected %d elements but got %d (mipmap: %d, image: %d)",
-                                expectedSize, actualSize, j, i));
+                        throw new ResourceException(
+                                String.format("Expected %d elements but got %d (mipmap: %d, image: %d)",
+                                              expectedSize, actualSize, j, i));
                     }
                 }
             }
@@ -415,15 +408,15 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             // must recombine all 1D images into a single buffer and pretend like we're
             // calling glTexture2D
             for (int j = detectedBaseMipmap; j <= detectedMaxMipmap; j++) {
-                pushImage(ctx, 0, j, consolidateBuffer(j), detectedFormat,
-                          Math.max(width >> j, 1), imageCount, 1);
+                pushImage(ctx, 0, j, consolidateBuffer(j), detectedFormat, Math.max(width >> j, 1),
+                          imageCount, 1);
             }
         } else if (target == TextureImpl.Target.TEX_2D_ARRAY) {
             // must recombine all 2D images into a single buffer and pretend like we're
             // calling glTexture3D
             for (int j = detectedBaseMipmap; j <= detectedMaxMipmap; j++) {
-                pushImage(ctx, 0, j, consolidateBuffer(j), detectedFormat,
-                          Math.max(width >> j, 1), Math.max(height >> j, 1), imageCount);
+                pushImage(ctx, 0, j, consolidateBuffer(j), detectedFormat, Math.max(width >> j, 1),
+                          Math.max(height >> j, 1), imageCount);
             }
         } else {
             // pass in everything in the block that's already been allocated
@@ -441,8 +434,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                             pushImage(ctx, i, j, null, detectedFormat, w, h, d);
                         } else {
                             // wrap in a buffer
-                            pushImage(ctx, i, j, BufferUtil.newBuffer(imageData[i][j]),
-                                      detectedFormat, w, h, d);
+                            pushImage(ctx, i, j, BufferUtil.newBuffer(imageData[i][j]), detectedFormat, w, h,
+                                      d);
                         }
                     }
                 }
@@ -459,25 +452,20 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
 
     protected abstract int generateTextureID(OpenGLContext context);
 
-    protected abstract void pushImage(OpenGLContext context, int image, int mipmap,
-                                      java.nio.Buffer imageData,
-                                      TextureImpl.FullFormat format, int width,
-                                      int height, int depth);
+    protected abstract void pushImage(OpenGLContext context, int image, int mipmap, java.nio.Buffer imageData,
+                                      TextureImpl.FullFormat format, int width, int height, int depth);
 
-    protected abstract void setBorderColor(OpenGLContext context,
-                                           @Const Vector4 borderColor);
+    protected abstract void setBorderColor(OpenGLContext context, @Const Vector4 borderColor);
 
     protected abstract void setAnisotropy(OpenGLContext context, double anisotropy);
 
     protected abstract void setWrapMode(OpenGLContext context, Sampler.WrapMode mode);
 
-    protected abstract void setInterpolated(OpenGLContext context, boolean interpolated,
-                                            boolean hasMipmaps);
+    protected abstract void setInterpolated(OpenGLContext context, boolean interpolated, boolean hasMipmaps);
 
     protected abstract void setMipmapRange(OpenGLContext context, int base, int max);
 
-    protected abstract void setDepthComparison(OpenGLContext context,
-                                               Renderer.Comparison comparison);
+    protected abstract void setDepthComparison(OpenGLContext context, Renderer.Comparison comparison);
 
     protected SingleImageBuilder<T, BasicColorData> singleR() {
         allocateImages();
@@ -730,58 +718,50 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     protected Texture1D wrapAsTexture1D(TextureImpl.TextureHandle handle) {
-        return new Texture1DImpl(handle, detectedFormat, width, height, depth,
-                                 borderColor, anisotropy, depthComparison, interpolated,
-                                 wrapMode, imageData, detectedBaseMipmap,
+        return new Texture1DImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                 depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
                                  detectedMaxMipmap);
     }
 
     protected Texture2D wrapAsTexture2D(TextureImpl.TextureHandle handle) {
-        return new Texture2DImpl(handle, detectedFormat, width, height, depth,
-                                 borderColor, anisotropy, depthComparison, interpolated,
-                                 wrapMode, imageData, detectedBaseMipmap,
+        return new Texture2DImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                 depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
                                  detectedMaxMipmap);
     }
 
     protected Texture3D wrapAsTexture3D(TextureImpl.TextureHandle handle) {
-        return new Texture3DImpl(handle, detectedFormat, width, height, depth,
-                                 borderColor, anisotropy, depthComparison, interpolated,
-                                 wrapMode, imageData, detectedBaseMipmap,
+        return new Texture3DImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                 depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
                                  detectedMaxMipmap);
     }
 
     protected TextureCubeMap wrapAsTextureCubeMap(TextureImpl.TextureHandle handle) {
-        return new TextureCubeMapImpl(handle, detectedFormat, width, height, depth,
-                                      borderColor, anisotropy, depthComparison,
-                                      interpolated, wrapMode, imageData,
-                                      detectedBaseMipmap, detectedMaxMipmap);
+        return new TextureCubeMapImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                      depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
+                                      detectedMaxMipmap);
     }
 
     protected Texture1DArray wrapAsTexture1DArray(TextureImpl.TextureHandle handle) {
-        return new Texture1DArrayImpl(handle, detectedFormat, width, height, depth,
-                                      borderColor, anisotropy, depthComparison,
-                                      interpolated, wrapMode, imageData,
-                                      detectedBaseMipmap, detectedMaxMipmap);
+        return new Texture1DArrayImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                      depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
+                                      detectedMaxMipmap);
     }
 
     protected Texture2DArray wrapAsTexture2DArray(TextureImpl.TextureHandle handle) {
-        return new Texture2DArrayImpl(handle, detectedFormat, width, height, depth,
-                                      borderColor, anisotropy, depthComparison,
-                                      interpolated, wrapMode, imageData,
-                                      detectedBaseMipmap, detectedMaxMipmap);
+        return new Texture2DArrayImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                      depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
+                                      detectedMaxMipmap);
     }
 
     protected DepthMap2D wrapAsDepthMap2D(TextureImpl.TextureHandle handle) {
-        return new DepthMap2DImpl(handle, detectedFormat, width, height, depth,
-                                  borderColor, anisotropy, depthComparison, interpolated,
-                                  wrapMode, imageData, detectedBaseMipmap,
+        return new DepthMap2DImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                  depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
                                   detectedMaxMipmap);
     }
 
     protected DepthCubeMap wrapAsDepthCubeMap(TextureImpl.TextureHandle handle) {
-        return new DepthCubeMapImpl(handle, detectedFormat, width, height, depth,
-                                    borderColor, anisotropy, depthComparison,
-                                    interpolated, wrapMode, imageData, detectedBaseMipmap,
+        return new DepthCubeMapImpl(handle, detectedFormat, width, height, depth, borderColor, anisotropy,
+                                    depthComparison, interpolated, wrapMode, imageData, detectedBaseMipmap,
                                     detectedMaxMipmap);
     }
 
@@ -793,8 +773,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
 
         @Override
-        public void setImageData(int image, int mipmap, Object array,
-                                 TextureImpl.FullFormat format) {
+        public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format) {
             imageData[image][mipmap] = array;
             imageFormats[image][mipmap] = format;
         }
@@ -840,8 +819,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         protected abstract M mipmap(int image, int level);
 
         @Override
-        public void setImageData(int image, int mipmap, Object array,
-                                 TextureImpl.FullFormat format) {
+        public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format) {
             imageData[image][mipmap] = array;
             imageFormats[image][mipmap] = format;
         }
@@ -855,117 +833,89 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
 
         @Override
-        public void setImageData(int image, int mipmap, Object array,
-                                 TextureImpl.FullFormat format) {
+        public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format) {
             imageData[image][mipmap] = array;
             imageFormats[image][mipmap] = format;
         }
     }
 
     private static class Texture1DImpl extends TextureImpl implements Texture1D {
-        public Texture1DImpl(TextureHandle handle, FullFormat format, int width,
-                             int height, int depth, Vector4 borderColor,
-                             double anisotropicFiltering,
-                             Renderer.Comparison depthComparison, boolean interpolated,
-                             WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
-                             int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+        public Texture1DImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                             Vector4 borderColor, double anisotropicFiltering,
+                             Renderer.Comparison depthComparison, boolean interpolated, WrapMode wrapMode,
+                             Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
     private static class Texture2DImpl extends TextureImpl implements Texture2D {
-        public Texture2DImpl(TextureHandle handle, FullFormat format, int width,
-                             int height, int depth, Vector4 borderColor,
-                             double anisotropicFiltering,
-                             Renderer.Comparison depthComparison, boolean interpolated,
-                             WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
-                             int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+        public Texture2DImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                             Vector4 borderColor, double anisotropicFiltering,
+                             Renderer.Comparison depthComparison, boolean interpolated, WrapMode wrapMode,
+                             Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
     private static class Texture3DImpl extends TextureImpl implements Texture3D {
-        public Texture3DImpl(TextureHandle handle, FullFormat format, int width,
-                             int height, int depth, Vector4 borderColor,
-                             double anisotropicFiltering,
-                             Renderer.Comparison depthComparison, boolean interpolated,
-                             WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
-                             int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+        public Texture3DImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                             Vector4 borderColor, double anisotropicFiltering,
+                             Renderer.Comparison depthComparison, boolean interpolated, WrapMode wrapMode,
+                             Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
-    private static class TextureCubeMapImpl extends TextureImpl
-            implements TextureCubeMap {
-        public TextureCubeMapImpl(TextureHandle handle, FullFormat format, int width,
-                                  int height, int depth, Vector4 borderColor,
-                                  double anisotropicFiltering,
-                                  Renderer.Comparison depthComparison,
-                                  boolean interpolated, WrapMode wrapMode,
-                                  Object[][] dataArrays, int baseMipmap, int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+    private static class TextureCubeMapImpl extends TextureImpl implements TextureCubeMap {
+        public TextureCubeMapImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                                  Vector4 borderColor, double anisotropicFiltering,
+                                  Renderer.Comparison depthComparison, boolean interpolated,
+                                  WrapMode wrapMode, Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
-    private static class Texture1DArrayImpl extends TextureImpl
-            implements Texture1DArray {
-        public Texture1DArrayImpl(TextureHandle handle, FullFormat format, int width,
-                                  int height, int depth, Vector4 borderColor,
-                                  double anisotropicFiltering,
-                                  Renderer.Comparison depthComparison,
-                                  boolean interpolated, WrapMode wrapMode,
-                                  Object[][] dataArrays, int baseMipmap, int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+    private static class Texture1DArrayImpl extends TextureImpl implements Texture1DArray {
+        public Texture1DArrayImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                                  Vector4 borderColor, double anisotropicFiltering,
+                                  Renderer.Comparison depthComparison, boolean interpolated,
+                                  WrapMode wrapMode, Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
-    private static class Texture2DArrayImpl extends TextureImpl
-            implements Texture2DArray {
-        public Texture2DArrayImpl(TextureHandle handle, FullFormat format, int width,
-                                  int height, int depth, Vector4 borderColor,
-                                  double anisotropicFiltering,
-                                  Renderer.Comparison depthComparison,
-                                  boolean interpolated, WrapMode wrapMode,
-                                  Object[][] dataArrays, int baseMipmap, int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+    private static class Texture2DArrayImpl extends TextureImpl implements Texture2DArray {
+        public Texture2DArrayImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                                  Vector4 borderColor, double anisotropicFiltering,
+                                  Renderer.Comparison depthComparison, boolean interpolated,
+                                  WrapMode wrapMode, Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
     private static class DepthMap2DImpl extends TextureImpl implements DepthMap2D {
-        public DepthMap2DImpl(TextureHandle handle, FullFormat format, int width,
-                              int height, int depth, Vector4 borderColor,
-                              double anisotropicFiltering,
-                              Renderer.Comparison depthComparison, boolean interpolated,
-                              WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
-                              int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+        public DepthMap2DImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                              Vector4 borderColor, double anisotropicFiltering,
+                              Renderer.Comparison depthComparison, boolean interpolated, WrapMode wrapMode,
+                              Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 
     private static class DepthCubeMapImpl extends TextureImpl implements DepthCubeMap {
-        public DepthCubeMapImpl(TextureHandle handle, FullFormat format, int width,
-                                int height, int depth, Vector4 borderColor,
-                                double anisotropicFiltering,
-                                Renderer.Comparison depthComparison, boolean interpolated,
-                                WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
-                                int maxMipmap) {
-            super(handle, format, width, height, depth, borderColor, anisotropicFiltering,
-                  depthComparison, interpolated, wrapMode, dataArrays, baseMipmap,
-                  maxMipmap);
+        public DepthCubeMapImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                                Vector4 borderColor, double anisotropicFiltering,
+                                Renderer.Comparison depthComparison, boolean interpolated, WrapMode wrapMode,
+                                Object[][] dataArrays, int baseMipmap, int maxMipmap) {
+            super(handle, format, width, height, depth, borderColor, anisotropicFiltering, depthComparison,
+                  interpolated, wrapMode, dataArrays, baseMipmap, maxMipmap);
         }
     }
 }

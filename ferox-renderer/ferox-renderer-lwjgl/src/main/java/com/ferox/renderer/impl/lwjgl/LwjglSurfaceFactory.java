@@ -38,11 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * LwjglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It
- * uses {@link LwjglAWTSurface}, {@link LwjglFboTextureSurface}, {@link
- * LwjglPbufferTextureSurface} for its surface implementations. It uses the {@link
- * LWJGLFixedFunctionRenderer} and {@link LwjglGlslRenderer} for its renderer
- * implementations.
+ * LwjglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It uses {@link
+ * LwjglAWTSurface}, {@link LwjglFboTextureSurface}, {@link LwjglPbufferTextureSurface} for its surface
+ * implementations. It uses the {@link LWJGLFixedFunctionRenderer} and {@link LwjglGlslRenderer} for its
+ * renderer implementations.
  *
  * @author Michael Ludwig
  */
@@ -57,8 +56,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
-     * Create a new LwjglSurfaceFactory that will use the given profile and capability
-     * bits. The bit mask uses the bit flags defined in {@link LwjglRenderCapabilities}.
+     * Create a new LwjglSurfaceFactory that will use the given profile and capability bits. The bit mask uses
+     * the bit flags defined in {@link LwjglRenderCapabilities}.
      *
      * @param profile The GLProfile
      * @param capBits The forced capabilities
@@ -81,8 +80,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 if (convertMap.containsKey(feroxMode)) {
                     // compare refresh rates and pick the one closest to target
                     if (Math.abs(TARGET_REFRESH_RATE - lwjglMode.getFrequency()) <
-                        Math.abs(TARGET_REFRESH_RATE -
-                                 convertMap.get(feroxMode).getFrequency())) {
+                        Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getFrequency())) {
                         convertMap.put(feroxMode, lwjglMode);
                     }
                 } else {
@@ -91,8 +89,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                 }
             }
         } catch (LWJGLException e) {
-            throw new FrameworkException(
-                    "Unable to query available DisplayModes through LWJGL", e);
+            throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
 
         availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
@@ -100,8 +97,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode, or null if
-     * there was no exact match.
+     * Return an LWJGL DisplayMode that exactly matches the given DisplayMode, or null if there was no exact
+     * match.
      *
      * @param mode The mode to "convert"
      *
@@ -111,8 +108,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         return convertMap.get(mode);
     }
 
-    public org.lwjgl.opengl.PixelFormat choosePixelFormat(
-            OnscreenSurfaceOptions request) {
+    public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
         PixelFormat pf;
         if (request.getFullscreenMode() != null) {
             pf = request.getFullscreenMode().getPixelFormat();
@@ -210,18 +206,15 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     @Override
-    public AbstractTextureSurface createTextureSurface(FrameworkImpl framework,
-                                                       TextureSurfaceOptions options,
+    public AbstractTextureSurface createTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
         if (framework.getCapabilities().getFboSupport()) {
             return new LwjglFboTextureSurface(framework, this, options);
         } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new LwjglPbufferTextureSurface(framework, this, options,
-                                                  (LwjglContext) sharedContext,
+            return new LwjglPbufferTextureSurface(framework, this, options, (LwjglContext) sharedContext,
                                                   new LwjglRendererProvider());
         } else {
-            throw new SurfaceCreationException(
-                    "No render-to-texture support on current hardware");
+            throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
     }
 
@@ -229,8 +222,7 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(FrameworkImpl framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework, this,
-                                                                          options,
+        LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework, this, options,
                                                                           (LwjglContext) sharedContext,
                                                                           new LwjglRendererProvider());
         surface.initialize();
@@ -241,8 +233,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
         if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 &&
             (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
-            return PbufferShadowContext.create(this, (LwjglContext) sharedContext,
-                                               new LwjglRendererProvider());
+            return PbufferShadowContext
+                    .create(this, (LwjglContext) sharedContext, new LwjglRendererProvider());
         } else {
             throw new FrameworkException(
                     "No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
@@ -250,8 +242,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * @return The capabilities bits this factory was created with, to be passed into the
-     *         constructor of all related {@link LwjglRenderCapabilities}
+     * @return The capabilities bits this factory was created with, to be passed into the constructor of all
+     *         related {@link LwjglRenderCapabilities}
      */
     public int getCapabilityForceBits() {
         return capBits;

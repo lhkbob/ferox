@@ -152,8 +152,8 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
     }
 
     /**
-     * Default factory implementation for Matrix3Properties, supports the {@link
-     * DefaultMatrix3} annotation to specify the default matrix coordinates.
+     * Default factory implementation for Matrix3Properties, supports the {@link DefaultMatrix3} annotation to
+     * specify the default matrix coordinates.
      *
      * @author Michael Ludwig
      */
@@ -164,15 +164,14 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
         public Factory(Attributes attrs) {
             if (attrs.hasAttribute(DefaultMatrix3.class)) {
                 DefaultMatrix3 v = attrs.getAttribute(DefaultMatrix3.class);
-                dflt = new Matrix3(v.m00(), v.m01(), v.m02(), v.m10(), v.m11(), v.m12(),
-                                   v.m20(), v.m21(), v.m22());
+                dflt = new Matrix3(v.m00(), v.m01(), v.m02(), v.m10(), v.m11(), v.m12(), v.m20(), v.m21(),
+                                   v.m22());
             } else {
                 dflt = new Matrix3();
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Matrix3 v) {
@@ -191,8 +190,7 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
         }
 
         @Override
-        public void clone(Matrix3Property src, int srcIndex, Matrix3Property dst,
-                          int dstIndex) {
+        public void clone(Matrix3Property src, int srcIndex, Matrix3Property dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {

@@ -3,9 +3,8 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.Texture2D;
 
 /**
- * Texture2DBuilder is a concrete sampler builder for {@link Texture2D} resources. It uses
- * {@link SingleImageBuilder} instances to specify the actual mipmap image data and build
- * the final Texture2D.
+ * Texture2DBuilder is a concrete sampler builder for {@link Texture2D} resources. It uses {@link
+ * SingleImageBuilder} instances to specify the actual mipmap image data and build the final Texture2D.
  *
  * @author Michael Ludwig
  */
@@ -35,9 +34,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
     public Texture2DBuilder height(int height);
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}. The
+     * returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *
@@ -46,9 +45,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
     public SingleImageBuilder<Texture2D, BasicColorData> r();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}. The
+     * returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *
@@ -57,10 +56,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
     public SingleImageBuilder<Texture2D, BasicColorData> rg();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}
-     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGB}. The returned
-     * image builder can be used to specify some or all mipmap levels and then build the
-     * final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB} or
+     * {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGB}. The returned image builder can be used
+     * to specify some or all mipmap levels and then build the final image.
      *
      * @return The final image builder
      *
@@ -70,9 +68,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
-     * OpenGL will interpret the components in the order B, G, R instead of R, G, B within
-     * the data arrays for each image. The returned image builder can be used to specify
-     * some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order B, G, R instead of R, G, B within the data arrays for
+     * each image. The returned image builder can be used to specify some or all mipmap levels and then build
+     * the final image.
      *
      * @return The final image builder
      *
@@ -81,10 +79,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
     public SingleImageBuilder<Texture2D, BasicColorData> bgr();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}
-     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGBA}. The returned
-     * image builder can be used to specify some or all mipmap levels and then build the
-     * final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA} or
+     * {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGBA}. The returned image builder can be used
+     * to specify some or all mipmap levels and then build the final image.
      *
      * @return The final image builder
      *
@@ -94,9 +91,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
-     * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A
-     * within the data arrays for each image. The returned image builder can be used to
-     * specify some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A within the data
+     * arrays for each image. The returned image builder can be used to specify some or all mipmap levels and
+     * then build the final image.
      *
      * @return The final image builder
      *
@@ -106,9 +103,9 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
-     * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A
-     * within the data arrays for each image. The returned image builder can be used to
-     * specify some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A within the data
+     * arrays for each image. The returned image builder can be used to specify some or all mipmap levels and
+     * then build the final image.
      *
      * @return The final image builder
      *

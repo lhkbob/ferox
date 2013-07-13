@@ -31,19 +31,18 @@ import java.nio.FloatBuffer;
 
 /**
  * <p/>
- * Vector3 provides an implementation of a 3-element mathematical vector with many common
- * operations available from linear algebra. It's 3 components are exposed as public
- * fields for performance reasons. This means vectors are always mutable.
+ * Vector3 provides an implementation of a 3-element mathematical vector with many common operations available
+ * from linear algebra. It's 3 components are exposed as public fields for performance reasons. This means
+ * vectors are always mutable.
  * <p/>
  * <p/>
- * The {@link Const} annotation can be used the same way that the 'const' token can modify
- * a type in C++. On input, it declares the method will not modify that instance; on
- * output, it declares that the returned instance should not be modified (internal code
- * might still modify it in some controlled manner).
+ * The {@link Const} annotation can be used the same way that the 'const' token can modify a type in C++. On
+ * input, it declares the method will not modify that instance; on output, it declares that the returned
+ * instance should not be modified (internal code might still modify it in some controlled manner).
  * <p/>
- * In all mathematical functions whose result is a vector, the Vector3 calling the method
- * will contain the result. The input vectors will be left unmodified. It is safe for the
- * calling vector to be any vector parameter into the function.
+ * In all mathematical functions whose result is a vector, the Vector3 calling the method will contain the
+ * result. The input vectors will be left unmodified. It is safe for the calling vector to be any vector
+ * parameter into the function.
  *
  * @author Michael Ludwig
  */
@@ -111,8 +110,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the ceiling of each component of the vector <var>v</var> and store them in
-     * this vector.
+     * Compute the ceiling of each component of the vector <var>v</var> and store them in this vector.
      *
      * @param v The vector to be ceil'ed
      *
@@ -143,9 +141,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the length of this vector, squared. Often, when only length comparisons are
-     * necessary, the sauared length is useful because its computation doesn't involve a
-     * slow square root operation.
+     * Compute the length of this vector, squared. Often, when only length comparisons are necessary, the
+     * sauared length is useful because its computation doesn't involve a slow square root operation.
      *
      * @return The squared length of this vector
      */
@@ -154,8 +151,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the distance between this vector and <var>v</var>, treating both vectors as
-     * 3D points.
+     * Compute the distance between this vector and <var>v</var>, treating both vectors as 3D points.
      *
      * @param v The other vector
      *
@@ -168,8 +164,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the square of the distance between this and <var>v</var>, treating both
-     * vectors as 3D points.
+     * Compute the square of the distance between this and <var>v</var>, treating both vectors as 3D points.
      *
      * @param v The other vector
      *
@@ -185,8 +180,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute and return the shortest angle between this vector and v. The returned angle
-     * must be in radians.
+     * Compute and return the shortest angle between this vector and v. The returned angle must be in
+     * radians.
      *
      * @param v The other vector involved
      *
@@ -212,10 +207,9 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute a vector orthogonal to <var>b</var> and store the result in this vector.
-     * The orthogonal vector will be in the plane formed by <var>a</var> and <var>b</var>,
-     * and it will be in the same half-plane as <var>a</var> formed by a line through
-     * <var>b</var>. This uses the Gram-Schmidt process.
+     * Compute a vector orthogonal to <var>b</var> and store the result in this vector. The orthogonal vector
+     * will be in the plane formed by <var>a</var> and <var>b</var>, and it will be in the same half-plane as
+     * <var>a</var> formed by a line through <var>b</var>. This uses the Gram-Schmidt process.
      *
      * @param a The vector that helps form the plane and chooses the result's orientation
      * @param b The vector the result is orthogonal to
@@ -261,8 +255,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Project <var>a</var> onto <var>b</var> and store the projected vector in this
-     * vector.
+     * Project <var>a</var> onto <var>b</var> and store the projected vector in this vector.
      *
      * @param a The vector being projected
      * @param b The vector that is projected onto
@@ -347,9 +340,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Normalize <var>v</var> to be of length 1 and store it in this vector. The vector
-     * can't be normalized if it's length is 0. If it's length is very close to 0, the
-     * results may suffer from loss of precision.
+     * Normalize <var>v</var> to be of length 1 and store it in this vector. The vector can't be normalized if
+     * it's length is 0. If it's length is very close to 0, the results may suffer from loss of precision.
      *
      * @param v The vector to normalize
      *
@@ -367,9 +359,9 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute <code>[m] x [b]</code> and store the resulting 3x1 matrix in this vector.
-     * For sake of multiplication, [b] is considered to be a 3x1 matrix where x is the
-     * first row, y is the second, and z is the third.
+     * Compute <code>[m] x [b]</code> and store the resulting 3x1 matrix in this vector. For sake of
+     * multiplication, [b] is considered to be a 3x1 matrix where x is the first row, y is the second, and z
+     * is the third.
      *
      * @param m The matrix on the left side of the multiplication
      * @param b The vector to interpret as a 3x1 matrix
@@ -379,16 +371,15 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if m or b are null
      */
     public Vector3 mul(@Const Matrix3 m, @Const Vector3 b) {
-        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z,
-                   m.m10 * b.x + m.m11 * b.y + m.m12 * b.z,
+        return set(m.m00 * b.x + m.m01 * b.y + m.m02 * b.z, m.m10 * b.x + m.m11 * b.y + m.m12 * b.z,
                    m.m20 * b.x + m.m21 * b.y + m.m22 * b.z);
     }
 
     /**
      * <p/>
-     * Compute <code>[b] x [m]</code> and store the resulting 1x3 matrix in this vector.
-     * For sake of multiplication, [b] is considered to be a 1x3 matrix, where x is the
-     * first column, y is the second, and z is the third.
+     * Compute <code>[b] x [m]</code> and store the resulting 1x3 matrix in this vector. For sake of
+     * multiplication, [b] is considered to be a 1x3 matrix, where x is the first column, y is the second, and
+     * z is the third.
      * <p/>
      * Note that this uses the reverse order of {@link #mul(Matrix3, Vector3)}.
      *
@@ -400,15 +391,14 @@ public final class Vector3 implements Cloneable {
      * @throws NullPointerException if m or b are null
      */
     public Vector3 mul(@Const Vector3 b, @Const Matrix3 m) {
-        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z,
-                   m.m01 * b.x + m.m11 * b.y + m.m21 * b.z,
+        return set(m.m00 * b.x + m.m10 * b.y + m.m20 * b.z, m.m01 * b.x + m.m11 * b.y + m.m21 * b.z,
                    m.m02 * b.x + m.m12 * b.y + m.m22 * b.z);
     }
 
     /**
-     * As {@link #transform(Matrix4, Vector3, double)} where the w-component is set to 1.
-     * Thus, the resulting computation is the transformation of <var>a</var> by
-     * <var>m</var>, interpreting <var>a</var> as a point in space.
+     * As {@link #transform(Matrix4, Vector3, double)} where the w-component is set to 1. Thus, the resulting
+     * computation is the transformation of <var>a</var> by <var>m</var>, interpreting <var>a</var> as a point
+     * in space.
      *
      * @param m The transform matrix
      * @param a The point to transform
@@ -423,13 +413,12 @@ public final class Vector3 implements Cloneable {
 
     /**
      * <p/>
-     * Compute <code>[m] x [a']</code> where <var>[a']</var> is the 4x1 matrix formed by
-     * the three values of <var>a</var> and the specified <var>w</var>.
+     * Compute <code>[m] x [a']</code> where <var>[a']</var> is the 4x1 matrix formed by the three values of
+     * <var>a</var> and the specified <var>w</var>.
      * <p/>
-     * Common values of <var>w</var> are: <ul> <li><code>w = 0</code> transforms
-     * <var>a</var> by the upper 3x3 of <var>m</var>, treating <var>a</var> as a direction
-     * vector.</li> <li><code>w = 1</code> transforms <var>a</var> as if it were a point
-     * in 3-space (assuming m is an affine transform).</li> </ul>
+     * Common values of <var>w</var> are: <ul> <li><code>w = 0</code> transforms <var>a</var> by the upper 3x3
+     * of <var>m</var>, treating <var>a</var> as a direction vector.</li> <li><code>w = 1</code> transforms
+     * <var>a</var> as if it were a point in 3-space (assuming m is an affine transform).</li> </ul>
      *
      * @param m The affine transform to transform a with
      * @param a The vector being transformed by m
@@ -446,8 +435,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #transform(Matrix4, Vector3)} where the calling vector is transformed by
-     * the matrix <var>m</var>.
+     * As {@link #transform(Matrix4, Vector3)} where the calling vector is transformed by the matrix
+     * <var>m</var>.
      *
      * @param m The matrix transforming this vector
      *
@@ -460,8 +449,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Solve the linear system of equations, <code>[m]*[this] = [a]</code> and store the
-     * resultant values of (x, y, z) into this vector:
+     * Solve the linear system of equations, <code>[m]*[this] = [a]</code> and store the resultant values of
+     * (x, y, z) into this vector:
      * <p/>
      * <pre>
      * m.m00*x + m.m01*y + m.m02*z = a.x
@@ -470,8 +459,7 @@ public final class Vector3 implements Cloneable {
      * </pre>
      *
      * @param m The matrix describing the coefficients of the 3 equations
-     * @param a The vector constraining the values that solve the linear system of
-     *          equations
+     * @param a The vector constraining the values that solve the linear system of equations
      *
      * @return This vector
      *
@@ -481,31 +469,18 @@ public final class Vector3 implements Cloneable {
     public Vector3 solve(@Const Matrix3 m, @Const Vector3 a) {
         double invDet = m.determinant();
         if (Math.abs(invDet) < .00001) {
-            throw new ArithmeticException(
-                    "No solution, or infinite solutions, cannot solve system");
+            throw new ArithmeticException("No solution, or infinite solutions, cannot solve system");
         }
         invDet = 1f / invDet;
 
-        return set(invDet * (a.x * (m.m11 * m.m22 - m.m12 * m.m21) -
-                             a.y * (m.m01 * m.m22 - m.m02 * m.m21) +
+        return set(invDet * (a.x * (m.m11 * m.m22 - m.m12 * m.m21) - a.y * (m.m01 * m.m22 - m.m02 * m.m21) +
                              a.z * (m.m01 * m.m12 - m.m02 * m.m11)),
                    invDet * (a.y * (m.m00 * m.m22 - m.m02 * m.m20) -
                              a.z * (m.m00 * m.m12 - m.m02 * m.m10) -
-                             a.x * (m.m10 * m.m22 - m.m12 * m.m20)), invDet * (a.x *
-                                                                               (m.m10 *
-                                                                                m.m21 -
-                                                                                m.m11 *
-                                                                                m.m20) -
-                                                                               a.y *
-                                                                               (m.m00 *
-                                                                                m.m21 -
-                                                                                m.m01 *
-                                                                                m.m20) +
-                                                                               a.z *
-                                                                               (m.m00 *
-                                                                                m.m11 -
-                                                                                m.m01 *
-                                                                                m.m10)));
+                             a.x * (m.m10 * m.m22 - m.m12 * m.m20)), invDet *
+                                                                     (a.x * (m.m10 * m.m21 - m.m11 * m.m20) -
+                                                                      a.y * (m.m00 * m.m21 - m.m01 * m.m20) +
+                                                                      a.z * (m.m00 * m.m11 - m.m01 * m.m10)));
     }
 
     /**
@@ -561,8 +536,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #addScaled(Vector3, double, Vector3)} where the first argument is the
-     * calling Vector3.
+     * As {@link #addScaled(Vector3, double, Vector3)} where the first argument is the calling Vector3.
      *
      * @param scale Scale factor applied to v
      * @param v     The vector scaled then added to this vector
@@ -600,8 +574,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Normalize this vector in place, equivalent to {@link #normalize(Vector3)} , where
-     * the first argument is this vector.
+     * Normalize this vector in place, equivalent to {@link #normalize(Vector3)} , where the first argument is
+     * this vector.
      *
      * @return This vector
      *
@@ -612,10 +586,9 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the corner of the box that is most extended along the given direction
-     * vector and store it in this vector. This will return one of the 8 possible corners
-     * of the box depending on the signs of the vector, it will not return points along
-     * the edge or face of the box.
+     * Compute the corner of the box that is most extended along the given direction vector and store it in
+     * this vector. This will return one of the 8 possible corners of the box depending on the signs of the
+     * vector, it will not return points along the edge or face of the box.
      *
      * @param bounds The bounds
      * @param dir    The query direction vector
@@ -629,10 +602,9 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Compute the corner of the box that is least extended along the given direction
-     * vector and store it in this vector. This is equivalent to calling {@link
-     * #farExtent(AxisAlignedBox, Vector3)} with a negated direction vector but avoids
-     * computing the negation.
+     * Compute the corner of the box that is least extended along the given direction vector and store it in
+     * this vector. This is equivalent to calling {@link #farExtent(AxisAlignedBox, Vector3)} with a negated
+     * direction vector but avoids computing the negation.
      *
      * @param bounds The bounds
      * @param dir    The query direction vector
@@ -653,8 +625,7 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Set the vector coordinate at index to the given value. index must be one of 0 (x),
-     * 1 (y), or 2 (z).
+     * Set the vector coordinate at index to the given value. index must be one of 0 (x), 1 (y), or 2 (z).
      *
      * @param index Coordinate to modify
      * @param val   New value for coordinate
@@ -710,16 +681,15 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Set the x, y, and z values of this Vector3 to the three values held within the vals
-     * array, starting at offset.
+     * Set the x, y, and z values of this Vector3 to the three values held within the vals array, starting at
+     * offset.
      *
      * @param vals   Array to take 3 component values from
      * @param offset Index of the x coordinate
      *
      * @return This vector
      *
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have three values starting
-     *                                        at offset
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have three values starting at offset
      * @throws NullPointerException           if vals is null
      */
     public Vector3 set(double[] vals, int offset) {
@@ -727,8 +697,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #set(double[], int)} but the values are taken from the float array
-     * instead of a double array.
+     * As {@link #set(double[], int)} but the values are taken from the float array instead of a double
+     * array.
      *
      * @param vals
      * @param offset
@@ -747,8 +717,7 @@ public final class Vector3 implements Cloneable {
      *
      * @return This vector
      *
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at
-     *                                        offset
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at offset
      */
     public Vector3 set(DoubleBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2));
@@ -762,8 +731,7 @@ public final class Vector3 implements Cloneable {
      *
      * @return This vector
      *
-     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at
-     *                                        offset
+     * @throws ArrayIndexOutOfBoundsException if vals doesn't have four values starting at offset
      */
     public Vector3 set(FloatBuffer vals, int offset) {
         return set(vals.get(offset), vals.get(offset + 1), vals.get(offset + 2));
@@ -792,16 +760,15 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Store the three component values of this vector into vals, starting at offset. The
-     * components should be placed consecutively, ordered x, y, and z. It is assumed that
-     * the array has at least three positions available, starting at offset.
+     * Store the three component values of this vector into vals, starting at offset. The components should be
+     * placed consecutively, ordered x, y, and z. It is assumed that the array has at least three positions
+     * available, starting at offset.
      *
      * @param vals   Array to store this vector in
      * @param offset First array index to hold the x value
      *
      * @throws NullPointerException           if vals is null
-     * @throws ArrayIndexOutOfBoundsException if there isn't enough room to store this
-     *                                        vector at offset
+     * @throws ArrayIndexOutOfBoundsException if there isn't enough room to store this vector at offset
      */
     public void get(double[] vals, int offset) {
         vals[offset] = x;
@@ -810,8 +777,8 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)} except the double coordinates are cast into floats
-     * before storing in the array.
+     * As {@link #get(double[], int)} except the double coordinates are cast into floats before storing in the
+     * array.
      *
      * @param vals
      * @param offset
@@ -823,14 +790,13 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is
-     * measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a DoubleBuffer. <var>offset</var> is measured from 0, not the
+     * buffer's position.
      *
      * @param store  The DoubleBuffer to hold the row values
      * @param offset The first index to use in the store
      *
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
-     *                                        vector
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the vector
      */
     public void get(DoubleBuffer store, int offset) {
         store.put(offset, x);
@@ -839,14 +805,13 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is
-     * measured from 0, not the buffer's position.
+     * As {@link #get(double[], int)}, but with a FloatBuffer. <var>offset</var> is measured from 0, not the
+     * buffer's position.
      *
      * @param store  The FloatBuffer to hold the row values
      * @param offset The first index to use in the store
      *
-     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the
-     *                                        vector
+     * @throws ArrayIndexOutOfBoundsException if store doesn't have enough space for the vector
      */
     public void get(FloatBuffer store, int offset) {
         store.put(offset, (float) x);
@@ -867,8 +832,7 @@ public final class Vector3 implements Cloneable {
         result += 31 * result + Double.doubleToLongBits(y);
         result += 31 * result + Double.doubleToLongBits(z);
 
-        return (int) (((result & 0xffffffff00000000L) >> 32) ^
-                      (result & 0x00000000ffffffffL));
+        return (int) (((result & 0xffffffff00000000L) >> 32) ^ (result & 0x00000000ffffffffL));
     }
 
     @Override
@@ -882,14 +846,12 @@ public final class Vector3 implements Cloneable {
     }
 
     /**
-     * Determine if these two vectors are equal, within an error range of eps. Returns
-     * false if v is null.
+     * Determine if these two vectors are equal, within an error range of eps. Returns false if v is null.
      *
      * @param v   Vector to check approximate equality to
      * @param eps Error tolerance of each component
      *
-     * @return True if all component values are within eps of the corresponding component
-     *         of v
+     * @return True if all component values are within eps of the corresponding component of v
      */
     public boolean epsilonEquals(@Const Vector3 v, double eps) {
         if (v == null) {

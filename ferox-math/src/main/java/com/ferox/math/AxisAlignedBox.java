@@ -32,29 +32,25 @@ import java.nio.FloatBuffer;
 
 /**
  * <p/>
- * AxisAlignedBox is a bounding box represented by a minimum and maximum vertex. The box
- * formed by these two points is aligned with the basis vectors that the box is defined
- * in. The AxisAlignedBox can be transformed from one space to another to allow bounds to
- * be described in a local space and then be converted into a world space.
+ * AxisAlignedBox is a bounding box represented by a minimum and maximum vertex. The box formed by these two
+ * points is aligned with the basis vectors that the box is defined in. The AxisAlignedBox can be transformed
+ * from one space to another to allow bounds to be described in a local space and then be converted into a
+ * world space.
  * <p/>
- * The AxisAlignedBox is intended to approximate some spatial shape and represents the
- * extents of that shape. A collision or intersection with the AxisAlignedBox hints that
- * the actual shape may be collided or intersected, but not necessarily. A failed
- * collision or intersection with the bounds guarantees that the wrapped shape is not
- * collided or intersected.
+ * The AxisAlignedBox is intended to approximate some spatial shape and represents the extents of that shape.
+ * A collision or intersection with the AxisAlignedBox hints that the actual shape may be collided or
+ * intersected, but not necessarily. A failed collision or intersection with the bounds guarantees that the
+ * wrapped shape is not collided or intersected.
  * <p/>
- * The AxisAlignedBox is used by {@link SpatialIndex} implementations to efficiently
- * organize shapes within a 3D space so that spatial or view queries can run quickly. An
- * AxisAlignedBox assumes the invariant that its maximum vertex is greater than an or
- * equal to its minimum vertex. If this is not true, the box is in an inconsistent state.
- * In general, it should be assumed that when an AxisAlignedBox is used for computational
- * purposes in a method, it must be consistent. Only {@link #intersect(AxisAlignedBox,
- * AxisAlignedBox)} creates an inconsistent box intentionally when an intersection fails
- * to exist.
+ * The AxisAlignedBox is used by {@link SpatialIndex} implementations to efficiently organize shapes within a
+ * 3D space so that spatial or view queries can run quickly. An AxisAlignedBox assumes the invariant that its
+ * maximum vertex is greater than an or equal to its minimum vertex. If this is not true, the box is in an
+ * inconsistent state. In general, it should be assumed that when an AxisAlignedBox is used for computational
+ * purposes in a method, it must be consistent. Only {@link #intersect(AxisAlignedBox, AxisAlignedBox)}
+ * creates an inconsistent box intentionally when an intersection fails to exist.
  * <p/>
- * Like the other simple math objects in the com.ferox.math package, AxisAlignedBox
- * implements equals() and hashCode() appropriately. Similarly, the calling AABB is
- * mutated.
+ * Like the other simple math objects in the com.ferox.math package, AxisAlignedBox implements equals() and
+ * hashCode() appropriately. Similarly, the calling AABB is mutated.
  *
  * @author Michael Ludwig
  */
@@ -69,10 +65,9 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Create a new AxisAlignedBox that uses the given minimum and maximum vectors as its
-     * two control points. Both <var>min</var> and <var>max</var> will be copied into the
-     * vectors used by the box. It is permissible but not recommended to create an
-     * AxisAlignedBox in an inconsistent state.
+     * Create a new AxisAlignedBox that uses the given minimum and maximum vectors as its two control points.
+     * Both <var>min</var> and <var>max</var> will be copied into the vectors used by the box. It is
+     * permissible but not recommended to create an AxisAlignedBox in an inconsistent state.
      *
      * @param min The vector coordinate to use as the minimum control point
      * @param max The vector coordinate to use as the maximum control point
@@ -96,32 +91,29 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Create a new AxisAlignedBox that is fitted to the coordinate data stored in
-     * <var>vertices</var>. It is assumed that <var>vertices</var> holds
-     * <var>numVertices</var> 3D vertices, starting at <var>offset</var>. The x, y, and z
-     * coordinates are consecutive elements, with <var>stride</var> elements between
-     * consecutive vertices. The created AxisAlignedBox will fit the set of vertices as
-     * best as possible.
+     * Create a new AxisAlignedBox that is fitted to the coordinate data stored in <var>vertices</var>. It is
+     * assumed that <var>vertices</var> holds <var>numVertices</var> 3D vertices, starting at
+     * <var>offset</var>. The x, y, and z coordinates are consecutive elements, with <var>stride</var>
+     * elements between consecutive vertices. The created AxisAlignedBox will fit the set of vertices as best
+     * as possible.
      *
-     * @param vertices    A set of 3D vertices representing a shape, either a point cloud
-     *                    or something more complex
+     * @param vertices    A set of 3D vertices representing a shape, either a point cloud or something more
+     *                    complex
      * @param offset      The first array element to take the first vertex from
      * @param stride      The number of array elements between consecutive vertices
      * @param numVertices The number of vertices to use within the array
      *
      * @throws NullPointerException           if vertices is null
-     * @throws ArrayIndexOutOfBoundsException if the offset, stride, and numVertices would
-     *                                        cause an out-of-bounds access into vertices
+     * @throws ArrayIndexOutOfBoundsException if the offset, stride, and numVertices would cause an
+     *                                        out-of-bounds access into vertices
      */
     public AxisAlignedBox(float[] vertices, int offset, int stride, int numVertices) {
         if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
         }
 
-        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY,
-                Float.NEGATIVE_INFINITY);
-        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY,
-                Float.POSITIVE_INFINITY);
+        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 
         int realStride = 3 + stride;
         for (int i = offset; i < numVertices * realStride; i += realStride) {
@@ -130,30 +122,28 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Equivalent constructor to {@link #AxisAlignedBox(float[], int, int, int)} except
-     * that the vertices are stored within a FloatBuffer. The vertices are accessed from 0
-     * up to the capacity, the position and limit are ignored.
+     * Equivalent constructor to {@link #AxisAlignedBox(float[], int, int, int)} except that the vertices are
+     * stored within a FloatBuffer. The vertices are accessed from 0 up to the capacity, the position and
+     * limit are ignored.
      *
-     * @param vertices    A set of 3D vertices representing a shape, either a point cloud
-     *                    or something more complex
-     * @param offset      The first buffer element (measured from 0, not the position) to
-     *                    take the first vertex from
+     * @param vertices    A set of 3D vertices representing a shape, either a point cloud or something more
+     *                    complex
+     * @param offset      The first buffer element (measured from 0, not the position) to take the first
+     *                    vertex from
      * @param stride      The number of buffer elements between consecutive vertices
      * @param numVertices The number of vertices within the array
      *
      * @throws NullPointerException      if vertices is null
-     * @throws IndexOutOfBoundsException if the offset, stride, and numVertices would
-     *                                   cause an out-of-bounds access into vertices
+     * @throws IndexOutOfBoundsException if the offset, stride, and numVertices would cause an out-of-bounds
+     *                                   access into vertices
      */
     public AxisAlignedBox(FloatBuffer vertices, int offset, int stride, int numVertices) {
         if (vertices == null) {
             throw new NullPointerException("Vertices cannot be null");
         }
 
-        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY,
-                Float.NEGATIVE_INFINITY);
-        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY,
-                Float.POSITIVE_INFINITY);
+        max.set(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
+        min.set(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
 
         int realStride = 3 + stride;
         for (int i = offset; i < numVertices * realStride; i += realStride) {
@@ -172,8 +162,8 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Copy the state of <var>aabb</var> into this AxisAlignedBox so that this
-     * AxisAlignedBox is equivalent to <var>aabb</var>.
+     * Copy the state of <var>aabb</var> into this AxisAlignedBox so that this AxisAlignedBox is equivalent to
+     * <var>aabb</var>.
      *
      * @param aabb The AxisAlignedBox to clone
      *
@@ -185,8 +175,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * As {@link #intersect(AxisAlignedBox, AxisAlignedBox)} where the first argument is
-     * this AxisAlignedBox.
+     * As {@link #intersect(AxisAlignedBox, AxisAlignedBox)} where the first argument is this AxisAlignedBox.
      *
      * @param other The box to compute the intersection with
      *
@@ -199,8 +188,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * As {@link #union(AxisAlignedBox, AxisAlignedBox)} where the first argument is this
-     * AxisAlignedBox.
+     * As {@link #union(AxisAlignedBox, AxisAlignedBox)} where the first argument is this AxisAlignedBox.
      *
      * @param other The box to compute the union with
      *
@@ -213,8 +201,7 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * As {@link #transform(AxisAlignedBox, Matrix4)} where the first argument is this
-     * AxisAlignedBox.
+     * As {@link #transform(AxisAlignedBox, Matrix4)} where the first argument is this AxisAlignedBox.
      *
      * @param trans The matrix transform applied to this box
      *
@@ -227,9 +214,8 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Create and return a new Vector3 containing the center location of this
-     * AxisAlignedBox. The center of the box is the average of the box's minimum and
-     * maximum corners.
+     * Create and return a new Vector3 containing the center location of this AxisAlignedBox. The center of
+     * the box is the average of the box's minimum and maximum corners.
      *
      * @return A new Vector3 storing the center of this box
      */
@@ -238,9 +224,8 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Return true if this AxisAlignedBox and <var>other</var> intersect. It is assumed
-     * that both boxes exist within the same coordinate space. An intersection occurs if
-     * any portion of the two boxes overlap.
+     * Return true if this AxisAlignedBox and <var>other</var> intersect. It is assumed that both boxes exist
+     * within the same coordinate space. An intersection occurs if any portion of the two boxes overlap.
      *
      * @param other The AxisAlignedBox to test for intersection
      *
@@ -256,8 +241,7 @@ public class AxisAlignedBox implements Cloneable {
 
     /**
      * Return true if <var>other</var> is completely contained within the extents of this
-     * ReadOnlyAxisAlignedBox. It is assumed that both bounds exist within the same
-     * coordinate space.
+     * ReadOnlyAxisAlignedBox. It is assumed that both bounds exist within the same coordinate space.
      *
      * @param other The AxisAlignedBox to test for containment
      *
@@ -272,10 +256,9 @@ public class AxisAlignedBox implements Cloneable {
     }
 
     /**
-     * Compute the intersection of <var>a</var> and <var>b</var> and store it in this
-     * AxisAlignedBox. If <var>a</var> and <var>b</var> do not {@link
-     * #intersects(AxisAlignedBox) intersect}, the computed intersection will be an
-     * inconsistent box.
+     * Compute the intersection of <var>a</var> and <var>b</var> and store it in this AxisAlignedBox. If
+     * <var>a</var> and <var>b</var> do not {@link #intersects(AxisAlignedBox) intersect}, the computed
+     * intersection will be an inconsistent box.
      *
      * @param a The first AxisAlignedBox in the intersection
      * @param b The second AxisAlignedBox in the intersection
@@ -286,16 +269,14 @@ public class AxisAlignedBox implements Cloneable {
      */
     public AxisAlignedBox intersect(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
         // in the event that getMin() > getMax(), there is no true intersection
-        min.set(Math.max(a.min.x, b.min.x), Math.max(a.min.y, b.min.y),
-                Math.max(a.min.z, b.min.z));
-        max.set(Math.min(a.max.x, b.max.x), Math.min(a.max.y, b.max.y),
-                Math.min(a.max.z, b.max.z));
+        min.set(Math.max(a.min.x, b.min.x), Math.max(a.min.y, b.min.y), Math.max(a.min.z, b.min.z));
+        max.set(Math.min(a.max.x, b.max.x), Math.min(a.max.y, b.max.y), Math.min(a.max.z, b.max.z));
         return this;
     }
 
     /**
-     * Compute the union of <var>a</var> and <var>b</var> and store the computed bounds in
-     * this AxisAlignedBox.
+     * Compute the union of <var>a</var> and <var>b</var> and store the computed bounds in this
+     * AxisAlignedBox.
      *
      * @param a The AxisAlignedBox that is part of the union
      * @param b The AxisAlignedBox that is part of the union
@@ -305,20 +286,17 @@ public class AxisAlignedBox implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public AxisAlignedBox union(@Const AxisAlignedBox a, @Const AxisAlignedBox b) {
-        min.set(Math.min(a.min.x, b.min.x), Math.min(a.min.y, b.min.y),
-                Math.min(a.min.z, b.min.z));
-        max.set(Math.max(a.max.x, b.max.x), Math.max(a.max.y, b.max.y),
-                Math.max(a.max.z, b.max.z));
+        min.set(Math.min(a.min.x, b.min.x), Math.min(a.min.y, b.min.y), Math.min(a.min.z, b.min.z));
+        max.set(Math.max(a.max.x, b.max.x), Math.max(a.max.y, b.max.y), Math.max(a.max.z, b.max.z));
         return this;
     }
 
     /**
      * <p/>
-     * Transform <var>aabb</var> by <var>m</var> and store the transformed bounds in this
-     * AxisAlignedBox. This can be used to transform an AxisAlignedBox from one coordinate
-     * space to another while preserving the property that whatever was contained by the
-     * box in its original space, will be contained by the transformed box after it has
-     * been transformed as well.
+     * Transform <var>aabb</var> by <var>m</var> and store the transformed bounds in this AxisAlignedBox. This
+     * can be used to transform an AxisAlignedBox from one coordinate space to another while preserving the
+     * property that whatever was contained by the box in its original space, will be contained by the
+     * transformed box after it has been transformed as well.
      * <p/>
      * For best results, <var>m</var> should be an affine transformation.
      *

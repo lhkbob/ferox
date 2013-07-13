@@ -11,11 +11,11 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.impl.lwjgl.LwjglFramework;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.geom.Cylinder;
 import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Sphere;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
@@ -151,20 +151,13 @@ public class SimpleSkeletonDemo extends ApplicationStub {
         //        surface.setVSyncEnabled(true);
         system = new EntitySystem();
 
-        renderJob = system.getScheduler().createJob("render", Timers.measuredDelta(),
-                                                    new SkeletonAnimationTask(),
-                                                    new BoneTransformTask(),
-                                                    new BoneLinkTask(),
-                                                    new UpdateWorldBoundsTask(),
-                                                    new ComputeCameraFrustumTask(),
-                                                    new ComputeShadowFrustumTask(),
-                                                    new BuildVisibilityIndexTask(
-                                                            new QuadTree<Entity>()),
-                                                    new ComputePVSTask(),
-                                                    new ComputeLightGroupTask(),
-                                                    new FixedFunctionRenderTask(
-                                                            surface.getFramework(), 1024,
-                                                            false));
+        renderJob = system.getScheduler()
+                          .createJob("render", Timers.measuredDelta(), new SkeletonAnimationTask(),
+                                     new BoneTransformTask(), new BoneLinkTask(), new UpdateWorldBoundsTask(),
+                                     new ComputeCameraFrustumTask(), new ComputeShadowFrustumTask(),
+                                     new BuildVisibilityIndexTask(new QuadTree<Entity>()),
+                                     new ComputePVSTask(), new ComputeLightGroupTask(),
+                                     new FixedFunctionRenderTask(surface.getFramework(), 1024, false));
 
         Entity mainSkeleton = system.addEntity();
         try {
@@ -203,12 +196,11 @@ public class SimpleSkeletonDemo extends ApplicationStub {
             //            Geometry g = Cylinder.create(offset, new Vector3().scale(offset, -.5), .1,
             //                                         offset.length(), 16, StorageMode.GPU_STATIC);
             System.out.println(b.getName() + " " + r);
-            Geometry g = Cylinder.create(offset, offset, .1, offset.length() * 2, 16,
-                                         StorageMode.GPU_STATIC);
+            Geometry g = Cylinder.create(offset, offset, .1, offset.length() * 2, 16, StorageMode.GPU_STATIC);
 
             boneLink.add(Renderable.class).getData().setVertices(g.getVertices())
-                    .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(),
-                                g.getIndexCount()).setLocalBounds(g.getBounds());
+                    .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(), g.getIndexCount())
+                    .setLocalBounds(g.getBounds());
 
             boneLink.add(BlinnPhongMaterial.class).getData().setNormals(g.getNormals());
             boneLink.add(DiffuseColor.class).getData().setColor(new ColorRGB(1, 1, 1));
@@ -222,8 +214,8 @@ public class SimpleSkeletonDemo extends ApplicationStub {
             g = Sphere.create(.3, 16, StorageMode.GPU_STATIC);
 
             boneLink.add(Renderable.class).getData().setVertices(g.getVertices())
-                    .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(),
-                                g.getIndexCount()).setLocalBounds(g.getBounds());
+                    .setIndices(g.getPolygonType(), g.getIndices(), g.getIndexOffset(), g.getIndexCount())
+                    .setLocalBounds(g.getBounds());
 
             boneLink.add(BlinnPhongMaterial.class).getData().setNormals(g.getNormals());
             boneLink.add(DiffuseColor.class).getData().setColor(new ColorRGB(1, 0, 0));
@@ -232,8 +224,8 @@ public class SimpleSkeletonDemo extends ApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(1, 1, 1));
-        point.get(Transform.class).getData().setMatrix(
-                new Matrix4().setIdentity().setCol(3, new Vector4(10, 10, 10, 1)));
+        point.get(Transform.class).getData()
+             .setMatrix(new Matrix4().setIdentity().setCol(3, new Vector4(10, 10, 10, 1)));
 
         Entity ambient = system.addEntity();
         ambient.add(AmbientLight.class).getData().setColor(new ColorRGB(.7, .7, .7));

@@ -28,9 +28,9 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.Resource;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
-import com.ferox.renderer.Resource;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
@@ -67,8 +67,8 @@ public class JoglContext extends OpenGLContext {
     private int glslProgram;
 
     /**
-     * Create a JoglContext wrapper around the given GLContext. It is assumed that the
-     * given JoglSurfaceFactory is the creator.
+     * Create a JoglContext wrapper around the given GLContext. It is assumed that the given
+     * JoglSurfaceFactory is the creator.
      *
      * @param factory  The factory creating, or indirectly creating this context
      * @param context  The actual GLContext
@@ -76,8 +76,7 @@ public class JoglContext extends OpenGLContext {
      *
      * @throws NullPointerException if factory, context, or provider are null
      */
-    public JoglContext(JoglSurfaceFactory factory, GLContext context,
-                       RendererProvider provider) {
+    public JoglContext(JoglSurfaceFactory factory, GLContext context, RendererProvider provider) {
         super(provider);
         if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
@@ -106,15 +105,13 @@ public class JoglContext extends OpenGLContext {
 
     /**
      * <p/>
-     * Queue the given task to be run the next time this context is bound. Queued tasks
-     * can be invoked in any order so they should be independent. These tasks are intended
-     * for cleanup of additional resources on the context that don't extend {@link
-     * Resource}.
+     * Queue the given task to be run the next time this context is bound. Queued tasks can be invoked in any
+     * order so they should be independent. These tasks are intended for cleanup of additional resources on
+     * the context that don't extend {@link Resource}.
      * <p/>
-     * Tasks may not be executed if the context is destroyed before it is made current
-     * after the task has been queued. This behavior should be acceptable for tasks whose
-     * sole purpose is to cleanup resources tied to a context (which should be
-     * automatically destroyed when hardware context is destroyed).
+     * Tasks may not be executed if the context is destroyed before it is made current after the task has been
+     * queued. This behavior should be acceptable for tasks whose sole purpose is to cleanup resources tied to
+     * a context (which should be automatically destroyed when hardware context is destroyed).
      *
      * @param task The cleanup task to queue
      *
@@ -225,8 +222,8 @@ public class JoglContext extends OpenGLContext {
     }
 
     /**
-     * Set the active texture. This should be called before any texture operations are
-     * needed, since it switches which texture unit is active.
+     * Set the active texture. This should be called before any texture operations are needed, since it
+     * switches which texture unit is active.
      *
      * @param gl  The GL to use
      * @param tex The texture unit, 0 based
@@ -240,8 +237,8 @@ public class JoglContext extends OpenGLContext {
     }
 
     /**
-     * Bind a texture image to the current active texture. <var>target</var> must be one
-     * of GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
+     * Bind a texture image to the current active texture. <var>target</var> must be one of GL_TEXTURE_1D,
+     * GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
      *
      * @param gl     The GL to use
      * @param target The valid OpenGL texture target enum for texture image
@@ -288,8 +285,7 @@ public class JoglContext extends OpenGLContext {
     @Override
     public Capabilities getRenderCapabilities() {
         if (cachedCaps == null) {
-            cachedCaps = new JoglRenderCapabilities(context.getGL(),
-                                                    creator.getGLProfile(),
+            cachedCaps = new JoglRenderCapabilities(context.getGL(), creator.getGLProfile(),
                                                     creator.getCapabilityForceBits());
         }
 

@@ -188,8 +188,8 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
     }
 
     /**
-     * Default factory implementation for Matrix4Properties, supports the {@link
-     * DefaultMatrix4} annotation to specify the default matrix coordinates.
+     * Default factory implementation for Matrix4Properties, supports the {@link DefaultMatrix4} annotation to
+     * specify the default matrix coordinates.
      *
      * @author Michael Ludwig
      */
@@ -200,16 +200,14 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
         public Factory(Attributes attrs) {
             if (attrs.hasAttribute(DefaultMatrix4.class)) {
                 DefaultMatrix4 v = attrs.getAttribute(DefaultMatrix4.class);
-                dflt = new Matrix4(v.m00(), v.m01(), v.m02(), v.m03(), v.m10(), v.m11(),
-                                   v.m12(), v.m13(), v.m20(), v.m21(), v.m22(), v.m23(),
-                                   v.m30(), v.m31(), v.m32(), v.m33());
+                dflt = new Matrix4(v.m00(), v.m01(), v.m02(), v.m03(), v.m10(), v.m11(), v.m12(), v.m13(),
+                                   v.m20(), v.m21(), v.m22(), v.m23(), v.m30(), v.m31(), v.m32(), v.m33());
             } else {
                 dflt = new Matrix4();
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Matrix4 v) {
@@ -228,8 +226,7 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
         }
 
         @Override
-        public void clone(Matrix4Property src, int srcIndex, Matrix4Property dst,
-                          int dstIndex) {
+        public void clone(Matrix4Property src, int srcIndex, Matrix4Property dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {

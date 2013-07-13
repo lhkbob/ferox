@@ -26,17 +26,16 @@
  */
 package com.ferox.scene;
 
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.renderer.texture.Texture;
 import com.ferox.renderer.VertexAttribute;
+import com.ferox.renderer.texture.Texture;
+import com.ferox.resource.BufferData.DataType;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p/>
- * TextureMap is an abstract Component type that is shared by the Components that store a
- * single Texture, such as {@link NormalMap}, {@link DepthOffsetMap} and {@link
- * DiffuseMap}.
+ * TextureMap is an abstract Component type that is shared by the Components that store a single Texture, such
+ * as {@link NormalMap}, {@link DepthOffsetMap} and {@link DiffuseMap}.
  *
  * @param <T> Concrete TextureMap type
  *
@@ -57,10 +56,9 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     }
 
     /**
-     * Set the texture coordinates used to access this TextureMap's texture. Texture
-     * coordinates are used when rendering an entity that is a {@link Renderable}. There
-     * must be one texture coordinate for every vertex used in the geometry of the
-     * Renderable.
+     * Set the texture coordinates used to access this TextureMap's texture. Texture coordinates are used when
+     * rendering an entity that is a {@link Renderable}. There must be one texture coordinate for every vertex
+     * used in the geometry of the Renderable.
      *
      * @param texCoords The new vertex attribute holding texture coord data
      *
@@ -84,9 +82,8 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     }
 
     /**
-     * Return the non-null Texture that is used by this TextureMap. The interpretation of
-     * the Texture when rendering a scene is dependent on the actual subtype of
-     * TextureMap.
+     * Return the non-null Texture that is used by this TextureMap. The interpretation of the Texture when
+     * rendering a scene is dependent on the actual subtype of TextureMap.
      *
      * @return This TextureMap's texture
      */
@@ -95,17 +92,15 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     }
 
     /**
-     * Set the Texture to use with this TextureMap. Depending on the actual Component
-     * type, this texture will mean different things. Some possibilities include diffuse
-     * color, or normal vectors.
+     * Set the Texture to use with this TextureMap. Depending on the actual Component type, this texture will
+     * mean different things. Some possibilities include diffuse color, or normal vectors.
      *
      * @param texture The new Texture
      *
      * @return This component for chaining purposes
      *
      * @throws NullPointerException     if texture is null
-     * @throws IllegalArgumentException if the texture is invalid according to the rules
-     *                                  of the subclass
+     * @throws IllegalArgumentException if the texture is invalid according to the rules of the subclass
      */
     @SuppressWarnings("unchecked")
     public final T setTexture(Texture texture) {
@@ -119,8 +114,7 @@ public abstract class TextureMap<T extends TextureMap<T>> extends ComponentData<
     }
 
     /**
-     * Throw an IllegalArgumentException if the given texture is not valid for the given
-     * subclass.
+     * Throw an IllegalArgumentException if the given texture is not valid for the given subclass.
      *
      * @param tex The potentially new texture, will not be null
      */

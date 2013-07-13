@@ -14,8 +14,7 @@ import java.util.Map;
 /**
  *
  */
-public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
-        implements Shader {
+public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implements Shader {
     private final int glslVersion;
     private final List<UniformImpl> uniforms;
     private final List<AttributeImpl> attributes;
@@ -190,8 +189,8 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle>
         public final int fragmentShaderID;
         public final int geometryShaderID;
 
-        public ShaderHandle(FrameworkImpl framework, int programID, int vertexShaderID,
-                            int fragmentShaderID, int geometryShaderID) {
+        public ShaderHandle(FrameworkImpl framework, int programID, int vertexShaderID, int fragmentShaderID,
+                            int geometryShaderID) {
             super(framework);
             this.programID = programID;
             this.vertexShaderID = vertexShaderID;

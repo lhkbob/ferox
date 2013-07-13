@@ -30,8 +30,8 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 
 /**
- * QueryCallback is a callback that can be passed into a SpatialIndex when querying the
- * hierarchy with a frustum or box query.
+ * QueryCallback is a callback that can be passed into a SpatialIndex when querying the hierarchy with a
+ * frustum or box query.
  *
  * @param <T> The item type processed by the callback, and stored in the hierarchy
  *
@@ -40,15 +40,13 @@ import com.ferox.math.Const;
 public interface QueryCallback<T> {
     /**
      * <p/>
-     * Invoked by a SpatialIndex when its {@link SpatialIndex#query(AxisAlignedBox,
-     * QueryCallback)} or {@link SpatialIndex#query(Frustum, QueryCallback)} method is
-     * called, for each item satisfying the query.
+     * Invoked by a SpatialIndex when its {@link SpatialIndex#query(AxisAlignedBox, QueryCallback)} or {@link
+     * SpatialIndex#query(Frustum, QueryCallback)} method is called, for each item satisfying the query.
      * <p/>
-     * Item query satisfaction is determined by the bounds the items were last updated
-     * with, or their original bounds used when adding to the hierarchy, if they were
-     * never updated. The bounds of the item are provided to the callback, although the
-     * instance should not be held onto as the SpatialIndex may re-use the instance for
-     * the next item.
+     * Item query satisfaction is determined by the bounds the items were last updated with, or their original
+     * bounds used when adding to the hierarchy, if they were never updated. The bounds of the item are
+     * provided to the callback, although the instance should not be held onto as the SpatialIndex may re-use
+     * the instance for the next item.
      * <p/>
      * Similarly, the bounds should not be modified.
      *

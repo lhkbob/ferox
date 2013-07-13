@@ -50,8 +50,7 @@ public class BoneTransformTask implements Task, ParallelAware {
             Bone child;
             for (int i = 0; i < children.size(); i++) {
                 child = children.get(i);
-                store.mul(parent.getGlobalBoneTransform(),
-                          child.getRelativeBoneTransform());
+                store.mul(parent.getGlobalBoneTransform(), child.getRelativeBoneTransform());
                 child.setGlobalBoneTransform(store);
 
                 updateChildren(child, store);

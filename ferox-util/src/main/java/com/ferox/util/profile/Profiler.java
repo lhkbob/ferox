@@ -66,9 +66,8 @@ public final class Profiler {
 
     private ProfilerData getData(ProfileRecord record) {
         Map<String, ProfilerData> children = getData(record.children);
-        return new ProfilerData(record.label, record.timings.average(),
-                                record.timings.min(), record.timings.max(),
-                                record.invokeCount, children);
+        return new ProfilerData(record.label, record.timings.average(), record.timings.min(),
+                                record.timings.max(), record.invokeCount, children);
     }
 
     private Map<String, ProfilerData> getData(Map<String, ProfileRecord> records) {

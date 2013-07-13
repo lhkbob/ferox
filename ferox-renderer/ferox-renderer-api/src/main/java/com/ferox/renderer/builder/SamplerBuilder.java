@@ -3,16 +3,15 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.Sampler;
 
 /**
- * SamplerBuilder is the base builder for all samplers. Sampler building is slightly more
- * complicated than the other resources because a sampler may take multiple images.  To
- * support this and still have type safety based on the selected texture format, the main
- * sampler builder instance returned by the Framework is not an actual {@link Builder}.
+ * SamplerBuilder is the base builder for all samplers. Sampler building is slightly more complicated than the
+ * other resources because a sampler may take multiple images.  To support this and still have type safety
+ * based on the selected texture format, the main sampler builder instance returned by the Framework is not an
+ * actual {@link Builder}.
  * <p/>
- * Instead, it should be configured with the sampler configuration, with a final call to
- * one of the format selecting methods that return an actual Builder. The returned image
- * Builder will have methods to set which mipmap, cube face, etc. to specify. Once the
- * image Builder is chosen, the configuration methods on the sampler builder cannot be
- * invoked.
+ * Instead, it should be configured with the sampler configuration, with a final call to one of the format
+ * selecting methods that return an actual Builder. The returned image Builder will have methods to set which
+ * mipmap, cube face, etc. to specify. Once the image Builder is chosen, the configuration methods on the
+ * sampler builder cannot be invoked.
  * <p/>
  * Here is an example for a Texture2D:
  * <pre>
@@ -45,8 +44,8 @@ import com.ferox.renderer.Sampler;
  */
 public interface SamplerBuilder<B extends SamplerBuilder<B>> {
     /**
-     * Configure the sampler to interpolate between its texels smoothly. If not called,
-     * the sampler will use nearest-neighbor sampling.
+     * Configure the sampler to interpolate between its texels smoothly. If not called, the sampler will use
+     * nearest-neighbor sampling.
      *
      * @return This builder
      */

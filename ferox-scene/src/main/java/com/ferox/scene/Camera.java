@@ -35,12 +35,11 @@ import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p/>
- * Camera is a Component that specifies the viewing settings for a "camera" into the scene
- * of the EntitySystem. It represents a perspective projection and stores the field of
- * view, near and far z planes. It is also attached to a {@link Surface} to actually
- * render into. This surface determines the aspect ratio that must be used when rendering
- * with this camera. Additionally, the camera takes its position and orientation from any
- * transform-providing component attached to the same entity.
+ * Camera is a Component that specifies the viewing settings for a "camera" into the scene of the
+ * EntitySystem. It represents a perspective projection and stores the field of view, near and far z planes.
+ * It is also attached to a {@link Surface} to actually render into. This surface determines the aspect ratio
+ * that must be used when rendering with this camera. Additionally, the camera takes its position and
+ * orientation from any transform-providing component attached to the same entity.
  *
  * @author Michael Ludwig
  */
@@ -78,8 +77,7 @@ public final class Camera extends ComponentData<Camera> {
      */
     public Camera setFieldOfView(double fov) {
         if (fov < 0.0 || fov > 180.0) {
-            throw new IllegalArgumentException(
-                    "Field of view must be in [0, 180]: " + fov);
+            throw new IllegalArgumentException("Field of view must be in [0, 180]: " + fov);
         }
         this.fov.set(fov, getIndex());
         updateVersion();
@@ -101,17 +99,14 @@ public final class Camera extends ComponentData<Camera> {
      *
      * @return This Camera for chaining purposes
      *
-     * @throws IllegalArgumentException if znear is less than or equal to 0, or if zfar is
-     *                                  less than znear
+     * @throws IllegalArgumentException if znear is less than or equal to 0, or if zfar is less than znear
      */
     public Camera setZDistances(double znear, double zfar) {
         if (znear <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Near distances must be greater than 0: " + znear);
+            throw new IllegalArgumentException("Near distances must be greater than 0: " + znear);
         }
         if (znear > zfar) {
-            throw new IllegalArgumentException(
-                    "Near distance must be less than far: " + znear + ", " + zfar);
+            throw new IllegalArgumentException("Near distance must be less than far: " + znear + ", " + zfar);
         }
         this.znear.set(znear, getIndex());
         this.zfar.set(zfar, getIndex());

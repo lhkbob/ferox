@@ -52,22 +52,19 @@ public class Box extends ConvexShape {
 
     public void setExtents(double width, double height, double depth) {
         if (width <= 0) {
-            throw new IllegalArgumentException(
-                    "Invalid width, must be greater than 0, not: " + width);
+            throw new IllegalArgumentException("Invalid width, must be greater than 0, not: " + width);
         }
         if (height <= 0) {
-            throw new IllegalArgumentException(
-                    "Invalid height, must be greater than 0, not: " + height);
+            throw new IllegalArgumentException("Invalid height, must be greater than 0, not: " + height);
         }
         if (depth <= 0) {
-            throw new IllegalArgumentException(
-                    "Invalid depth, must be greater than 0, not: " + depth);
+            throw new IllegalArgumentException("Invalid depth, must be greater than 0, not: " + depth);
         }
 
         halfExtents.set(width / 2.0, height / 2.0, depth / 2.0);
-        localTensorPartial.set((height * height + depth * depth) / 12.0,
-                               (width * width + depth * depth) / 12.0,
-                               (width * width + height * height) / 12.0);
+        localTensorPartial
+                .set((height * height + depth * depth) / 12.0, (width * width + depth * depth) / 12.0,
+                     (width * width + height * height) / 12.0);
         updateBounds();
     }
 

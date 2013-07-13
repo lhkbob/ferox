@@ -29,8 +29,8 @@ package com.ferox.input.logic;
 import com.ferox.input.MouseEvent.MouseButton;
 
 /**
- * MouseClickedPredicate is an advanced Predicate capable of identifying and triggering
- * actions on single clicks up to N-count clicks within a specific time period.
+ * MouseClickedPredicate is an advanced Predicate capable of identifying and triggering actions on single
+ * clicks up to N-count clicks within a specific time period.
  *
  * @author Michael Ludwig
  */
@@ -47,16 +47,13 @@ class MouseClickedPredicate implements Predicate {
             throw new NullPointerException("MouseButton cannot be null");
         }
         if (button == MouseButton.NONE) {
-            throw new IllegalArgumentException(
-                    "NONE is not a valid button for mouse clicks");
+            throw new IllegalArgumentException("NONE is not a valid button for mouse clicks");
         }
         if (numClicks <= 0) {
-            throw new IllegalArgumentException(
-                    "Number of clicks must be at least 1, not: " + numClicks);
+            throw new IllegalArgumentException("Number of clicks must be at least 1, not: " + numClicks);
         }
         if (clickDuration <= 0) {
-            throw new IllegalArgumentException(
-                    "Click duration must be at least 1 ms, not: " + clickDuration);
+            throw new IllegalArgumentException("Click duration must be at least 1 ms, not: " + clickDuration);
         }
 
         this.button = button;
@@ -69,8 +66,7 @@ class MouseClickedPredicate implements Predicate {
 
     @Override
     public boolean apply(InputState prev, InputState next) {
-        if (!prev.getMouseState().isButtonDown(button) &&
-            next.getMouseState().isButtonDown(button)) {
+        if (!prev.getMouseState().isButtonDown(button) && next.getMouseState().isButtonDown(button)) {
             // record time of first press
             if (currentClickCount == 0) {
                 startTime = next.getTimestamp();
@@ -79,8 +75,7 @@ class MouseClickedPredicate implements Predicate {
             // increase the number of 'clicks', which for our purposes is tracked on mouse down
             currentClickCount++;
             return false;
-        } else if (prev.getMouseState().isButtonDown(button) &&
-                   !next.getMouseState().isButtonDown(button)) {
+        } else if (prev.getMouseState().isButtonDown(button) && !next.getMouseState().isButtonDown(button)) {
             // button was released, see if we reached our click goal and were fast enough
             if (currentClickCount == numClicks) {
                 long start = startTime;

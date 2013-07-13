@@ -44,11 +44,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JoglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It
- * uses {@link JoglOnscreenSurface}, {@link JoglFboTextureSurface}, {@link
- * JoglPbufferTextureSurface} for its surface implementations. It uses the {@link
- * JoglFixedFunctionRenderer} and {@link JoglGlslRenderer} for its renderer
- * implementations.
+ * JoglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It uses {@link
+ * JoglOnscreenSurface}, {@link JoglFboTextureSurface}, {@link JoglPbufferTextureSurface} for its surface
+ * implementations. It uses the {@link JoglFixedFunctionRenderer} and {@link JoglGlslRenderer} for its
+ * renderer implementations.
  *
  * @author Michael Ludwig
  */
@@ -68,8 +67,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     private final Screen screen;
 
     /**
-     * Create a new JoglSurfaceFactory that will use the given profile and capability
-     * bits. The bit mask uses the bit flags defined in {@link JoglRenderCapabilities}.
+     * Create a new JoglSurfaceFactory that will use the given profile and capability bits. The bit mask uses
+     * the bit flags defined in {@link JoglRenderCapabilities}.
      *
      * @param profile The GLProfile
      * @param capBits The forced capabilities
@@ -97,10 +96,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             DisplayMode feroxMode = convert(joglMode);
             if (convertMap.containsKey(feroxMode)) {
                 // compare refresh rates and pick the one closest to target
-                if (Math.abs(TARGET_REFRESH_RATE -
-                             joglMode.getMonitorMode().getRefreshRate()) < Math.abs(
-                        TARGET_REFRESH_RATE -
-                        convertMap.get(feroxMode).getMonitorMode().getRefreshRate())) {
+                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getMonitorMode().getRefreshRate()) < Math.abs(
+                        TARGET_REFRESH_RATE - convertMap.get(feroxMode).getMonitorMode().getRefreshRate())) {
                     convertMap.put(feroxMode, joglMode);
                 }
             } else {
@@ -220,8 +217,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * Return an JOGL ScreenMode that exactly matches the given DisplayMode, or null if
-     * there was no exact match.
+     * Return an JOGL ScreenMode that exactly matches the given DisplayMode, or null if there was no exact
+     * match.
      *
      * @param mode The mode to "convert"
      *
@@ -249,23 +246,20 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             break;
         }
 
-        return new DisplayMode(realMode.getResolution().getWidth(),
-                               realMode.getResolution().getHeight(), pixFormat);
+        return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(),
+                               pixFormat);
     }
 
     @Override
-    public AbstractTextureSurface createTextureSurface(FrameworkImpl framework,
-                                                       TextureSurfaceOptions options,
+    public AbstractTextureSurface createTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
         if (framework.getCapabilities().getFboSupport()) {
             return new JoglFboTextureSurface(framework, this, options);
         } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new JoglPbufferTextureSurface(framework, this, options,
-                                                 (JoglContext) sharedContext,
+            return new JoglPbufferTextureSurface(framework, this, options, (JoglContext) sharedContext,
                                                  new JoglRendererProvider());
         } else {
-            throw new SurfaceCreationException(
-                    "No render-to-texture support on current hardware");
+            throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
     }
 
@@ -281,11 +275,10 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
         if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0 &&
             GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null)) {
-            return PbufferShadowContext.create(this, (JoglContext) sharedContext,
-                                               new JoglRendererProvider());
+            return PbufferShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
         } else {
-            return OnscreenShadowContext.create(this, (JoglContext) sharedContext,
-                                                new JoglRendererProvider());
+            return OnscreenShadowContext
+                    .create(this, (JoglContext) sharedContext, new JoglRendererProvider());
         }
     }
 
@@ -297,8 +290,8 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     }
 
     /**
-     * @return The capabilities bits this factory was created with, to be passed into the
-     *         constructor of all related {@link JoglRenderCapabilities}
+     * @return The capabilities bits this factory was created with, to be passed into the constructor of all
+     *         related {@link JoglRenderCapabilities}
      */
     public int getCapabilityForceBits() {
         return capBits;

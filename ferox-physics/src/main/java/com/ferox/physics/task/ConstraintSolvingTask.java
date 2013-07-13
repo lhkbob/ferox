@@ -68,12 +68,9 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             iterator = new ComponentIterator(system);
             iterator.addRequired(rigidBody);
 
-            deltaLinearImpulse = system.decorate(RigidBody.class,
-                                                 new Vector3Property.Factory(
-                                                         new Vector3()));
-            deltaAngularImpulse = system.decorate(RigidBody.class,
-                                                  new Vector3Property.Factory(
-                                                          new Vector3()));
+            deltaLinearImpulse = system.decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
+            deltaAngularImpulse = system
+                    .decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
 
             solver.setDeltaLinearImpulseProperty(deltaLinearImpulse);
             solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);
@@ -88,8 +85,7 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
         Profiler.push("constraint-solving-task");
 
         Profiler.push("solve-constraints");
-        LinearConstraintPool[] asArray = groups
-                .toArray(new LinearConstraintPool[groups.size()]);
+        LinearConstraintPool[] asArray = groups.toArray(new LinearConstraintPool[groups.size()]);
         solver.solve(asArray);
         Profiler.pop();
 

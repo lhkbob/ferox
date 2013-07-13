@@ -28,15 +28,13 @@ package com.ferox.scene;
 
 /**
  * <p/>
- * A PointLight is a type of light where light is emitted equally in all directions from a
- * specific position. In many ways it is equivalent to a {@link SpotLight} if the spot
- * light had a cutoff angle equal to 180 degrees (effectively turning the cone into a
- * sphere and removing the direction).
+ * A PointLight is a type of light where light is emitted equally in all directions from a specific position.
+ * In many ways it is equivalent to a {@link SpotLight} if the spot light had a cutoff angle equal to 180
+ * degrees (effectively turning the cone into a sphere and removing the direction).
  * <p/>
- * A PointLight must be combined with some form of transform component, or other provider
- * of position, to place a PointLight within the scene. This functions identically to how
- * SpotLight and DirectionLight can be modified by a transform to position them within a
- * scene.
+ * A PointLight must be combined with some form of transform component, or other provider of position, to
+ * place a PointLight within the scene. This functions identically to how SpotLight and DirectionLight can be
+ * modified by a transform to position them within a scene.
  *
  * @author Michael Ludwig
  */

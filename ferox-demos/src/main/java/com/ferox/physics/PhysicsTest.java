@@ -33,9 +33,9 @@ import com.ferox.math.Vector4;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.scene.*;
 import com.ferox.scene.AtmosphericFog.Falloff;
 import com.lhkbob.entreri.Entity;
@@ -64,8 +64,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
         Geometry box = Box.create(2 + 2 * MARGIN, COMPILE_TYPE);
         //        Geometry sphere = Sphere.create(1 + MARGIN, 32, COMPILE_TYPE);
 
-        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(
-                2, 2, 2);
+        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2, 2, 2);
         //        com.ferox.physics.collision.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1);
         boxShape.setMargin(MARGIN);
         //        sphereShape.setMargin(MARGIN);
@@ -87,8 +86,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
                     physShape = boxShape;
                     geomShape = box;
-                    color = new ColorRGB(x / (double) NUM_X, y / (double) NUM_Y,
-                                         z / (double) NUM_Z);
+                    color = new ColorRGB(x / (double) NUM_X, y / (double) NUM_Y, z / (double) NUM_Z);
 
                     double rx = (Math.random() * randXLim - randXLim / 2);
                     double ry = (Math.random() * randYLim - randYLim / 2);
@@ -99,8 +97,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
                      .setLocalBounds(geomShape.getBounds())
                      .setIndices(geomShape.getPolygonType(), geomShape.getIndices(),
                                  geomShape.getIndexOffset(), geomShape.getIndexCount());
-                    e.add(BlinnPhongMaterial.class).getData()
-                     .setNormals(geomShape.getNormals());
+                    e.add(BlinnPhongMaterial.class).getData().setNormals(geomShape.getNormals());
                     e.add(DiffuseColor.class).getData().setColor(color);
 
                     e.add(CollisionBody.class).getData().setShape(physShape).setTransform(
@@ -114,55 +111,37 @@ public class PhysicsTest extends PhysicsApplicationStub {
         }
 
         // some walls
-        Geometry bottomWall = Box
-                .create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN, COMPILE_TYPE);
+        Geometry bottomWall = Box.create(BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN, COMPILE_TYPE);
         Entity wall = system.addEntity();
         wall.add(Renderable.class).getData().setVertices(bottomWall.getVertices())
             .setLocalBounds(bottomWall.getBounds())
-            .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(),
-                        bottomWall.getIndexOffset(), bottomWall.getIndexCount());
+            .setIndices(bottomWall.getPolygonType(), bottomWall.getIndices(), bottomWall.getIndexOffset(),
+                        bottomWall.getIndexCount());
         wall.add(BlinnPhongMaterial.class).getData().setNormals(bottomWall.getNormals());
         wall.add(DiffuseColor.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
 
         wall.add(CollisionBody.class).getData()
             .setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
-            .setTransform(
-                    new Matrix4().setIdentity().setCol(3, new Vector4(0, -.5, 0, 1)));
+            .setTransform(new Matrix4().setIdentity().setCol(3, new Vector4(0, -.5, 0, 1)));
 
         // fog
-        system.addEntity().add(AtmosphericFog.class).getData()
-              .setOpaqueDistance(2 * BOUNDS).setFalloff(Falloff.EXPONENTIAL_SQUARED)
-              .setColor(new ColorRGB());
+        system.addEntity().add(AtmosphericFog.class).getData().setOpaqueDistance(2 * BOUNDS)
+              .setFalloff(Falloff.EXPONENTIAL_SQUARED).setColor(new ColorRGB());
 
         // ambient light
-        system.addEntity().add(AmbientLight.class).getData()
-              .setColor(new ColorRGB(.2, .2, .2));
+        system.addEntity().add(AmbientLight.class).getData().setColor(new ColorRGB(.2, .2, .2));
 
         // a point light
         Entity point = system.addEntity();
         point.add(PointLight.class).getData().setColor(new ColorRGB(0.5, 0.5, 0.5));
-        point.get(Transform.class).getData().setMatrix(new Matrix4().setIdentity()
-                                                                    .setCol(3,
-                                                                            new Vector4(
-                                                                                    BOUNDS /
-                                                                                    2,
-                                                                                    BOUNDS /
-                                                                                    2,
-                                                                                    BOUNDS /
-                                                                                    2,
-                                                                                    1)));
+        point.get(Transform.class).getData().setMatrix(
+                new Matrix4().setIdentity().setCol(3, new Vector4(BOUNDS / 2, BOUNDS / 2, BOUNDS / 2, 1)));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
-           .setShadowCaster(true);
-        inf.get(Transform.class).getData().setMatrix(new Matrix4().lookAt(new Vector3(),
-                                                                          new Vector3(15,
-                                                                                      15,
-                                                                                      15),
-                                                                          new Vector3(0,
-                                                                                      1,
-                                                                                      0)));
+        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1)).setShadowCaster(true);
+        inf.get(Transform.class).getData()
+           .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15), new Vector3(0, 1, 0)));
     }
 
     public static void main(String[] args) {

@@ -51,8 +51,7 @@ public class Sphere extends ConvexShape {
     }
 
     /**
-     * Set the radius of the sphere. This does not include the margin that all shapes are
-     * padded with.
+     * Set the radius of the sphere. This does not include the margin that all shapes are padded with.
      *
      * @param radius The new radius, must be greater than 0
      *
@@ -60,8 +59,7 @@ public class Sphere extends ConvexShape {
      */
     public void setRadius(double radius) {
         if (radius <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Radius must be greater than 0, not: " + radius);
+            throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         }
 
         this.radius = radius;

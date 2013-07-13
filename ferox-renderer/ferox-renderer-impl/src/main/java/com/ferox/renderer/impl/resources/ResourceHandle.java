@@ -38,16 +38,14 @@ public abstract class ResourceHandle implements DestructibleManager.ManagedDestr
     public Future<Void> destroy() {
         if (!isDestroyed()) {
             // we do want destroy tasks accepted during shutdown
-            return framework.getContextManager()
-                            .invokeOnContextThread(new Callable<Void>() {
-                                @Override
-                                public Void call() throws Exception {
-                                    OpenGLContext ctx = framework.getContextManager()
-                                                                 .ensureContext();
-                                    destroy(ctx);
-                                    return null;
-                                }
-                            }, true);
+            return framework.getContextManager().invokeOnContextThread(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    OpenGLContext ctx = framework.getContextManager().ensureContext();
+                    destroy(ctx);
+                    return null;
+                }
+            }, true);
         } else {
             return new CompletedFuture<>(null);
         }

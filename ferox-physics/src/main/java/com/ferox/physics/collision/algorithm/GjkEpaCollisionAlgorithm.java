@@ -33,13 +33,12 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
-public class GjkEpaCollisionAlgorithm
-        implements CollisionAlgorithm<ConvexShape, ConvexShape> {
+public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
     private static final int MAX_EPA_CHECKS = 4;
 
     @Override
-    public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA,
-                                      ConvexShape shapeB, @Const Matrix4 transB) {
+    public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA, ConvexShape shapeB,
+                                      @Const Matrix4 transB) {
         ClosestPair p = null;
 
         MinkowskiShape shape = new MinkowskiShape(shapeA, transA, shapeB, transB);

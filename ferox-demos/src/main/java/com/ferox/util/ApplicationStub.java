@@ -47,8 +47,7 @@ public abstract class ApplicationStub {
     private boolean showProfiling;
 
     public ApplicationStub(Framework framework) {
-        this(framework, new OnscreenSurfaceOptions().setWidth(800).setHeight(600)
-                                                    .setResizable(false));
+        this(framework, new OnscreenSurfaceOptions().setWidth(800).setHeight(600).setResizable(false));
     }
 
     public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts) {
@@ -98,8 +97,7 @@ public abstract class ApplicationStub {
                 }
 
                 if (showProfiling) {
-                    profile = formatProfiling(r.totalMemory() - r.freeMemory(),
-                                              r.totalMemory(), charSet);
+                    profile = formatProfiling(r.totalMemory() - r.freeMemory(), r.totalMemory(), charSet);
                 } else {
                     profile = null;
                 }
@@ -117,8 +115,7 @@ public abstract class ApplicationStub {
         for (int i = 0; i < extra.length; i++) {
             total[i + 1] = extra[i];
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT,
-                                total);
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, total);
     }
 
     private TextRenderer formatProfiling(long heap, long maxHeap, CharacterSet charSet) {
@@ -131,8 +128,7 @@ public abstract class ApplicationStub {
         for (int i = 0; i < extra.length; i++) {
             total[i + 1] = extra[i];
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT,
-                                total);
+        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, total);
     }
 
     protected String[] getExtraFPSMessages() {

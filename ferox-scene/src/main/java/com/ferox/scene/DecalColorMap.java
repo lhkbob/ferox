@@ -30,13 +30,11 @@ import com.ferox.renderer.texture.Texture;
 
 /**
  * <p/>
- * DecalColorMap is a texture map that should be modulated with the diffuse color or
- * diffuse color map to act as a decal. This means that areas where it's transparent
- * should match the underlying diffuse color, but where it's opaque it should be
- * unaffected by the underlying color.
+ * DecalColorMap is a texture map that should be modulated with the diffuse color or diffuse color map to act
+ * as a decal. This means that areas where it's transparent should match the underlying diffuse color, but
+ * where it's opaque it should be unaffected by the underlying color.
  * <p/>
- * This is different than the modulation between a diffuse color and texture, where it is
- * multiplicative.
+ * This is different than the modulation between a diffuse color and texture, where it is multiplicative.
  *
  * @author Michael Ludwig
  */

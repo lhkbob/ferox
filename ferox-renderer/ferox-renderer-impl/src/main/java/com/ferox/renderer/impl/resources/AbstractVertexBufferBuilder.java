@@ -12,8 +12,7 @@ import com.ferox.renderer.impl.OpenGLContext;
  *
  */
 public abstract class AbstractVertexBufferBuilder
-        extends AbstractBuilder<VertexBuffer, BufferImpl.BufferHandle>
-        implements VertexBufferBuilder {
+        extends AbstractBuilder<VertexBuffer, BufferImpl.BufferHandle> implements VertexBufferBuilder {
     protected Object array;
     protected int length;
     protected DataType type;
@@ -111,8 +110,7 @@ public abstract class AbstractVertexBufferBuilder
     protected void validate() {
         // FIXME should we just fallback to forcing dynamic buffers?
         if (!framework.getCapabilities().getVertexBufferSupport()) {
-            throw new ResourceException(
-                    "VertexBuffers aren't supported by current hardware");
+            throw new ResourceException("VertexBuffers aren't supported by current hardware");
         }
         if (array == null) {
             throw new ResourceException("Data array must be specified");
@@ -149,8 +147,7 @@ public abstract class AbstractVertexBufferBuilder
 
     private static class VertexBufferImpl extends BufferImpl implements VertexBuffer {
 
-        public VertexBufferImpl(BufferHandle handle, DataType type, int length,
-                                Object dataArray) {
+        public VertexBufferImpl(BufferHandle handle, DataType type, int length, Object dataArray) {
             super(handle, type, length, dataArray);
         }
     }

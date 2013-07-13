@@ -32,23 +32,22 @@ import com.ferox.math.Vector3;
 
 /**
  * <p/>
- * A Shape represents some solid volume within a pseudo-physical world. There are numerous
- * representations of a Shape, some of which are static and others are dynamic. Shapes can
- * be approximations to higher detailed geometries (as often is the case in a game).
+ * A Shape represents some solid volume within a pseudo-physical world. There are numerous representations of
+ * a Shape, some of which are static and others are dynamic. Shapes can be approximations to higher detailed
+ * geometries (as often is the case in a game).
  * <p/>
- * Collisions between Shapes and different shape types are not the responsibility of Shape
- * implementations. Instead {@link CollisionAlgorithm CollisionAlgorithms} are implemented
- * that support limited sets of shape types.
+ * Collisions between Shapes and different shape types are not the responsibility of Shape implementations.
+ * Instead {@link CollisionAlgorithm CollisionAlgorithms} are implemented that support limited sets of shape
+ * types.
  *
  * @author Michael Ludwig
  */
 public interface Shape {
     /**
-     * Return the local-space bounds approximation of this Shape. The returned instance
-     * should be considered read-only and can be modified by the Shape instance at any
-     * time. The computed bounds should take into account the configured margin, plus an
-     * additional unspecified epsilon so that shapes with touching bounds are correctly
-     * detected in the event of minor floating point errors.
+     * Return the local-space bounds approximation of this Shape. The returned instance should be considered
+     * read-only and can be modified by the Shape instance at any time. The computed bounds should take into
+     * account the configured margin, plus an additional unspecified epsilon so that shapes with touching
+     * bounds are correctly detected in the event of minor floating point errors.
      *
      * @return The Shape's local bounds
      */
@@ -57,28 +56,25 @@ public interface Shape {
     AxisAlignedBox getBounds();
 
     /**
-     * Return the vector containing the inertia tensor for this shape, in its local
-     * transform space. The returned instance should remain consistent with any changes to
-     * the Shape.
+     * Return the vector containing the inertia tensor for this shape, in its local transform space. The
+     * returned instance should remain consistent with any changes to the Shape.
      *
      * @param mass   The mass of this shape
      * @param result A vector to hold the computed tensor, can be null
      *
-     * @return The Shape's local inertia tensor in result if it was not null, otherwise a
-     *         new vector
+     * @return The Shape's local inertia tensor in result if it was not null, otherwise a new vector
      */
     // FIXME if this isn't called that often, maybe make it create a new instance to simplify signature
     public Vector3 getInertiaTensor(double mass, Vector3 result);
 
     /**
      * <p/>
-     * Set the margin of padding around the shape. Every shape has a very small amount of
-     * padding that extends its effective bounds. This is a mechanism meant to help ease
-     * collision detection and response, but it means that graphical models must be
-     * updated to correctly account for a margin.
+     * Set the margin of padding around the shape. Every shape has a very small amount of padding that extends
+     * its effective bounds. This is a mechanism meant to help ease collision detection and response, but it
+     * means that graphical models must be updated to correctly account for a margin.
      * <p/>
-     * The resulting shape, after applying the margin, is equivalent to Minkowski sum of
-     * this shape and a sphere with a radius equal to the margin.
+     * The resulting shape, after applying the margin, is equivalent to Minkowski sum of this shape and a
+     * sphere with a radius equal to the margin.
      *
      * @param margin The new margin, must be greater than or equal to 0
      *

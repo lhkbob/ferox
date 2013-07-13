@@ -28,9 +28,9 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.Resource;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
-import com.ferox.renderer.Resource;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 
@@ -70,8 +70,8 @@ public class LwjglContext extends OpenGLContext {
     private boolean useEXTFramebufferObject;
 
     /**
-     * Create a LWJGLContext wrapper around the given Drawable. It is assumed that the
-     * given LwjglSurfaceFactory is the creator.
+     * Create a LWJGLContext wrapper around the given Drawable. It is assumed that the given
+     * LwjglSurfaceFactory is the creator.
      *
      * @param factory  The factory creating, or indirectly creating this context
      * @param context  The actual Drawable
@@ -79,8 +79,7 @@ public class LwjglContext extends OpenGLContext {
      *
      * @throws NullPointerException if factory, context, or provider are null
      */
-    public LwjglContext(LwjglSurfaceFactory factory, Drawable context,
-                        RendererProvider provider) {
+    public LwjglContext(LwjglSurfaceFactory factory, Drawable context, RendererProvider provider) {
         super(provider);
         if (factory == null || context == null) {
             throw new NullPointerException("Factory and context cannot be null");
@@ -113,15 +112,13 @@ public class LwjglContext extends OpenGLContext {
 
     /**
      * <p/>
-     * Queue the given task to be run the next time this context is bound. Queued tasks
-     * can be invoked in any order so they should be independent. These tasks are intended
-     * for cleanup of additional resources on the context that don't extend {@link
-     * Resource}.
+     * Queue the given task to be run the next time this context is bound. Queued tasks can be invoked in any
+     * order so they should be independent. These tasks are intended for cleanup of additional resources on
+     * the context that don't extend {@link Resource}.
      * <p/>
-     * Tasks may not be executed if the context is destroyed before it is made current
-     * after the task has been queued. This behavior should be acceptable for tasks whose
-     * sole purpose is to cleanup resources tied to a context (which should be
-     * automatically destroyed when hardware context is destroyed).
+     * Tasks may not be executed if the context is destroyed before it is made current after the task has been
+     * queued. This behavior should be acceptable for tasks whose sole purpose is to cleanup resources tied to
+     * a context (which should be automatically destroyed when hardware context is destroyed).
      *
      * @param task The cleanup task to queue
      *
@@ -215,8 +212,7 @@ public class LwjglContext extends OpenGLContext {
             arrayVbo = vbo;
 
             if (useARBVertexBufferObject) {
-                ARBBufferObject
-                        .glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
             } else {
                 GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
             }
@@ -235,8 +231,7 @@ public class LwjglContext extends OpenGLContext {
             elementVbo = vbo;
 
             if (useARBVertexBufferObject) {
-                ARBBufferObject.glBindBufferARB(
-                        ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
+                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
             } else {
                 GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo);
             }
@@ -244,8 +239,8 @@ public class LwjglContext extends OpenGLContext {
     }
 
     /**
-     * Set the active texture. This should be called before any texture operations are
-     * needed, since it switches which texture unit is active.
+     * Set the active texture. This should be called before any texture operations are needed, since it
+     * switches which texture unit is active.
      *
      * @param gl  The GL to use
      * @param tex The texture unit, 0 based
@@ -259,8 +254,8 @@ public class LwjglContext extends OpenGLContext {
     }
 
     /**
-     * Bind a texture image to the current active texture. <var>target</var> must be one
-     * of GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
+     * Bind a texture image to the current active texture. <var>target</var> must be one of GL_TEXTURE_1D,
+     * GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
      *
      * @param gl     The GL to use
      * @param target The valid OpenGL texture target enum for texture image
@@ -295,9 +290,7 @@ public class LwjglContext extends OpenGLContext {
             fbo = fboId;
 
             if (useEXTFramebufferObject) {
-                EXTFramebufferObject
-                        .glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT,
-                                              fboId);
+                EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, fboId);
             } else {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fboId);
             }

@@ -31,7 +31,6 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.texture.Texture;
 import com.ferox.renderer.texture.Texture.Filter;
 import com.ferox.renderer.texture.Texture.Target;
 import com.ferox.renderer.texture.Texture.WrapMode;
@@ -55,8 +54,7 @@ public class ShadowMapCache {
     public ShadowMapCache(Framework framework, int width, int height) {
         shadowMap = framework.createSurface(
                 new TextureSurfaceOptions().setWidth(width).setHeight(height).setDepth(1)
-                                           .setTarget(Target.T_2D)
-                                           .setUseDepthTexture(true)
+                                           .setTarget(Target.T_2D).setUseDepthTexture(true)
                                            .setColorBufferFormats());
         shadowScenes = new HashMap<Component<? extends Light<?>>, ShadowMapScene>();
 
@@ -89,22 +87,18 @@ public class ShadowMapCache {
         return shadowMap.getDepthBuffer();
     }
 
-    public Texture getShadowMap(Component<? extends Light<?>> shadowLight,
-                                HardwareAccessLayer access) {
+    public Texture getShadowMap(Component<? extends Light<?>> shadowLight, HardwareAccessLayer access) {
         ShadowMapScene scene = shadowScenes.get(shadowLight);
         if (scene == null) {
             throw new IllegalArgumentException("Light was not cached previously");
         }
 
         Surface origSurface = access.getCurrentContext().getSurface();
-        int origLayer = access.getCurrentContext()
-                              .getSurfaceLayer(); // in case of texture-surface
-        ContextState<FixedFunctionRenderer> origState = access.getCurrentContext()
-                                                              .getFixedFunctionRenderer()
+        int origLayer = access.getCurrentContext().getSurfaceLayer(); // in case of texture-surface
+        ContextState<FixedFunctionRenderer> origState = access.getCurrentContext().getFixedFunctionRenderer()
                                                               .getCurrentState();
 
-        FixedFunctionRenderer r = access.setActiveSurface(shadowMap)
-                                        .getFixedFunctionRenderer();
+        FixedFunctionRenderer r = access.setActiveSurface(shadowMap).getFixedFunctionRenderer();
 
         r.clear(true, true, true);
         r.setColorWriteMask(false, false, false, false);
@@ -165,10 +159,9 @@ public class ShadowMapCache {
 
             // don't need normals, and use front style for back faces and disable
             // front faces so we only render those in the back
-            geom.set(renderable.getVertices(), null, DrawStyle.NONE,
-                     renderable.getFrontDrawStyle());
-            render.set(renderable.getPolygonType(), renderable.getIndices(),
-                       renderable.getIndexOffset(), renderable.getIndexCount());
+            geom.set(renderable.getVertices(), null, DrawStyle.NONE, renderable.getFrontDrawStyle());
+            render.set(renderable.getPolygonType(), renderable.getIndices(), renderable.getIndexOffset(),
+                       renderable.getIndexCount());
 
             Integer geomStateIndex = geomState.get(geom);
             if (geomStateIndex == null) {
@@ -195,16 +188,14 @@ public class ShadowMapCache {
 
             StateNode renderNode = geomNode.getChild(renderStateIndex);
             if (renderNode == null) {
-                renderNode = new StateNode(
-                        renderLookup.get(renderStateIndex).newOpaqueRenderState());
+                renderNode = new StateNode(renderLookup.get(renderStateIndex).newOpaqueRenderState());
                 geomNode.setChild(renderStateIndex, renderNode);
             }
 
             ((RenderState) renderNode.getState()).add(transform.getMatrix());
         }
 
-        Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs
-                .getSource();
+        Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs.getSource();
         shadowScenes.put(source, new ShadowMapScene(pvs.getFrustum(), root));
     }
 

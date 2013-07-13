@@ -64,8 +64,7 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
 
     private ComponentIterator iterator;
 
-    public SpatialIndexCollisionTask(SpatialIndex<Entity> index,
-                                     CollisionAlgorithmProvider algorithms) {
+    public SpatialIndexCollisionTask(SpatialIndex<Entity> index, CollisionAlgorithmProvider algorithms) {
         super(algorithms);
         if (index == null) {
             throw new NullPointerException("SpatialIndex cannot be null");
@@ -172,8 +171,7 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
         }
 
         @Override
-        public void process(Entity a, AxisAlignedBox boundsA, Entity b,
-                            AxisAlignedBox boundsB) {
+        public void process(Entity a, AxisAlignedBox boundsA, Entity b, AxisAlignedBox boundsB) {
             // at this point we know the world bounds of a and b intersect, but
             // we need to test for collision against their actual shapes
             a.get(bodyA);

@@ -199,30 +199,23 @@ public class PhysicsApplicationStub extends ApplicationStub {
     @Override
     protected void init(OnscreenSurface surface) {
         // physics handling
-        physicsJob = system.getScheduler()
-                           .createJob("physics", Timers.fixedDelta(1 / 60.0),
-                                      new ForcesTask(),
-                                      //                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
-                                      //                                                                                               6),
-                                      //                                                                          new DefaultCollisionAlgorithmProvider()),
-                                      //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
-                                      new TemporalSAPCollisionTask(
-                                              new DefaultCollisionAlgorithmProvider()),
-                                      new ConstraintSolvingTask(), new MotionTask(),
-                                      new TransformController());
+        physicsJob = system.getScheduler().createJob("physics", Timers.fixedDelta(1 / 60.0), new ForcesTask(),
+                                                     //                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
+                                                     //                                                                                               6),
+                                                     //                                                                          new DefaultCollisionAlgorithmProvider()),
+                                                     //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
+                                                     new TemporalSAPCollisionTask(
+                                                             new DefaultCollisionAlgorithmProvider()),
+                                                     new ConstraintSolvingTask(), new MotionTask(),
+                                                     new TransformController());
 
         // rendering
-        renderJob = system.getScheduler().createJob("render", new UpdateWorldBoundsTask(),
-                                                    new ComputeCameraFrustumTask(),
-                                                    new ComputeShadowFrustumTask(),
-                                                    new BuildVisibilityIndexTask(
-                                                            new QuadTree<Entity>(
-                                                                    worldBounds, 6)),
-                                                    new ComputePVSTask(),
-                                                    new ComputeLightGroupTask(),
-                                                    new FixedFunctionRenderTask(
-                                                            surface.getFramework(), 1024,
-                                                            false));
+        renderJob = system.getScheduler()
+                          .createJob("render", new UpdateWorldBoundsTask(), new ComputeCameraFrustumTask(),
+                                     new ComputeShadowFrustumTask(),
+                                     new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds, 6)),
+                                     new ComputePVSTask(), new ComputeLightGroupTask(),
+                                     new FixedFunctionRenderTask(surface.getFramework(), 1024, false));
 
         surface.setVSyncEnabled(true);
 

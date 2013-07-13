@@ -35,8 +35,8 @@ import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
-import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.jogamp.newt.NewtFactory;
@@ -66,8 +66,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     private boolean closable;
 
     public JoglNEWTSurface(FrameworkImpl framework, final JoglSurfaceFactory factory,
-                           OnscreenSurfaceOptions options, JoglContext shareWith,
-                           RendererProvider provider) {
+                           OnscreenSurfaceOptions options, JoglContext shareWith, RendererProvider provider) {
         super(framework);
         surfaceLock = new Object();
 
@@ -76,14 +75,13 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         }
 
         if (options.getFullscreenMode() != null) {
-            options = options.setFullscreenMode(
-                    factory.chooseCompatibleDisplayMode(options.getFullscreenMode()));
+            options = options
+                    .setFullscreenMode(factory.chooseCompatibleDisplayMode(options.getFullscreenMode()));
         }
 
         DisplayMode fullscreen = options.getFullscreenMode();
         if (fullscreen != null) {
-            options = options.setResizable(false).setUndecorated(true)
-                             .setWidth(fullscreen.getWidth())
+            options = options.setResizable(false).setUndecorated(true).setWidth(fullscreen.getWidth())
                              .setHeight(fullscreen.getHeight()).setX(0).setY(0);
         } else {
             // the NEWT windowing API does not allow us to make a window
@@ -95,16 +93,15 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         window = NewtFactory.createWindow(factory.getScreen(), caps);
         window.setUndecorated(options.isUndecorated());
         window.setSize(options.getWidth(), options.getHeight());
-        window.setDefaultCloseOperation(
-                WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
+        window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
 
         window.setVisible(true);
         window.requestFocus();
 
         if (options.getFullscreenMode() != null) {
             // make the window fullscreen
-            if (!window.getScreen().setCurrentScreenMode(
-                    factory.getScreenMode(options.getFullscreenMode()))) {
+            if (!window.getScreen()
+                       .setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
                 // not successful
                 options = options.setFullscreenMode(factory.getDefaultDisplayMode());
             }
@@ -117,8 +114,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         window.addWindowListener(this);
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
-        drawable = GLDrawableFactory.getFactory(factory.getGLProfile())
-                                    .createGLDrawable(window);
+        drawable = GLDrawableFactory.getFactory(factory.getGLProfile()).createGLDrawable(window);
         context = new JoglContext(factory, drawable.createContext(realShare), provider);
         drawable.setRealized(true);
 
@@ -201,8 +197,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException(
-                    "Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
         }
 
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
@@ -218,8 +213,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
     @Override
     public void setLocation(final int x, final int y) {
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException(
-                    "Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
         }
 
         Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
@@ -322,8 +316,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
 
         if (options.getFullscreenMode() != null) {
             // restore original screen mode
-            window.getScreen()
-                  .setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
+            window.getScreen().setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
         }
 
         window.setVisible(false);
@@ -423,8 +416,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface implements WindowLi
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
             options = options.setFullscreenMode(
-                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(),
-                                    format));
+                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
         }
 
         options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);

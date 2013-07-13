@@ -30,10 +30,9 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
 /**
- * AxisSweptShape represents a class of class of convex shapes that features a dominant
- * axis and a curve that is swept around that axis. Choosing different dominant axis for
- * the shape is equivalent to applying a rotation. Some examples include cylinders, cones
- * and capsules.
+ * AxisSweptShape represents a class of class of convex shapes that features a dominant axis and a curve that
+ * is swept around that axis. Choosing different dominant axis for the shape is equivalent to applying a
+ * rotation. Some examples include cylinders, cones and capsules.
  *
  * @author Michael Ludwig
  */
@@ -78,9 +77,8 @@ public abstract class AxisSweptShape extends ConvexShape {
     }
 
     /**
-     * Return the sign of component of <var>v</var> matching the shape's dominant axis.
-     * Thus, if the dominant axis was Z, it returns 1 of <code>v.getZ()</code> is
-     * positive, and -1 if not.
+     * Return the sign of component of <var>v</var> matching the shape's dominant axis. Thus, if the dominant
+     * axis was Z, it returns 1 of <code>v.getZ()</code> is positive, and -1 if not.
      *
      * @param v The input vector whose sign is queried
      *
@@ -102,8 +100,8 @@ public abstract class AxisSweptShape extends ConvexShape {
     }
 
     /**
-     * Evaluate the "sigma" function of <var>v</var>. This is the same as the projected
-     * distance of v to the dominant axis.
+     * Evaluate the "sigma" function of <var>v</var>. This is the same as the projected distance of v to the
+     * dominant axis.
      *
      * @param v The input vector evaluated by the sigma function
      *

@@ -122,8 +122,8 @@ public class Vector3Property implements ShareableProperty<Vector3> {
     }
 
     /**
-     * Default factory implementation for Vector3Properties, supports the {@link
-     * DefaultVector3} annotation to specify the default vector coordinates.
+     * Default factory implementation for Vector3Properties, supports the {@link DefaultVector3} annotation to
+     * specify the default vector coordinates.
      *
      * @author Michael Ludwig
      */
@@ -140,8 +140,7 @@ public class Vector3Property implements ShareableProperty<Vector3> {
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Vector3 v) {
@@ -160,8 +159,7 @@ public class Vector3Property implements ShareableProperty<Vector3> {
         }
 
         @Override
-        public void clone(Vector3Property src, int srcIndex, Vector3Property dst,
-                          int dstIndex) {
+        public void clone(Vector3Property src, int srcIndex, Vector3Property dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {
