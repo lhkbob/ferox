@@ -202,9 +202,7 @@ public class Simplex {
         case 4: {
             if (Math.abs(Util.tripleProduct(new Vector3().sub(vertices[0], vertices[3]),
                                             new Vector3().sub(vertices[1], vertices[3]),
-                                            new Vector3()
-                                                    .sub(vertices[2], vertices[3]))) >
-                0.0) {
+                                            new Vector3().sub(vertices[2], vertices[3]))) > 0.0) {
                 return true;
             }
             break;
@@ -290,16 +288,14 @@ public class Simplex {
             } else if (t <= 0.0) {
                 return new Projection(a.lengthSquared(), new double[] { 1.0, 0.0 }, 1);
             } else {
-                return new Projection(d.scale(t).add(a).lengthSquared(),
-                                      new double[] { 1 - t, t }, 3);
+                return new Projection(d.scale(t).add(a).lengthSquared(), new double[] { 1 - t, t }, 3);
             }
         } else {
             return null;
         }
     }
 
-    private Projection projectOrigin3(@Const Vector3 a, @Const Vector3 b,
-                                      @Const Vector3 c) {
+    private Projection projectOrigin3(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c) {
         Vector3[] vs = new Vector3[] { a, b, c };
         Vector3[] ds = new Vector3[3];
 
@@ -321,8 +317,7 @@ public class Simplex {
                     int j = (i + 1) % 3;
                     Projection subProj = projectOrigin2(vs[i], vs[j]);
 
-                    if (subProj != null &&
-                        (minDist < 0.0 || subProj.distance < minDist)) {
+                    if (subProj != null && (minDist < 0.0 || subProj.distance < minDist)) {
                         minDist = subProj.distance;
                         mask = ((subProj.mask & 1) != 0 ? (1 << i) : 0) |
                                ((subProj.mask & 2) != 0 ? (1 << j) : 0);
@@ -340,10 +335,8 @@ public class Simplex {
                 n.scale(d / l);
                 minDist = n.lengthSquared();
                 mask = 7;
-                weights[0] =
-                        new Vector3().cross(ds[1], new Vector3().sub(b, n)).length() / s;
-                weights[1] =
-                        new Vector3().cross(ds[2], new Vector3().sub(c, n)).length() / s;
+                weights[0] = new Vector3().cross(ds[1], new Vector3().sub(b, n)).length() / s;
+                weights[1] = new Vector3().cross(ds[2], new Vector3().sub(c, n)).length() / s;
                 weights[2] = 1 - weights[0] - weights[1];
             }
 
@@ -353,8 +346,8 @@ public class Simplex {
         }
     }
 
-    private Projection projectOrigin4(@Const Vector3 a, @Const Vector3 b,
-                                      @Const Vector3 c, @Const Vector3 d) {
+    private Projection projectOrigin4(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c,
+                                      @Const Vector3 d) {
         Vector3[] vs = new Vector3[] { a, b, c, d };
         Vector3[] ds = new Vector3[3];
         ds[0] = new Vector3().sub(a, d);
@@ -362,9 +355,7 @@ public class Simplex {
         ds[2] = new Vector3().sub(c, d);
 
         double vl = Util.tripleProduct(ds[0], ds[1], ds[2]);
-        boolean ng =
-                (vl * a.dot(new Vector3().sub(b, c).cross(new Vector3().sub(a, b)))) <=
-                0.0;
+        boolean ng = (vl * a.dot(new Vector3().sub(b, c).cross(new Vector3().sub(a, b)))) <= 0.0;
 
         if (ng && Math.abs(vl) > 0.0) {
             double minDist = -1.0;
@@ -376,8 +367,7 @@ public class Simplex {
                 double s = vl * d.dot(new Vector3().cross(ds[i], ds[j]));
                 if (s > 0.0) {
                     Projection subProj = projectOrigin3(vs[i], vs[j], d);
-                    if (subProj != null &&
-                        (minDist < 0.0 || subProj.distance < minDist)) {
+                    if (subProj != null && (minDist < 0.0 || subProj.distance < minDist)) {
                         minDist = subProj.distance;
                         mask = ((subProj.mask & 1) != 0 ? (1 << i) : 0) |
                                ((subProj.mask & 2) != 0 ? (1 << j) : 0) |

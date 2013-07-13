@@ -97,8 +97,7 @@ public class SkeletonAnimation {
     private int getStartFrame(double time) {
         // FIXME do a binary search
         for (int i = 0; i < frames.size() - 1; i++) {
-            if (frames.get(i).getFrameTime() <= time &&
-                frames.get(i + 1).getFrameTime() > time) {
+            if (frames.get(i).getFrameTime() <= time && frames.get(i + 1).getFrameTime() > time) {
                 return i;
             }
         }

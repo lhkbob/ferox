@@ -20,8 +20,7 @@ public class ProfilerData {
         this.min = min;
         this.max = max;
         this.count = count;
-        this.children = Collections
-                .unmodifiableMap(new HashMap<String, ProfilerData>(children));
+        this.children = Collections.unmodifiableMap(new HashMap<String, ProfilerData>(children));
     }
 
     public String getLabel() {

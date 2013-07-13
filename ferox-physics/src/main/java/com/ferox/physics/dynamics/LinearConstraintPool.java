@@ -114,11 +114,10 @@ public class LinearConstraintPool {
         return dynamicLimits[i];
     }
 
-    public int addConstraint(RigidBody bodyA, RigidBody bodyB, float taX, float taY,
-                             float taZ, float tbX, float tbY, float tbZ, float nX,
-                             float nY, float nZ, float laX, float laY, float laZ,
-                             float lbX, float lbY, float lbZ, float aaX, float aaY,
-                             float aaZ, float abX, float abY, float abZ) {
+    public int addConstraint(RigidBody bodyA, RigidBody bodyB, float taX, float taY, float taZ, float tbX,
+                             float tbY, float tbZ, float nX, float nY, float nZ, float laX, float laY,
+                             float laZ, float lbX, float lbY, float lbZ, float aaX, float aaY, float aaZ,
+                             float abX, float abY, float abZ) {
         int i = count++;
         int veci = i * 3;
         if (i >= bodyAs.length) {
@@ -263,9 +262,8 @@ public class LinearConstraintPool {
 
     public void setStaticLimits(int i, double lower, double upper) {
         if (lower > upper) {
-            throw new IllegalArgumentException(
-                    "Lower limit (" + lower + ") must be less than upper limit (" +
-                    upper + ")");
+            throw new IllegalArgumentException("Lower limit (" + lower + ") must be less than upper limit (" +
+                                               upper + ")");
         }
         lowerLimits[i] = lower;
         upperLimits[i] = upper;

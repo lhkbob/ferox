@@ -44,10 +44,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * CameraController is a controller that synchronizes a {@link Camera}'s Frustum location
- * and orientation with an attached {@link Transform}. When run, all entities with a
- * Camera and Transform will have the Camera's Frustum's orientation equal that stored in
- * the transform.
+ * CameraController is a controller that synchronizes a {@link Camera}'s Frustum location and orientation with
+ * an attached {@link Transform}. When run, all entities with a Camera and Transform will have the Camera's
+ * Frustum's orientation equal that stored in the transform.
  *
  * @author Michael Ludwig
  */
@@ -71,8 +70,7 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
         if (camera == null) {
             camera = system.createDataInstance(Camera.class);
             transform = system.createDataInstance(Transform.class);
-            iterator = new ComponentIterator(system).addRequired(camera)
-                                                    .addRequired(transform);
+            iterator = new ComponentIterator(system).addRequired(camera).addRequired(transform);
         }
 
         iterator.reset();
@@ -83,14 +81,12 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
         Profiler.push("compute-camera-frustum");
 
         while (iterator.next()) {
-            double aspect = camera.getSurface().getWidth() /
-                            (double) camera.getSurface().getHeight();
-            Frustum f = new Frustum(camera.getFieldOfView(), aspect,
-                                    camera.getNearZDistance(), camera.getFarZDistance());
+            double aspect = camera.getSurface().getWidth() / (double) camera.getSurface().getHeight();
+            Frustum f = new Frustum(camera.getFieldOfView(), aspect, camera.getNearZDistance(),
+                                    camera.getFarZDistance());
 
             Matrix4 m = transform.getMatrix();
-            f.setOrientation(new Vector3(m.m03, m.m13, m.m23),
-                             new Vector3(m.m02, m.m12, m.m22),
+            f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02, m.m12, m.m22),
                              new Vector3(m.m01, m.m11, m.m21));
 
             job.report(new FrustumResult(camera.getComponent(), f));

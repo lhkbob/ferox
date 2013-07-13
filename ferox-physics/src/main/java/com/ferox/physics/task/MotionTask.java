@@ -109,8 +109,7 @@ public class MotionTask implements Task, ParallelAware {
         if (iterator == null) {
             rigidBody = system.createDataInstance(RigidBody.class);
             collisionBody = system.createDataInstance(CollisionBody.class);
-            iterator = new ComponentIterator(system).addRequired(rigidBody)
-                                                    .addRequired(collisionBody);
+            iterator = new ComponentIterator(system).addRequired(rigidBody).addRequired(collisionBody);
         } else {
             iterator.reset();
         }
@@ -125,10 +124,8 @@ public class MotionTask implements Task, ParallelAware {
             predictedRotation.setUpper(transform);
             predictedPosition.set(transform.m03, transform.m13, transform.m23);
 
-            integrator.integrateLinearVelocity(rigidBody.getVelocity(), dt,
-                                               predictedPosition);
-            integrator.integrateAngularVelocity(rigidBody.getAngularVelocity(), dt,
-                                                predictedRotation);
+            integrator.integrateLinearVelocity(rigidBody.getVelocity(), dt, predictedPosition);
+            integrator.integrateAngularVelocity(rigidBody.getAngularVelocity(), dt, predictedRotation);
 
             // push values back into transform
             setTransform(predictedRotation, predictedPosition, transform);

@@ -30,11 +30,10 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 /**
- * Provides a useful implementation of the Bag data structure. Much like an ArrayList,
- * except that it features constant time removal of indexes. This is because the Bag is
- * allowed to modify elements' relative orderings, unlike in the List structure. Also,
- * this implementation of the Bag uses '==' to determine equality instead of an object's
- * equals() method.
+ * Provides a useful implementation of the Bag data structure. Much like an ArrayList, except that it features
+ * constant time removal of indexes. This is because the Bag is allowed to modify elements' relative
+ * orderings, unlike in the List structure. Also, this implementation of the Bag uses '==' to determine
+ * equality instead of an object's equals() method.
  *
  * @param <E> The element type stored in this bag
  *
@@ -60,8 +59,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Create a new Bag with the given initial capacity, but with default factor and
-     * growth.
+     * Create a new Bag with the given initial capacity, but with default factor and growth.
      *
      * @param capacity The initial capacity
      *
@@ -72,9 +70,9 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Create a new Bag with the given initial capacity, factor and growth. Factor
-     * specifies the constant multiplier used when expanding the underlying array. Growth
-     * specifies the constant added to the capacity when expanding the array.
+     * Create a new Bag with the given initial capacity, factor and growth. Factor specifies the constant
+     * multiplier used when expanding the underlying array. Growth specifies the constant added to the
+     * capacity when expanding the array.
      *
      * @param capacity Initial capacity
      * @param factor   Capacity multiplier
@@ -103,9 +101,8 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Return the Object array that is currently being used by the Bag to hold onto its
-     * elements. This should be considered read-only, and only the elements at indices 0
-     * to {@link #size()} - 1 are of any meaning.
+     * Return the Object array that is currently being used by the Bag to hold onto its elements. This should
+     * be considered read-only, and only the elements at indices 0 to {@link #size()} - 1 are of any meaning.
      *
      * @return The read-only Object[] holding all the elements
      */
@@ -127,8 +124,8 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Remove the item at the given index and return it. To be efficient, the last item
-     * replaces the value at index thus avoiding an expensive shift.
+     * Remove the item at the given index and return it. To be efficient, the last item replaces the value at
+     * index thus avoiding an expensive shift.
      *
      * @param index The index to remove
      *
@@ -138,8 +135,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
      */
     public E remove(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(
-                    "Index must be in [0, " + (size - 1) + "]");
+            throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "]");
         }
 
         E e = elements[index];
@@ -150,10 +146,9 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Remove the first occurrence of item from this Bag, starting at index 0. If the item
-     * is not found, then false is returned, signaling that the remove failed. If true is
-     * found, it may be possible for more references to that item to be contained later in
-     * the Bag.
+     * Remove the first occurrence of item from this Bag, starting at index 0. If the item is not found, then
+     * false is returned, signaling that the remove failed. If true is found, it may be possible for more
+     * references to that item to be contained later in the Bag.
      *
      * @param item The item to be removed
      *
@@ -172,8 +167,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Return the value at the given index, which may be null if null values were added to
-     * the Bag.
+     * Return the value at the given index, which may be null if null values were added to the Bag.
      *
      * @param index The index whose value is requested
      *
@@ -183,21 +177,20 @@ public class Bag<E> implements Collection<E>, RandomAccess {
      */
     public E get(int index) {
         if (index < 0 || index >= size) {
-            throw new IndexOutOfBoundsException(
-                    "Index must be in [0, " + (size - 1) + "], not: " + index);
+            throw new IndexOutOfBoundsException("Index must be in [0, " + (size - 1) + "], not: " + index);
         }
         return elements[index];
     }
 
     /**
      * <p/>
-     * Set the value to be stored at the given index. If index is equal to the current
-     * size(), then the size of the Bag is increased and the value is added to the bag.
-     * This method will return the value formerly at index. A null return value implies
-     * that the previous value was null, or that the Bag increased in size.
+     * Set the value to be stored at the given index. If index is equal to the current size(), then the size
+     * of the Bag is increased and the value is added to the bag. This method will return the value formerly
+     * at index. A null return value implies that the previous value was null, or that the Bag increased in
+     * size.
      * <p/>
-     * Note that the assigned index is not permanent. The Bag will re-order items as
-     * others are removed, so the index may later point to another item.
+     * Note that the assigned index is not permanent. The Bag will re-order items as others are removed, so
+     * the index may later point to another item.
      *
      * @param index The index whose value will be assigned
      * @param item  The item to be stored at index
@@ -230,9 +223,9 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Determine the first index that holds a reference to item. This uses '==' to
-     * determine equality, and not the equals() method. Later indices that might reference
-     * item are only detectable after item has been removed, or if the Bag is re-ordered.
+     * Determine the first index that holds a reference to item. This uses '==' to determine equality, and not
+     * the equals() method. Later indices that might reference item are only detectable after item has been
+     * removed, or if the Bag is re-ordered.
      *
      * @param item The item to search for
      *
@@ -273,10 +266,10 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Clear this Bag of all elements. If <var>fast</var> is true, then the size is reset
-     * to 0 without clearing any internal references. They will be overwritten as elements
-     * are re-added into the Bag, but otherwise cannot be garbage collected. Fast clearing
-     * is useful when needing a collection that can be re-filled repeatedly and quickly.
+     * Clear this Bag of all elements. If <var>fast</var> is true, then the size is reset to 0 without
+     * clearing any internal references. They will be overwritten as elements are re-added into the Bag, but
+     * otherwise cannot be garbage collected. Fast clearing is useful when needing a collection that can be
+     * re-filled repeatedly and quickly.
      *
      * @param fast True if references are not cleared
      */
@@ -307,17 +300,15 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * @return The capacity of the Bag, or the max size before a new backing array must be
-     *         created
+     * @return The capacity of the Bag, or the max size before a new backing array must be created
      */
     public int capacity() {
         return elements.length;
     }
 
     /**
-     * Adjust the capacity of the Bag. This can be used to grow or reduce the capacity as
-     * desired. If the new capacity is less than the current size, then some items will be
-     * removed from the Bag.
+     * Adjust the capacity of the Bag. This can be used to grow or reduce the capacity as desired. If the new
+     * capacity is less than the current size, then some items will be removed from the Bag.
      *
      * @param capacity The new capacity
      *
@@ -330,8 +321,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
         }
 
         E[] newElements = (E[]) new Object[capacity];
-        System.arraycopy(elements, 0, newElements, 0,
-                         Math.min(capacity, elements.length));
+        System.arraycopy(elements, 0, newElements, 0, Math.min(capacity, elements.length));
         elements = newElements;
 
         size = Math.min(capacity, size);
@@ -339,13 +329,12 @@ public class Bag<E> implements Collection<E>, RandomAccess {
     }
 
     /**
-     * Sort the Bag using the given Comparator. If the Comparator is null, the elements
-     * are sorted using their natural ordering.
+     * Sort the Bag using the given Comparator. If the Comparator is null, the elements are sorted using their
+     * natural ordering.
      *
      * @param comparator The Comparator to use when sorting
      *
-     * @throws ClassCastException if comparator is null and the elements in the Bag are
-     *                            not Comparable
+     * @throws ClassCastException if comparator is null and the elements in the Bag are not Comparable
      */
     public void sort(Comparator<E> comparator) {
         Arrays.sort(elements, 0, size, comparator);
@@ -360,9 +349,9 @@ public class Bag<E> implements Collection<E>, RandomAccess {
 
     /**
      * <p/>
-     * Sort the Bag using the given HashFunction. The sort is performed by computing the
-     * hash's of each value within the Bag and ordering the Bag's elements such that their
-     * hash's are in ascending order. The end result is equivalent to:
+     * Sort the Bag using the given HashFunction. The sort is performed by computing the hash's of each value
+     * within the Bag and ordering the Bag's elements such that their hash's are in ascending order. The end
+     * result is equivalent to:
      * <p/>
      * <pre>
      * sort(new Comparator&lt;E&gt;() {
@@ -374,12 +363,11 @@ public class Bag<E> implements Collection<E>, RandomAccess {
      * <p/>
      * <p/>
      * <p/>
-     * However, this sort is often much faster than the above code (orders of magnitude
-     * depending on the complexity of the Comparator). This is best used when there's not
-     * a precise definition of order.
+     * However, this sort is often much faster than the above code (orders of magnitude depending on the
+     * complexity of the Comparator). This is best used when there's not a precise definition of order.
      *
-     * @param hasher The HashFunction that determines the integer hash codes which impose
-     *               an ordering on the elements within this Bag
+     * @param hasher The HashFunction that determines the integer hash codes which impose an ordering on the
+     *               elements within this Bag
      */
     public void sort(final HashFunction<? super E> hasher) {
         QuickSort.sort(new ItemView() {
@@ -555,8 +543,7 @@ public class Bag<E> implements Collection<E>, RandomAccess {
         @Override
         public void remove() {
             if (index == 0) {
-                throw new IllegalStateException(
-                        "Must call next() before first calling remove()");
+                throw new IllegalStateException("Must call next() before first calling remove()");
             }
             if (index >= size || element != elements[index] || removed) {
                 throw new IllegalStateException("Element already removed");

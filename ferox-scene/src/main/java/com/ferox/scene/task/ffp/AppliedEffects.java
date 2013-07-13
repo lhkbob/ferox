@@ -53,8 +53,7 @@ public class AppliedEffects {
         viewMatrix = new Matrix4();
     }
 
-    private AppliedEffects(@Const Matrix4 view, BlendFactor sourceBlend,
-                           BlendFactor destBlend,
+    private AppliedEffects(@Const Matrix4 view, BlendFactor sourceBlend, BlendFactor destBlend,
                            Component<? extends Light<?>> shadowLight) {
         this.sourceBlend = sourceBlend;
         this.destBlend = destBlend;

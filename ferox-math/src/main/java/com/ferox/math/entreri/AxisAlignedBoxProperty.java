@@ -37,8 +37,7 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a
- * AxisAlginedBox.
+ * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a AxisAlginedBox.
  *
  * @author Michael Ludwig
  */
@@ -101,8 +100,8 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify
-     * the minimum coordinate of the box.
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify the minimum coordinate
+     * of the box.
      *
      * @author Michael Ludwig
      */
@@ -127,8 +126,8 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
     }
 
     /**
-     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify
-     * the maximum coordinate of the box.
+     * Attribute annotation to apply to AxisAlignedBoxProperty declarations, to specify the maximum coordinate
+     * of the box.
      *
      * @author Michael Ludwig
      */
@@ -153,9 +152,8 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
     }
 
     /**
-     * Default factory implementation for AxisAlignedBoxProperties, supports the {@link
-     * DefaultMin} and {@link DefaultMax} annotations to specify the default bounding
-     * box.
+     * Default factory implementation for AxisAlignedBoxProperties, supports the {@link DefaultMin} and {@link
+     * DefaultMax} annotations to specify the default bounding box.
      *
      * @author Michael Ludwig
      */
@@ -177,8 +175,7 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const AxisAlignedBox v) {
@@ -197,8 +194,8 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
         }
 
         @Override
-        public void clone(AxisAlignedBoxProperty src, int srcIndex,
-                          AxisAlignedBoxProperty dst, int dstIndex) {
+        public void clone(AxisAlignedBoxProperty src, int srcIndex, AxisAlignedBoxProperty dst,
+                          int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {
