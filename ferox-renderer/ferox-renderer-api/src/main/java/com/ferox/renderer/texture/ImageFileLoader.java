@@ -31,26 +31,24 @@ import java.io.InputStream;
 
 /**
  * <p/>
- * ImageFileLoader is a simple interface that provides loading capabilities for various
- * types of image data, to then convert them into TextureImages.
+ * ImageFileLoader is a simple interface that provides loading capabilities for various types of image data,
+ * to then convert them into TextureImages.
  * <p/>
- * To keep the interface simple, it only deals in streams, if a file format cannot be
- * determined using just streams, then this interface is not suitable for that type.
+ * To keep the interface simple, it only deals in streams, if a file format cannot be determined using just
+ * streams, then this interface is not suitable for that type.
  *
  * @author Michael Ludwig
  */
 public interface ImageFileLoader {
     /**
      * <p/>
-     * Process the data from the given stream and return a Texture representing its
-     * contents.
+     * Process the data from the given stream and return a Texture representing its contents.
      * <p/>
-     * Return null if the stream doesn't represent an image of any supported format. If it
-     * is an image of the expected type, but is otherwise invalid or unsupported, then
-     * throw an exception.
+     * Return null if the stream doesn't represent an image of any supported format. If it is an image of the
+     * expected type, but is otherwise invalid or unsupported, then throw an exception.
      * <p/>
-     * If null is returned, the stream should not have its position modified. <br> <i>The
-     * stream should not be closed</i>
+     * If null is returned, the stream should not have its position modified. <br> <i>The stream should not be
+     * closed</i>
      *
      * @param stream The InputStream to attempt to read an image from
      *

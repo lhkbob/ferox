@@ -32,13 +32,12 @@ import java.util.Set;
 
 /**
  * <p/>
- * Capabilities holds onto a set of different parameters describing more advanced features
- * that the baseline hardware may not support.
+ * Capabilities holds onto a set of different parameters describing more advanced features that the baseline
+ * hardware may not support.
  * <p/>
- * Because Ferox was designed to be implemented with an OpenGL system, the capabilities
- * here reflect that and allow for lower-level inspection of the current hardware.
- * Framework implementations are expected to extend Capabilities to provide the correct
- * values for each parameter. Capabilities instances returned from {@link
+ * Because Ferox was designed to be implemented with an OpenGL system, the capabilities here reflect that and
+ * allow for lower-level inspection of the current hardware. Framework implementations are expected to extend
+ * Capabilities to provide the correct values for each parameter. Capabilities instances returned from {@link
  * com.ferox.renderer.Framework#getCapabilities()} can be considered immutable.
  *
  * @author Michael Ludwig
@@ -108,18 +107,17 @@ public abstract class Capabilities {
     protected boolean supportsMultipleOnscreenSurfaces;
 
     /**
-     * @return True if multiple non-fullscreen onscreen surfaces can exist at the same
-     *         time with this framework
+     * @return True if multiple non-fullscreen onscreen surfaces can exist at the same time with this
+     *         framework
      */
     public boolean getMultipleOnscreenSurfaceSupport() {
         return supportsMultipleOnscreenSurfaces;
     }
 
     /**
-     * Return an array of available DisplayModes that can be used when creating fullscreen
-     * surfaces with {@link Framework#createSurface(OnscreenSurfaceOptions)}. A defensive
-     * array copy is returned, with no particular ordering. If the returned array is
-     * empty, fullscreen surfaces are not supported.
+     * Return an array of available DisplayModes that can be used when creating fullscreen surfaces with
+     * {@link Framework#createSurface(OnscreenSurfaceOptions)}. A defensive array copy is returned, with no
+     * particular ordering. If the returned array is empty, fullscreen surfaces are not supported.
      *
      * @return All available display modes on the system
      */
@@ -128,9 +126,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Return an array of the depth buffer bit sizes that are supported on this hardware.
-     * The returned array is ordered from least to greatest bit size and is a defensive
-     * copy. The array will always contain the value 0 for no depth buffer support.
+     * Return an array of the depth buffer bit sizes that are supported on this hardware. The returned array
+     * is ordered from least to greatest bit size and is a defensive copy. The array will always contain the
+     * value 0 for no depth buffer support.
      *
      * @return Supported depth buffer sizes
      */
@@ -139,10 +137,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Return an array of the stencil buffer bit sizes that are supported on this
-     * hardware. The returned array is ordered from least to greatest bit size and is a
-     * defensive copy. The array will always at least contain the value 0 for no stencil
-     * buffer support.
+     * Return an array of the stencil buffer bit sizes that are supported on this hardware. The returned array
+     * is ordered from least to greatest bit size and is a defensive copy. The array will always at least
+     * contain the value 0 for no stencil buffer support.
      *
      * @return Supported stencil buffer sizes
      */
@@ -151,9 +148,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Return an array of the sample counts that are supported on this hardware when using
-     * MSAA. The returned array is ordered from least to greatest bit size and is a
-     * defensive copy. The array will always contain the value 0 for no MSAA support.
+     * Return an array of the sample counts that are supported on this hardware when using MSAA. The returned
+     * array is ordered from least to greatest bit size and is a defensive copy. The array will always contain
+     * the value 0 for no MSAA support.
      *
      * @return Supported MSAA sample counts
      */
@@ -211,24 +208,22 @@ public abstract class Capabilities {
     }
 
     /**
-     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension, which
-     *         improves appearance, or false when it must fallback to GL_CLAMP
+     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension, which improves appearance,
+     *         or false when it must fallback to GL_CLAMP
      */
     public boolean getClampToEdgeSupport() {
         return hasClampEdge;
     }
 
     /**
-     * @return True if blending can be correctly separated across front and back facing
-     *         polygons.
+     * @return True if blending can be correctly separated across front and back facing polygons.
      */
     public boolean getSeparateBlendSupport() {
         return hasSeparateBlend;
     }
 
     /**
-     * @return True if stencil operations can be correctly separated across front and back
-     *         facing polygons.
+     * @return True if stencil operations can be correctly separated across front and back facing polygons.
      */
     public boolean getSeparateStencilSupport() {
         return hasSeparateStencil;
@@ -271,8 +266,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Return the maximum number of color buffers that can be rendered into simultaneously
-     * with a GLSL program when using a TextureSurface.
+     * Return the maximum number of color buffers that can be rendered into simultaneously with a GLSL program
+     * when using a TextureSurface.
      *
      * @return Number of color targets allowed for TextureSurfaces
      */
@@ -281,8 +276,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get max number of textures allowed in the vertex shader stage of a GLSL program.
-     * This will return a number <= 0 if GLSL shaders are not supported.
+     * Get max number of textures allowed in the vertex shader stage of a GLSL program. This will return a
+     * number <= 0 if GLSL shaders are not supported.
      *
      * @return Number of textures allowed in a vertex shader
      */
@@ -291,8 +286,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the max number of textures allowed in the fragment shader of GLSL program. This
-     * will return a number <= 0 if GLSL shaders are not supported.
+     * Get the max number of textures allowed in the fragment shader of GLSL program. This will return a
+     * number <= 0 if GLSL shaders are not supported.
      *
      * @return Number of textures allowed in a fragment shader
      */
@@ -301,9 +296,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the max number of textures usable by a {@link FixedFunctionRenderer}. Textures
-     * beyond this will be ignored when using a fixed function renderer, GLSL renderers
-     * may support more available textures.
+     * Get the max number of textures usable by a {@link FixedFunctionRenderer}. Textures beyond this will be
+     * ignored when using a fixed function renderer, GLSL renderers may support more available textures.
      *
      * @return Total number of textures usable in fixed-function
      */
@@ -312,9 +306,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the max number of textures used by an entire GLSL program. This may be less
-     * than the sum of {@link #getMaxVertexShaderTextures()} and {@link
-     * #getMaxFragmentShaderTextures()}.
+     * Get the max number of textures used by an entire GLSL program. This may be less than the sum of {@link
+     * #getMaxVertexShaderTextures()} and {@link #getMaxFragmentShaderTextures()}.
      *
      * @return Total number of texture samplers in a GLSL program
      */
@@ -323,10 +316,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the max supported level of anisotropic filtering for textures. If anisotropic
-     * filtering is not supported, this should return a number <= 0. A value of 1 in
-     * {@link com.ferox.renderer.Texture#getAnisotropicFiltering()} will be scaled by the
-     * Framework to the returned number.
+     * Get the max supported level of anisotropic filtering for textures. If anisotropic filtering is not
+     * supported, this should return a number <= 0. A value of 1 in {@link com.ferox.renderer.Texture#getAnisotropicFiltering()}
+     * will be scaled by the Framework to the returned number.
      *
      * @return Maximum level of anistropic filtering
      */
@@ -335,8 +327,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not unclamped floating point textures are supported. If false, float
-     * texture values are clamped to be within 0 to 1.
+     * Whether or not unclamped floating point textures are supported. If false, float texture values are
+     * clamped to be within 0 to 1.
      *
      * @return If full floating point textures can be stored
      */
@@ -354,8 +346,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not the S3TC extension is present. This allows for DXT1, DXT3, and DXT5
-     * texture compression on the graphics card.
+     * Whether or not the S3TC extension is present. This allows for DXT1, DXT3, and DXT5 texture compression
+     * on the graphics card.
      *
      * @return If DXT texture compression is supported
      */
@@ -373,8 +365,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the maximum number of texture coordinates for each vertex. This may be
-     * different then the maximum number of textures.
+     * Get the maximum number of texture coordinates for each vertex. This may be different then the maximum
+     * number of textures.
      *
      * @return Number of texture coordinates
      */
@@ -383,8 +375,7 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not vertex and element buffers stored directly on the GPU are
-     * supported.
+     * Whether or not vertex and element buffers stored directly on the GPU are supported.
      *
      * @return True if non-dynamic buffers can be cached to the GPU
      */
@@ -393,8 +384,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the maximum number of lights that can affect a rendered object at one time when
-     * using a {@link FixedFunctionRenderer}.
+     * Get the maximum number of lights that can affect a rendered object at one time when using a {@link
+     * FixedFunctionRenderer}.
      *
      * @return Total number of simultaneous lights
      */
@@ -403,8 +394,7 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not this Framework can provide Renderers that implement {@link
-     * GlslRenderer}.
+     * Whether or not this Framework can provide Renderers that implement {@link GlslRenderer}.
      *
      * @return True if shaders can be used
      */
@@ -413,8 +403,7 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not this Framework can provide Renderers that implement {@link
-     * FixedFunctionRenderer}.
+     * Whether or not this Framework can provide Renderers that implement {@link FixedFunctionRenderer}.
      *
      * @return True if fixed-function pipeline can be used
      */
@@ -423,8 +412,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not offscreen surfaces can be implemented using frame buffer objects,
-     * which is significantly faster than relying on pbuffers.
+     * Whether or not offscreen surfaces can be implemented using frame buffer objects, which is significantly
+     * faster than relying on pbuffers.
      *
      * @return True if fbos can be used
      */
@@ -433,8 +422,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not pbuffers (different than pixel buffers) are supported for offscreen
-     * surfaces. Pbuffers are slower than fbos but are supported on more hardware.
+     * Whether or not pbuffers (different than pixel buffers) are supported for offscreen surfaces. Pbuffers
+     * are slower than fbos but are supported on more hardware.
      *
      * @return True if pbuffers can be used
      */
@@ -443,8 +432,7 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the vendor returned string that describes the OpenGL drivers installed on the
-     * computer.
+     * Get the vendor returned string that describes the OpenGL drivers installed on the computer.
      *
      * @return Implementation vendor description
      */
@@ -467,10 +455,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the GLSL shading language available on the computer. If {@link
-     * #hasGlslRenderer()} returns false, this value is undefined. The reported version is
-     * the integer value used in the #version declaration in source code. Example: for
-     * GLSL 1.4 the returned value is 140, for 3.3 it is 330.
+     * Get the GLSL shading language available on the computer. If {@link #hasGlslRenderer()} returns false,
+     * this value is undefined. The reported version is the integer value used in the #version declaration in
+     * source code. Example: for GLSL 1.4 the returned value is 140, for 3.3 it is 330.
      *
      * @return Version in integer form
      */
@@ -479,8 +466,8 @@ public abstract class Capabilities {
     }
 
     /**
-     * @return True if the GlslRenderer can support shaders with a geometry shader.
-     *         Shaders always support vertex and fragment shaders.
+     * @return True if the GlslRenderer can support shaders with a geometry shader. Shaders always support
+     *         vertex and fragment shaders.
      */
     public boolean hasGeometryShaderSupport() {
         return geometryShaderSupport;

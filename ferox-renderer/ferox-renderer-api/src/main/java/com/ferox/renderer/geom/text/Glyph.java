@@ -28,15 +28,13 @@ package com.ferox.renderer.geom.text;
 
 /**
  * <p/>
- * A Glyph represents the bounding-box and positioning information for a single character
- * within a font. It does not distinguish between AWT's various types of GlyphMetrics for
- * multiple character sequences.
+ * A Glyph represents the bounding-box and positioning information for a single character within a font. It
+ * does not distinguish between AWT's various types of GlyphMetrics for multiple character sequences.
  * <p/>
- * It assumes a fairly standard English character set that proceeds from left-to-right.
- * Each glyph has a local origin that represents the "lower-left" corner of the character.
- * This is not the absolute location of the character. Characters may be positioned above
- * or below this baseline, or to the left or right of it. Above and to the right represent
- * positive coordinate values.
+ * It assumes a fairly standard English character set that proceeds from left-to-right. Each glyph has a local
+ * origin that represents the "lower-left" corner of the character. This is not the absolute location of the
+ * character. Characters may be positioned above or below this baseline, or to the left or right of it. Above
+ * and to the right represent positive coordinate values.
  *
  * @author Michael Ludwig
  */
@@ -48,12 +46,11 @@ public class Glyph {
 
     /**
      * <p/>
-     * Create a new Glyph with the given values. The texture coordinates specified in tcL,
-     * tcR, tcT and tcB must be the values required to access the glyph from its
-     * associated CharacterSet.
+     * Create a new Glyph with the given values. The texture coordinates specified in tcL, tcR, tcT and tcB
+     * must be the values required to access the glyph from its associated CharacterSet.
      * <p/>
-     * The x, y positions and width and height, however, represent the positioning and
-     * dimensions of the glyph along a line of text, not within a CharacterSet.
+     * The x, y positions and width and height, however, represent the positioning and dimensions of the glyph
+     * along a line of text, not within a CharacterSet.
      *
      * @param advance The advance needed for the character
      * @param tcL     The texture coordinate for the left edge
@@ -65,8 +62,8 @@ public class Glyph {
      * @param width   The width of the character
      * @param height  The height of the character
      */
-    public Glyph(float advance, float tcL, float tcR, float tcB, float tcT, float x,
-                 float y, float width, float height) {
+    public Glyph(float advance, float tcL, float tcR, float tcB, float tcT, float x, float y, float width,
+                 float height) {
         this.advance = advance;
         this.tcL = tcL;
         this.tcR = tcR;
@@ -80,8 +77,8 @@ public class Glyph {
     }
 
     /**
-     * Return the horizontal distance to advance for the next character. The advance is
-     * measured from this character's origin (not getX()).
+     * Return the horizontal distance to advance for the next character. The advance is measured from this
+     * character's origin (not getX()).
      *
      * @return This glyph's advance
      */
@@ -90,8 +87,7 @@ public class Glyph {
     }
 
     /**
-     * Return the texture coord that represents the left edge within the associated
-     * char-set's texture.
+     * Return the texture coord that represents the left edge within the associated char-set's texture.
      *
      * @return This glyph's left texture coordinate
      */
@@ -100,8 +96,7 @@ public class Glyph {
     }
 
     /**
-     * Return the texture coord that represents the right edge within the associated
-     * char-set's texture.
+     * Return the texture coord that represents the right edge within the associated char-set's texture.
      *
      * @return This glyph's right texture coordinate
      */
@@ -110,8 +105,7 @@ public class Glyph {
     }
 
     /**
-     * Return the texture coord that represents the top edge within the associated
-     * char-set's texture.
+     * Return the texture coord that represents the top edge within the associated char-set's texture.
      *
      * @return This glyph's top texture coordinate
      */
@@ -120,8 +114,7 @@ public class Glyph {
     }
 
     /**
-     * Return the texture coord that represents the bottom edge within the associated
-     * char-set's texture.
+     * Return the texture coord that represents the bottom edge within the associated char-set's texture.
      *
      * @return This glyph's bottom texture coordinate
      */
@@ -131,8 +124,8 @@ public class Glyph {
 
     /**
      * <p/>
-     * Return the appropriate x distance relative to this metric's local origin of the
-     * character's quad's left edge.
+     * Return the appropriate x distance relative to this metric's local origin of the character's quad's left
+     * edge.
      * <p/>
      * A negative implies to the left of the origin.
      *
@@ -144,8 +137,8 @@ public class Glyph {
 
     /**
      * <p/>
-     * Return the appropriate y distance relative to this metric's local origin of the
-     * character's bottom edge.
+     * Return the appropriate y distance relative to this metric's local origin of the character's bottom
+     * edge.
      * <p/>
      * A negative value implies the character is position below the baseline of the font.
      *

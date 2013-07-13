@@ -32,8 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Future that wraps an already prepared value, so the task the Future represents has
- * completed.
+ * Future that wraps an already prepared value, so the task the Future represents has completed.
  *
  * @param <T>
  *

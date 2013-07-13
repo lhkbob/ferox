@@ -32,8 +32,8 @@ import com.ferox.renderer.DataType;
 import java.nio.*;
 
 /**
- * BufferUtil is a utility class for creating NIO Buffer objects. All created Buffer
- * objects are direct buffers with the native byte ordering.
+ * BufferUtil is a utility class for creating NIO Buffer objects. All created Buffer objects are direct
+ * buffers with the native byte ordering.
  *
  * @author Michael Ludwig
  */
@@ -85,9 +85,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new FloatBuffer that will have the same capacity as the length of the
-     * given array, and its contents will be equal the array. The returned buffer will
-     * have its position at 0 and limit at the capacity.
+     * Create a new FloatBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
      *
      * @param data The float[] that fills the returned buffer
      *
@@ -102,9 +102,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new IntBuffer that will have the same capacity as the length of the given
-     * array, and its contents will be equal the array. The returned buffer will have its
-     * position at 0 and limit at the capacity.
+     * Create a new IntBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
      *
      * @param data The int[] that fills the returned buffer
      *
@@ -119,9 +119,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new ShortBuffer that will have the same capacity as the length of the
-     * given array, and its contents will be equal the array. The returned buffer will
-     * have its position at 0 and limit at the capacity.
+     * Create a new ShortBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
      *
      * @param data The short[] that fills the returned buffer
      *
@@ -136,9 +136,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new ByteBuffer that will have the same capacity as the length of the given
-     * array, and its contents will be equal the array. The returned buffer will have its
-     * position at 0 and limit at the capacity.
+     * Create a new ByteBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
      *
      * @param data The byte[] that fills the returned buffer
      *
@@ -153,9 +153,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new Buffer based on the given {@link DataType} and size. The returned
-     * buffer will have a capacity equal to <var>size</var> and the returned buffer type
-     * will equal the Class returned by {@link #getBufferType(DataType)}.
+     * Create a new Buffer based on the given {@link DataType} and size. The returned buffer will have a
+     * capacity equal to <var>size</var> and the returned buffer type will equal the Class returned by {@link
+     * #getBufferType(DataType)}.
      *
      * @param type The DataType controlling the return type of the Buffer
      * @param size The capacity of the buffer
@@ -190,9 +190,9 @@ public class BufferUtil {
     }
 
     /**
-     * Create a new Buffer from the primitive array. The array instance must be a {@code
-     * int[]}, {@code short[]}, {@code byte[]}, or {@code float[]}. The exact
-     * interpretation of the primitives is irrelevant.
+     * Create a new Buffer from the primitive array. The array instance must be a {@code int[]}, {@code
+     * short[]}, {@code byte[]}, or {@code float[]}. The exact interpretation of the primitives is
+     * irrelevant.
      *
      * @param array The primitive to clone into an NIO buffer
      *
@@ -215,8 +215,8 @@ public class BufferUtil {
     }
 
     /**
-     * Get the length of the primitive array. The instance must be one of the array types
-     * supported by {@link #newBuffer(Object)}.
+     * Get the length of the primitive array. The instance must be one of the array types supported by {@link
+     * #newBuffer(Object)}.
      *
      * @param array The primitive array
      *
@@ -239,10 +239,9 @@ public class BufferUtil {
     }
 
     /**
-     * Return the Class of Buffer that will be created by {@link #newBuffer(DataType,
-     * int)} based on the given DataType. A DataType of FLOAT creates FloatBuffers; a
-     * DataType of BYTE creates ByteBuffers; a type of INT creates IntBuffers; and a type
-     * of SHORT creates ShortBuffers.
+     * Return the Class of Buffer that will be created by {@link #newBuffer(DataType, int)} based on the given
+     * DataType. A DataType of FLOAT creates FloatBuffers; a DataType of BYTE creates ByteBuffers; a type of
+     * INT creates IntBuffers; and a type of SHORT creates ShortBuffers.
      *
      * @param type The DataType
      *

@@ -36,9 +36,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * FrameworkImpl is an implementation of Framework that delegates all OpenGL specific
- * operations to a {@link ResourceFactory}, {@link ContextManager} and {@link
- * SurfaceFactory}.
+ * FrameworkImpl is an implementation of Framework that delegates all OpenGL specific operations to a {@link
+ * ResourceFactory}, {@link ContextManager} and {@link SurfaceFactory}.
  *
  * @author Michael Ludwig
  */
@@ -52,12 +51,11 @@ public class FrameworkImpl implements Framework {
 
     /**
      * <p/>
-     * Create a new FrameworkImpl. After constructing an FrameworkImpl, {@link
-     * #initialize()} must be invoked before it can be used.
+     * Create a new FrameworkImpl. After constructing an FrameworkImpl, {@link #initialize()} must be invoked
+     * before it can be used.
      *
      * @param surfaceFactory  The SurfaceFactory used to create surfaces
-     * @param resourceFactory The ResourceFactory that will create resource
-     *                        implementations for the framework
+     * @param resourceFactory The ResourceFactory that will create resource implementations for the framework
      *
      * @throws NullPointerException if surfaceFactory or resourceFactory is null
      */
@@ -70,28 +68,24 @@ public class FrameworkImpl implements Framework {
         }
 
         ContextManager contextManager = new ContextManager();
-        impl = new ManagedFramework(surfaceFactory,
-                                    new LifeCycleManager(getClass().getSimpleName()),
-                                    new DestructibleManager(), resourceFactory,
-                                    contextManager);
+        impl = new ManagedFramework(surfaceFactory, new LifeCycleManager(getClass().getSimpleName()),
+                                    new DestructibleManager(), resourceFactory, contextManager);
 
         fullscreenLock = new Object();
         fullscreenSurface = null;
     }
 
     /**
-     * Complete the initialization of the framework so that the public interface defined
-     * in {@link Framework} is usable. It is recommended that concrete implementations of
-     * AbstractFramework define a static method that creates the framework and invokes
-     * this method.
+     * Complete the initialization of the framework so that the public interface defined in {@link Framework}
+     * is usable. It is recommended that concrete implementations of AbstractFramework define a static method
+     * that creates the framework and invokes this method.
      */
     public void initialize() {
         impl.lifecycleManager.start(new Runnable() {
             @Override
             public void run() {
                 // Start up the context manager and resource manager
-                impl.contextManager
-                    .initialize(impl.lifecycleManager, impl.surfaceFactory);
+                impl.contextManager.initialize(impl.lifecycleManager, impl.surfaceFactory);
                 impl.destructibleManager.initialize(impl.lifecycleManager);
 
                 // register this framework to be auto-destroyed
@@ -100,15 +94,15 @@ public class FrameworkImpl implements Framework {
                 // Fetch the RenderCapabilities now, we do it this way to improve
                 // the Framework creation time instead of forcing OpenGL wrappers to
                 // create and discard a context solely for capabilities detection.
-                Future<Capabilities> caps = impl.contextManager.invokeOnContextThread(
-                        new Callable<Capabilities>() {
-                            @Override
-                            public Capabilities call() throws Exception {
-                                OpenGLContext context = impl.contextManager
-                                                            .ensureContext();
-                                return context.getRenderCapabilities();
-                            }
-                        }, false);
+                Future<Capabilities> caps = impl.contextManager
+                                                .invokeOnContextThread(new Callable<Capabilities>() {
+                                                    @Override
+                                                    public Capabilities call() throws Exception {
+                                                        OpenGLContext context = impl.contextManager
+                                                                                    .ensureContext();
+                                                        return context.getRenderCapabilities();
+                                                    }
+                                                }, false);
 
                 renderCaps = getFuture(caps);
             }
@@ -118,8 +112,9 @@ public class FrameworkImpl implements Framework {
     @Override
     public OnscreenSurface createSurface(final OnscreenSurfaceOptions options) {
         // This task is not accepted during shutdown
-        Future<OnscreenSurface> create = impl.contextManager.invokeOnContextThread(
-                new CreateOnscreenSurface(options), false);
+        Future<OnscreenSurface> create = impl.contextManager
+                                             .invokeOnContextThread(new CreateOnscreenSurface(options),
+                                                                    false);
         return getFuture(create);
     }
 
@@ -127,8 +122,8 @@ public class FrameworkImpl implements Framework {
     @Override
     public TextureSurface createSurface(final TextureSurfaceOptions options) {
         // This task is not accepted during shutdown
-        Future<TextureSurface> create = impl.contextManager.invokeOnContextThread(
-                new CreateTextureSurface(options), false);
+        Future<TextureSurface> create = impl.contextManager
+                                            .invokeOnContextThread(new CreateTextureSurface(options), false);
 
         return getFuture(create);
     }
@@ -264,16 +259,14 @@ public class FrameworkImpl implements Framework {
     }
 
     /**
-     * @return The ContextManager that handles threading for the contexts of all created
-     *         surfaces
+     * @return The ContextManager that handles threading for the contexts of all created surfaces
      */
     public ContextManager getContextManager() {
         return impl.contextManager;
     }
 
     /**
-     * @return The LifeCycleManager that controls the Framework's lifecycle
-     *         implementation
+     * @return The LifeCycleManager that controls the Framework's lifecycle implementation
      */
     public LifeCycleManager getLifeCycleManager() {
         return impl.lifecycleManager;
@@ -341,10 +334,9 @@ public class FrameworkImpl implements Framework {
                 }
 
                 AbstractOnscreenSurface created = impl.surfaceFactory
-                                                      .createOnscreenSurface(
-                                                              FrameworkImpl.this, options,
-                                                              impl.contextManager
-                                                                  .getSharedContext());
+                                                      .createOnscreenSurface(FrameworkImpl.this, options,
+                                                                             impl.contextManager
+                                                                                 .getSharedContext());
                 if (created.isFullscreen()) {
                     fullscreenSurface = created;
                 }
@@ -368,8 +360,7 @@ public class FrameworkImpl implements Framework {
         @Override
         public TextureSurface call() throws Exception {
             AbstractTextureSurface created = impl.surfaceFactory
-                                                 .createTextureSurface(FrameworkImpl.this,
-                                                                       options,
+                                                 .createTextureSurface(FrameworkImpl.this, options,
                                                                        impl.contextManager
                                                                            .getSharedContext());
 
@@ -378,8 +369,7 @@ public class FrameworkImpl implements Framework {
         }
     }
 
-    private static class ManagedFramework
-            implements DestructibleManager.ManagedDestructible {
+    private static class ManagedFramework implements DestructibleManager.ManagedDestructible {
         private final SurfaceFactory surfaceFactory;
 
         private final LifeCycleManager lifecycleManager;
@@ -387,10 +377,8 @@ public class FrameworkImpl implements Framework {
         private final ResourceFactory resourceManager;
         private final ContextManager contextManager;
 
-        public ManagedFramework(SurfaceFactory surfaceFactory,
-                                LifeCycleManager lifecycleManager,
-                                DestructibleManager destructibleManager,
-                                ResourceFactory resourceManager,
+        public ManagedFramework(SurfaceFactory surfaceFactory, LifeCycleManager lifecycleManager,
+                                DestructibleManager destructibleManager, ResourceFactory resourceManager,
                                 ContextManager contextManager) {
             this.surfaceFactory = surfaceFactory;
             this.lifecycleManager = lifecycleManager;

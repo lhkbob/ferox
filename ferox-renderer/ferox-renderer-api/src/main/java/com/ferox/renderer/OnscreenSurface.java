@@ -29,23 +29,21 @@ package com.ferox.renderer;
 import com.ferox.input.MouseKeyEventSource;
 
 /**
- * A renderable Surface that has a visible element, either because it's a window or it's
- * fullscreen. Multiple windowed OnscreenSurfaces can be used at the same time. Like
- * {@link Surface}, all methods exposed by OnscreenSurface have no defined return value
- * after the surface has been destroyed.
+ * A renderable Surface that has a visible element, either because it's a window or it's fullscreen. Multiple
+ * windowed OnscreenSurfaces can be used at the same time. Like {@link Surface}, all methods exposed by
+ * OnscreenSurface have no defined return value after the surface has been destroyed.
  *
  * @author Michael Ludwig
  */
 public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     /**
-     * @return The display mode of the surface, which is either the default display mode
-     *         for windowed surfaces, or the activated fullscreen mode
+     * @return The display mode of the surface, which is either the default display mode for windowed
+     *         surfaces, or the activated fullscreen mode
      */
     public DisplayMode getDisplayMode();
 
     /**
-     * @return The number of MSAA samples used in the surface, or 0 if MSAA is disabled
-     *         for the surface
+     * @return The number of MSAA samples used in the surface, or 0 if MSAA is disabled for the surface
      */
     public int getMultiSamples();
 
@@ -55,8 +53,7 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     public boolean isFullscreen();
 
     /**
-     * Return true if the surface should have its update rate limited to the refresh rate
-     * of the monitor.
+     * Return true if the surface should have its update rate limited to the refresh rate of the monitor.
      *
      * @return True if rendering is limited to refresh rate
      *
@@ -65,25 +62,24 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     public boolean isVSyncEnabled();
 
     /**
-     * Set whether or not vsync should be enabled. If it is enabled, the refresh limit is
-     * limited to that of the monitor's. This is generally around 60 Hz. This is not a
-     * guaranteed operation, it should be considered a request to the underlying system.
+     * Set whether or not vsync should be enabled. If it is enabled, the refresh limit is limited to that of
+     * the monitor's. This is generally around 60 Hz. This is not a guaranteed operation, it should be
+     * considered a request to the underlying system.
      *
      * @param enable Whether or not vsyncing is used
      */
     public void setVSyncEnabled(boolean enable);
 
     /**
-     * Get the title string that appears in the window frame is undecorated. It may also
-     * be used in a dock, system tray or other OS UI element to represent the window.
+     * Get the title string that appears in the window frame is undecorated. It may also be used in a dock,
+     * system tray or other OS UI element to represent the window.
      *
      * @return The title displayed for this window element by the OS
      */
     public String getTitle();
 
     /**
-     * Set the title string to be used by the window. If title == null, the empty string
-     * is used.
+     * Set the title string to be used by the window. If title == null, the empty string is used.
      *
      * @param title The new title for this surface, null == ""
      */
@@ -105,16 +101,15 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
 
     /**
      * <p/>
-     * Set the dimensions of the window to the given width and height. It will extend
-     * these values, in pixels, down and to the right.
+     * Set the dimensions of the window to the given width and height. It will extend these values, in pixels,
+     * down and to the right.
      * <p/>
-     * This will affect the values returned by getWidth() and getHeight(). However, they
-     * may not be the same. These dimensions represent the size of the window (possibly
-     * including a frame), while getWidth/Height() return the size of the actual drawable
-     * area of the surface.
+     * This will affect the values returned by getWidth() and getHeight(). However, they may not be the same.
+     * These dimensions represent the size of the window (possibly including a frame), while getWidth/Height()
+     * return the size of the actual drawable area of the surface.
      * <p/>
-     * Fullscreen windows cannot be resized, so an exception is thrown if this is
-     * attempted on a fullscreen window.
+     * Fullscreen windows cannot be resized, so an exception is thrown if this is attempted on a fullscreen
+     * window.
      *
      * @param width  Width of the window, may not represent the drawable width
      * @param height Height of the window, may not represent the drawable height
@@ -125,10 +120,9 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     public void setWindowSize(int width, int height);
 
     /**
-     * Set the location of the window to the given screen points. 0 represents the left
-     * edge of the monitor for x and the top edge for y. Fullscreen windows are always
-     * located at (0, 0), so an exception is thrown if this is attempted on a fullscreen
-     * window.
+     * Set the location of the window to the given screen points. 0 represents the left edge of the monitor
+     * for x and the top edge for y. Fullscreen windows are always located at (0, 0), so an exception is
+     * thrown if this is attempted on a fullscreen window.
      *
      * @param x The new x coordinate for the window
      * @param y The new y coordinate for the window
@@ -138,19 +132,18 @@ public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     public void setLocation(int x, int y);
 
     /**
-     * Return whether or not a user can close this window using the close button that most
-     * windowing managers provide. An undecorated window can still be "closable" although
-     * it might not be possible if the OS provides no alternate close method for the user.
-     * The default value is true.
+     * Return whether or not a user can close this window using the close button that most windowing managers
+     * provide. An undecorated window can still be "closable" although it might not be possible if the OS
+     * provides no alternate close method for the user. The default value is true.
      *
      * @return True if the window can be closed by the user
      */
     public boolean isCloseable();
 
     /**
-     * Set whether or not a user is allowed to close the window via a close button in the
-     * window's frame or decorations. When a user closes a window manually, the surface is
-     * destroyed just as if {@link #destroy()} had been called.
+     * Set whether or not a user is allowed to close the window via a close button in the window's frame or
+     * decorations. When a user closes a window manually, the surface is destroyed just as if {@link
+     * #destroy()} had been called.
      *
      * @param userCloseable True if the user can close the window
      */

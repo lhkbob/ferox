@@ -39,8 +39,7 @@ import java.io.InputStream;
  * The TGATexture class can be used to load in TGA (or Targa) images as Texture2D's.
  * <p/>
  * <p/>
- * It is recommended to use TextureLoader, since it will delegate to TGATexture when
- * needed.
+ * It is recommended to use TextureLoader, since it will delegate to TGATexture when needed.
  * <p/>
  * This was based heavily off of the code in com.sun.opengl.util.texture.spi.TGAImage.
  *
@@ -54,19 +53,17 @@ public class TGATexture {
 
     /**
      * <p/>
-     * Load in a Targa image from the given stream as a 2D texture. This loader supports
-     * true color and color maps with pixel depths of 16, 24, and 32 bits. The image will
-     * be flipped if necessary.
+     * Load in a Targa image from the given stream as a 2D texture. This loader supports true color and color
+     * maps with pixel depths of 16, 24, and 32 bits. The image will be flipped if necessary.
      * <p/>
-     * It does not support runlength compressed images, black and white images, or images
-     * that go right to left. The tga footer present in newer tga files is ignored.
+     * It does not support runlength compressed images, black and white images, or images that go right to
+     * left. The tga footer present in newer tga files is ignored.
      *
      * @param stream The InputStream to read the tga texture from
      *
      * @return The read Texture with a target of T_2D
      *
-     * @throws IOException if there was an IO error or if the tga file is invalid or
-     *                     unsupported
+     * @throws IOException if there was an IO error or if the tga file is invalid or unsupported
      */
     public static Texture readTexture(InputStream stream) throws IOException {
         if (stream == null) {
@@ -74,24 +71,21 @@ public class TGATexture {
         }
         TGATexture res = new TGATexture(stream);
         return new Texture(Target.T_2D,
-                           new Mipmap(res.data, res.header.width, res.header.height, 1,
-                                      res.format));
+                           new Mipmap(res.data, res.header.width, res.header.height, 1, res.format));
     }
 
     /**
      * <p/>
-     * Non-destructively read the header from the given stream and determine if it's a
-     * valid header. This checks the different byte offsets against expected values, and
-     * it is assumed that if everything checks out that it is a valid tga file (we need
-     * this assumption since the Targa format doesn't come with a magic number at the
-     * beginning).
+     * Non-destructively read the header from the given stream and determine if it's a valid header. This
+     * checks the different byte offsets against expected values, and it is assumed that if everything checks
+     * out that it is a valid tga file (we need this assumption since the Targa format doesn't come with a
+     * magic number at the beginning).
      * <p/>
      * Returns false if it's invalid or an IOException occurred while checking.
      *
      * @param stream The InputStream to check format type
      *
-     * @return Whether or not this stream is a tga file, doesn't check if it's valid or
-     *         supported
+     * @return Whether or not this stream is a tga file, doesn't check if it's valid or supported
      *
      * @throws NullPointerException if stream is null
      */
@@ -371,20 +365,17 @@ public class TGATexture {
             switch (h.pixelDepth) {
             case 16:
                 if (h.getAttribsPerPixel() != 1) {
-                    return "Bad attribs pixel count, must be 1 for 16 bit colors: " +
-                           h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 1 for 16 bit colors: " + h.getAttribsPerPixel();
                 }
                 break;
             case 24:
                 if (h.getAttribsPerPixel() != 0) {
-                    return "Bad attribs pixel count, must be 0 for 24 bit colors: " +
-                           h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 0 for 24 bit colors: " + h.getAttribsPerPixel();
                 }
                 break;
             case 32:
                 if (h.getAttribsPerPixel() != 8) {
-                    return "Bad attribs pixel count, must be 8 for 32 bit colors: " +
-                           h.getAttribsPerPixel();
+                    return "Bad attribs pixel count, must be 8 for 32 bit colors: " + h.getAttribsPerPixel();
                 }
                 break;
             default:
@@ -454,8 +445,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-                            cm.colorMapData, index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
                 }
             }
         } else {
@@ -468,8 +458,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = rawIndices[c];
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(
-                            cm.colorMapData, index);
+                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
                 }
             }
         }
@@ -499,8 +488,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    System.arraycopy(cm.colorMapData, index, tmpData,
-                                     y * rawWidth + c * cm.elementByteCount,
+                    System.arraycopy(cm.colorMapData, index, tmpData, y * rawWidth + c * cm.elementByteCount,
                                      cm.elementByteCount);
                 }
             }
@@ -513,8 +501,7 @@ public class TGATexture {
 
                 for (c = 0; c < header.width; c++) {
                     System.arraycopy(cm.colorMapData, rawIndices[c], tmpData,
-                                     y * rawWidth + c * cm.elementByteCount,
-                                     cm.elementByteCount);
+                                     y * rawWidth + c * cm.elementByteCount, cm.elementByteCount);
                 }
             }
         }

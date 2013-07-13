@@ -37,11 +37,11 @@ import java.io.InputStream;
 
 /**
  * <p/>
- * DDSTexture is a utility class that can be used to read in cube maps, 3d textures and 2d
- * textures from an input stream.
+ * DDSTexture is a utility class that can be used to read in cube maps, 3d textures and 2d textures from an
+ * input stream.
  * <p/>
- * It is recommended to use TextureLoader for input however, since it will delegate to
- * DDSTexture when needed.
+ * It is recommended to use TextureLoader for input however, since it will delegate to DDSTexture when
+ * needed.
  *
  * @author Michael Ludwig
  */
@@ -63,20 +63,19 @@ public class DDSTexture {
 
     /**
      * <p/>
-     * Read in and create a new Texture from the given stream. This image will be a
-     * Texture2D, Texture3D, or TextureCubeMap. An IOException will be thrown if the
-     * stream doesn't represent a valid DDS texture or if its header can't be identified
-     * to a supported TextureFormat, etc.
+     * Read in and create a new Texture from the given stream. This image will be a Texture2D, Texture3D, or
+     * TextureCubeMap. An IOException will be thrown if the stream doesn't represent a valid DDS texture or if
+     * its header can't be identified to a supported TextureFormat, etc.
      * <p/>
-     * It assumes that the stream starts at the first byte of the header section for the
-     * DDS texture. The stream will not be closed.
+     * It assumes that the stream starts at the first byte of the header section for the DDS texture. The
+     * stream will not be closed.
      *
      * @param stream The InputStream to read the texture from
      *
      * @return The Texture read from stream
      *
-     * @throws IOException if an IOException occurs while reading, or if the stream is an
-     *                     invalid or unsupported DDS texture
+     * @throws IOException if an IOException occurs while reading, or if the stream is an invalid or
+     *                     unsupported DDS texture
      */
     public static Texture readTexture(InputStream stream) throws IOException {
         if (stream == null) {
@@ -86,28 +85,27 @@ public class DDSTexture {
         DDSTexture texture = new DDSTexture(stream);
         Mipmap[] mips = new Mipmap[texture.data.length];
         for (int i = 0; i < mips.length; i++) {
-            mips[i] = new Mipmap(texture.data[i], texture.width, texture.height,
-                                 texture.depth, texture.format);
+            mips[i] = new Mipmap(texture.data[i], texture.width, texture.height, texture.depth,
+                                 texture.format);
         }
         return new Texture(texture.target, mips);
     }
 
     /**
      * <p/>
-     * Determine if the given stream represents the start of a valid DDS file. All it
-     * checks is the header portion of the given stream. As such, it is possible that it
-     * appears as a DDS file, but the rest of the file is not valid.
+     * Determine if the given stream represents the start of a valid DDS file. All it checks is the header
+     * portion of the given stream. As such, it is possible that it appears as a DDS file, but the rest of the
+     * file is not valid.
      * <p/>
-     * The stream will mark and then read the 124 bytes of the header. If an IOException
-     * occurs while reading or parsing the header, then false is returned. When finished,
-     * the stream will be reset back to the mark.
+     * The stream will mark and then read the 124 bytes of the header. If an IOException occurs while reading
+     * or parsing the header, then false is returned. When finished, the stream will be reset back to the
+     * mark.
      * <p/>
      * <i>The stream will not be closed.</i>
      *
      * @param stream The InputStream that represents the data source for a DDS texture
      *
-     * @return Whether or not stream is a DDS texture, doesn't check if the texture is
-     *         supported
+     * @return Whether or not stream is a DDS texture, doesn't check if the texture is supported
      *
      * @throws NullPointerException if stream is null
      */
@@ -380,8 +378,8 @@ public class DDSTexture {
         TextureFormat format;
         DataType type;
 
-        public DDPFMap(int bitCount, int rMask, int gMask, int bMask, int aMask,
-                       DataType type, TextureFormat format) {
+        public DDPFMap(int bitCount, int rMask, int gMask, int bMask, int aMask, DataType type,
+                       TextureFormat format) {
             this.bitCount = bitCount;
             this.rMask = rMask;
             this.gMask = gMask;
@@ -393,8 +391,7 @@ public class DDSTexture {
         }
 
         public boolean equals(DDSPixelFormat pf) {
-            return this.equals(pf.rgbBitCount, pf.rBitMask, pf.gBitMask, pf.bBitMask,
-                               pf.rgbAlphaBitMask);
+            return this.equals(pf.rgbBitCount, pf.rBitMask, pf.gBitMask, pf.bBitMask, pf.rgbAlphaBitMask);
         }
 
         public boolean equals(int bitCount, int rMask, int gMask, int bMask, int aMask) {
@@ -418,14 +415,10 @@ public class DDSTexture {
 
     // Supported RGBA types
     private static final DDPFMap[] pfRGBA = new DDPFMap[] {
-            new DDPFMap(32, 0xff0000, 0xff00, 0xff, 0xff000000, DataType.INT,
-                        TextureFormat.ARGB_8888),
-            new DDPFMap(32, 0xff000000, 0xff0000, 0xff00, 0x000000ff, DataType.INT,
-                        TextureFormat.RGBA_8888),
-            new DDPFMap(32, 0xff, 0xff00, 0xff0000, 0xff000000, DataType.INT,
-                        TextureFormat.ABGR_8888),
-            new DDPFMap(32, 0xff00, 0xff0000, 0xff000000, 0xff, DataType.INT,
-                        TextureFormat.BGRA_8888)
+            new DDPFMap(32, 0xff0000, 0xff00, 0xff, 0xff000000, DataType.INT, TextureFormat.ARGB_8888),
+            new DDPFMap(32, 0xff000000, 0xff0000, 0xff00, 0x000000ff, DataType.INT, TextureFormat.RGBA_8888),
+            new DDPFMap(32, 0xff, 0xff00, 0xff0000, 0xff000000, DataType.INT, TextureFormat.ABGR_8888),
+            new DDPFMap(32, 0xff00, 0xff0000, 0xff000000, 0xff, DataType.INT, TextureFormat.BGRA_8888)
     };
 
     // Supported Luminance types
@@ -508,8 +501,8 @@ public class DDSTexture {
      */
 
     /**
-     * Makes sure that the DDSHeader read in has the minimal correct values identifying it
-     * as a valid DDS texture.
+     * Makes sure that the DDSHeader read in has the minimal correct values identifying it as a valid DDS
+     * texture.
      */
     private static void validateHeader(DDSHeader h) throws IOException {
         // Must have the magic number 'DDS '
@@ -557,8 +550,7 @@ public class DDSTexture {
         }
 
         if (!isFlagSet(header.caps1, DDSCAPS_TEXTURE)) {
-            throw new IOException(
-                    "DDS surface capabilities missing required flag DDSCAPS_TEXTURE");
+            throw new IOException("DDS surface capabilities missing required flag DDSCAPS_TEXTURE");
         }
 
         // We won't check for DDSCAPS_COMPLEX, since some files seem to ignore
@@ -577,8 +569,7 @@ public class DDSTexture {
             if (isFlagSet(header.flags, DDSD_DEPTH)) {
                 depth = header.depth;
             } else {
-                throw new IOException(
-                        "DDSD header is missing required flag DDSD_DEPTH for a volume texture");
+                throw new IOException("DDSD header is missing required flag DDSD_DEPTH for a volume texture");
             }
         } else if (target == Target.T_CUBEMAP) {
             if (!isFlagSet(header.caps2, DDSCAPS2_CUBEMAP_ALL_FACES)) {
@@ -592,34 +583,28 @@ public class DDSTexture {
         // validate the DX10 header as well
         if (header.headerDX10 != null) {
             if (target == Target.T_2D) {
-                if (header.headerDX10.resourceDimension !=
-                    D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
-                    throw new IOException(
-                            "DX10 header and surface caps are inconsistent");
+                if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
+                    throw new IOException("DX10 header and surface caps are inconsistent");
                 }
                 if (header.headerDX10.arraySize > 1) {
                     throw new IOException("Texture arrays aren't supported");
                 }
             } else if (target == Target.T_3D) {
-                if (header.headerDX10.resourceDimension !=
-                    D3D10_RESOURCE_DIMENSION_TEXTURE3D) {
-                    throw new IOException(
-                            "DX10 header and surface caps are inconsistent");
+                if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE3D) {
+                    throw new IOException("DX10 header and surface caps are inconsistent");
                 }
                 if (header.headerDX10.arraySize > 1) {
                     throw new IOException("Texture arrays aren't supported");
                 }
             } else if (target == Target.T_CUBEMAP) {
-                if (header.headerDX10.resourceDimension ==
-                    D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
+                if (header.headerDX10.resourceDimension == D3D10_RESOURCE_DIMENSION_TEXTURE2D) {
                     // nvidia sets the dx10 header to be a 2d tex, with
                     // arraySize = 6 for cubemaps
                     if (header.headerDX10.arraySize != 6) {
                         throw new IOException("Cube map must have 6 faces present");
                     }
                 } else {
-                    throw new IOException(
-                            "DX10 header and surface caps are inconsistent");
+                    throw new IOException("DX10 header and surface caps are inconsistent");
                 }
             }
         }
@@ -628,15 +613,12 @@ public class DDSTexture {
         if (isFlagSet(header.flags, DDSD_MIPMAPCOUNT)) {
             mipmapCount = header.mipmapCount;
             if (mipmapCount > 1) {
-                if (!isFlagSet(header.caps1, DDSCAPS_MIPMAP) ||
-                    !isFlagSet(header.caps1, DDSCAPS_COMPLEX)) {
-                    throw new IOException(
-                            "DDS surface capabilities are invalid for a mipmapped texture");
+                if (!isFlagSet(header.caps1, DDSCAPS_MIPMAP) || !isFlagSet(header.caps1, DDSCAPS_COMPLEX)) {
+                    throw new IOException("DDS surface capabilities are invalid for a mipmapped texture");
                 }
             }
             // make sure all the mipmaps are present
-            int expected = (int) (
-                    Math.log(Math.max(width, Math.max(height, depth))) / Math.log(2) + 1);
+            int expected = (int) (Math.log(Math.max(width, Math.max(height, depth))) / Math.log(2) + 1);
             if (mipmapCount != expected) {
                 throw new IOException("Expected " + expected + " but got " + mipmapCount +
                                       " mipmaps instead");
@@ -652,15 +634,13 @@ public class DDSTexture {
      */
     private void identifyTextureFormat() throws IOException {
         if (!isFlagSet(header.flags, DDSD_PIXELFORMAT)) {
-            throw new IOException(
-                    "DDSD header is missing required flag DDSD_PIXELFORMAT");
+            throw new IOException("DDSD header is missing required flag DDSD_PIXELFORMAT");
         }
 
         if (header.headerDX10 != null) {
             // the pixel format is stored in the dxgiFormat
             if (!header.headerDX10.dxgiFormat.supported) {
-                throw new IOException(
-                        "Unsupported dxgi pixel format: " + header.headerDX10.dxgiFormat);
+                throw new IOException("Unsupported dxgi pixel format: " + header.headerDX10.dxgiFormat);
             } else {
                 format = header.headerDX10.dxgiFormat.format;
                 type = header.headerDX10.dxgiFormat.type;
@@ -764,13 +744,11 @@ public class DDSTexture {
 
         h.reserved2 = readLEInt(in);
 
-        if (h.pixelFormat.fourCC ==
-            FOURCC_DX10) { // According to AMD, this is how we know if it's present
+        if (h.pixelFormat.fourCC == FOURCC_DX10) { // According to AMD, this is how we know if it's present
             h.headerDX10 = new DDSHeader_DX10();
             int dxgi = readLEInt(in);
-            h.headerDX10.dxgiFormat = (dxgi < 0 || dxgi >= DXGIPixelFormat.values().length
-                                       ? DXGIPixelFormat.values()[0]
-                                       : DXGIPixelFormat.values()[dxgi]);
+            h.headerDX10.dxgiFormat = (dxgi < 0 || dxgi >= DXGIPixelFormat.values().length ? DXGIPixelFormat
+                    .values()[0] : DXGIPixelFormat.values()[dxgi]);
             h.headerDX10.resourceDimension = readLEInt(in);
             h.headerDX10.miscFlag = readLEInt(in);
             h.headerDX10.arraySize = readLEInt(in);
@@ -783,9 +761,8 @@ public class DDSTexture {
     }
 
     /**
-     * Read the data from the input stream, assuming that it is a fully valid DDS file,
-     * where the next byte read is the first byte in the texture data (header already read
-     * from stream).
+     * Read the data from the input stream, assuming that it is a fully valid DDS file, where the next byte
+     * read is the first byte in the texture data (header already read from stream).
      */
     private void readData(InputStream in) throws IOException {
         int width, height, depth, size;
@@ -857,8 +834,7 @@ public class DDSTexture {
     // create a 4cc code from the given string. The string must have length = 4
     private static int makeFourCC(String c) {
         if (c.length() != 4) {
-            throw new IllegalArgumentException(
-                    "Input string for a 4CC must have size of 4");
+            throw new IllegalArgumentException("Input string for a 4CC must have size of 4");
         }
         char[] cc = c.toCharArray();
         return ((cc[3] & 0xff) << 24) | ((cc[2] & 0xff) << 16) | ((cc[1] & 0xff) << 8) |

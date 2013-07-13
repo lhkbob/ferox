@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.resources.BufferImpl;
 
 import java.util.Arrays;
@@ -21,7 +22,9 @@ public class ShaderOnlyState {
         // otherwise attribute data comes from these values
         public final float[] floatAttrValues;
         public final int[] intAttrValues;
-        public boolean useIntValues;
+
+        // one of INT, UNSIGNED_INT, or FLOAT, or null when vbo is not null
+        public DataType dataType;
 
         public AttributeState(int index) {
             this.index = index;
@@ -33,7 +36,7 @@ public class ShaderOnlyState {
 
             floatAttrValues = new float[4];
             intAttrValues = new int[4];
-            useIntValues = false;
+            dataType = DataType.FLOAT;
         }
 
         public AttributeState(AttributeState state) {
@@ -43,24 +46,20 @@ public class ShaderOnlyState {
             stride = state.stride;
             elementSize = state.elementSize;
 
-            floatAttrValues = Arrays
-                    .copyOf(state.floatAttrValues, state.floatAttrValues.length);
-            intAttrValues = Arrays
-                    .copyOf(state.intAttrValues, state.intAttrValues.length);
+            floatAttrValues = Arrays.copyOf(state.floatAttrValues, state.floatAttrValues.length);
+            intAttrValues = Arrays.copyOf(state.intAttrValues, state.intAttrValues.length);
 
-            useIntValues = state.useIntValues;
+            dataType = state.dataType;
         }
     }
 
     public final AttributeState[] attributes;
-    public final int[] textureReferenceCounts;
 
-    public ShaderOnlyState(int numAttributes, int numTextures) {
+    public ShaderOnlyState(int numAttributes) {
         attributes = new AttributeState[numAttributes];
         for (int i = 0; i < numAttributes; i++) {
             attributes[i] = new AttributeState(i);
         }
-        textureReferenceCounts = new int[numTextures];
     }
 
     public ShaderOnlyState(ShaderOnlyState toClone) {
@@ -68,7 +67,5 @@ public class ShaderOnlyState {
         for (int i = 0; i < attributes.length; i++) {
             attributes[i] = new AttributeState(toClone.attributes[i]);
         }
-        textureReferenceCounts = Arrays.copyOf(toClone.textureReferenceCounts,
-                                               toClone.textureReferenceCounts.length);
     }
 }

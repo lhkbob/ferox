@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this
- * depends on the ImageIO loaders present on a given system).
+ * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this depends on the ImageIO
+ * loaders present on a given system).
  *
  * @author Michael Ludwig
  */

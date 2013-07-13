@@ -49,9 +49,9 @@ public class FixedFunctionState {
     }
 
     /**
-     * When configuring lighting and material colors, OpenGL uses the same functions to
-     * control the different types of color. For light colors, the EMISSIVE enum is
-     * unused, since it's only available for material colors.
+     * When configuring lighting and material colors, OpenGL uses the same functions to control the different
+     * types of color. For light colors, the EMISSIVE enum is unused, since it's only available for material
+     * colors.
      */
     public static enum LightColor {
         AMBIENT,
@@ -61,8 +61,8 @@ public class FixedFunctionState {
     }
 
     /**
-     * OpenGL provides only one way to update matrices, and to switch between matrix
-     * types, you must set the current mode.
+     * OpenGL provides only one way to update matrices, and to switch between matrix types, you must set the
+     * current mode.
      */
     public static enum MatrixMode {
         MODELVIEW,
@@ -93,9 +93,8 @@ public class FixedFunctionState {
     private static final Vector4 DEFAULT_RQ_PLANE = new Vector4(0, 0, 0, 0);
 
     /**
-     * An inner class that contains per-light state. Although it's accessible to
-     * sub-classes, it should be considered read-only because the
-     * AbstractFixedFunctionRenderer manages the updates to its variables.
+     * An inner class that contains per-light state. Although it's accessible to sub-classes, it should be
+     * considered read-only because the AbstractFixedFunctionRenderer manages the updates to its variables.
      */
     public static class LightState {
         // post-transform by current modelview matrix
@@ -146,9 +145,9 @@ public class FixedFunctionState {
     }
 
     /**
-     * An inner class that contains per-texture unit state. Although it's accessible to
-     * sub-classes, it should be considered read-only because the
-     * AbstractFixedFunctionRenderer manages the updates to its variables.
+     * An inner class that contains per-texture unit state. Although it's accessible to sub-classes, it should
+     * be considered read-only because the AbstractFixedFunctionRenderer manages the updates to its
+     * variables.
      */
     public static class TextureState {
         public final int unit;
@@ -211,12 +210,10 @@ public class FixedFunctionState {
                     CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA
             };
             srcRgb = new CombineSource[] {
-                    CombineSource.CURR_TEX, CombineSource.PREV_TEX,
-                    CombineSource.CONST_COLOR
+                    CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR
             };
             srcAlpha = new CombineSource[] {
-                    CombineSource.CURR_TEX, CombineSource.PREV_TEX,
-                    CombineSource.CONST_COLOR
+                    CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR
             };
         }
 

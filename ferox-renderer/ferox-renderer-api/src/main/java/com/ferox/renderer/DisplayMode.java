@@ -27,9 +27,9 @@
 package com.ferox.renderer;
 
 /**
- * DisplayMode is an immutable object describing screen dimensions, color bit depth and
- * refresh rate for a monitor display. This class provides a common-sense implementation
- * of {@link #equals(Object)} and {@link #hashCode()}.
+ * DisplayMode is an immutable object describing screen dimensions, color bit depth and refresh rate for a
+ * monitor display. This class provides a common-sense implementation of {@link #equals(Object)} and {@link
+ * #hashCode()}.
  *
  * @author Michael Ludwig
  */
@@ -41,9 +41,9 @@ public class DisplayMode {
     private final int refreshRate;
 
     /**
-     * Create a new DisplayMode with the given screen dimensions, color bit depth, and
-     * refresh rate. This may not be valid for the current hardware. The only DisplayModes
-     * that are guaranteed valid come from {@link com.ferox.renderer.Framework#getAvailableDisplayModes()}
+     * Create a new DisplayMode with the given screen dimensions, color bit depth, and refresh rate. This may
+     * not be valid for the current hardware. The only DisplayModes that are guaranteed valid come from {@link
+     * com.ferox.renderer.Framework#getAvailableDisplayModes()}
      *
      * @param width       The screen width
      * @param height      The screen height
@@ -54,16 +54,13 @@ public class DisplayMode {
      */
     public DisplayMode(int width, int height, int bitDepth, int refreshRate) {
         if (width < 1 || height < 1) {
-            throw new IllegalArgumentException(
-                    "Invalid dimensions: " + width + ", " + height);
+            throw new IllegalArgumentException("Invalid dimensions: " + width + ", " + height);
         }
         if (bitDepth < 1) {
-            throw new IllegalArgumentException(
-                    "Bit depth must be at least 1: " + bitDepth);
+            throw new IllegalArgumentException("Bit depth must be at least 1: " + bitDepth);
         }
         if (refreshRate < 1) {
-            throw new IllegalArgumentException(
-                    "Refresh rate must be at least 1: " + refreshRate);
+            throw new IllegalArgumentException("Refresh rate must be at least 1: " + refreshRate);
         }
 
         this.width = width;

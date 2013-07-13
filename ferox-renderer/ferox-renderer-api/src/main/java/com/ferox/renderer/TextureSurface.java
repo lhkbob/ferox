@@ -27,15 +27,14 @@
 package com.ferox.renderer;
 
 /**
- * TextureSurface is a Surface that provides render-to-texture functionality. A texture
- * surface has a fixed dimension, and is optionally created with a depth/stencil
- * renderbuffer if only color render targets are used.
+ * TextureSurface is a Surface that provides render-to-texture functionality. A texture surface has a fixed
+ * dimension, and is optionally created with a depth/stencil renderbuffer if only color render targets are
+ * used.
  * <p/>
- * To render into a texture, the TextureSurface must be created or activated with the
- * render targets produced by the textures of interest.  If multiple render targets are
- * rendered into simultaneously, they must have the same dimension and be of the same
- * color format if they are color targets.  Depth textures can be used when the surface
- * has no depth renderbuffer to receive the depth state.
+ * To render into a texture, the TextureSurface must be created or activated with the render targets produced
+ * by the textures of interest.  If multiple render targets are rendered into simultaneously, they must have
+ * the same dimension and be of the same color format if they are color targets.  Depth textures can be used
+ * when the surface has no depth renderbuffer to receive the depth state.
  *
  * @author Michael Ludwig
  * @see HardwareAccessLayer#setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
@@ -43,33 +42,31 @@ package com.ferox.renderer;
  */
 public interface TextureSurface extends Surface {
     /**
-     * Get the base format of the renderbuffer used for depth and stencil tests. If the
-     * surface was created without a renderbuffer, this will return null. Otherwise it
-     * will be one of DEPTH or DEPTH_STENCIL. A depth/stencil texture can only be used as
-     * a render target for a surface if this returns null.
+     * Get the base format of the renderbuffer used for depth and stencil tests. If the surface was created
+     * without a renderbuffer, this will return null. Otherwise it will be one of DEPTH or DEPTH_STENCIL. A
+     * depth/stencil texture can only be used as a render target for a surface if this returns null.
      *
      * @return The depth/stencil renderbuffer format of the surface
      */
     public Sampler.TexelFormat getDepthRenderBufferFormat();
 
     /**
-     * @return The last configured depth render target, or null if no target was
-     *         activated, or when a depth renderbuffer is used
+     * @return The last configured depth render target, or null if no target was activated, or when a depth
+     *         renderbuffer is used
      */
     public Sampler.RenderTarget getDepthBuffer();
 
     /**
-     * Get the last configured color render target for the particular draw buffer. The
-     * buffer parameter must be at least 0 and less than the number of supported draw
-     * buffers defined in the Framework's capabilities.
+     * Get the last configured color render target for the particular draw buffer. The buffer parameter must
+     * be at least 0 and less than the number of supported draw buffers defined in the Framework's
+     * capabilities.
      *
      * @param buffer The color buffer to lookup
      *
-     * @return The last configured color render target for the given buffer, or null if
-     *         that draw buffer is disabled for this surface
+     * @return The last configured color render target for the given buffer, or null if that draw buffer is
+     *         disabled for this surface
      *
-     * @throws IndexOutOfBoundsException if buffer refers to an unsupported or illegal
-     *                                   buffer
+     * @throws IndexOutOfBoundsException if buffer refers to an unsupported or illegal buffer
      * @see com.ferox.renderer.Capabilities#getMaxColorBuffers()
      */
     public Sampler.RenderTarget getColorBuffer(int buffer);

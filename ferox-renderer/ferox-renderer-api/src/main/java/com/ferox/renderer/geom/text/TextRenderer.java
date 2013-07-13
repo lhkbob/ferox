@@ -47,8 +47,8 @@ import java.util.concurrent.Future;
 public class TextRenderer {
     public static enum Anchor {
         /**
-         * Each String will be justified to the left edge of the screen, and subsequent
-         * strings will flow down the screen from the top left corner.
+         * Each String will be justified to the left edge of the screen, and subsequent strings will flow down
+         * the screen from the top left corner.
          */
         TOP_LEFT {
             @Override
@@ -57,16 +57,14 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY,
-                                      double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
                 return top(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the right edge of the screen. Within a given
-         * block of text, the layout will still be left justified if that block contains
-         * new lines. Subsequent string blocks will flow down the screen from the top
-         * right corner.
+         * Each String will be justified to the right edge of the screen. Within a given block of text, the
+         * layout will still be left justified if that block contains new lines. Subsequent string blocks will
+         * flow down the screen from the top right corner.
          */
         TOP_RIGHT {
             @Override
@@ -75,14 +73,13 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY,
-                                      double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
                 return top(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the left edge of the screen, and subsequent
-         * string blocks will flow up from the bottom left corner.
+         * Each String will be justified to the left edge of the screen, and subsequent string blocks will
+         * flow up from the bottom left corner.
          */
         BOTTOM_LEFT {
             @Override
@@ -91,16 +88,14 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY,
-                                      double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
                 return bottom(nextHeight, prevY, prevHeight);
             }
         },
         /**
-         * Each String will be justified to the right edge of the screen. Within a given
-         * block of text, the layout will still be left justified if that block contains
-         * new lines. Subsequent string blocks will flow up the screen from the bottom
-         * right corner.
+         * Each String will be justified to the right edge of the screen. Within a given block of text, the
+         * layout will still be left justified if that block contains new lines. Subsequent string blocks will
+         * flow up the screen from the bottom right corner.
          */
         BOTTOM_RIGHT {
             @Override
@@ -109,17 +104,14 @@ public class TextRenderer {
             }
 
             @Override
-            protected double getNextY(double nextHeight, double prevY,
-                                      double prevHeight) {
+            protected double getNextY(double nextHeight, double prevY, double prevHeight) {
                 return bottom(nextHeight, prevY, prevHeight);
             }
         };
 
-        protected abstract double getNextX(double nextWidth, double prevX,
-                                           double prevWidth);
+        protected abstract double getNextX(double nextWidth, double prevX, double prevWidth);
 
-        protected abstract double getNextY(double nextHeight, double prevY,
-                                           double prevHeight);
+        protected abstract double getNextY(double nextHeight, double prevY, double prevHeight);
 
         private static double right(double nextWidth, double prevX, double prevWidth) {
             double rightEdge = prevX + prevWidth / 2.0;
@@ -159,11 +151,9 @@ public class TextRenderer {
         this(charSet, textColor, Anchor.TOP_LEFT, text);
     }
 
-    public TextRenderer(CharacterSet charSet, ColorRGB textColor, Anchor anchor,
-                        String... text) {
+    public TextRenderer(CharacterSet charSet, ColorRGB textColor, Anchor anchor, String... text) {
         textBlocks = Arrays.asList(text);
-        this.textColor = new Vector4(textColor.red(), textColor.green(), textColor.blue(),
-                                     1.0);
+        this.textColor = new Vector4(textColor.red(), textColor.green(), textColor.blue(), 1.0);
         this.charSet = charSet;
         this.anchor = anchor;
     }
@@ -173,10 +163,8 @@ public class TextRenderer {
         double prevWidth = 0;
         double prevHeight = 0;
 
-        double prevX = (anchor == Anchor.BOTTOM_RIGHT || anchor == Anchor.TOP_RIGHT
-                        ? surface.getWidth() : 0);
-        double prevY = (anchor == Anchor.TOP_LEFT || anchor == Anchor.TOP_RIGHT ? surface
-                .getHeight() : 0);
+        double prevX = (anchor == Anchor.BOTTOM_RIGHT || anchor == Anchor.TOP_RIGHT ? surface.getWidth() : 0);
+        double prevY = (anchor == Anchor.TOP_LEFT || anchor == Anchor.TOP_RIGHT ? surface.getHeight() : 0);
 
         Text factory = new Text(charSet);
         factory.setWrapWidth(surface.getWidth());
@@ -199,8 +187,7 @@ public class TextRenderer {
         }
 
         // compute a projection matrix spanning the entire surface
-        Frustum ortho = new Frustum(true, 0, surface.getWidth(), 0, surface.getHeight(),
-                                    -1, 1);
+        Frustum ortho = new Frustum(true, 0, surface.getWidth(), 0, surface.getHeight(), -1, 1);
         final Matrix4 projection = ortho.getProjectionMatrix();
 
         return surface.getFramework().queue(new Task<Void>() {
@@ -230,8 +217,7 @@ public class TextRenderer {
                         ffp.setVertices(g.getVertices());
 
                         ffp.setIndices(g.getIndices());
-                        ffp.render(g.getPolygonType(), g.getIndexOffset(),
-                                   g.getIndexCount());
+                        ffp.render(g.getPolygonType(), g.getIndexOffset(), g.getIndexCount());
                     }
                 }
                 // FIXME support a glsl shader that can do the same rendering

@@ -36,13 +36,12 @@ import com.ferox.resource.BufferData;
 
 /**
  * <p/>
- * Sphere contains factory methods for creating approximations of a mathematical sphere
- * with a configurable radius. The accuracy of the approximation depends on a parameter
- * termed <var>resolution</var>.
+ * Sphere contains factory methods for creating approximations of a mathematical sphere with a configurable
+ * radius. The accuracy of the approximation depends on a parameter termed <var>resolution</var>.
  * <p/>
- * The approximated sphere is constructed by rotating a number of circles in the XY-plane
- * about the Y-axis. The number of rotations equals the resolution of the sphere. Each
- * circle is also approximated by a number of points equal to the resolution.
+ * The approximated sphere is constructed by rotating a number of circles in the XY-plane about the Y-axis.
+ * The number of rotations equals the resolution of the sphere. Each circle is also approximated by a number
+ * of points equal to the resolution.
  *
  * @author Michael Ludwig
  */
@@ -54,8 +53,7 @@ public final class Sphere {
     }
 
     /**
-     * Create a new Sphere with the given radius, a resolution of 8, and a StorageMode of
-     * IN_MEMORY.
+     * Create a new Sphere with the given radius, a resolution of 8, and a StorageMode of IN_MEMORY.
      *
      * @param radius The radius of the sphere, in local space
      *
@@ -68,12 +66,10 @@ public final class Sphere {
     }
 
     /**
-     * Create a new Sphere with the given radius and resolution. It uses a StorageMode of
-     * IN_MEMORY.
+     * Create a new Sphere with the given radius and resolution. It uses a StorageMode of IN_MEMORY.
      *
      * @param radius The radius of the sphere, in local space
-     * @param res    The resolution of the sphere, the higher the value the smoother the
-     *               tesselation
+     * @param res    The resolution of the sphere, the higher the value the smoother the tesselation
      *
      * @return The new geometry
      *
@@ -84,8 +80,7 @@ public final class Sphere {
     }
 
     /**
-     * Create a new Sphere with the given radius and StorageMode. It uses a resolution of
-     * 8.
+     * Create a new Sphere with the given radius and StorageMode. It uses a resolution of 8.
      *
      * @param radius The radius of the sphere, in local space
      * @param mode   The StorageMode to use
@@ -129,12 +124,10 @@ public final class Sphere {
 
         public SphereImpl(double radius, int res, StorageMode mode) {
             if (radius <= 0) {
-                throw new IllegalArgumentException(
-                        "Invalid radius, must be > 0, not: " + radius);
+                throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
             }
             if (res < 4) {
-                throw new IllegalArgumentException(
-                        "Invalid resolution, must be > 3, not: " + res);
+                throw new IllegalArgumentException("Invalid resolution, must be > 3, not: " + res);
             }
             if (mode == null) {
                 throw new NullPointerException("StorageMode cannot be null");

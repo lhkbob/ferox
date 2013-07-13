@@ -28,29 +28,26 @@ package com.ferox.renderer;
 
 /**
  * <p/>
- * Represents a two dimensional surface that stores a collection of logical color buffers
- * that can be rendered into using a {@link Renderer}. These surfaces could be offscreen
- * surfaces, in that they have no visible monitor region associated with their rendered
- * pixels, or they could be an onscreen window or exclusively fullscreen.
+ * Represents a two dimensional surface that stores a collection of logical color buffers that can be rendered
+ * into using a {@link Renderer}. These surfaces could be offscreen surfaces, in that they have no visible
+ * monitor region associated with their rendered pixels, or they could be an onscreen window or exclusively
+ * fullscreen.
  * <p/>
- * The exact representation is dependent on the renderer's implementations, however some
- * possibilities include surfaces that use framebuffer objects to render directly into a
- * set of textures.
+ * The exact representation is dependent on the renderer's implementations, however some possibilities include
+ * surfaces that use framebuffer objects to render directly into a set of textures.
  *
  * @author Michael Ludwig
  */
 public interface Surface extends Destructible {
     /**
-     * Return the width of the actual drawable area of the surface (doesn't include any
-     * border or frame).
+     * Return the width of the actual drawable area of the surface (doesn't include any border or frame).
      *
      * @return The width of the drawable area
      */
     public int getWidth();
 
     /**
-     * Return the height of the actual drawable area of the surface (doesn't include any
-     * border or frame).
+     * Return the height of the actual drawable area of the surface (doesn't include any border or frame).
      *
      * @return The height of the drawable area
      */
@@ -64,18 +61,18 @@ public interface Surface extends Destructible {
     public Framework getFramework();
 
     /**
-     * Get the number of bits allocated per-pixel to the depth buffer for the surface. If
-     * 0 is returned, the surface does not have a depth buffer and any rendering
-     * operations depending on the depth test will be ignored.
+     * Get the number of bits allocated per-pixel to the depth buffer for the surface. If 0 is returned, the
+     * surface does not have a depth buffer and any rendering operations depending on the depth test will be
+     * ignored.
      *
      * @return The depth buffer size
      */
     public int getDepthBufferBits();
 
     /**
-     * Get the number of bits allocated per-pixel to the stencil buffer for the surface.
-     * If 0 is returned, the surface does not have a stencil buffer and any rendering
-     * operations depending on the stencil test will be ignored.
+     * Get the number of bits allocated per-pixel to the stencil buffer for the surface. If 0 is returned, the
+     * surface does not have a stencil buffer and any rendering operations depending on the stencil test will
+     * be ignored.
      *
      * @return The stencil buffer size
      */

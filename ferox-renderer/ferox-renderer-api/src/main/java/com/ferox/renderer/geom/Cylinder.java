@@ -37,10 +37,9 @@ import com.ferox.resource.BufferData;
 
 /**
  * <p/>
- * Cylinder contains factory methods for creating approximations of an ideal cylinder with
- * a configurable radius and height. The accuracy of the approximation depends on a
- * parameter termed <var>resolution</var>, which represents the number of samples along
- * the circular caps.
+ * Cylinder contains factory methods for creating approximations of an ideal cylinder with a configurable
+ * radius and height. The accuracy of the approximation depends on a parameter termed <var>resolution</var>,
+ * which represents the number of samples along the circular caps.
  *
  * @author Michael Ludwig
  */
@@ -52,8 +51,8 @@ public class Cylinder {
     }
 
     /**
-     * Create a new Cylinder with the given radius and height, a resolution of 8, and a
-     * StorageMode of IN_MEMORY. Its axis will be the positive y-axis.
+     * Create a new Cylinder with the given radius and height, a resolution of 8, and a StorageMode of
+     * IN_MEMORY. Its axis will be the positive y-axis.
      *
      * @param radius The radius of the cylinder, in local space
      * @param height The height of the cylinder
@@ -67,13 +66,12 @@ public class Cylinder {
     }
 
     /**
-     * Create a new Cylinder with the given radius, height, and resolution. It uses a
-     * StorageMode of IN_MEMORY. Its axis will be the positive y-axis.
+     * Create a new Cylinder with the given radius, height, and resolution. It uses a StorageMode of
+     * IN_MEMORY. Its axis will be the positive y-axis.
      *
      * @param radius The radius of the cylinder, in local space
      * @param height The height of the cylinder
-     * @param res    The resolution of the cylinder, the higher the value the smoother the
-     *               tesselation
+     * @param res    The resolution of the cylinder, the higher the value the smoother the tesselation
      *
      * @return The new geometry
      *
@@ -84,8 +82,8 @@ public class Cylinder {
     }
 
     /**
-     * Create a new Cylinder with the given radius, height and StorageMode. It uses a
-     * resolution of 8. Its axis will be the positive y-axis.
+     * Create a new Cylinder with the given radius, height and StorageMode. It uses a resolution of 8. Its
+     * axis will be the positive y-axis.
      *
      * @param radius The radius of the cylinder, in local space
      * @param height The height of the cylinder
@@ -101,8 +99,8 @@ public class Cylinder {
     }
 
     /**
-     * Create a new cylinder with the given radius, height, resolution and StorageMode.
-     * Its axis will be the positive y-axis.
+     * Create a new cylinder with the given radius, height, resolution and StorageMode. Its axis will be the
+     * positive y-axis.
      *
      * @param radius The radius of the cylinder, in local space
      * @param height The height of the cylinder
@@ -114,15 +112,12 @@ public class Cylinder {
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      * @throws NullPointerException     if mode is null
      */
-    public static Geometry create(double radius, double height, int res,
-                                  StorageMode mode) {
-        return create(new Vector3(0, 1, 0), new Vector3(0, 0, 0), radius, height, res,
-                      mode);
+    public static Geometry create(double radius, double height, int res, StorageMode mode) {
+        return create(new Vector3(0, 1, 0), new Vector3(0, 0, 0), radius, height, res, mode);
     }
 
     /**
-     * Create a new cylinder with the given vertical axis, radius, height, resolution and
-     * StorageMode.
+     * Create a new cylinder with the given vertical axis, radius, height, resolution and StorageMode.
      *
      * @param axis   The vertical axis of the cylinder
      * @param origin The point this cylinder is centered about
@@ -136,9 +131,8 @@ public class Cylinder {
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      * @throws NullPointerException     if mode is null
      */
-    public static Geometry create(@Const Vector3 axis, @Const Vector3 origin,
-                                  double radius, double height, int res,
-                                  StorageMode mode) {
+    public static Geometry create(@Const Vector3 axis, @Const Vector3 origin, double radius, double height,
+                                  int res, StorageMode mode) {
         return new CylinderImpl(axis, origin, radius, height, res, mode);
     }
 
@@ -154,19 +148,16 @@ public class Cylinder {
 
         private final AxisAlignedBox bounds;
 
-        public CylinderImpl(@Const Vector3 axis, @Const Vector3 origin, double radius,
-                            double height, int res, StorageMode mode) {
+        public CylinderImpl(@Const Vector3 axis, @Const Vector3 origin, double radius, double height, int res,
+                            StorageMode mode) {
             if (radius <= 0) {
-                throw new IllegalArgumentException(
-                        "Invalid radius, must be > 0, not: " + radius);
+                throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
             }
             if (height <= 0) {
-                throw new IllegalArgumentException(
-                        "Invalid height, must be > 0, not: " + height);
+                throw new IllegalArgumentException("Invalid height, must be > 0, not: " + height);
             }
             if (res < 4) {
-                throw new IllegalArgumentException(
-                        "Invalid resolution, must be > 3, not: " + res);
+                throw new IllegalArgumentException("Invalid resolution, must be > 3, not: " + res);
             }
             if (mode == null) {
                 throw new NullPointerException("StorageMode cannot be null");

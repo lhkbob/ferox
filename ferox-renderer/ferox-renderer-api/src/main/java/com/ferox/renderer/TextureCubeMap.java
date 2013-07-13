@@ -1,11 +1,10 @@
 package com.ferox.renderer;
 
 /**
- * TextureCubeMap is a color texture that has six separate two dimensional images. Each
- * face can be used as a render target for render-to-texture with a {@link
- * TextureSurface}. All six images have the same width and height so they represent the
- * six faces of a cube. Shaders can refer to a TextureCubeMap in the GLSL code with the
- * 'samplerCube' uniform type.
+ * TextureCubeMap is a color texture that has six separate two dimensional images. Each face can be used as a
+ * render target for render-to-texture with a {@link TextureSurface}. All six images have the same width and
+ * height so they represent the six faces of a cube. Shaders can refer to a TextureCubeMap in the GLSL code
+ * with the 'samplerCube' uniform type.
  *
  * @author Michael Ludwig
  */

@@ -45,8 +45,8 @@ public final class Box {
     }
 
     /**
-     * Construct a box centered on its origin, with the given side length. So, Box(1f)
-     * creates a unit cube. Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
+     * Construct a box centered on its origin, with the given side length. So, Box(1f) creates a unit cube.
+     * Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
      *
      * @param side The side length of the created cube
      *
@@ -59,9 +59,8 @@ public final class Box {
     }
 
     /**
-     * Construct a new Box with the given minimum and maximum points. These points are
-     * opposite corners of the box. Uses StorageMode.IN_MEMORY for its
-     * VertexBufferObjects.
+     * Construct a new Box with the given minimum and maximum points. These points are opposite corners of the
+     * box. Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
      *
      * @param min Minimum corner of the box
      * @param max Maximum corner of the box
@@ -69,16 +68,15 @@ public final class Box {
      * @return The new geometry
      *
      * @throws NullPointerException     if min or max are null
-     * @throws IllegalArgumentException if min has any coordinate less than the
-     *                                  corresponding coordinate of max
+     * @throws IllegalArgumentException if min has any coordinate less than the corresponding coordinate of
+     *                                  max
      */
     public static Geometry create(@Const Vector3 min, @Const Vector3 max) {
         return create(min, max, StorageMode.IN_MEMORY);
     }
 
     /**
-     * Construct a box centered on its origin, with the given side length. So, Box(1.0)
-     * creates a unit cube.
+     * Construct a box centered on its origin, with the given side length. So, Box(1.0) creates a unit cube.
      *
      * @param side The side length of the created cube
      * @param mode The storage mode to use for the Box
@@ -89,13 +87,12 @@ public final class Box {
      * @throws IllegalArgumentException if side is negative
      */
     public static Geometry create(double side, StorageMode mode) {
-        return create(new Vector3(-side / 2, -side / 2, -side / 2),
-                      new Vector3(side / 2, side / 2, side / 2), mode);
+        return create(new Vector3(-side / 2, -side / 2, -side / 2), new Vector3(side / 2, side / 2, side / 2),
+                      mode);
     }
 
     /**
-     * Construct a box centered on its origin, with the given side lengths along each
-     * local axis.
+     * Construct a box centered on its origin, with the given side lengths along each local axis.
      *
      * @param xExtent The side length along the x axis
      * @param yExtent The side length along the y axis
@@ -107,15 +104,14 @@ public final class Box {
      * @throws NullPointerException         if mode is null
      * @throws IllegalMonitorStateException if any dimension is negative
      */
-    public static Geometry create(double xExtent, double yExtent, double zExtent,
-                                  StorageMode mode) {
+    public static Geometry create(double xExtent, double yExtent, double zExtent, StorageMode mode) {
         return create(new Vector3(-xExtent / 2, -yExtent / 2, -zExtent / 2),
                       new Vector3(xExtent / 2, yExtent / 2, zExtent / 2), mode);
     }
 
     /**
-     * Construct a new Box with the given minimum and maximum points. These points are
-     * opposite corners of the box.
+     * Construct a new Box with the given minimum and maximum points. These points are opposite corners of the
+     * box.
      *
      * @param min  Minimum corner of the box
      * @param max  Maximum corner of the box
@@ -124,11 +120,10 @@ public final class Box {
      * @return The new geometry
      *
      * @throws NullPointerException     if min, max or mode are null
-     * @throws IllegalArgumentException if min has any coordinate less than the
-     *                                  corresponding coordinate of max
+     * @throws IllegalArgumentException if min has any coordinate less than the corresponding coordinate of
+     *                                  max
      */
-    public static Geometry create(@Const Vector3 min, @Const Vector3 max,
-                                  StorageMode mode) {
+    public static Geometry create(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
         return new BoxImpl(min, max, mode);
     }
 
@@ -401,8 +396,7 @@ public final class Box {
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
 
-            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ),
-                                        new Vector3(maxX, maxY, maxZ));
+            bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
         }
 
         @Override

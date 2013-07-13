@@ -32,42 +32,39 @@ import java.util.concurrent.Future;
 
 /**
  * <p/>
- * The Framework is the main entry point to the rendering API. It controls the creation of
- * {@link Surface surfaces}, which store the final render outputs, and provides {@link
- * HardwareAccessLayer} and {@link Context} implementations that allow actual use of
- * Renderers and Resources. A Framework acts as an advanced task execution service that
- * queues up {@link Task tasks} to run on an internal thread that can communicate with
- * low-level graphics drivers.
+ * The Framework is the main entry point to the rendering API. It controls the creation of {@link Surface
+ * surfaces}, which store the final render outputs, and provides {@link HardwareAccessLayer} and {@link
+ * Context} implementations that allow actual use of Renderers and Resources. A Framework acts as an advanced
+ * task execution service that queues up {@link Task tasks} to run on an internal thread that can communicate
+ * with low-level graphics drivers.
  * <p/>
- * Framework implementations are thread safe so that a single Framework instance can be
- * used from multiple threads. Generally, a single Framework should active at a time.
- * Renderers, Contexts and HardwareAccessLayers are not thread safe and it is only valid
- * to use them within the scope of the task execution on the framework thread.
+ * Framework implementations are thread safe so that a single Framework instance can be used from multiple
+ * threads. Generally, a single Framework should active at a time. Renderers, Contexts and
+ * HardwareAccessLayers are not thread safe and it is only valid to use them within the scope of the task
+ * execution on the framework thread.
  * <p/>
- * Resources are constructed from the Framework using the builder pattern. Framework
- * exposes builder creation methods for the currently supported resource types. The
- * builders perform little to no validation until the actual {@code build()} method is
- * invoked. At this point, synchronization is done with the framework thread to construct
- * the resource on the GPU. Invoking builders on the actual framework thread can avoid
- * this blocking because they will run immediately.
+ * Resources are constructed from the Framework using the builder pattern. Framework exposes builder creation
+ * methods for the currently supported resource types. The builders perform little to no validation until the
+ * actual {@code build()} method is invoked. At this point, synchronization is done with the framework thread
+ * to construct the resource on the GPU. Invoking builders on the actual framework thread can avoid this
+ * blocking because they will run immediately.
  * <p/>
- * If a particular resource or resource configuration is unsupported or fails to be
- * created (such as a compilation error in the shader, or out of memory when allocating a
- * buffer) a ResourceException is thrown at build time. Changing the state of the builder
- * from multiple threads is not safe, but it is safe to mutate a builder's configuration
- * after invoking build() to configure a second resource.
+ * If a particular resource or resource configuration is unsupported or fails to be created (such as a
+ * compilation error in the shader, or out of memory when allocating a buffer) a ResourceException is thrown
+ * at build time. Changing the state of the builder from multiple threads is not safe, but it is safe to
+ * mutate a builder's configuration after invoking build() to configure a second resource.
  * <p/>
- * Resources created by one Framework cannot be used with any other Framework instance and
- * will be automatically destroyed when the framework is destroyed. All non-destroyed
- * surfaces will be destroyed when the framework is destroyed.
+ * Resources created by one Framework cannot be used with any other Framework instance and will be
+ * automatically destroyed when the framework is destroyed. All non-destroyed surfaces will be destroyed when
+ * the framework is destroyed.
  *
  * @author Michael Ludwig
  */
 public interface Framework extends Destructible {
     /**
-     * Return the DisplayMode representing the default display mode selected when the
-     * surface is no longer fullscreen. This will be the original display mode selected by
-     * the user before they started the application.
+     * Return the DisplayMode representing the default display mode selected when the surface is no longer
+     * fullscreen. This will be the original display mode selected by the user before they started the
+     * application.
      *
      * @return The default DisplayMode.
      */
@@ -75,13 +72,12 @@ public interface Framework extends Destructible {
 
     /**
      * <p/>
-     * Return the current exclusive fullscreen surface. There can only be one fullscreen
-     * surface at a time. While this returns a non-null value, attempts to create new
-     * OnscreenSurfaces will fail. Null is returned if there is no fullscreen surface or
-     * after the exclusive surface gets destroyed.
+     * Return the current exclusive fullscreen surface. There can only be one fullscreen surface at a time.
+     * While this returns a non-null value, attempts to create new OnscreenSurfaces will fail. Null is
+     * returned if there is no fullscreen surface or after the exclusive surface gets destroyed.
      * <p/>
-     * If a non-null surface is returned, its {@link OnscreenSurface#isFullscreen()
-     * isFullscreen()} method will return true.
+     * If a non-null surface is returned, its {@link OnscreenSurface#isFullscreen() isFullscreen()} method
+     * will return true.
      *
      * @return The current fullscreen surface, or null
      */
@@ -89,39 +85,36 @@ public interface Framework extends Destructible {
 
     /**
      * <p/>
-     * Create a OnscreenSurface with the given options. If the Framework cannot create a
-     * surface satisfying the options an exception is thrown. To prevent this from
-     * occurring, use display modes, depth buffer sizes, stencil buffer sizes, and sample
-     * counts that were reported by {@link #getCapabilities()}. When the window surface is
-     * returned, it will be visible and on screen.
+     * Create a OnscreenSurface with the given options. If the Framework cannot create a surface satisfying
+     * the options an exception is thrown. To prevent this from occurring, use display modes, depth buffer
+     * sizes, stencil buffer sizes, and sample counts that were reported by {@link #getCapabilities()}. When
+     * the window surface is returned, it will be visible and on screen.
      * <p/>
      * If there is already a fullscreen surface  an exception is thrown.
      * <p/>
-     * Some Frameworks may not support multiple OnscreenSurfaces depending on their
-     * windowing libraries.
+     * Some Frameworks may not support multiple OnscreenSurfaces depending on their windowing libraries.
      *
      * @param options Requested pixel format and initial configuration of the surface
      *
      * @return The created surface, or null if the Framework has been destroyed
      *
      * @throws NullPointerException     if options is null
-     * @throws SurfaceCreationException if the Framework cannot create the
-     *                                  OnscreenSurface
+     * @throws SurfaceCreationException if the Framework cannot create the OnscreenSurface
      */
     public OnscreenSurface createSurface(OnscreenSurfaceOptions options);
 
     /**
      * <p/>
-     * Create a TextureSurface that can be used to render into textures. All created
-     * texture surfaces can have up to the maximum number of color targets at a time, and
-     * their configured render targets are fluid. They can be changed by invoking {@link
-     * HardwareAccessLayer#setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
-     * com.ferox.renderer.Sampler.RenderTarget)} and related methods.
+     * Create a TextureSurface that can be used to render into textures. All created texture surfaces can have
+     * up to the maximum number of color targets at a time, and their configured render targets are fluid.
+     * They can be changed by invoking {@link HardwareAccessLayer#setActiveSurface(TextureSurface,
+     * com.ferox.renderer.Sampler.RenderTarget[], com.ferox.renderer.Sampler.RenderTarget)} and related
+     * methods.
      * <p/>
-     * If render targets are provided in the options, they will represent the initial
-     * target configuration of the surface. Regardless of when the targets are specified,
-     * targets must have the same 2D dimensions as the created texture surface and all
-     * color targets must have the same data and base format and mipmap configuration.
+     * If render targets are provided in the options, they will represent the initial target configuration of
+     * the surface. Regardless of when the targets are specified, targets must have the same 2D dimensions as
+     * the created texture surface and all color targets must have the same data and base format and mipmap
+     * configuration.
      *
      * @param options The requested options for configuring the created surface
      *
@@ -134,15 +127,13 @@ public interface Framework extends Destructible {
 
     /**
      * <p/>
-     * Run the given Task on the internal threads managed by the Framework. The Framework
-     * must support receiving tasks from multiple threads safely. Ordering of tasks from
-     * across multiple threads will be queued arbitrarily based on thread scheduling.
-     * Tasks invoked directly on the internal thread will be run immediately and the
-     * returned future will have already completed.
+     * Run the given Task on the internal threads managed by the Framework. The Framework must support
+     * receiving tasks from multiple threads safely. Ordering of tasks from across multiple threads will be
+     * queued arbitrarily based on thread scheduling. Tasks invoked directly on the internal thread will be
+     * run immediately and the returned future will have already completed.
      * <p/>
-     * If the Framework is destroyed before a Task has started, the returned Future will
-     * be canceled. Calls to this method are ignored if the Framework is already
-     * destroyed.
+     * If the Framework is destroyed before a Task has started, the returned Future will be canceled. Calls to
+     * this method are ignored if the Framework is already destroyed.
      *
      * @param <T>  The return type of the Task
      * @param task The task to run with a valid context
@@ -155,18 +146,15 @@ public interface Framework extends Destructible {
 
     /**
      * <p/>
-     * Convenience method to queue a Task that will flush the provided surface. If the
-     * flush is not being performed by queued tasks, this is needed to ensure that any
-     * rendering is made visible to the surface. If the surface is a TextureSurface, it is
-     * flushed to its last used render target configuration. If finer control is needed, a
-     * custom task will need to be queued instead.
+     * Convenience method to queue a Task that will flush the provided surface. If the flush is not being
+     * performed by queued tasks, this is needed to ensure that any rendering is made visible to the surface.
+     * If the surface is a TextureSurface, it is flushed to its last used render target configuration. If
+     * finer control is needed, a custom task will need to be queued instead.
      * <p/>
-     * An exception is thrown if the surface is not owned by the Framework. If the
-     * provided surface has been destroyed, this method will do nothing. It is not best
-     * practice to queue or use surfaces that have been destroyed, but this behavior is
-     * safe in order to play nicely with onscreen surfaces that can be closed by the user
-     * at any time. If the Framework is destroyed, this will do nothing and return
-     * immediately.
+     * An exception is thrown if the surface is not owned by the Framework. If the provided surface has been
+     * destroyed, this method will do nothing. It is not best practice to queue or use surfaces that have been
+     * destroyed, but this behavior is safe in order to play nicely with onscreen surfaces that can be closed
+     * by the user at any time. If the Framework is destroyed, this will do nothing and return immediately.
      *
      * @param surface The surface to flush
      *
@@ -177,12 +165,11 @@ public interface Framework extends Destructible {
 
     /**
      * <p/>
-     * Block the calling thread until all tasks queued prior to this method call have
-     * completed. Tasks queued from other threads after this is invoked will not be
-     * processed until this method returns.
+     * Block the calling thread until all tasks queued prior to this method call have completed. Tasks queued
+     * from other threads after this is invoked will not be processed until this method returns.
      * <p/>
-     * If the Framework is destroyed, this will return immediately. This will also return
-     * as soon as a Framework is destroyed if this was actively blocking.
+     * If the Framework is destroyed, this will return immediately. This will also return as soon as a
+     * Framework is destroyed if this was actively blocking.
      */
     public void sync();
 
@@ -242,8 +229,8 @@ public interface Framework extends Destructible {
     public DepthCubeMapBuilder newDepthCubeMap();
 
     /**
-     * Get the capabilities of this Framework. This is allowed to return null after the
-     * Framework is destroyed although Frameworks might not behave this way.
+     * Get the capabilities of this Framework. This is allowed to return null after the Framework is destroyed
+     * although Frameworks might not behave this way.
      *
      * @return The Capabilities for this Framework
      */

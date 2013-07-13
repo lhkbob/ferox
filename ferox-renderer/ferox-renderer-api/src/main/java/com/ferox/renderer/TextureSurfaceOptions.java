@@ -29,10 +29,9 @@ package com.ferox.renderer;
 import java.util.Arrays;
 
 /**
- * TextureSurfaceOptions represents the set of configurable parameters used to create an
- * TextureSurface. Each TextureSurfaceOptions instance is immutable, the setters available
- * return new instances that match the calling instance except for the new parameter
- * value.
+ * TextureSurfaceOptions represents the set of configurable parameters used to create an TextureSurface. Each
+ * TextureSurfaceOptions instance is immutable, the setters available return new instances that match the
+ * calling instance except for the new parameter value.
  *
  * @author Michael Ludwig
  */
@@ -46,15 +45,14 @@ public final class TextureSurfaceOptions {
     private final Sampler.RenderTarget depthStencilTarget;
 
     /**
-     * Create a default options that is configured for a 1x1 texture, no depth/stencil
-     * renderbuffer and no render targets attached by default.
+     * Create a default options that is configured for a 1x1 texture, no depth/stencil renderbuffer and no
+     * render targets attached by default.
      */
     public TextureSurfaceOptions() {
         this(1, 1, null, new Sampler.RenderTarget[0], null);
     }
 
-    private TextureSurfaceOptions(int width, int height,
-                                  Sampler.TexelFormat depthRenderBuffer,
+    private TextureSurfaceOptions(int width, int height, Sampler.TexelFormat depthRenderBuffer,
                                   Sampler.RenderTarget[] colorTargets,
                                   Sampler.RenderTarget depthStencilTarget) {
         this.width = width;
@@ -66,10 +64,10 @@ public final class TextureSurfaceOptions {
     }
 
     /**
-     * Set the initial color render target attachments for the texture surface. The
-     * targets must satisfy the same constraints as if they were to be passed into {@link
-     * HardwareAccessLayer#setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
-     * com.ferox.renderer.Sampler.RenderTarget)} as the color buffers array.
+     * Set the initial color render target attachments for the texture surface. The targets must satisfy the
+     * same constraints as if they were to be passed into {@link HardwareAccessLayer#setActiveSurface(TextureSurface,
+     * com.ferox.renderer.Sampler.RenderTarget[], com.ferox.renderer.Sampler.RenderTarget)} as the color
+     * buffers array.
      *
      * @param targets The initial color buffers
      *
@@ -77,16 +75,13 @@ public final class TextureSurfaceOptions {
      */
     public TextureSurfaceOptions colorBuffers(Sampler.RenderTarget... targets) {
         Sampler.RenderTarget[] copy = (targets == null ? new Sampler.RenderTarget[0]
-                                                       : Arrays
-                                               .copyOf(targets, targets.length));
-        return new TextureSurfaceOptions(width, height, depthRenderBuffer, copy,
-                                         depthStencilTarget);
+                                                       : Arrays.copyOf(targets, targets.length));
+        return new TextureSurfaceOptions(width, height, depthRenderBuffer, copy, depthStencilTarget);
     }
 
     /**
-     * Set the initial depth and/or stencil render target attacment for the surface. This
-     * will disable any renderbuffer configuration that may have been previously
-     * specified.
+     * Set the initial depth and/or stencil render target attacment for the surface. This will disable any
+     * renderbuffer configuration that may have been previously specified.
      *
      * @param target The initial depth target
      *
@@ -97,8 +92,8 @@ public final class TextureSurfaceOptions {
     }
 
     /**
-     * Set the size of the texture surface. Any render target that is to be attached must
-     * have these same dimensions.
+     * Set the size of the texture surface. Any render target that is to be attached must have these same
+     * dimensions.
      *
      * @param width  The width of the surface
      * @param height The height of the surface
@@ -106,41 +101,38 @@ public final class TextureSurfaceOptions {
      * @return A new options instance with configured size
      */
     public TextureSurfaceOptions size(int width, int height) {
-        return new TextureSurfaceOptions(width, height, depthRenderBuffer, colorTargets,
-                                         depthStencilTarget);
+        return new TextureSurfaceOptions(width, height, depthRenderBuffer, colorTargets, depthStencilTarget);
     }
 
     /**
-     * Declare that the texture surface should use a renderbuffer that stores only depth
-     * information. It will not support a stencil buffer. Any depth buffer render target
-     * attachment is cleared.
+     * Declare that the texture surface should use a renderbuffer that stores only depth information. It will
+     * not support a stencil buffer. Any depth buffer render target attachment is cleared.
      *
      * @return The new options instance configured to use a depth renderbuffer
      */
     public TextureSurfaceOptions useDepthRenderBuffer() {
-        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH,
-                                         colorTargets, null);
+        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH, colorTargets, null);
     }
 
     /**
-     * Declare that the texture surface should use a renderbuffer that stores both depth
-     * and stencil information. Any depth buffer render target attachment is cleared.
+     * Declare that the texture surface should use a renderbuffer that stores both depth and stencil
+     * information. Any depth buffer render target attachment is cleared.
      *
      * @return The new options instance configured to use a depth+stencil renderbuffer
      */
     public TextureSurfaceOptions useDepthAndStencilRenderBuffer() {
-        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH_STENCIL,
-                                         colorTargets, null);
+        return new TextureSurfaceOptions(width, height, Sampler.TexelFormat.DEPTH_STENCIL, colorTargets,
+                                         null);
     }
 
     /**
-     * Get the render target configured for the given buffer. If the buffer index is
-     * larger than the maximum configured target, then null is returned.
+     * Get the render target configured for the given buffer. If the buffer index is larger than the maximum
+     * configured target, then null is returned.
      *
      * @param colorBuffer The color buffer to lookup
      *
-     * @return The render target attached by default to the color buffer, or null if none
-     *         was specified for the buffer
+     * @return The render target attached by default to the color buffer, or null if none was specified for
+     *         the buffer
      *
      * @throws IndexOutOfBoundsException if colorBuffer is less than 0
      */
@@ -149,8 +141,8 @@ public final class TextureSurfaceOptions {
     }
 
     /**
-     * Get the default depth/stencil render target for use with the surface. If no target
-     * was specified, null is returned.
+     * Get the default depth/stencil render target for use with the surface. If no target was specified, null
+     * is returned.
      *
      * @return The depth render target
      */
@@ -159,9 +151,9 @@ public final class TextureSurfaceOptions {
     }
 
     /**
-     * Get the base format of any renderbuffer that must be created for the texture
-     * surface. If null is returned the texture surface should not be created with a
-     * renderbuffer so that a depth texture can be used instead.
+     * Get the base format of any renderbuffer that must be created for the texture surface. If null is
+     * returned the texture surface should not be created with a renderbuffer so that a depth texture can be
+     * used instead.
      *
      * @return The base format, one of DEPTH, DEPTH_STENCIL or null
      */

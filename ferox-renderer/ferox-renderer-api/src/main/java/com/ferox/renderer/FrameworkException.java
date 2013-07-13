@@ -27,8 +27,8 @@
 package com.ferox.renderer;
 
 /**
- * A RuntimeException that is used by the renderer package for exceptions that are better
- * described by custom exceptions, instead of the basic java.lang ones.
+ * A RuntimeException that is used by the renderer package for exceptions that are better described by custom
+ * exceptions, instead of the basic java.lang ones.
  *
  * @author Michael Ludwig
  */

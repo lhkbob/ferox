@@ -36,9 +36,9 @@ import com.ferox.resource.BufferData;
 
 /**
  * <p/>
- * Rectangle contains factory methods to create a single quad aligned with a specified x
- * and y axis, in three dimensions. It is very useful for fullscreen effects that require
- * rendering a rectangle across the entire screen.
+ * Rectangle contains factory methods to create a single quad aligned with a specified x and y axis, in three
+ * dimensions. It is very useful for fullscreen effects that require rendering a rectangle across the entire
+ * screen.
  *
  * @author Michael Ludwig
  */
@@ -47,8 +47,8 @@ public final class Rectangle {
     }
 
     /**
-     * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis vector of (0,
-     * 1, 0), and the given edge dimensions. The storage mode is IN_MEMORY.
+     * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis vector of (0, 1, 0), and the given
+     * edge dimensions. The storage mode is IN_MEMORY.
      *
      * @param left   The left edge of the rectangle
      * @param right  The right edge of the rectangle
@@ -60,13 +60,11 @@ public final class Rectangle {
      * @throws IllegalArgumentException if left > right or bottom > top
      */
     public static Geometry create(double left, double right, double bottom, double top) {
-        return create(left, right, bottom, top, new Vector3(1f, 0f, 0f),
-                      new Vector3(0f, 1f, 0f));
+        return create(left, right, bottom, top, new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
     }
 
     /**
-     * Create a Rectangle with the given basis vectors and edge dimensions and a storage
-     * mode of IN_MEMORY.
+     * Create a Rectangle with the given basis vectors and edge dimensions and a storage mode of IN_MEMORY.
      *
      * @param left   The left edge of the rectangle
      * @param right  The right edge of the rectangle
@@ -80,8 +78,8 @@ public final class Rectangle {
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException     if xAxis or yAxis are null
      */
-    public static Geometry create(double left, double right, double bottom, double top,
-                                  @Const Vector3 xAxis, @Const Vector3 yAxis) {
+    public static Geometry create(double left, double right, double bottom, double top, @Const Vector3 xAxis,
+                                  @Const Vector3 yAxis) {
         return create(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
     }
 
@@ -101,9 +99,8 @@ public final class Rectangle {
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException     if xAxis, yAxis, or mode are null
      */
-    public static Geometry create(double left, double right, double bottom, double top,
-                                  @Const Vector3 xAxis, @Const Vector3 yAxis,
-                                  StorageMode mode) {
+    public static Geometry create(double left, double right, double bottom, double top, @Const Vector3 xAxis,
+                                  @Const Vector3 yAxis, StorageMode mode) {
         return new RectangleImpl(left, right, bottom, top, xAxis, yAxis, mode);
     }
 
@@ -118,12 +115,10 @@ public final class Rectangle {
 
         private final AxisAlignedBox bounds;
 
-        public RectangleImpl(double left, double right, double bottom, double top,
-                             @Const Vector3 xAxis, @Const Vector3 yAxis,
-                             StorageMode mode) {
+        public RectangleImpl(double left, double right, double bottom, double top, @Const Vector3 xAxis,
+                             @Const Vector3 yAxis, StorageMode mode) {
             if (left > right || bottom > top) {
-                throw new IllegalArgumentException(
-                        "Side positions of the square are incorrect");
+                throw new IllegalArgumentException("Side positions of the square are incorrect");
             }
             if (xAxis == null || yAxis == null) {
                 throw new NullPointerException("Axis cannot be null");

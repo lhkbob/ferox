@@ -29,18 +29,16 @@ package com.ferox.renderer;
 import java.util.concurrent.Future;
 
 /**
- * Resource is the root interface for all objects wrapping OpenGL objects on the GPU.
- * These include vertex buffer objects, the various supported textures, and GLSL shaders.
- * Resources are not created directly, but are instead built using the builders exposed by
- * a Framework.
+ * Resource is the root interface for all objects wrapping OpenGL objects on the GPU. These include vertex
+ * buffer objects, the various supported textures, and GLSL shaders. Resources are not created directly, but
+ * are instead built using the builders exposed by a Framework.
  * <p/>
- * Once created a Resource is almost always immutable.  This is done to make the
- * multi-threading between an application thread and the framework thread easier.  Once
- * built there is no required synchronization, and critical state such as data type or
- * size cannot change. The method {@link #refresh()} can be used to update the GPU's
- * version of the data. Generally this is performed by flushing the original primitive
- * data array to the graphics card either immediately if it was called on the framework
- * thread, or at the next point the resource is used by a renderer.
+ * Once created a Resource is almost always immutable.  This is done to make the multi-threading between an
+ * application thread and the framework thread easier.  Once built there is no required synchronization, and
+ * critical state such as data type or size cannot change. The method {@link #refresh()} can be used to update
+ * the GPU's version of the data. Generally this is performed by flushing the original primitive data array to
+ * the graphics card either immediately if it was called on the framework thread, or at the next point the
+ * resource is used by a renderer.
  * <p/>
  * A resource instance can only be used by the framework that created it.
  *
@@ -53,27 +51,23 @@ public interface Resource extends Destructible {
     public Framework getFramework();
 
     /**
-     * Refresh the state of this resource by transferring the current state of the
-     * primitive array instances that provided its initial data. Depending on the resource
-     * type, this may refresh from multiple arrays as is the case of textures with
-     * multiple layers or mipmaps; or may do nothing, in the case of shaders that have no
-     * primitive array data.
+     * Refresh the state of this resource by transferring the current state of the primitive array instances
+     * that provided its initial data. Depending on the resource type, this may refresh from multiple arrays
+     * as is the case of textures with multiple layers or mipmaps; or may do nothing, in the case of shaders
+     * that have no primitive array data.
      * <p/>
-     * Refreshing can be used to animate the underlying data in the resource without
-     * having to recreate a new resource. However, because of the flexibility in how a
-     * resource stores its data, the source arrays are not exposed by the resource
-     * interface. This means that application code must maintain references to the
+     * Refreshing can be used to animate the underlying data in the resource without having to recreate a new
+     * resource. However, because of the flexibility in how a resource stores its data, the source arrays are
+     * not exposed by the resource interface. This means that application code must maintain references to the
      * primitive arrays it wishes to animate.
      * <p/>
-     * If this is called from the internal framework thread, the refresh task is run
-     * immediately and the returned future is already complete. If it's called on any
-     * other thread, a task is queued to the framework to perform the refresh action. In
-     * this case, the exact state of the array data at the time the task is invoked is
-     * used, instead of cloning the state when refresh() was originally called.
+     * If this is called from the internal framework thread, the refresh task is run immediately and the
+     * returned future is already complete. If it's called on any other thread, a task is queued to the
+     * framework to perform the refresh action. In this case, the exact state of the array data at the time
+     * the task is invoked is used, instead of cloning the state when refresh() was originally called.
      * <p/>
-     * If performance is critical, the {@link HardwareAccessLayer#refresh(Resource)} is
-     * preferred because no allocation of a hidden task or future is performed and the
-     * resource is refreshed directly.
+     * If performance is critical, the {@link HardwareAccessLayer#refresh(Resource)} is preferred because no
+     * allocation of a hidden task or future is performed and the resource is refreshed directly.
      */
     public Future<Void> refresh();
 }

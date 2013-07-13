@@ -39,37 +39,32 @@ import java.awt.font.LineMetrics;
 
 /**
  * <p/>
- * Text is a factory for creating Geometry instances that represent lines and blocks of
- * text. It lays out a number of quads, one for each character in a {@link String}
- * according to the size information in a {@link CharacterSet}. The texture coordinates of
- * the produced geometry can be used to access the CharacterSet's texture to render the
- * appropriate character over the quad's surface.
+ * Text is a factory for creating Geometry instances that represent lines and blocks of text. It lays out a
+ * number of quads, one for each character in a {@link String} according to the size information in a {@link
+ * CharacterSet}. The texture coordinates of the produced geometry can be used to access the CharacterSet's
+ * texture to render the appropriate character over the quad's surface.
  * <p/>
- * Text treats \t as TAB_SPACE_COUNT spaces in a row. \n and \r are interpreted as well,
- * causing a newline to appear if the layout encounters: \n, \r, or \n\r. Spaces are not
- * placed at the beginning of a new line, so that text is justified to the left-edge (this
- * is ignored for the 1st line). The layout policy attempts to make a reasonably
- * attractive block of text, suitable for a text area, etc. The texture coordinates
- * generated are intended to access the Text's CharacterSet. The normals are generated
- * such that they are forward facing when text is aligned left to right. Unicode has not
- * been tested.
+ * Text treats \t as TAB_SPACE_COUNT spaces in a row. \n and \r are interpreted as well, causing a newline to
+ * appear if the layout encounters: \n, \r, or \n\r. Spaces are not placed at the beginning of a new line, so
+ * that text is justified to the left-edge (this is ignored for the 1st line). The layout policy attempts to
+ * make a reasonably attractive block of text, suitable for a text area, etc. The texture coordinates
+ * generated are intended to access the Text's CharacterSet. The normals are generated such that they are
+ * forward facing when text is aligned left to right. Unicode has not been tested.
  * <p/>
- * Text requires that a specific set of state be used to render the text appropriately.
- * The "characters" within a Text instance are appropriately sized quads intended to
- * access its CharacterSet's Texture. Thus, a Renderer must be configured to use the
- * CharacterSet's texture and be accessed by the texture coordinates defined by the text
- * geometry. Additionally, blending or alpha testing should be used so that the
+ * Text requires that a specific set of state be used to render the text appropriately. The "characters"
+ * within a Text instance are appropriately sized quads intended to access its CharacterSet's Texture. Thus, a
+ * Renderer must be configured to use the CharacterSet's texture and be accessed by the texture coordinates
+ * defined by the text geometry. Additionally, blending or alpha testing should be used so that the
  * CharacterSet's transparent background is properly ignored.
  * <p/>
- * After modifying a Text's textual content, via {@link #setText(String)}, or by modifying
- * its layout parameters, via {@link #setWrapWidth(float)} or {@link
- * #setCharacterSet(CharacterSet)}, any Geometry created after that with {@link #create()}
- * will reflect the new parameteres. Previously created geometries are unaffected.
- * Essentially, a single Text instance can be used to produce many different blocks of
- * text over its lifetime.
+ * After modifying a Text's textual content, via {@link #setText(String)}, or by modifying its layout
+ * parameters, via {@link #setWrapWidth(float)} or {@link #setCharacterSet(CharacterSet)}, any Geometry
+ * created after that with {@link #create()} will reflect the new parameteres. Previously created geometries
+ * are unaffected. Essentially, a single Text instance can be used to produce many different blocks of text
+ * over its lifetime.
  * <p/>
- * It is HIGHLY recommended that CharacterSets are shared by multiple instances of Text
- * that need the same font.
+ * It is HIGHLY recommended that CharacterSets are shared by multiple instances of Text that need the same
+ * font.
  *
  * @author Michael Ludwig
  */
@@ -124,19 +119,17 @@ public class Text {
     }
 
     /**
-     * @return The current scale factor used to scale the vertices when performing
-     *         layouts
+     * @return The current scale factor used to scale the vertices when performing layouts
      */
     public float getScale() {
         return scale;
     }
 
     /**
-     * Set the scale factor that scales the vertices of each quad within laid-out
-     * geometry. If scale is one, the quads are sized so the text appears the appropriate
-     * size when using an orthographic projection with a 1x1 pixel mapping. If using other
-     * projections, it may be desired to use a higher-point Font but still use small
-     * quads.
+     * Set the scale factor that scales the vertices of each quad within laid-out geometry. If scale is one,
+     * the quads are sized so the text appears the appropriate size when using an orthographic projection with
+     * a 1x1 pixel mapping. If using other projections, it may be desired to use a higher-point Font but still
+     * use small quads.
      * <p/>
      * This does not affect Geometries previously created by {@link #create()}.
      *
@@ -163,12 +156,12 @@ public class Text {
 
     /**
      * <p/>
-     * Get the current width of this Text. The returned value is suitable for drawing a
-     * tightly packed box around Geometries returned by {@link #create()}.
+     * Get the current width of this Text. The returned value is suitable for drawing a tightly packed box
+     * around Geometries returned by {@link #create()}.
      * <p/>
-     * The center of the block of text is considered to be the origin, and the left edge
-     * extends to an x-value with <code>-{@link #getTextWidth()} / 2</code> and the right
-     * edge extends to an x-value with <code>{@link #getTextWidth()} / 2</code>.
+     * The center of the block of text is considered to be the origin, and the left edge extends to an x-value
+     * with <code>-{@link #getTextWidth()} / 2</code> and the right edge extends to an x-value with
+     * <code>{@link #getTextWidth()} / 2</code>.
      *
      * @return The width of the text
      */
@@ -178,13 +171,12 @@ public class Text {
 
     /**
      * <p/>
-     * Get the current height of this Text. The returned value can be used to draw a
-     * tightly packed box around around Geometries returned by {@link #create()}.
+     * Get the current height of this Text. The returned value can be used to draw a tightly packed box around
+     * around Geometries returned by {@link #create()}.
      * <p/>
-     * The center of the block of text is considered to be the origin, and the bottom edge
-     * extends to a y-value with <code>-{@link #getTextHeight()} / 2</code> and the top
-     * edge extends to an y-value with <code>{@link #getTextHeight()} / 2</code>. This
-     * includes the ascent and descent of the font.
+     * The center of the block of text is considered to be the origin, and the bottom edge extends to a
+     * y-value with <code>-{@link #getTextHeight()} / 2</code> and the top edge extends to an y-value with
+     * <code>{@link #getTextHeight()} / 2</code>. This includes the ascent and descent of the font.
      *
      * @return The height of the text
      */
@@ -194,20 +186,17 @@ public class Text {
 
     /**
      * <p/>
-     * Set the wrap width that determines how text is laid out. A value <= 0 implies that
-     * no wrapping is formed. In this case text will only be on multiple lines if '\n',
-     * '\r' or '\n\r' are encountered.
+     * Set the wrap width that determines how text is laid out. A value <= 0 implies that no wrapping is
+     * formed. In this case text will only be on multiple lines if '\n', '\r' or '\n\r' are encountered.
      * <p/>
-     * If it's positive, then this value represents the maximum allowed width of a line of
-     * text. Words that would extend beyond this will be placed on a newline. If a word
-     * can't fit on a line, its characters will be wrapped. Punctuation characters
-     * following words are treated as part of the word.
+     * If it's positive, then this value represents the maximum allowed width of a line of text. Words that
+     * would extend beyond this will be placed on a newline. If a word can't fit on a line, its characters
+     * will be wrapped. Punctuation characters following words are treated as part of the word.
      * <p/>
-     * As far as layout works, the text is centered about its local origin. See {@link
-     * #getTextWidth()} and {@link #getTextHeight()} for details. In multiline text,
-     * subsequent lines start at progressively negative y-values. A rectangle with corners
-     * (-getTextWidth()/2,-getTextHeight()/2) and (getTextWidth()/2, getTextHeight()/2)
-     * would tightly enclose the entire body of text.
+     * As far as layout works, the text is centered about its local origin. See {@link #getTextWidth()} and
+     * {@link #getTextHeight()} for details. In multiline text, subsequent lines start at progressively
+     * negative y-values. A rectangle with corners (-getTextWidth()/2,-getTextHeight()/2) and
+     * (getTextWidth()/2, getTextHeight()/2) would tightly enclose the entire body of text.
      * <p/>
      * This causes the Text's vertex data to be recomputed.
      *
@@ -220,8 +209,7 @@ public class Text {
 
     /**
      * <p/>
-     * Set the text that will be rendered. This causes the Text's vertex data to be
-     * recomputed.
+     * Set the text that will be rendered. This causes the Text's vertex data to be recomputed.
      *
      * @param text The new String text to use
      *
@@ -238,9 +226,8 @@ public class Text {
     }
 
     /**
-     * Return the String this Text instance lays out, and will be displayed when the
-     * created Geometry is rendered with the appropriate character set texture and
-     * blending.
+     * Return the String this Text instance lays out, and will be displayed when the created Geometry is
+     * rendered with the appropriate character set texture and blending.
      *
      * @return The text that will be rendered
      */
@@ -257,9 +244,8 @@ public class Text {
 
     /**
      * <p/>
-     * Set the CharacterSet that determines the size and font of the rendered characters
-     * within this Text instance. This should be shared across Text instances that use the
-     * same font.
+     * Set the CharacterSet that determines the size and font of the rendered characters within this Text
+     * instance. This should be shared across Text instances that use the same font.
      * <p/>
      * This causes the vertex data to be recomputed.
      *
@@ -364,8 +350,7 @@ public class Text {
     }
 
     private void layoutText() {
-        LineMetrics lm = charSet.getFont()
-                                .getLineMetrics(text, charSet.getFontRenderContext());
+        LineMetrics lm = charSet.getFont().getLineMetrics(text, charSet.getFontRenderContext());
         TextLayout tl = new TextLayout(charSet, lm, maxTextWidth);
         lastTextLayout = tl.doLayout(text);
 

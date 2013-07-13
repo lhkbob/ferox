@@ -33,15 +33,14 @@ import java.util.concurrent.*;
 
 /**
  * <p/>
- * ContextManager is the manager that handles the internal threads that runs code within a
- * valid OpenGL context. It has logic to keep a context current after task has completed,
- * meaning that it does not need to have expensive makeCurrent()/release() cycles in the
- * common case where a single surface is rendered into repeatedly.
+ * ContextManager is the manager that handles the internal threads that runs code within a valid OpenGL
+ * context. It has logic to keep a context current after task has completed, meaning that it does not need to
+ * have expensive makeCurrent()/release() cycles in the common case where a single surface is rendered into
+ * repeatedly.
  * <p/>
- * A newly constructed ContextManager is not ready to use until its {@link
- * #initialize(LifeCycleManager, SurfaceFactory)} is called. The ContextManager is
- * expected to live within the life cycle of its owning Framework (as enforced by the
- * LifeCycleManager).
+ * A newly constructed ContextManager is not ready to use until its {@link #initialize(LifeCycleManager,
+ * SurfaceFactory)} is called. The ContextManager is expected to live within the life cycle of its owning
+ * Framework (as enforced by the LifeCycleManager).
  *
  * @author Michael Ludwig
  */
@@ -53,28 +52,24 @@ public class ContextManager {
 
     /**
      * <p/>
-     * Complete the initialization of this ContextManager and start up the thread used to
-     * process GPU-based tasks. It will also create the shared context used by every
-     * surface with this manager.. This method ties the ContextManager to the life cycle
-     * enforced by the given LifeCycleManager. It is required that this method is called
-     * by the ContextManager's owner in the initialization Runnable passed to {@link
+     * Complete the initialization of this ContextManager and start up the thread used to process GPU-based
+     * tasks. It will also create the shared context used by every surface with this manager.. This method
+     * ties the ContextManager to the life cycle enforced by the given LifeCycleManager. It is required that
+     * this method is called by the ContextManager's owner in the initialization Runnable passed to {@link
      * LifeCycleManager#start(Runnable)}.
      * <p/>
-     * The ContextManager will automatically terminate its threads when it detects that
-     * the LifeCycleManager is being shutdown. It will continue running tasks until the
-     * manager is fully stopped.
+     * The ContextManager will automatically terminate its threads when it detects that the LifeCycleManager
+     * is being shutdown. It will continue running tasks until the manager is fully stopped.
      * <p/>
-     * The ContextManager cannot be initialized more than once. It is illegal to use a
-     * LifeCycleManager that has a status other than STARTING (i.e. within the scope of
-     * its initialize() method).
+     * The ContextManager cannot be initialized more than once. It is illegal to use a LifeCycleManager that
+     * has a status other than STARTING (i.e. within the scope of its initialize() method).
      *
-     * @param lifecycle      The LifeCycleManager that controls when the ContextManager
-     *                       ends
+     * @param lifecycle      The LifeCycleManager that controls when the ContextManager ends
      * @param surfaceFactory The SurfaceFactory to create the shared context with
      *
      * @throws NullPointerException  if lifecycle or surfaceFactory are null
-     * @throws IllegalStateException if lifecycle doesn't have a status of STARTING, or if
-     *                               the ContextManager has already been initialized
+     * @throws IllegalStateException if lifecycle doesn't have a status of STARTING, or if the ContextManager
+     *                               has already been initialized
      */
     public void initialize(LifeCycleManager lifecycle, SurfaceFactory surfaceFactory) {
         if (lifecycle == null) {
@@ -88,8 +83,7 @@ public class ContextManager {
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
         if (lifecycle.getStatus() != Status.STARTING) {
             throw new IllegalStateException(
-                    "LifeCycleManager must have status STARTING, not: " +
-                    lifecycle.getStatus());
+                    "LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
         }
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
@@ -109,8 +103,7 @@ public class ContextManager {
 
         // Very first task must be to allocate the shared context
         try {
-            invokeOnContextThread(new ConstructContextCallable(surfaceFactory), false)
-                    .get();
+            invokeOnContextThread(new ConstructContextCallable(surfaceFactory), false).get();
         } catch (InterruptedException e) {
             // ignore for now
         } catch (ExecutionException e) {
@@ -121,8 +114,7 @@ public class ContextManager {
     /**
      * @return The shared context that must be used by all surfaces for this manager
      *
-     * @throws IllegalStateException if the context manager hasn't been properly
-     *                               initialized yet
+     * @throws IllegalStateException if the context manager hasn't been properly initialized yet
      */
     public OpenGLContext getSharedContext() {
         if (sharedContext == null) {
@@ -133,27 +125,24 @@ public class ContextManager {
 
     /**
      * <p/>
-     * Invoke the given Callable on the context thread managed by this manager. If the
-     * calling thread is not the context thread, this task is queued behind any other
-     * pending tasks. However, if the calling thread is the context thread, this will run
-     * the task immediately. In this case the returned Future will have already
-     * completed.
+     * Invoke the given Callable on the context thread managed by this manager. If the calling thread is not
+     * the context thread, this task is queued behind any other pending tasks. However, if the calling thread
+     * is the context thread, this will run the task immediately. In this case the returned Future will have
+     * already completed.
      * <p/>
-     * If the LifeCycleManager controlling this ContextManager is being shutdown, or has
-     * been shutdown, the returned Future is not queued and is preemptively cancelled. It
-     * will never be null.
+     * If the LifeCycleManager controlling this ContextManager is being shutdown, or has been shutdown, the
+     * returned Future is not queued and is preemptively cancelled. It will never be null.
      *
      * @param <T>              The type of data returned by task
      * @param task             The task to run on an internal thread
      * @param acceptOnShutdown True if the task should be queued even while shutting down
      *
-     * @return A Future linked to the queued task, will be cancelled if the ContextManager
-     *         has been shutdown or is shutting down
+     * @return A Future linked to the queued task, will be cancelled if the ContextManager has been shutdown
+     *         or is shutting down
      *
      * @throws NullPointerException if task is null
      */
-    public <T> Future<T> invokeOnContextThread(Callable<T> task,
-                                               boolean acceptOnShutdown) {
+    public <T> Future<T> invokeOnContextThread(Callable<T> task, boolean acceptOnShutdown) {
         if (task == null) {
             throw new NullPointerException("Task cannot be null");
         }
@@ -174,8 +163,7 @@ public class ContextManager {
                     boolean queued;
                     do {
                         try {
-                            queued = thread.tasks
-                                           .offerLast(sync, 5, TimeUnit.MILLISECONDS);
+                            queued = thread.tasks.offerLast(sync, 5, TimeUnit.MILLISECONDS);
                         } catch (InterruptedException ie) {
                             queued = false;
                         }
@@ -193,11 +181,10 @@ public class ContextManager {
     }
 
     /**
-     * Return whether or not the current Thread is a thread managed by this ContextManager
-     * and is capable of having OpenGL contexts current on it.
+     * Return whether or not the current Thread is a thread managed by this ContextManager and is capable of
+     * having OpenGL contexts current on it.
      *
-     * @return True if the calling Thread is an inner thread managed by this
-     *         ContextManager
+     * @return True if the calling Thread is an inner thread managed by this ContextManager
      */
     public boolean isContextThread() {
         return Thread.currentThread() == thread;
@@ -205,28 +192,27 @@ public class ContextManager {
 
     /**
      * <p/>
-     * Activate the provided Surface on the current thread. If the surface has its own
-     * OpenGLContext, that context is made current on the thread. If it does not have a
-     * context, the surface piggybacks on the last surface's context or on an internal
-     * offscreen context.
+     * Activate the provided Surface on the current thread. If the surface has its own OpenGLContext, that
+     * context is made current on the thread. If it does not have a context, the surface piggybacks on the
+     * last surface's context or on an internal offscreen context.
      * <p/>
-     * An activated surface that has its own context will continue to have its context
-     * current on the thread after the task completes until a new surface is activated
-     * with its own context, or {@link #forceRelease(AbstractSurface)} method is called.
+     * An activated surface that has its own context will continue to have its context current on the thread
+     * after the task completes until a new surface is activated with its own context, or {@link
+     * #forceRelease(AbstractSurface)} method is called.
      * <p/>
-     * Passing in a null Surface will deactivate the currently active surface, and the
-     * layer parameter is ignored.
+     * Passing in a null Surface will deactivate the currently active surface, and the layer parameter is
+     * ignored.
      * <p/>
-     * This can only be called from code running on the internal thread managed by the
-     * ContextManager. This assumes the surface is owned by the Framework owning this
-     * ContextManager (if this assumption is broken, undefined results will occur).
+     * This can only be called from code running on the internal thread managed by the ContextManager. This
+     * assumes the surface is owned by the Framework owning this ContextManager (if this assumption is broken,
+     * undefined results will occur).
      * <p/>
-     * If <var>surface</var> is already destroyed, the current surface is deactivated and
-     * a null context is returned.
+     * If <var>surface</var> is already destroyed, the current surface is deactivated and a null context is
+     * returned.
      *
      * @param surface The AbstractSurface to activate
-     * @param layer   The layer to activate, will be passed directly to {@link
-     *                AbstractSurface#onSurfaceActivate(OpenGLContext, int)}
+     * @param layer   The layer to activate, will be passed directly to {@link AbstractSurface#onSurfaceActivate(OpenGLContext,
+     *                int)}
      *
      * @return The OpenGLContext that is current after this surface has been activated
      *
@@ -246,17 +232,16 @@ public class ContextManager {
             return thread.setActiveSurface(surface, layer);
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
-            throw new IllegalThreadStateException(
-                    "setActiveSurface() cannot be called on this Thread");
+            throw new IllegalThreadStateException("setActiveSurface() cannot be called on this Thread");
         }
     }
 
     /**
      * <p/>
-     * Force the context thread to deactivate the given surface (if it was active), and
-     * release the surface's context if it is still current. The context may need to be
-     * released even if the surface wasn't active. If a second surface is relying on the
-     * given surface's context, that surface will be forcefully deactivated as well.
+     * Force the context thread to deactivate the given surface (if it was active), and release the surface's
+     * context if it is still current. The context may need to be released even if the surface wasn't active.
+     * If a second surface is relying on the given surface's context, that surface will be forcefully
+     * deactivated as well.
      * <p/>
      * This can only be called on the task thread of this manager.
      *
@@ -276,22 +261,19 @@ public class ContextManager {
             thread.releaseSurface(surface);
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
-            throw new IllegalThreadStateException(
-                    "forceRelease() cannot be called on this Thread");
+            throw new IllegalThreadStateException("forceRelease() cannot be called on this Thread");
         }
     }
 
     /**
      * <p/>
-     * Ensure that there is a valid context current on this thread. If a surface is
-     * already active, the returned context might be that surface's context. If there is
-     * no active surface, the context will be the context of the last activated surface
-     * that had a context (assuming this thread still has the lock), or the offscreen
-     * shared context.
+     * Ensure that there is a valid context current on this thread. If a surface is already active, the
+     * returned context might be that surface's context. If there is no active surface, the context will be
+     * the context of the last activated surface that had a context (assuming this thread still has the lock),
+     * or the offscreen shared context.
      * <p/>
-     * Regardless, this will not return null and the returned context will correctly share
-     * resources with the other contexts created by the SurfaceFactory provided to this
-     * ContextManager during initialization.
+     * Regardless, this will not return null and the returned context will correctly share resources with the
+     * other contexts created by the SurfaceFactory provided to this ContextManager during initialization.
      *
      * @return The current context
      *
@@ -304,8 +286,7 @@ public class ContextManager {
             return thread.ensureContext();
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
-            throw new IllegalThreadStateException(
-                    "ensureContext() cannot be called on this Thread");
+            throw new IllegalThreadStateException("ensureContext() cannot be called on this Thread");
         }
     }
 
@@ -333,8 +314,7 @@ public class ContextManager {
                 if (sharedContext == null) {
                     // bad initialization code, a task got queued before the shared
                     // context was created (should not happen)
-                    throw new IllegalStateException(
-                            "Shared context has not been created yet");
+                    throw new IllegalStateException("Shared context has not been created yet");
                 }
 
                 sharedContext.makeCurrent();
@@ -424,8 +404,7 @@ public class ContextManager {
         public void run() {
             // loop until we hit STOPPING_HIGH_PRIORITY, so that we still process tasks while in that stage
             // transition to STOPPED until all children are done
-            while (lifecycleManager.getStatus().compareTo(Status.STOPPING_HIGH_PRIORITY) <
-                   0) {
+            while (lifecycleManager.getStatus().compareTo(Status.STOPPING_HIGH_PRIORITY) < 0) {
                 // Grab a single task from the queue and run it
                 // Unlocking a surface is handled by pushing a special task
                 // to the front of the queue so it skips any line from actual tasks

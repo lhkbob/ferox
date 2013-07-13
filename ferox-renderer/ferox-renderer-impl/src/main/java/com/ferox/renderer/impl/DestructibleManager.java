@@ -9,21 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 /**
- * DestructibleManager controls a thread that monitors registered {@link
- * Destructible}/{@link ManagedDestructible} pairs of instances. When the Destructible
- * instance is weak-referenceable the ManagedDestructible is destroyed.  The
- * ManagedDestructible will be strong-referenced so it will not be garbage collected
- * before its destroy() method has been invoked.
+ * DestructibleManager controls a thread that monitors registered {@link Destructible}/{@link
+ * ManagedDestructible} pairs of instances. When the Destructible instance is weak-referenceable the
+ * ManagedDestructible is destroyed.  The ManagedDestructible will be strong-referenced so it will not be
+ * garbage collected before its destroy() method has been invoked.
  *
  * @author Michael Ludwig
  */
 public class DestructibleManager {
     /**
-     * ManagedDestructible is an interface like {@link Destructible} except that it
-     * doesn't have the requirement that the instance cleans up automatically when it is
-     * garbage collected. A managed destructible is the object that is strong referenced
-     * by the DestructibleManager that is destroyed when an exposed Destructible instance
-     * is GC'ed.
+     * ManagedDestructible is an interface like {@link Destructible} except that it doesn't have the
+     * requirement that the instance cleans up automatically when it is garbage collected. A managed
+     * destructible is the object that is strong referenced by the DestructibleManager that is destroyed when
+     * an exposed Destructible instance is GC'ed.
      */
     public static interface ManagedDestructible {
         /**
@@ -54,26 +52,24 @@ public class DestructibleManager {
 
     /**
      * <p/>
-     * Complete the initialization of this DestructibleManager and start up an inner
-     * thread that handles processing garbage collected Destructibles. This method ties
-     * the DestructibleManager to the life cycle enforced by the given LifeCycleManager.
-     * It is required that this method is called by the DestructibleManager's owner in the
-     * initialization Runnable passed to {@link LifeCycleManager#start(Runnable)}. The
-     * provided LifeCycleManager should be the same manager that was used to initialize
-     * the rest of the framework.
+     * Complete the initialization of this DestructibleManager and start up an inner thread that handles
+     * processing garbage collected Destructibles. This method ties the DestructibleManager to the life cycle
+     * enforced by the given LifeCycleManager. It is required that this method is called by the
+     * DestructibleManager's owner in the initialization Runnable passed to {@link
+     * LifeCycleManager#start(Runnable)}. The provided LifeCycleManager should be the same manager that was
+     * used to initialize the rest of the framework.
      * <p/>
-     * The DestructibleManager will automatically terminate its thread when it detects
-     * that the LifeCycleManager is being shutdown.
+     * The DestructibleManager will automatically terminate its thread when it detects that the
+     * LifeCycleManager is being shutdown.
      * <p/>
-     * The ResourceManager cannot be initialized more than once. It is illegal to use a
-     * LifeCycleManager that has a status other than STARTING.
+     * The ResourceManager cannot be initialized more than once. It is illegal to use a LifeCycleManager that
+     * has a status other than STARTING.
      *
-     * @param lifecycle The LifeCycleManager that controls when the DestructibleManager
-     *                  ends
+     * @param lifecycle The LifeCycleManager that controls when the DestructibleManager ends
      *
      * @throws NullPointerException  if lifecycle is null
-     * @throws IllegalStateException if lifecycle doesn't have a status of STARTING, or if
-     *                               the DestructibleManager has already been initialized
+     * @throws IllegalStateException if lifecycle doesn't have a status of STARTING, or if the
+     *                               DestructibleManager has already been initialized
      */
     public void initialize(LifeCycleManager lifecycle) {
         if (lifecycle == null) {
@@ -82,35 +78,31 @@ public class DestructibleManager {
 
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
-        if (lifecycle.getStatus() !=
-            com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
+        if (lifecycle.getStatus() != com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
             throw new IllegalStateException(
-                    "LifeCycleManager must have status STARTING, not: " +
-                    lifecycle.getStatus());
+                    "LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
         }
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
         // since we should already be in lifecycle's write lock.
         synchronized (this) {
             if (this.lifecycle != null) {
-                throw new IllegalStateException(
-                        "DestructibleManager already initialized");
+                throw new IllegalStateException("DestructibleManager already initialized");
             }
             this.lifecycle = lifecycle;
         }
 
         // start a low priority managed thread
-        Thread destroyer = new Thread(lifecycle.getManagedThreadGroup(),
-                                      new WeakReferenceMonitor(),
+        Thread destroyer = new Thread(lifecycle.getManagedThreadGroup(), new WeakReferenceMonitor(),
                                       "destructible-gc-thread");
         destroyer.setDaemon(true);
         lifecycle.startManagedThread(destroyer, false);
     }
 
     /**
-     * Have this DestructibleManager monitor a weak reference to {@code exposed} and
-     * invoke {@link ManagedDestructible#destroy()} on {@code realInstance} when the
-     * public facing instance has been collected.
+     * Have this DestructibleManager monitor a weak reference to {@code exposed} and invoke {@link
+     * ManagedDestructible#destroy()} on {@code realInstance} when the public facing instance has been
+     * collected.
      *
      * @param exposed      The public-facing or shim instance
      * @param realInstance The actual data-storing instance that can be cleaned up
@@ -139,8 +131,7 @@ public class DestructibleManager {
             while (!lifecycle.isStopped()) {
                 try {
                     // The Destructible associated with this data has been GC'ed
-                    DestructibleReference data = (DestructibleReference) monitors
-                            .remove();
+                    DestructibleReference data = (DestructibleReference) monitors.remove();
 
                     // Don't block on this, we just need it to be disposed of in the future
                     // and don't bother accepting during shutdown since the context
@@ -166,8 +157,7 @@ public class DestructibleManager {
     private class DestructibleReference extends WeakReference<Destructible> {
         final ManagedDestructible destructible;
 
-        public DestructibleReference(Destructible exposedInstance,
-                                     ManagedDestructible realInstance,
+        public DestructibleReference(Destructible exposedInstance, ManagedDestructible realInstance,
                                      ReferenceQueue<Destructible> queue) {
             super(exposedInstance, queue);
             destructible = realInstance;
