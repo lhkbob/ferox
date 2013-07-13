@@ -39,23 +39,30 @@ import java.util.Set;
 
 /**
  * <p/>
- * The AbstractGlslRenderer is an abstract implementation of {@link GlslRenderer}. It uses
- * a {@link RendererDelegate} to handle implementing the methods exposed by {@link
- * Renderer}. The AbstractGlslRenderer tracks the current state, and when necessary,
- * delegate to protected abstract methods which have the responsibility of actually making
- * OpenGL calls.
+ * The AbstractGlslRenderer is an abstract implementation of {@link GlslRenderer}. It uses a {@link
+ * RendererDelegate} to handle implementing the methods exposed by {@link Renderer}. The AbstractGlslRenderer
+ * tracks the current state, and when necessary, delegate to protected abstract methods which have the
+ * responsibility of actually making OpenGL calls.
  * <p/>
- * It makes a best-effort attempt to preserve the texture, vertex attribute, and shader
- * state when resource deadlocks must be resolved. It is possible that a texture must be
- * unbound or will have its data changed based on the actions of another render task.
- * Additionally, the preserving a shader's state when it undergoes concurrent updates is
- * quite complicated, so it is possible that it cannot be preserved if uniforms or
- * attributes are changed or reordered in the shader definition.
+ * It makes a best-effort attempt to preserve the texture, vertex attribute, and shader state when resource
+ * deadlocks must be resolved. It is possible that a texture must be unbound or will have its data changed
+ * based on the actions of another render task. Additionally, the preserving a shader's state when it
+ * undergoes concurrent updates is quite complicated, so it is possible that it cannot be preserved if
+ * uniforms or attributes are changed or reordered in the shader definition.
  *
  * @author Michael Ludwig
  */
-public abstract class AbstractGlslRenderer extends AbstractRenderer
-        implements GlslRenderer {
+public abstract class AbstractGlslRenderer extends AbstractRenderer implements GlslRenderer {
+    private static class ShaderState implements ContextState<GlslRenderer> {
+        private final ShaderOnlyState shaderState;
+        private final SharedState sharedState;
+
+        public ShaderState(SharedState shared, ShaderOnlyState shader) {
+            shaderState = shader;
+            sharedState = shared;
+        }
+    }
+
     protected ShaderOnlyState state;
     protected ShaderOnlyState defaultState;
 
@@ -69,37 +76,52 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
 
         if (defaultState == null) {
             Capabilities caps = surface.getFramework().getCapabilities();
-            defaultState = new ShaderOnlyState(caps.getMaxVertexAttributes(),
-                                               caps.getMaxCombinedTextures());
+            defaultState = new ShaderOnlyState(caps.getMaxVertexAttributes());
         }
 
         state = context.getCurrentShaderState();
     }
 
-
-    // FIXME implement this at the same time I do the fixes to GlslRenderer,
-    // like adding int attrs, cleaning up arbitrary array uniforms, etc.
-    // FIXME should update the resource driver to have warnings, errors if
-    // there are uniforms/attrs of unsupported types
     @Override
     public ContextState<GlslRenderer> getCurrentState() {
-        throw new UnsupportedOperationException("Not implemented");
+        return new ShaderState(new SharedState(delegate.state), new ShaderOnlyState(state));
     }
 
     @Override
     public void setCurrentState(ContextState<GlslRenderer> state) {
-        throw new UnsupportedOperationException("Not implemented");
+        ShaderState s = (ShaderState) state;
+        setCurrentState(s.shaderState, s.sharedState);
     }
 
     @Override
     public void reset() {
-        // FIXME not fully correct yet
-        delegate.setCurrentState(delegate.defaultState);
+        setCurrentState(defaultState, delegate.defaultState);
+    }
 
-        // This unbinds the shader handle, all textures and vertex attributes.
-        // It clears the uniform and attribute cached values, but does not
-        // assign default values to them.
-        setShader(null);
+    private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState) {
+        // this will bind the expected shader and the textures, so that will be in a consistent state
+        // with respect to sampler uniforms pointing to the correct texture unit
+        delegate.setCurrentState(sharedState);
+
+        // set all attributes
+        for (int i = 0; i < shaderState.attributes.length; i++) {
+            ShaderOnlyState.AttributeState a = shaderState.attributes[i];
+            if (a.vbo != null) {
+                // configure a pointer, we assume it properly matches the attribute type
+                bindAttributeHandle(state.attributes[i], a.vbo, a.offset, a.stride, a.elementSize);
+            } else {
+                if (a.dataType == DataType.FLOAT) {
+                    bindAttribute(state.attributes[i], 4, a.floatAttrValues[0], a.floatAttrValues[1],
+                                  a.floatAttrValues[2], a.floatAttrValues[3]);
+                } else if (a.dataType == DataType.UNSIGNED_INT) {
+                    bindAttribute(state.attributes[i], 4, true, a.intAttrValues[0], a.intAttrValues[1],
+                                  a.intAttrValues[2], a.intAttrValues[3]);
+                } else {
+                    bindAttribute(state.attributes[i], 4, false, a.intAttrValues[0], a.intAttrValues[1],
+                                  a.intAttrValues[2], a.intAttrValues[3]);
+                }
+            }
+        }
     }
 
     @Override
@@ -116,12 +138,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             Set<ShaderImpl.UniformImpl> needsInit = new HashSet<>();
 
             for (Shader.Uniform u : shader.getUniforms()) {
-                if (u.getType().getColumnCount() < 0 &&
-                    u.getType() != Shader.VariableType.BOOL &&
-                    u.getType() != Shader.VariableType.BVEC2 &&
-                    u.getType() != Shader.VariableType.BVEC3 &&
-                    u.getType() != Shader.VariableType.BVEC4) {
-                    // only other uniform-only types are sampler types
+                if (u.getType().getPrimitiveType() == null) {
+                    // sampler types have a null primitive type
                     ShaderImpl.UniformImpl ui = (ShaderImpl.UniformImpl) u;
                     if (ui.initialized) {
                         // mark unit as reserved and bind the last assigned sampler
@@ -158,55 +176,88 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attribute, int column,
-                              VertexAttribute attr) {
+    public void bindAttribute(Shader.Attribute attribute, int column, VertexAttribute attr) {
         if (attribute == null) {
             throw new NullPointerException("Attribute can't be null");
         }
         if (attribute.getType().getColumnCount() <= column) {
-            throw new IllegalArgumentException(
-                    "GLSL attribute with a type of " + attribute.getType() +
-                    " cannot use " + (column + 1) + " columns");
+            throw new IllegalArgumentException("GLSL attribute with a type of " + attribute.getType() +
+                                               " cannot use " + (column + 1) + " columns");
         }
 
-        ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() +
-                                                            column];
+        ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() + column];
         if (attr != null) {
-            if (attr.getElementSize() != attribute.getType().getRowCount()) {
-                // FIXME i don't think this check is important, components are defaulted or
-                // ignored by OpenGL
-                throw new IllegalArgumentException();
+            // validate buffer type consistent with attribute type
+            switch (attribute.getType().getPrimitiveType()) {
+            case FLOAT:
+                if (!attr.getVBO().getDataType().isDecimalNumber()) {
+                    throw new IllegalArgumentException(
+                            "Floating point attributes must use buffers with decimal data");
+                }
+                break;
+            case UNSIGNED_INT:
+                if (attr.getVBO().getDataType().isDecimalNumber()) {
+                    throw new IllegalArgumentException(
+                            "Unsigned integer attributes cannot use buffers with decimal data");
+                }
+                if (attr.getVBO().getDataType().isSigned()) {
+                    throw new IllegalArgumentException(
+                            "Unsigned integer attributes cannot use buffers with signed data");
+                }
+                break;
+            default: // INT
+                if (attr.getVBO().getDataType().isDecimalNumber()) {
+                    throw new IllegalArgumentException(
+                            "Signed integer attributes cannot use buffers with decimal data");
+                }
+                if (!attr.getVBO().getDataType().isSigned()) {
+                    throw new IllegalArgumentException(
+                            "Signed integer attributes cannot use buffers with unsigned data");
+                }
+                break;
             }
-            // FIXME verify vbo datatype compatibility
 
             BufferImpl.BufferHandle newVBO = ((BufferImpl) attr.getVBO()).getHandle();
-            boolean accessDiffers = (a.offset != attr.getOffset() ||
-                                     a.stride != attr.getStride() ||
-                                     a.elementSize != attr.getElementSize());
-            if (a.vbo != attr.getVBO() || accessDiffers) {
-                if (a.vbo == null) {
-                    glEnableAttribute(a.index, true);
-                }
-                if (delegate.state.arrayVBO != newVBO) {
-                    context.bindArrayVBO(newVBO);
-                }
-                a.elementSize = attr.getElementSize();
-                a.stride = attr.getStride();
-                a.offset = attr.getOffset();
-                glAttributePointer(a.index, newVBO, a.offset, a.stride, a.elementSize);
-            }
+            bindAttributeHandle(a, newVBO, attr.getOffset(), attr.getStride(), attr.getElementSize());
         } else {
-            // Since we don't have a row count to use, we fudge the verifyAttribute method here
             if (a.vbo != null) {
                 // set a good default attribute value
-                // FIXME switch on data type
-                bindAttribute(a, attribute.getType().getRowCount(), 0f, 0f, 0f, 0f);
+                switch (attribute.getType().getPrimitiveType()) {
+                case FLOAT:
+                    bindAttribute(a, attribute.getType().getRowCount(), 0f, 0f, 0f, 0f);
+                    break;
+                case UNSIGNED_INT:
+                    bindAttribute(a, attribute.getType().getRowCount(), true, 0, 0, 0, 0);
+                    break;
+                default: // INT
+                    bindAttribute(a, attribute.getType().getRowCount(), false, 0, 0, 0, 0);
+                    break;
+                }
             }
         }
     }
 
-    private void bindAttribute(ShaderOnlyState.AttributeState a, int rowCount, float v1,
-                               float v2, float v3, float v4) {
+    private void bindAttributeHandle(ShaderOnlyState.AttributeState a, BufferImpl.BufferHandle handle,
+                                     int offset, int stride, int elementSize) {
+        boolean accessDiffers = (a.offset != offset ||
+                                 a.stride != stride ||
+                                 a.elementSize != elementSize);
+        if (a.vbo != handle || accessDiffers) {
+            if (a.vbo == null) {
+                glEnableAttribute(a.index, true);
+            }
+            if (delegate.state.arrayVBO != handle) {
+                context.bindArrayVBO(handle);
+            }
+            a.elementSize = elementSize;
+            a.stride = stride;
+            a.offset = offset;
+            glAttributePointer(a.index, handle, a.offset, a.stride, a.elementSize);
+        }
+    }
+
+    private void bindAttribute(ShaderOnlyState.AttributeState a, int rowCount, float v1, float v2, float v3,
+                               float v4) {
         if (a.vbo != null) {
             // there was a previously bound vertex attribute, so unbind it
             glEnableAttribute(a.index, false);
@@ -218,11 +269,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         a.floatAttrValues[1] = v2;
         a.floatAttrValues[2] = v3;
         a.floatAttrValues[3] = v4;
+        a.dataType = DataType.FLOAT;
         glAttributeValue(a.index, rowCount, v1, v2, v3, v4);
     }
 
-    private void bindAttribute(ShaderOnlyState.AttributeState a, int rowCount,
-                               boolean unsigned, int v1, int v2, int v3, int v4) {
+    private void bindAttribute(ShaderOnlyState.AttributeState a, int rowCount, boolean unsigned, int v1,
+                               int v2, int v3, int v4) {
         if (a.vbo != null) {
             // there was a previously bound vertex attribute, so unbind it
             glEnableAttribute(a.index, false);
@@ -234,6 +286,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         a.intAttrValues[1] = v2;
         a.intAttrValues[2] = v3;
         a.intAttrValues[3] = v4;
+        a.dataType = (unsigned ? DataType.UNSIGNED_INT : DataType.INT);
         glAttributeValue(a.index, rowCount, unsigned, v1, v2, v3, v4);
     }
 
@@ -256,8 +309,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (attr.getType() != Shader.VariableType.VEC2) {
             throw new IllegalArgumentException("Attribute must have a type of VEC2");
         }
-        bindAttribute(state.attributes[attr.getIndex()], 2, (float) v1, (float) v2, 0f,
-                      0f);
+        bindAttribute(state.attributes[attr.getIndex()], 2, (float) v1, (float) v2, 0f, 0f);
     }
 
     @Override
@@ -268,8 +320,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (attr.getType() != Shader.VariableType.VEC3) {
             throw new IllegalArgumentException("Attribute must have a type of VEC3");
         }
-        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.x, (float) v.y,
-                      (float) v.z, 0f);
+        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.x, (float) v.y, (float) v.z, 0f);
     }
 
     @Override
@@ -278,23 +329,19 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, double m00, double m01, double m10,
-                              double m11) {
+    public void bindAttribute(Shader.Attribute attr, double m00, double m01, double m10, double m11) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
 
         if (attr.getType() == Shader.VariableType.VEC4) {
-            bindAttribute(state.attributes[attr.getIndex()], 4, (float) m00, (float) m01,
-                          (float) m10, (float) m11);
+            bindAttribute(state.attributes[attr.getIndex()], 4, (float) m00, (float) m01, (float) m10,
+                          (float) m11);
         } else if (attr.getType() == Shader.VariableType.MAT2) {
-            bindAttribute(state.attributes[attr.getIndex()], 2, (float) m00, (float) m01,
-                          0f, 0f);
-            bindAttribute(state.attributes[attr.getIndex() + 1], 2, (float) m10,
-                          (float) m11, 0f, 0f);
+            bindAttribute(state.attributes[attr.getIndex()], 2, (float) m00, (float) m01, 0f, 0f);
+            bindAttribute(state.attributes[attr.getIndex() + 1], 2, (float) m10, (float) m11, 0f, 0f);
         } else {
-            throw new IllegalArgumentException(
-                    "Attribute must have a type of VEC4 or MAT2");
+            throw new IllegalArgumentException("Attribute must have a type of VEC4 or MAT2");
         }
     }
 
@@ -307,12 +354,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
 
-        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.m00, (float) v.m01,
-                      (float) v.m02, 0f);
-        bindAttribute(state.attributes[attr.getIndex() + 1], 3, (float) v.m10,
-                      (float) v.m11, (float) v.m12, 0f);
-        bindAttribute(state.attributes[attr.getIndex() + 2], 3, (float) v.m20,
-                      (float) v.m21, (float) v.m22, 0f);
+        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.m00, (float) v.m01, (float) v.m02, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + 1], 3, (float) v.m10, (float) v.m11, (float) v.m12,
+                      0f);
+        bindAttribute(state.attributes[attr.getIndex() + 2], 3, (float) v.m20, (float) v.m21, (float) v.m22,
+                      0f);
     }
 
     @Override
@@ -324,14 +370,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
 
-        bindAttribute(state.attributes[attr.getIndex()], 4, (float) v.m00, (float) v.m01,
-                      (float) v.m02, (float) v.m03);
-        bindAttribute(state.attributes[attr.getIndex() + 1], 4, (float) v.m10,
-                      (float) v.m11, (float) v.m12, (float) v.m13);
-        bindAttribute(state.attributes[attr.getIndex() + 2], 4, (float) v.m20,
-                      (float) v.m21, (float) v.m22, (float) v.m23);
-        bindAttribute(state.attributes[attr.getIndex() + 3], 4, (float) v.m30,
-                      (float) v.m31, (float) v.m32, (float) v.m33);
+        bindAttribute(state.attributes[attr.getIndex()], 4, (float) v.m00, (float) v.m01, (float) v.m02,
+                      (float) v.m03);
+        bindAttribute(state.attributes[attr.getIndex() + 1], 4, (float) v.m10, (float) v.m11, (float) v.m12,
+                      (float) v.m13);
+        bindAttribute(state.attributes[attr.getIndex() + 2], 4, (float) v.m20, (float) v.m21, (float) v.m22,
+                      (float) v.m23);
+        bindAttribute(state.attributes[attr.getIndex() + 3], 4, (float) v.m30, (float) v.m31, (float) v.m32,
+                      (float) v.m33);
     }
 
     @Override
@@ -345,8 +391,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         } else if (var.getType() == Shader.VariableType.INT) {
             bindAttribute(state.attributes[var.getIndex()], 1, false, val, 0, 0, 0);
         } else {
-            throw new IllegalArgumentException(
-                    "Attribute must have a type of INT or UINT");
+            throw new IllegalArgumentException("Attribute must have a type of INT or UINT");
         }
     }
 
@@ -361,8 +406,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         } else if (var.getType() == Shader.VariableType.IVEC2) {
             bindAttribute(state.attributes[var.getIndex()], 2, false, v1, v2, 0, 0);
         } else {
-            throw new IllegalArgumentException(
-                    "Attribute must have a type of IVEC2 or UVEC2");
+            throw new IllegalArgumentException("Attribute must have a type of IVEC2 or UVEC2");
         }
     }
 
@@ -377,8 +421,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         } else if (var.getType() == Shader.VariableType.IVEC3) {
             bindAttribute(state.attributes[var.getIndex()], 3, false, v1, v2, v3, 0);
         } else {
-            throw new IllegalArgumentException(
-                    "Attribute must have a type of IVEC3 or UVEC3");
+            throw new IllegalArgumentException("Attribute must have a type of IVEC3 or UVEC3");
         }
     }
 
@@ -393,8 +436,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         } else if (var.getType() == Shader.VariableType.IVEC4) {
             bindAttribute(state.attributes[var.getIndex()], 4, false, v1, v2, v3, v4);
         } else {
-            throw new IllegalArgumentException(
-                    "Attribute must have a type of IVEC4 or UVEC4");
+            throw new IllegalArgumentException("Attribute must have a type of IVEC4 or UVEC4");
         }
     }
 
@@ -434,15 +476,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, double v1, double v2, double v3,
-                           double v4) {
+    public void setUniform(Shader.Uniform var, double v1, double v2, double v3, double v4) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
-        if (var.getType() != Shader.VariableType.VEC4 &&
-            var.getType() != Shader.VariableType.MAT2) {
-            throw new IllegalArgumentException(
-                    "Uniform must have a type of VEC4 or MAT2");
+        if (var.getType() != Shader.VariableType.VEC4 && var.getType() != Shader.VariableType.MAT2) {
+            throw new IllegalArgumentException("Uniform must have a type of VEC4 or MAT2");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -538,8 +577,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (var.getType() != Shader.VariableType.INT ||
             var.getType() != Shader.VariableType.UINT ||
             var.getType() != Shader.VariableType.BOOL) {
-            throw new IllegalArgumentException(
-                    "Uniform must have a type of INT, UINT, or BOOL");
+            throw new IllegalArgumentException("Uniform must have a type of INT, UINT, or BOOL");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -558,8 +596,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (var.getType() != Shader.VariableType.IVEC2 ||
             var.getType() != Shader.VariableType.UVEC2 ||
             var.getType() != Shader.VariableType.BVEC2) {
-            throw new IllegalArgumentException(
-                    "Uniform must have a type of IVEC2, UVEC2, or BVEC2");
+            throw new IllegalArgumentException("Uniform must have a type of IVEC2, UVEC2, or BVEC2");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -579,8 +616,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (var.getType() != Shader.VariableType.IVEC3 ||
             var.getType() != Shader.VariableType.UVEC3 ||
             var.getType() != Shader.VariableType.BVEC3) {
-            throw new IllegalArgumentException(
-                    "Uniform must have a type of IVEC3, UVEC3, or BVEC3");
+            throw new IllegalArgumentException("Uniform must have a type of IVEC3, UVEC3, or BVEC3");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -602,8 +638,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
         if (var.getType() != Shader.VariableType.IVEC4 ||
             var.getType() != Shader.VariableType.UVEC4 ||
             var.getType() != Shader.VariableType.BVEC4) {
-            throw new IllegalArgumentException(
-                    "Uniform must have a type of IVEC4, UVEC4, or BVEC4");
+            throw new IllegalArgumentException("Uniform must have a type of IVEC4, UVEC4, or BVEC4");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -634,40 +669,31 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3,
-                           boolean v4) {
+    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3, boolean v4) {
         setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0, v4 ? 1 : 0);
     }
 
     private void validateSamplerType(Shader.VariableType type, Sampler texture) {
-        // FIXME this won't work if
         switch (type) {
         case SAMPLER_1D:
             if (!(texture instanceof Texture1D)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_1D can only be used with Texture1D");
+                throw new IllegalArgumentException("SAMPLER_1D can only be used with Texture1D");
             }
             // INT_BIT_FIELD textures all get boiled down to decimal textures
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_1D expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_1D expects decimal texture formats");
             }
             break;
         case SAMPLER_1D_ARRAY:
             if (!(texture instanceof Texture1DArray)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_1D_ARRAY can only be used with Texture1DArray");
+                throw new IllegalArgumentException("SAMPLER_1D_ARRAY can only be used with Texture1DArray");
             }
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_1D_ARRAY expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_1D_ARRAY expects decimal texture formats");
             }
             break;
         case SAMPLER_1D_SHADOW:
-            throw new UnsupportedOperationException(
-                    "Ferox doesn't expose a way to create 1D depth maps");
+            throw new UnsupportedOperationException("Ferox doesn't expose a way to create 1D depth maps");
         case SAMPLER_2D:
             if (!(texture instanceof Texture2D)) {
                 if (texture instanceof DepthMap2D) {
@@ -680,42 +706,32 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
                             "SAMPLER_2D can only be used with Texture2D or DepthMap2D");
                 }
             }
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_2D expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_2D expects decimal texture formats");
             }
             break;
         case SAMPLER_2D_ARRAY:
             if (!(texture instanceof Texture2DArray)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_2D_Array can only be used with Texture2DArray");
+                throw new IllegalArgumentException("SAMPLER_2D_Array can only be used with Texture2DArray");
             }
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_2D_ARRAY expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_2D_ARRAY expects decimal texture formats");
             }
             break;
         case SAMPLER_2D_SHADOW:
             if (!(texture instanceof DepthMap2D)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_2D_SHADOW can only be used with DepthMap2D");
+                throw new IllegalArgumentException("SAMPLER_2D_SHADOW can only be used with DepthMap2D");
             }
             if (((DepthMap2D) texture).getDepthComparison() == null) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_2D_SHADOW requires a depth comparison");
+                throw new IllegalArgumentException("SAMPLER_2D_SHADOW requires a depth comparison");
             }
             break;
         case SAMPLER_3D:
             if (!(texture instanceof Texture3D)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_3D can only be used with Texture3D");
+                throw new IllegalArgumentException("SAMPLER_3D can only be used with Texture3D");
             }
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_3D expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_3D expects decimal texture formats");
             }
             break;
         case SAMPLER_CUBE:
@@ -730,40 +746,33 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
                             "SAMPLER_CUBE can only be used with TextureCubeMap or DepthMapCubeMap");
                 }
             }
-            if (!texture.getDataType().isDecimalNumber() &&
-                texture.getDataType() != DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_CUBE expects decimal texture formats");
+            if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
+                throw new IllegalArgumentException("SAMPLER_CUBE expects decimal texture formats");
             }
             break;
         case SAMPLER_CUBE_SHADOW:
             if (!(texture instanceof DepthCubeMap)) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_CUBE_SHADOW can only be used with DepthCubeMap");
+                throw new IllegalArgumentException("SAMPLER_CUBE_SHADOW can only be used with DepthCubeMap");
             }
             if (((DepthCubeMap) texture).getDepthComparison() == null) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_CUBE_SHADOW requires a depth comparison");
+                throw new IllegalArgumentException("SAMPLER_CUBE_SHADOW requires a depth comparison");
             }
             break;
         case ISAMPLER_1D:
             if (!(texture instanceof Texture1D)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_1D can only be used with Texture1D");
+                throw new IllegalArgumentException("ISAMPLER_1D can only be used with Texture1D");
             }
 
             // INT_BIT_FIELD texture formats are never signed or unsigned integer textures
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "SAMPLER_1D expects signed integer texture formats");
+                throw new IllegalArgumentException("SAMPLER_1D expects signed integer texture formats");
             }
             break;
         case ISAMPLER_1D_ARRAY:
             if (!(texture instanceof Texture1DArray)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_1D_ARRAY can only be used with Texture1DArray");
+                throw new IllegalArgumentException("ISAMPLER_1D_ARRAY can only be used with Texture1DArray");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
@@ -774,20 +783,17 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             break;
         case ISAMPLER_2D:
             if (!(texture instanceof Texture2D)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_2D can only be used with Texture2D");
+                throw new IllegalArgumentException("ISAMPLER_2D can only be used with Texture2D");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_2D expects signed integer texture formats");
+                throw new IllegalArgumentException("ISAMPLER_2D expects signed integer texture formats");
             }
             break;
         case ISAMPLER_2D_ARRAY:
             if (!(texture instanceof Texture2DArray)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_2D_ARRAY can only be used with Texture2DArray");
+                throw new IllegalArgumentException("ISAMPLER_2D_ARRAY can only be used with Texture2DArray");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
@@ -798,44 +804,37 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             break;
         case ISAMPLER_3D:
             if (!(texture instanceof Texture3D)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_3D can only be used with Texture3D");
+                throw new IllegalArgumentException("ISAMPLER_3D can only be used with Texture3D");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_3D expects signed integer texture formats");
+                throw new IllegalArgumentException("ISAMPLER_3D expects signed integer texture formats");
             }
             break;
         case ISAMPLER_CUBE:
             if (!(texture instanceof TextureCubeMap)) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_CUBE can only be used with TextureCubeMap");
+                throw new IllegalArgumentException("ISAMPLER_CUBE can only be used with TextureCubeMap");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_CUBE expects signed integer texture formats");
+                throw new IllegalArgumentException("ISAMPLER_CUBE expects signed integer texture formats");
             }
             break;
         case USAMPLER_1D:
             if (!(texture instanceof Texture1D)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_1D can only be used with Texture1D");
+                throw new IllegalArgumentException("USAMPLER_1D can only be used with Texture1D");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_1D expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_1D expects unsigned integer texture formats");
             }
             break;
         case USAMPLER_1D_ARRAY:
             if (!(texture instanceof Texture1DArray)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_1D_ARRAY can only be used with Texture1DArray");
+                throw new IllegalArgumentException("USAMPLER_1D_ARRAY can only be used with Texture1DArray");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
@@ -846,20 +845,17 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             break;
         case USAMPLER_2D:
             if (!(texture instanceof Texture2D)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_2D can only be used with Texture2D");
+                throw new IllegalArgumentException("USAMPLER_2D can only be used with Texture2D");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_2D expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_2D expects unsigned integer texture formats");
             }
             break;
         case USAMPLER_2D_ARRAY:
             if (!(texture instanceof Texture2DArray)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_2D_ARRAY can only be used with Texture2DArray");
+                throw new IllegalArgumentException("USAMPLER_2D_ARRAY can only be used with Texture2DArray");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
@@ -870,26 +866,22 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
             break;
         case USAMPLER_3D:
             if (!(texture instanceof Texture3D)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_3D can only be used with Texture3D");
+                throw new IllegalArgumentException("USAMPLER_3D can only be used with Texture3D");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_3D expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_3D expects unsigned integer texture formats");
             }
             break;
         case USAMPLER_CUBE:
             if (!(texture instanceof TextureCubeMap)) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_CUBE can only be used with TextureCubeMap");
+                throw new IllegalArgumentException("USAMPLER_CUBE can only be used with TextureCubeMap");
             }
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_CUBE expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_CUBE expects unsigned integer texture formats");
             }
             break;
         }
@@ -899,6 +891,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     public void setUniform(Shader.Uniform var, Sampler texture) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
+        }
+        if (var.getType().getPrimitiveType() != null) {
+            throw new IllegalArgumentException("Uniform type must be a SAMPLER variety");
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
@@ -920,41 +915,37 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer
     }
 
     /**
-     * Set the given uniform's values. The uniform could have any of the INT_ types, the
-     * BOOL type or any of the texture sampler types, and could possibly be an array.
+     * Set the given uniform's values. The uniform could have any of the INT_ types, the BOOL type or any of
+     * the texture sampler types, and could possibly be an array.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, IntBuffer values,
-                                      int count);
+    protected abstract void glUniform(ShaderImpl.UniformImpl u, IntBuffer values, int count);
 
     /**
-     * Set the given uniform's values. The uniform could have any of the FLOAT_ types and
-     * could possibly be an array. The buffer will have been rewound already.
+     * Set the given uniform's values. The uniform could have any of the FLOAT_ types and could possibly be an
+     * array. The buffer will have been rewound already.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values,
-                                      int count);
+    protected abstract void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values, int count);
 
     /**
-     * Enable the given generic vertex attribute to read in data from an attribute pointer
-     * as last assigned by glAttributePointer().
+     * Enable the given generic vertex attribute to read in data from an attribute pointer as last assigned by
+     * glAttributePointer().
      */
     protected abstract void glEnableAttribute(int attr, boolean enable);
 
     /**
-     * Invoke OpenGL commands to set the given attribute pointer. The resource will have
-     * already been bound using glBindArrayVbo. If this is for a texture coordinate,
-     * glActiveClientTexture will already have been called.
+     * Invoke OpenGL commands to set the given attribute pointer. The resource will have already been bound
+     * using glBindArrayVbo. If this is for a texture coordinate, glActiveClientTexture will already have been
+     * called.
      */
-    protected abstract void glAttributePointer(int attr, BufferImpl.BufferHandle handle,
-                                               int offset, int stride, int elementSize);
+    protected abstract void glAttributePointer(int attr, BufferImpl.BufferHandle handle, int offset,
+                                               int stride, int elementSize);
 
     /**
-     * Set the generic vertex attribute at attr to the given vector marked by v1, v2, v3,
-     * and v4. Depending on rowCount, certain vector values can be ignored (i.e. if
-     * rowCount is 3, v4 is meaningless).
+     * Set the generic vertex attribute at attr to the given vector marked by v1, v2, v3, and v4. Depending on
+     * rowCount, certain vector values can be ignored (i.e. if rowCount is 3, v4 is meaningless).
      */
-    protected abstract void glAttributeValue(int attr, int rowCount, float v1, float v2,
-                                             float v3, float v4);
+    protected abstract void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3, float v4);
 
-    protected abstract void glAttributeValue(int attr, int rowCount, boolean unsigned,
-                                             int v1, int v2, int v3, int v4);
+    protected abstract void glAttributeValue(int attr, int rowCount, boolean unsigned, int v1, int v2, int v3,
+                                             int v4);
 }
