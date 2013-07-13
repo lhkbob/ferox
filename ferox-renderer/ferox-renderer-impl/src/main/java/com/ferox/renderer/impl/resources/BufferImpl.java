@@ -8,8 +8,7 @@ import com.ferox.renderer.impl.OpenGLContext;
 /**
  *
  */
-public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandle>
-        implements Buffer {
+public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandle> implements Buffer {
     private final int length;
     private final DataType type;
     private final Object dataArray;

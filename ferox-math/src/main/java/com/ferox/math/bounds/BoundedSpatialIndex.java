@@ -4,9 +4,9 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 
 /**
- * BoundedSpatialIndex is a SpatialIndex that has a maximum extent that all added objects
- * must fit within. It will ignore objects that extend past its extent. This interface
- * provides mechanisms to query and set the size of the extent.
+ * BoundedSpatialIndex is a SpatialIndex that has a maximum extent that all added objects must fit within. It
+ * will ignore objects that extend past its extent. This interface provides mechanisms to query and set the
+ * size of the extent.
  *
  * @param <T>
  *
@@ -23,8 +23,7 @@ public interface BoundedSpatialIndex<T> extends SpatialIndex<T> {
     public AxisAlignedBox getExtent();
 
     /**
-     * Set the new extent of the spatial index. This can only be called when the index is
-     * empty.
+     * Set the new extent of the spatial index. This can only be called when the index is empty.
      *
      * @param bounds The new bounding box for the extent of this index
      *

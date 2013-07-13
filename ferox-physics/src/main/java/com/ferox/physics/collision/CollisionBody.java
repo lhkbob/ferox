@@ -29,41 +29,31 @@ package com.ferox.physics.collision;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
-import com.ferox.math.entreri.AxisAlignedBoxProperty;
-import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.Unmanaged;
-import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.LongProperty;
-import com.lhkbob.entreri.property.LongProperty.DefaultLong;
-import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * <p/>
- * CollisionBody represents an instance of an object in a physics simulation capable of
- * being collided with. It has both {@link Shape shape} and a {@link Matrix4 transform} to
- * describe its local geometry and its world position and orientation. Additionally, it
- * has pseudo-physical parameters for determining its surface's friction coefficients and
- * collision response (e.g. elastic or inelastic).
+ * CollisionBody represents an instance of an object in a physics simulation capable of being collided with.
+ * It has both {@link Shape shape} and a {@link Matrix4 transform} to describe its local geometry and its
+ * world position and orientation. Additionally, it has pseudo-physical parameters for determining its
+ * surface's friction coefficients and collision response (e.g. elastic or inelastic).
  * <p/>
- * CollisionBodies also have configurable "groups" which can restrict the sets of objects
- * that can collide with each other. This is useful for supporting no-clip like features
- * in multiplyer games for members of the same team. Each CollisionBody belongs to some
- * number of integer groups; they also have a bit mask specifying which groups they can
- * collide against. When considering a pair of CollisionBodies for collision, the pair can
- * collide if any of either instance's groups are in the opposite's collision mask. A
+ * CollisionBodies also have configurable "groups" which can restrict the sets of objects that can collide
+ * with each other. This is useful for supporting no-clip like features in multiplyer games for members of the
+ * same team. Each CollisionBody belongs to some number of integer groups; they also have a bit mask
+ * specifying which groups they can collide against. When considering a pair of CollisionBodies for collision,
+ * the pair can collide if any of either instance's groups are in the opposite's collision mask. A
  * CollisionBody with no group cannot collide with anything.
  *
  * @author Michael Ludwig
  */
 public interface CollisionBody extends Component {
     /**
-     * Return the friction coefficient for the surface of this CollisionBody. This is a
-     * pseudo-physical value combining both static and kinetic friction. A value of 0
-     * represents no friction and higher values represent rougher surfaces.
+     * Return the friction coefficient for the surface of this CollisionBody. This is a pseudo-physical value
+     * combining both static and kinetic friction. A value of 0 represents no friction and higher values
+     * represent rougher surfaces.
      *
      * @return The current friction coefficient
      */
@@ -76,14 +66,13 @@ public interface CollisionBody extends Component {
      * @param friction The new friction value
      *
      * @return This instance
-     *
      */
     public CollisionBody setFriction(double friction);
 
     /**
-     * Get the restitution coefficient of this CollisionBody. Restitution is an
-     * approximation of the elasticity of a surface. A restitution of 0 represents a fully
-     * inelastic collision. Higher values represent more elastic collisions.
+     * Get the restitution coefficient of this CollisionBody. Restitution is an approximation of the
+     * elasticity of a surface. A restitution of 0 represents a fully inelastic collision. Higher values
+     * represent more elastic collisions.
      *
      * @return The current restitution coefficient
      */
@@ -91,8 +80,7 @@ public interface CollisionBody extends Component {
     public double getRestitution();
 
     /**
-     * Set the new restitution coefficient. See {@link #getRestitution()} for more
-     * details.
+     * Set the new restitution coefficient. See {@link #getRestitution()} for more details.
      *
      * @param restitution The new restitution value
      *
@@ -132,8 +120,8 @@ public interface CollisionBody extends Component {
     public Shape getShape();
 
     /**
-     * Copy <var>t</var> into this Collidable's transform, updating its location and
-     * orientation. This will also recompute the Collidable's world bounds.
+     * Copy <var>t</var> into this Collidable's transform, updating its location and orientation. This will
+     * also recompute the Collidable's world bounds.
      *
      * @param t The transform to copy
      *
@@ -144,8 +132,8 @@ public interface CollisionBody extends Component {
     public CollisionBody setTransform(@Const Matrix4 t);
 
     /**
-     * Return the current world bounds of this CollisionBody. This is computed based off
-     * of the Shape's local bounds and the current world transform.
+     * Return the current world bounds of this CollisionBody. This is computed based off of the Shape's local
+     * bounds and the current world transform.
      *
      * @return The world bounds of this CollisionBody
      */

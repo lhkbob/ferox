@@ -33,10 +33,9 @@ import com.ferox.math.bounds.Frustum.FrustumIntersection;
 import java.util.Arrays;
 
 /**
- * SimpleSpatialIndex is a SpatialIndex that performs no spatial organization. Each query
- * performs a linear scan through the elements within the hierarchy. Inserts, updates and
- * removals are always constant time, and the SimpleSpatialIndex always accepts every
- * element added to it.
+ * SimpleSpatialIndex is a SpatialIndex that performs no spatial organization. Each query performs a linear
+ * scan through the elements within the hierarchy. Inserts, updates and removals are always constant time, and
+ * the SimpleSpatialIndex always accepts every element added to it.
  *
  * @param <T> The Class type of elements within this hierarchy
  *

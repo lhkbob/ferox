@@ -96,12 +96,10 @@ public class ThreadGroupMonitor {
                     name = t.getName();
                 }
             }
-            aliveId2mon.put(Long.valueOf(newId),
-                            new ThreadMonitor(name, newId, default_slots));
+            aliveId2mon.put(Long.valueOf(newId), new ThreadMonitor(name, newId, default_slots));
         }
         for (long deadId : deadIds) {
-            deadId2mon
-                    .put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
+            deadId2mon.put(Long.valueOf(deadId), aliveId2mon.remove(Long.valueOf(deadId)));
         }
 
         for (ThreadMonitor mon : aliveId2mon.values()) {
@@ -163,8 +161,7 @@ public class ThreadGroupMonitor {
         int threadCount;
 
         Thread[] tempThreadArray = new Thread[8];
-        while ((threadCount = this.group.enumerate(tempThreadArray)) ==
-               tempThreadArray.length) {
+        while ((threadCount = this.group.enumerate(tempThreadArray)) == tempThreadArray.length) {
             tempThreadArray = Arrays.copyOf(tempThreadArray, tempThreadArray.length * 2);
         }
 

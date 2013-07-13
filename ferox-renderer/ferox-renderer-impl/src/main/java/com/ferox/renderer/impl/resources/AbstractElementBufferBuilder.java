@@ -12,8 +12,7 @@ import com.ferox.renderer.impl.OpenGLContext;
  *
  */
 public abstract class AbstractElementBufferBuilder
-        extends AbstractBuilder<ElementBuffer, BufferImpl.BufferHandle>
-        implements ElementBufferBuilder {
+        extends AbstractBuilder<ElementBuffer, BufferImpl.BufferHandle> implements ElementBufferBuilder {
     protected Object array;
     protected int length;
     protected DataType type;
@@ -66,8 +65,7 @@ public abstract class AbstractElementBufferBuilder
     @Override
     protected void validate() {
         if (!framework.getCapabilities().getVertexBufferSupport()) {
-            throw new ResourceException(
-                    "VertexBuffers aren't supported by current hardware");
+            throw new ResourceException("VertexBuffers aren't supported by current hardware");
         }
         if (array == null) {
             throw new ResourceException("Data array must be specified");
@@ -103,8 +101,7 @@ public abstract class AbstractElementBufferBuilder
     protected abstract void pushBufferData(OpenGLContext ctx, java.nio.Buffer buffer);
 
     private static class ElementBufferImpl extends BufferImpl implements ElementBuffer {
-        public ElementBufferImpl(BufferHandle handle, DataType type, int length,
-                                 Object dataArray) {
+        public ElementBufferImpl(BufferHandle handle, DataType type, int length, Object dataArray) {
             super(handle, type, length, dataArray);
         }
     }

@@ -3,16 +3,14 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.TextureCubeMap;
 
 /**
- * TextureCubeMapBuilder is a concrete sampler builder for {@link TextureCubeMap}
- * resources. It uses {@link CubeImageBuilder} instances to specify the actual mipmap
- * image data and build the final TextureCubeMap.
+ * TextureCubeMapBuilder is a concrete sampler builder for {@link TextureCubeMap} resources. It uses {@link
+ * CubeImageBuilder} instances to specify the actual mipmap image data and build the final TextureCubeMap.
  *
  * @author Michael Ludwig
  */
 public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuilder> {
     /**
-     * Configure the width and height of each 2D face of the texture at the 0th mipmap
-     * level.
+     * Configure the width and height of each 2D face of the texture at the 0th mipmap level.
      *
      * @param side The side length of the cube
      *
@@ -24,9 +22,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public TextureCubeMapBuilder side(int side);
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#R}. The
+     * returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *
@@ -35,9 +33,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> r();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}. The
+     * returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *
@@ -46,10 +44,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> rg();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}
-     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGB}. The returned
-     * image builder can be used to specify some or all mipmap levels and then build the
-     * final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB} or
+     * {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGB}. The returned image builder can be used
+     * to specify some or all mipmap levels and then build the final image.
      *
      * @return The final image builder
      *
@@ -59,9 +56,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
-     * OpenGL will interpret the components in the order B, G, R instead of R, G, B within
-     * the data arrays for each image. The returned image builder can be used to specify
-     * some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order B, G, R instead of R, G, B within the data arrays for
+     * each image. The returned image builder can be used to specify some or all mipmap levels and then build
+     * the final image.
      *
      * @return The final image builder
      *
@@ -70,10 +67,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
     public CubeImageBuilder<TextureCubeMap, BasicColorData> bgr();
 
     /**
-     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}
-     * or {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGBA}. The returned
-     * image builder can be used to specify some or all mipmap levels and then build the
-     * final image.
+     * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA} or
+     * {@link com.ferox.renderer.Sampler.TexelFormat#COMPRESSED_RGBA}. The returned image builder can be used
+     * to specify some or all mipmap levels and then build the final image.
      *
      * @return The final image builder
      *
@@ -83,9 +79,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
-     * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A
-     * within the data arrays for each image. The returned image builder can be used to
-     * specify some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order B, G, R, A instead of R, G, B, A within the data
+     * arrays for each image. The returned image builder can be used to specify some or all mipmap levels and
+     * then build the final image.
      *
      * @return The final image builder
      *
@@ -95,9 +91,9 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
-     * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A
-     * within the data arrays for each image. The returned image builder can be used to
-     * specify some or all mipmap levels and then build the final image.
+     * OpenGL will interpret the components in the order A, R, G, B instead of R, G, B, A within the data
+     * arrays for each image. The returned image builder can be used to specify some or all mipmap levels and
+     * then build the final image.
      *
      * @return The final image builder
      *

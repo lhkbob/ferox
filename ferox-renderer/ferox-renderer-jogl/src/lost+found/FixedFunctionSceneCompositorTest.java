@@ -76,9 +76,8 @@ public class FixedFunctionSceneCompositorTest {
         //            System.out.println("\t" + f.getFontName());
         //        }
         System.out.println("Chosen font: " + DEFAULT_CHARSET.getFont().getFontName());
-        System.out.println(
-                "Character set dimensions: " + DEFAULT_CHARSET.getTexture().getWidth() +
-                " " + DEFAULT_CHARSET.getTexture().getHeight());
+        System.out.println("Character set dimensions: " + DEFAULT_CHARSET.getTexture().getWidth() +
+                           " " + DEFAULT_CHARSET.getTexture().getHeight());
     }
 
     public static void main(String[] args) throws Exception {
@@ -97,11 +96,8 @@ public class FixedFunctionSceneCompositorTest {
         ViewNodeController c5 = new ViewNodeController(system, sh);
 
         // FIXME: make this sizing/placement of shadowmap better and more intuitive
-        ShadowMapFrustumController c6 = new ShadowMapFrustumController(system, sh, .075f,
-                                                                       1024);
-        FixedFunctionRenderController c7 = new FixedFunctionRenderController(system,
-                                                                             organizer,
-                                                                             2048);
+        ShadowMapFrustumController c6 = new ShadowMapFrustumController(system, sh, .075f, 1024);
+        FixedFunctionRenderController c7 = new FixedFunctionRenderController(system, organizer, 2048);
 
         TextRenderPass textPass = new TextRenderPass();
         Text stats = new Text(DEFAULT_CHARSET, CompileType.NONE);
@@ -113,8 +109,7 @@ public class FixedFunctionSceneCompositorTest {
 
         // scene element controlling the viewnode
         Entity camera = system.iterator(Component.getComponentId(Camera.class)).next();
-        FreeLookCameraInputManager ioManager = new FreeLookCameraInputManager(surface,
-                                                                              camera);
+        FreeLookCameraInputManager ioManager = new FreeLookCameraInputManager(surface, camera);
         ioManager.addTrigger(new Trigger() {
             @Override
             public void onTrigger(InputState prev, InputState next) {
@@ -155,8 +150,7 @@ public class FixedFunctionSceneCompositorTest {
                 framesCompleted++;
 
                 if (frameStats.getRenderTime() / 1e6f > 100) {
-                    System.out.println("Exceptionally slow frame: " +
-                                       (frameStats.getRenderTime() / 1e6f));
+                    System.out.println("Exceptionally slow frame: " + (frameStats.getRenderTime() / 1e6f));
                 }
 
                 if (framesCompleted >= numFramesPerUpdate) {
@@ -164,16 +158,12 @@ public class FixedFunctionSceneCompositorTest {
                     long now = System.nanoTime();
                     float fps = numFramesPerUpdate * 1e9f / (now - start);
                     int timeInRender = (int) (renderTime / (1e6f * numFramesPerUpdate));
-                    int timeInProcess =
-                            (int) ((now - start) / (1e6f * numFramesPerUpdate)) -
-                            timeInRender;
+                    int timeInProcess = (int) ((now - start) / (1e6f * numFramesPerUpdate)) - timeInRender;
 
                     stats.setText(
-                            String.format("FPS: %.2f (%d + %d)\nPolys: %d\nMem: %.2f",
-                                          fps, timeInProcess, timeInRender,
-                                          frameStats.getPolygonCount(),
-                                          (r.totalMemory() - r.freeMemory()) /
-                                          (1024f * 1024f)));
+                            String.format("FPS: %.2f (%d + %d)\nPolys: %d\nMem: %.2f", fps, timeInProcess,
+                                          timeInRender, frameStats.getPolygonCount(),
+                                          (r.totalMemory() - r.freeMemory()) / (1024f * 1024f)));
 
                     // reset counters
                     start = now;
@@ -187,11 +177,10 @@ public class FixedFunctionSceneCompositorTest {
         framework.destroy();
     }
 
-    private static OnscreenSurface buildSurface(Framework framework,
-                                                EntitySystem system) {
-        OnscreenSurfaceOptions options = new OnscreenSurfaceOptions()
-                .setPixelFormat(PixelFormat.RGB_24BIT)
-                .setAntiAliasMode(AntiAliasMode.EIGHT_X).setWidth(800).setHeight(600);
+    private static OnscreenSurface buildSurface(Framework framework, EntitySystem system) {
+        OnscreenSurfaceOptions options = new OnscreenSurfaceOptions().setPixelFormat(PixelFormat.RGB_24BIT)
+                                                                     .setAntiAliasMode(AntiAliasMode.EIGHT_X)
+                                                                     .setWidth(800).setHeight(600);
         OnscreenSurface surface = framework.createSurface(options);
         surface.setClearColor(new Color3f(.5f, .5f, .5f, 1f));
         //        surface.setVSyncEnabled(true);
@@ -225,8 +214,7 @@ public class FixedFunctionSceneCompositorTest {
         ShadowCaster sc = new ShadowCaster();
         ShadowReceiver sr = new ShadowReceiver();
 
-        TexturedMaterial texture = new TexturedMaterial(
-                TextureLoader.readTexture(new File("ferox-gl.tga")));
+        TexturedMaterial texture = new TexturedMaterial(TextureLoader.readTexture(new File("ferox-gl.tga")));
         BlinnPhongMaterial material = new BlinnPhongMaterial(new Color3f(1f, 1f, 1f, .4f),
                                                              new Color3f(.2f, 0f, .1f));
         Transparent trans = new Transparent();
@@ -255,19 +243,12 @@ public class FixedFunctionSceneCompositorTest {
                 text.setScale(.15f);
 
                 Entity t = new Entity(new Transform(), new Attached(e,
-                                                                    new Matrix4f(1f, 0f,
-                                                                                 0f, 0f,
-                                                                                 0f, 1f,
-                                                                                 0f,
-                                                                                 text.getTextHeight(),
-                                                                                 0f, 0f,
-                                                                                 1f, 0f,
-                                                                                 0f, 0f,
-                                                                                 0f, 1f)),
+                                                                    new Matrix4f(1f, 0f, 0f, 0f, 0f, 1f, 0f,
+                                                                                 text.getTextHeight(), 0f, 0f,
+                                                                                 1f, 0f, 0f, 0f, 0f, 1f)),
                                       new Renderable(DrawStyle.SOLID, DrawStyle.SOLID),
                                       new SolidMaterial(new Color3f(1f, 1f, 1f)),
-                                      new TexturedMaterial(
-                                              text.getCharacterSet().getTexture()),
+                                      new TexturedMaterial(text.getCharacterSet().getTexture()),
                                       new Shape(text), b, trans);
 
                 scene.add(t);
@@ -299,18 +280,16 @@ public class FixedFunctionSceneCompositorTest {
         }
 
         // some walls
-        Rectangle backWall = new Rectangle(new Vector3f(0f, 1f, 0f),
-                                           new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS,
-                                           -BOUNDS, BOUNDS);
+        Rectangle backWall = new Rectangle(new Vector3f(0f, 1f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS,
+                                           BOUNDS, -BOUNDS, BOUNDS);
         Transform pos = new Transform();
         pos.setTranslation(new Vector3f(BOUNDS, 0f, 0f));
         pos.setLocalBounds(new AxisAlignedBox(backWall.getVertices().getData()));
         scene.add(new Entity(pos, new Shape(backWall), material, texture,
                              new Renderable(DrawStyle.SOLID, DrawStyle.SOLID), sr));
 
-        Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f),
-                                             new Vector3f(0f, 0f, -1f), -BOUNDS, BOUNDS,
-                                             -BOUNDS, BOUNDS);
+        Rectangle bottomWall = new Rectangle(new Vector3f(1f, 0f, 0f), new Vector3f(0f, 0f, -1f), -BOUNDS,
+                                             BOUNDS, -BOUNDS, BOUNDS);
         pos = new Transform();
         pos.setTranslation(new Vector3f(0f, -BOUNDS, 0f));
         pos.setLocalBounds(new AxisAlignedBox(bottomWall.getVertices().getData()));
@@ -321,12 +300,11 @@ public class FixedFunctionSceneCompositorTest {
         scene.add(new Entity(new AmbientLight(new Color3f(.2f, .2f, .2f, 1f))));
 
         // a point light
-        scene.add(new Entity(new SpotLight(new Color3f(.5f, .8f, 0f),
-                                           new Vector3f(BOUNDS / 2f, 0f, BOUNDS))));
+        scene.add(
+                new Entity(new SpotLight(new Color3f(.5f, .8f, 0f), new Vector3f(BOUNDS / 2f, 0f, BOUNDS))));
 
         // a directed light, which casts shadows
-        scene.add(new Entity(new DirectionLight(new Color3f(1f, 1f, 1f),
-                                                new Vector3f(1f, -1f, -1f).normalize()),
-                             sc));
+        scene.add(new Entity(
+                new DirectionLight(new Color3f(1f, 1f, 1f), new Vector3f(1f, -1f, -1f).normalize()), sc));
     }
 }

@@ -31,15 +31,18 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.impl.*;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
+import com.ferox.renderer.impl.AbstractSurface;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
+import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -52,8 +55,8 @@ import java.nio.FloatBuffer;
 import java.util.EnumSet;
 
 /**
- * JoglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that
- * uses a {@link JoglRendererDelegate} for the JOGL OpenGL binding.
+ * JoglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that uses a {@link
+ * JoglRendererDelegate} for the JOGL OpenGL binding.
  *
  * @author Michael Ludwig
  */
@@ -81,8 +84,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context,
-                         ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -202,8 +204,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glLightPosition(int light, @Const Vector4 pos) {
         pos.get(transferBuffer, 0);
-        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_POSITION,
-                          transferBuffer);
+        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_POSITION, transferBuffer);
     }
 
     @Override
@@ -211,19 +212,16 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         dir.get(transferBuffer, 0);
         transferBuffer.rewind();
 
-        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light,
-                          GLLightingFunc.GL_SPOT_DIRECTION, transferBuffer);
+        getGL().glLightfv(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_SPOT_DIRECTION, transferBuffer);
     }
 
     @Override
     protected void glLightAngle(int light, double angle) {
-        getGL().glLightf(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_SPOT_CUTOFF,
-                         (float) angle);
+        getGL().glLightf(GLLightingFunc.GL_LIGHT0 + light, GLLightingFunc.GL_SPOT_CUTOFF, (float) angle);
     }
 
     @Override
-    protected void glLightAttenuation(int light, double constant, double linear,
-                                      double quadratic) {
+    protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GLLightingFunc.GL_LIGHT0;
         GL2 gl = getGL();
         gl.glLightf(light, GLLightingFunc.GL_CONSTANT_ATTENUATION, (float) constant);
@@ -243,8 +241,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableTwoSidedLighting(boolean enable) {
-        getGL().glLightModeli(GL2ES1.GL_LIGHT_MODEL_TWO_SIDE,
-                              enable ? GL.GL_TRUE : GL.GL_FALSE);
+        getGL().glLightModeli(GL2ES1.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL.GL_TRUE : GL.GL_FALSE);
     }
 
     @Override
@@ -272,8 +269,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glMaterialShininess(double shininess) {
-        getGL().glMaterialf(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_SHININESS,
-                            (float) shininess);
+        getGL().glMaterialf(GL.GL_FRONT_AND_BACK, GLLightingFunc.GL_SHININESS, (float) shininess);
     }
 
     @Override
@@ -318,8 +314,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         color.get(transferBuffer, 0);
         transferBuffer.rewind();
 
-        getGL().glTexEnvfv(GL2ES1.GL_TEXTURE_ENV, GL2ES1.GL_TEXTURE_ENV_COLOR,
-                           transferBuffer);
+        getGL().glTexEnvfv(GL2ES1.GL_TEXTURE_ENV, GL2ES1.GL_TEXTURE_ENV_COLOR, transferBuffer);
     }
 
     @Override
@@ -477,8 +472,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h,
-                                      int offset, int stride, int elementSize) {
+    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset, int stride,
+                                      int elementSize) {
         int strideBytes = (stride + elementSize) * h.dataType.getByteCount();
 
         if (h.mode == StorageMode.IN_MEMORY) {
@@ -489,16 +484,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 getGL().glNormalPointer(GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes,
-                                          h.inmemoryBuffer);
+                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case VERTICES:
-                getGL().glVertexPointer(elementSize, GL.GL_FLOAT, strideBytes,
-                                        h.inmemoryBuffer);
+                getGL().glVertexPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             case COLORS:
-                getGL().glColorPointer(elementSize, GL.GL_FLOAT, strideBytes,
-                                       h.inmemoryBuffer);
+                getGL().glColorPointer(elementSize, GL.GL_FLOAT, strideBytes, h.inmemoryBuffer);
                 break;
             }
         } else {
@@ -509,8 +501,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 getGL().glNormalPointer(GL.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes,
-                                          vboOffset);
+                getGL().glTexCoordPointer(elementSize, GL.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case VERTICES:
                 getGL().glVertexPointer(elementSize, GL.GL_FLOAT, strideBytes, vboOffset);

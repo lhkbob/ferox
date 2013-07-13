@@ -85,8 +85,7 @@ public final class NullGraphics extends Graphics {
     }
 
     @Override
-    public void fillRoundRect(int x, int y, int width, int height, int arcWidth,
-                              int arcHeight) {
+    public void fillRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
     }
 
     @Override
@@ -102,8 +101,7 @@ public final class NullGraphics extends Graphics {
     }
 
     @Override
-    public void fillArc(int x, int y, int width, int height, int startAngle,
-                        int arcAngle) {
+    public void fillArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
     }
 
     @Override
@@ -115,8 +113,7 @@ public final class NullGraphics extends Graphics {
     }
 
     @Override
-    public void drawRoundRect(int x, int y, int width, int height, int arcWidth,
-                              int arcHeight) {
+    public void drawRoundRect(int x, int y, int width, int height, int arcWidth, int arcHeight) {
     }
 
     @Override
@@ -136,33 +133,30 @@ public final class NullGraphics extends Graphics {
     }
 
     @Override
-    public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1,
-                             int sy1, int sx2, int sy2, Color bgcolor,
+    public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2,
+                             int sy2, Color bgcolor, ImageObserver observer) {
+        return false;
+    }
+
+    @Override
+    public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1, int sy1, int sx2,
+                             int sy2, ImageObserver observer) {
+        return false;
+    }
+
+    @Override
+    public boolean drawImage(Image img, int x, int y, int width, int height, Color bgcolor,
                              ImageObserver observer) {
         return false;
     }
 
     @Override
-    public boolean drawImage(Image img, int dx1, int dy1, int dx2, int dy2, int sx1,
-                             int sy1, int sx2, int sy2, ImageObserver observer) {
+    public boolean drawImage(Image img, int x, int y, int width, int height, ImageObserver observer) {
         return false;
     }
 
     @Override
-    public boolean drawImage(Image img, int x, int y, int width, int height,
-                             Color bgcolor, ImageObserver observer) {
-        return false;
-    }
-
-    @Override
-    public boolean drawImage(Image img, int x, int y, int width, int height,
-                             ImageObserver observer) {
-        return false;
-    }
-
-    @Override
-    public boolean drawImage(Image img, int x, int y, Color bgcolor,
-                             ImageObserver observer) {
+    public boolean drawImage(Image img, int x, int y, Color bgcolor, ImageObserver observer) {
         return false;
     }
 
@@ -172,8 +166,7 @@ public final class NullGraphics extends Graphics {
     }
 
     @Override
-    public void drawArc(int x, int y, int width, int height, int startAngle,
-                        int arcAngle) {
+    public void drawArc(int x, int y, int width, int height, int startAngle, int arcAngle) {
     }
 
     @Override

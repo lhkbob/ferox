@@ -3,9 +3,8 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.DepthMap2D;
 
 /**
- * DepthMap2DBuilder is a concrete sampler builder for {@link DepthMap2D} resources. It
- * uses {@link SingleImageBuilder} instances to specify the actual mipmap image data and
- * build the final DepthMap2D.
+ * DepthMap2DBuilder is a concrete sampler builder for {@link DepthMap2D} resources. It uses {@link
+ * SingleImageBuilder} instances to specify the actual mipmap image data and build the final DepthMap2D.
  *
  * @author Michael Ludwig
  */
@@ -35,9 +34,9 @@ public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
     public DepthMap2DBuilder height(int height);
 
     /**
-     * Configure the sampler to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * Configure the sampler to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH}. The
+     * returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *
@@ -47,8 +46,8 @@ public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH_STENCIL}.
-     * The returned image builder can be used to specify some or all mipmap levels and
-     * then build the final image.
+     * The returned image builder can be used to specify some or all mipmap levels and then build the final
+     * image.
      *
      * @return The final image builder
      *

@@ -29,15 +29,15 @@ package com.ferox.renderer.impl.jogl;
 import com.ferox.renderer.FixedFunctionRenderer.*;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.ContextManager;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.GlslShader.AttributeType;
-import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.Uniform.UniformType;
 import com.ferox.renderer.texture.Texture;
 import com.ferox.renderer.texture.Texture.Filter;
 import com.ferox.renderer.texture.Texture.Target;
 import com.ferox.renderer.texture.Texture.WrapMode;
 import com.ferox.renderer.texture.TextureFormat;
+import com.ferox.resource.BufferData.DataType;
+import com.ferox.resource.GlslShader.AttributeType;
+import com.ferox.resource.GlslShader.ShaderType;
+import com.ferox.resource.Uniform.UniformType;
 
 import javax.media.opengl.*;
 import java.util.concurrent.Callable;
@@ -45,15 +45,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
- * Utils provides conversions for the commonly used enums in Resources and Renderers to
- * their appropriate GL enum values, as well as some other useful utilities.
+ * Utils provides conversions for the commonly used enums in Resources and Renderers to their appropriate GL
+ * enum values, as well as some other useful utilities.
  *
  * @author Michael Ludwig
  */
 public class Utils {
     /**
-     * Return the UniformType enum value associated with the returned GL2 enum for uniform
-     * variable type. Returns null if there's no matching UniformType.
+     * Return the UniformType enum value associated with the returned GL2 enum for uniform variable type.
+     * Returns null if there's no matching UniformType.
      */
     public static UniformType getUniformType(int type) {
         switch (type) {
@@ -101,8 +101,8 @@ public class Utils {
     }
 
     /**
-     * Return the AttributeType enum value associated with the returned GL2 enum for
-     * attribute variable type. Returns null if there's no matching AttributeType.
+     * Return the AttributeType enum value associated with the returned GL2 enum for attribute variable type.
+     * Returns null if there's no matching AttributeType.
      */
     public static AttributeType getAttributeType(int type) {
         switch (type) {
@@ -188,8 +188,7 @@ public class Utils {
     }
 
     /**
-     * Return the gl enum associated with the given filter for minification. filter must
-     * not be null.
+     * Return the gl enum associated with the given filter for minification. filter must not be null.
      */
     public static int getGLMinFilter(Filter filter) {
         switch (filter) {
@@ -207,8 +206,7 @@ public class Utils {
     }
 
     /**
-     * Return the gl enum associated with the given filter for magnification. filter must
-     * not be null.
+     * Return the gl enum associated with the given filter for magnification. filter must not be null.
      */
     public static int getGLMagFilter(Filter filter) {
         switch (filter) {
@@ -282,8 +280,8 @@ public class Utils {
     }
 
     /**
-     * Format must not be null. Returns an enum for the src format in glTexImage. Returns
-     * -1 for compressed formats.
+     * Format must not be null. Returns an enum for the src format in glTexImage. Returns -1 for compressed
+     * formats.
      */
     public static int getGLSrcFormat(TextureFormat format) {
         switch (format) {
@@ -447,9 +445,8 @@ public class Utils {
     }
 
     /**
-     * Format must not be null. Returns an appropriate data type for packed source format.
-     * Returns -1 if it's not a packed type. These are chosen with the assumption of
-     * big-endian byte ordering.
+     * Format must not be null. Returns an appropriate data type for packed source format. Returns -1 if it's
+     * not a packed type. These are chosen with the assumption of big-endian byte ordering.
      */
     public static int getGLPackedType(TextureFormat format) {
         switch (format) {
@@ -754,13 +751,12 @@ public class Utils {
     }
 
     /**
-     * Utility method to invoke a Runnable on the context-thread of the given framework.
-     * This will throw a runtime exception if a problem occurs. It works properly if
-     * called from the context thread. This should be used when EventQueue.invokeAndWait()
-     * or SwingUtilities.invokeAndWait() would be used, except that this is thread safe.
+     * Utility method to invoke a Runnable on the context-thread of the given framework. This will throw a
+     * runtime exception if a problem occurs. It works properly if called from the context thread. This should
+     * be used when EventQueue.invokeAndWait() or SwingUtilities.invokeAndWait() would be used, except that
+     * this is thread safe.
      */
-    public static void invokeOnContextThread(ContextManager cm, final Runnable r,
-                                             boolean block) {
+    public static void invokeOnContextThread(ContextManager cm, final Runnable r, boolean block) {
         if (cm.isContextThread()) {
             r.run();
         } else {

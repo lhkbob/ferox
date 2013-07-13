@@ -31,15 +31,18 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.impl.*;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
+import com.ferox.renderer.impl.AbstractSurface;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
+import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
@@ -47,8 +50,8 @@ import java.nio.FloatBuffer;
 import java.util.EnumSet;
 
 /**
- * LwjglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that
- * uses a {@link LwjglRendererDelegate} for the LWJGL OpenGL binding.
+ * LwjglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that uses a {@link
+ * LwjglRendererDelegate} for the LWJGL OpenGL binding.
  *
  * @author Michael Ludwig
  */
@@ -76,8 +79,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context,
-                         ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -206,8 +208,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightAttenuation(int light, double constant, double linear,
-                                      double quadratic) {
+    protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GL11.GL_LIGHT0;
         GL11.glLightf(light, GL11.GL_CONSTANT_ATTENUATION, (float) constant);
         GL11.glLightf(light, GL11.GL_LINEAR_ATTENUATION, (float) linear);
@@ -226,8 +227,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glEnableTwoSidedLighting(boolean enable) {
-        GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE,
-                           enable ? GL11.GL_TRUE : GL11.GL_FALSE);
+        GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL11.GL_TRUE : GL11.GL_FALSE);
     }
 
     @Override
@@ -448,8 +448,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h,
-                                      int offset, int stride, int elementSize) {
+    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset, int stride,
+                                      int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
 
         if (h.mode == StorageMode.IN_MEMORY) {
@@ -460,16 +460,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 GL11.glNormalPointer(strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, strideBytes,
-                                       (FloatBuffer) h.inmemoryBuffer);
+                GL11.glTexCoordPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, strideBytes,
-                                     (FloatBuffer) h.inmemoryBuffer);
+                GL11.glVertexPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             case COLORS:
-                GL11.glColorPointer(elementSize, strideBytes,
-                                    (FloatBuffer) h.inmemoryBuffer);
+                GL11.glColorPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
                 break;
             }
         } else {
@@ -480,8 +477,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 GL11.glNormalPointer(GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes,
-                                       vboOffset);
+                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
                 break;
             case VERTICES:
                 GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);

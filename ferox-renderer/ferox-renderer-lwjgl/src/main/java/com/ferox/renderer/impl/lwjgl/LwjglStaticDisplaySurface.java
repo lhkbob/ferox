@@ -37,8 +37,8 @@ import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
 import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
 import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.SurfaceCreationException;
-import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import org.lwjgl.LWJGLException;
@@ -54,14 +54,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 
 /**
- * LwjglStaticDisplaySurface is a surface that uses LWJGL's static {@link Display}
- * interface for window management. There can be only one surface active at one time
- * because of the static nature of the Display API.
+ * LwjglStaticDisplaySurface is a surface that uses LWJGL's static {@link Display} interface for window
+ * management. There can be only one surface active at one time because of the static nature of the Display
+ * API.
  *
  * @author Michael Ludwig
  */
-public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
-        implements WindowListener {
+public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implements WindowListener {
     // parentFrame and glCanvas are null when Display.setParent() was not used
     private final Frame parentFrame;
     private final Canvas glCanvas;
@@ -79,10 +78,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
     private boolean vsyncNeedsUpdate;
     private boolean closable;
 
-    public LwjglStaticDisplaySurface(FrameworkImpl framework,
-                                     LwjglSurfaceFactory factory,
-                                     OnscreenSurfaceOptions options,
-                                     LwjglContext shareWith, RendererProvider provider) {
+    public LwjglStaticDisplaySurface(FrameworkImpl framework, LwjglSurfaceFactory factory,
+                                     OnscreenSurfaceOptions options, LwjglContext shareWith,
+                                     RendererProvider provider) {
         super(framework);
 
         if (Display.isCreated()) {
@@ -102,10 +100,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
         boolean fullscreen = false;
         if (options.getFullscreenMode() != null) {
             // try to configure this as a fullscreen window without an AWT parent
-            DisplayMode bestMode = factory
-                    .chooseCompatibleDisplayMode(options.getFullscreenMode());
-            org.lwjgl.opengl.DisplayMode lwjglMode = factory
-                    .getLWJGLDisplayMode(bestMode);
+            DisplayMode bestMode = factory.chooseCompatibleDisplayMode(options.getFullscreenMode());
+            org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(bestMode);
 
             if (lwjglMode != null) {
                 try {
@@ -119,15 +115,13 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
                     if (Display.isCreated()) {
                         Display.destroy();
                     }
-                    throw new SurfaceCreationException("Unable to create static display",
-                                                       e);
+                    throw new SurfaceCreationException("Unable to create static display", e);
                 }
 
                 // update options to reflect successful fullscreen support
-                options = options.setResizable(false).setUndecorated(true)
-                                 .setFullscreenMode(bestMode)
-                                 .setWidth(bestMode.getWidth())
-                                 .setHeight(bestMode.getHeight()).setX(0).setY(0);
+                options = options.setResizable(false).setUndecorated(true).setFullscreenMode(bestMode)
+                                 .setWidth(bestMode.getWidth()).setHeight(bestMode.getHeight()).setX(0)
+                                 .setY(0);
 
                 fullscreen = true;
             }
@@ -149,9 +143,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
                     OnscreenSurfaceOptions options = LwjglStaticDisplaySurface.this.options;
                     parentFrame.setResizable(options.isResizable());
                     parentFrame.setUndecorated(options.isUndecorated());
-                    parentFrame
-                            .setBounds(options.getX(), options.getY(), options.getWidth(),
-                                       options.getHeight());
+                    parentFrame.setBounds(options.getX(), options.getY(), options.getWidth(),
+                                          options.getHeight());
 
                     parentFrame.add(glCanvas);
 
@@ -196,10 +189,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
      * Start the monitoring threads needed for event pulling and window management.
      */
     public void initialize() {
-        ThreadGroup managedGroup = getFramework().getLifeCycleManager()
-                .getManagedThreadGroup();
-        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(),
-                                         "lwjgl-event-monitor");
+        ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
+        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
         eventMonitor.setDaemon(true);
         getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
 
@@ -303,8 +294,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException(
-                    "Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
         }
 
         if (parentFrame != null) {
@@ -324,8 +314,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
     @Override
     public void setLocation(final int x, final int y) {
         if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException(
-                    "Cannot call setWindowSize() on a fullscreen surface");
+            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
         }
 
         if (parentFrame != null) {
@@ -560,8 +549,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
         if (options.getFullscreenMode() != null) {
             DisplayMode fullscreen = options.getFullscreenMode();
             options = options.setFullscreenMode(
-                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(),
-                                    format));
+                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
         }
 
         options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
@@ -577,10 +565,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface
             while (!isDestroyed()) {
                 try {
                     long blockedTime = -System.nanoTime();
-                    getFramework().getContextManager()
-                            .invokeOnContextThread(new InputTask(), false).get();
-                    getFramework().getContextManager()
-                            .invokeOnContextThread(new CloseRequestTask(), false).get();
+                    getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
+                    getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false)
+                            .get();
                     blockedTime += System.nanoTime();
 
                     if (blockedTime < 1000000) {

@@ -74,8 +74,7 @@ public final class Influences extends ComponentData<Influences> {
         return set.contains(e);
     }
 
-    private static class SetFactory
-            implements PropertyFactory<ObjectProperty<Set<Entity>>> {
+    private static class SetFactory implements PropertyFactory<ObjectProperty<Set<Entity>>> {
         @Override
         public ObjectProperty<Set<Entity>> create() {
             return new ObjectProperty<Set<Entity>>();
@@ -87,8 +86,8 @@ public final class Influences extends ComponentData<Influences> {
         }
 
         @Override
-        public void clone(ObjectProperty<Set<Entity>> src, int srcIndex,
-                          ObjectProperty<Set<Entity>> dst, int dstIndex) {
+        public void clone(ObjectProperty<Set<Entity>> src, int srcIndex, ObjectProperty<Set<Entity>> dst,
+                          int dstIndex) {
             Set<Entity> toClone = src.get(srcIndex);
             dst.set(new HashSet<Entity>(toClone), dstIndex);
         }

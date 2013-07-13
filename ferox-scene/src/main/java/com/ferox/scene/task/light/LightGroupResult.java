@@ -38,8 +38,7 @@ public class LightGroupResult extends Result {
     private final IntProperty groupAssignment;
     private final List<Set<Component<? extends Light<?>>>> groups;
 
-    public LightGroupResult(List<Set<Component<? extends Light<?>>>> groups,
-                            IntProperty assignment) {
+    public LightGroupResult(List<Set<Component<? extends Light<?>>>> groups, IntProperty assignment) {
         if (assignment == null) {
             throw new NullPointerException("Property cannot be null");
         }

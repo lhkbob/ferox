@@ -12,8 +12,7 @@ public class GeometryState implements State {
     private DrawStyle front;
     private DrawStyle back;
 
-    public void set(VertexAttribute vertices, VertexAttribute normals, DrawStyle front,
-                    DrawStyle back) {
+    public void set(VertexAttribute vertices, VertexAttribute normals, DrawStyle front, DrawStyle back) {
         this.vertices = vertices;
         this.normals = normals;
         this.front = front;
@@ -21,8 +20,7 @@ public class GeometryState implements State {
     }
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
         r.setDrawStyle(front, back);

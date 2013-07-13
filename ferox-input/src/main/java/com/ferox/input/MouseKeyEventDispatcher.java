@@ -33,17 +33,16 @@ import java.util.concurrent.RejectedExecutionException;
 
 /**
  * <p/>
- * MouseKeyEventDispatcher is a convenience class that implements the necessary logic to
- * register and unregister listeners as required by the {@link MouseEventSource} and
- * {@link KeyEventSource} interfaces, and dispatch events to those listeners.
+ * MouseKeyEventDispatcher is a convenience class that implements the necessary logic to register and
+ * unregister listeners as required by the {@link MouseEventSource} and {@link KeyEventSource} interfaces, and
+ * dispatch events to those listeners.
  * <p/>
- * Event sources can create a MouseKeyEventDispatcher and delegate their interface methods
- * to the dispatcher as appropriate. When their low-level event system or polling produces
- * an event, they can then invoke {@link #dispatchEvent(Event)} to have their dispatcher
- * invoke all listeners on an internal thread.
+ * Event sources can create a MouseKeyEventDispatcher and delegate their interface methods to the dispatcher
+ * as appropriate. When their low-level event system or polling produces an event, they can then invoke {@link
+ * #dispatchEvent(Event)} to have their dispatcher invoke all listeners on an internal thread.
  * <p/>
- * When an event source is destroyed, they must be sure to call {@link #shutdown()} to end
- * the internal dispatch thread.
+ * When an event source is destroyed, they must be sure to call {@link #shutdown()} to end the internal
+ * dispatch thread.
  * <p/>
  * This class is thread safe.
  *
@@ -127,18 +126,16 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Dispatch the given event to all registered listeners that are interested in the
-     * event. This will be invoked on an internal thread managed by this dispatcher.
+     * Dispatch the given event to all registered listeners that are interested in the event. This will be
+     * invoked on an internal thread managed by this dispatcher.
      *
      * @param e The event to dispatch to listeners
      *
-     * @throws IllegalArgumentException if e's source is not the same source as the
-     *                                  dispatcher's
+     * @throws IllegalArgumentException if e's source is not the same source as the dispatcher's
      */
     public void dispatchEvent(Event e) {
         if (e.getSource() != source) {
-            throw new IllegalArgumentException(
-                    "Event's source does not match this dispatcher's source");
+            throw new IllegalArgumentException("Event's source does not match this dispatcher's source");
         }
 
         try {
@@ -147,8 +144,7 @@ public class MouseKeyEventDispatcher {
             } else if (e instanceof KeyEvent) {
                 executor.submit(new KeyEventTask((KeyEvent) e));
             } else {
-                throw new UnsupportedOperationException(
-                        "Unsupported type of event: " + e.getClass());
+                throw new UnsupportedOperationException("Unsupported type of event: " + e.getClass());
             }
         } catch (RejectedExecutionException ree) {
             // ignore
@@ -156,8 +152,8 @@ public class MouseKeyEventDispatcher {
     }
 
     /**
-     * Shutdown the internal thread that processes dispatched events. After this is
-     * invoked, calls to {@link #dispatchEvent(Event)} will perform no action.
+     * Shutdown the internal thread that processes dispatched events. After this is invoked, calls to {@link
+     * #dispatchEvent(Event)} will perform no action.
      */
     public void shutdown() {
         executor.shutdownNow();

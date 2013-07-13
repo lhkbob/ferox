@@ -45,8 +45,7 @@ public class FogState implements State {
     }
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
         r.setFogEnabled(true);

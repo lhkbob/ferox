@@ -61,8 +61,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
         if (renderable == null) {
             renderable = system.createDataInstance(Renderable.class);
             transform = system.createDataInstance(Transform.class);
-            iterator = new ComponentIterator(system).addRequired(renderable)
-                                                    .addRequired(transform);
+            iterator = new ComponentIterator(system).addRequired(renderable).addRequired(transform);
         }
 
         iterator.reset();

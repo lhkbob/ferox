@@ -26,11 +26,11 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.drivers.AbstractVertexBufferObjectResourceDriver;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.resource.BufferData.DataType;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import org.lwjgl.opengl.ARBBufferObject;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GL15;
@@ -38,13 +38,12 @@ import org.lwjgl.opengl.GL15;
 import java.nio.*;
 
 /**
- * LwjglVertexBufferObjectResourceDriver is a concrete implementation of a ResourceDriver
- * for VertexBufferObjects and depends on the JOGL OpenGL binding.
+ * LwjglVertexBufferObjectResourceDriver is a concrete implementation of a ResourceDriver for
+ * VertexBufferObjects and depends on the JOGL OpenGL binding.
  *
  * @author Michael Ludwig
  */
-public class LwjglVertexBufferObjectResourceDriver
-        extends AbstractVertexBufferObjectResourceDriver {
+public class LwjglVertexBufferObjectResourceDriver extends AbstractVertexBufferObjectResourceDriver {
     private final ThreadLocal<Integer> arrayVboBinding;
     private final ThreadLocal<Integer> elementVboBinding;
 
@@ -66,8 +65,7 @@ public class LwjglVertexBufferObjectResourceDriver
     }
 
     @Override
-    protected void glDeleteBuffer(OpenGLContext context,
-                                  VertexBufferObjectHandle handle) {
+    protected void glDeleteBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
         checkCaps(context);
         if (useARB) {
             ARBBufferObject.glDeleteBuffersARB(handle.vboID);
@@ -77,16 +75,14 @@ public class LwjglVertexBufferObjectResourceDriver
     }
 
     @Override
-    protected void glBindArrayBuffer(OpenGLContext context,
-                                     VertexBufferObjectHandle handle) {
+    protected void glBindArrayBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
         LwjglContext c = (LwjglContext) context;
         arrayVboBinding.set(c.getArrayVbo());
         c.bindArrayVbo(handle.vboID);
     }
 
     @Override
-    protected void glBindElementBuffer(OpenGLContext context,
-                                       VertexBufferObjectHandle handle) {
+    protected void glBindElementBuffer(OpenGLContext context, VertexBufferObjectHandle handle) {
         LwjglContext c = (LwjglContext) context;
         elementVboBinding.set(c.getElementVbo());
         c.bindElementVbo(handle.vboID);
@@ -105,28 +101,25 @@ public class LwjglVertexBufferObjectResourceDriver
     }
 
     @Override
-    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type,
-                                     int length, StorageMode mode) {
+    protected void glArrayBufferData(OpenGLContext context, Buffer data, DataType type, int length,
+                                     StorageMode mode) {
         checkCaps(context);
         glBufferData(false, data, type, mode);
     }
 
     @Override
-    protected void glElementBufferData(OpenGLContext context, Buffer data, DataType type,
-                                       int length, StorageMode mode) {
+    protected void glElementBufferData(OpenGLContext context, Buffer data, DataType type, int length,
+                                       StorageMode mode) {
         checkCaps(context);
         glBufferData(true, data, type, mode);
     }
 
-    private void glBufferData(boolean elementBuffer, Buffer data, DataType type,
-                              StorageMode mode) {
+    private void glBufferData(boolean elementBuffer, Buffer data, DataType type, StorageMode mode) {
         if (useARB) {
-            int usage = (mode == StorageMode.GPU_DYNAMIC
-                         ? ARBBufferObject.GL_STREAM_DRAW_ARB
-                         : ARBBufferObject.GL_STATIC_DRAW_ARB);
-            int target = (elementBuffer
-                          ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB
-                          : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
+            int usage = (mode == StorageMode.GPU_DYNAMIC ? ARBBufferObject.GL_STREAM_DRAW_ARB
+                                                         : ARBBufferObject.GL_STATIC_DRAW_ARB);
+            int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB
+                                        : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
 
             switch (type) {
             case FLOAT:
@@ -143,10 +136,8 @@ public class LwjglVertexBufferObjectResourceDriver
                 break;
             }
         } else {
-            int usage = (mode == StorageMode.GPU_DYNAMIC ? GL15.GL_STREAM_DRAW
-                                                         : GL15.GL_STATIC_DRAW);
-            int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER
-                                        : GL15.GL_ARRAY_BUFFER);
+            int usage = (mode == StorageMode.GPU_DYNAMIC ? GL15.GL_STREAM_DRAW : GL15.GL_STATIC_DRAW);
+            int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER : GL15.GL_ARRAY_BUFFER);
 
             switch (type) {
             case FLOAT:
@@ -166,26 +157,24 @@ public class LwjglVertexBufferObjectResourceDriver
     }
 
     @Override
-    protected void glArrayBufferSubData(OpenGLContext context, Buffer data, DataType type,
-                                        int offset, int length) {
+    protected void glArrayBufferSubData(OpenGLContext context, Buffer data, DataType type, int offset,
+                                        int length) {
         checkCaps(context);
         glBufferSubData(false, data, type, offset);
     }
 
     @Override
-    protected void glElementBufferSubData(OpenGLContext context, Buffer data,
-                                          DataType type, int offset, int length) {
+    protected void glElementBufferSubData(OpenGLContext context, Buffer data, DataType type, int offset,
+                                          int length) {
         checkCaps(context);
         glBufferSubData(true, data, type, offset);
     }
 
-    private void glBufferSubData(boolean elementBuffer, Buffer data, DataType type,
-                                 int offset) {
+    private void glBufferSubData(boolean elementBuffer, Buffer data, DataType type, int offset) {
         int vboOffset = offset * type.getByteCount();
         if (useARB) {
-            int target = (elementBuffer
-                          ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB
-                          : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
+            int target = (elementBuffer ? ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB
+                                        : ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB);
 
             switch (type) {
             case FLOAT:
@@ -202,8 +191,7 @@ public class LwjglVertexBufferObjectResourceDriver
                 break;
             }
         } else {
-            int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER
-                                        : GL15.GL_ARRAY_BUFFER);
+            int target = (elementBuffer ? GL15.GL_ELEMENT_ARRAY_BUFFER : GL15.GL_ARRAY_BUFFER);
 
             switch (type) {
             case FLOAT:

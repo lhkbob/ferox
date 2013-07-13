@@ -35,13 +35,13 @@ import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.impl.jogl.JoglFramework;
-import com.ferox.renderer.impl.lwjgl.LwjglFramework;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Sphere;
 import com.ferox.renderer.geom.Teapot;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.impl.jogl.JoglFramework;
+import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
@@ -72,33 +72,24 @@ public class SimpleTest {
     public static void main(String[] args) {
         Framework framework = (LWJGL ? LwjglFramework.create() : JoglFramework.create());
         OnscreenSurface surface = framework.createSurface(
-                new OnscreenSurfaceOptions().setWidth(800).setHeight(600)
-                                            .setFullscreenMode(new DisplayMode(1440, 900,
-                                                                               PixelFormat.RGB_24BIT))
-                                            .setResizable(false));
+                new OnscreenSurfaceOptions().setWidth(800).setHeight(600).setFullscreenMode(
+                        new DisplayMode(1440, 900, PixelFormat.RGB_24BIT)).setResizable(false));
         //        surface.setVSyncEnabled(true);
 
         EntitySystem system = new EntitySystem();
 
         Entity camera = system.addEntity();
-        camera.add(Transform.class).getData().setMatrix(new Matrix4()
-                                                                .set(-1, 0, 0, 0, 0, 1, 0,
-                                                                     0, 0, 0, -1,
-                                                                     .9 * BOUNDS, 0, 0, 0,
-                                                                     1));
-        camera.add(Camera.class).getData().setSurface(surface).setZDistances(0.1, 1200)
-              .setFieldOfView(75);
+        camera.add(Transform.class).getData()
+              .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, .9 * BOUNDS, 0, 0, 0, 1));
+        camera.add(Camera.class).getData().setSurface(surface).setZDistances(0.1, 1200).setFieldOfView(75);
 
         Geometry b1 = Sphere.create(2f, 16, StorageMode.GPU_STATIC);
         Geometry b2 = Box.create(2f, StorageMode.GPU_STATIC);
         Geometry b3 = Teapot.create(1f, StorageMode.GPU_STATIC);
 
-        ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
-                                   Math.random() + 0.2);
-        ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
-                                   Math.random() + 0.2);
-        ColorRGB c3 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2,
-                                   Math.random() + 0.2);
+        ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
+        ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
+        ColorRGB c3 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
 
         int totalpolys = 0;
         for (int i = 0; i < 10000; i++) {
@@ -122,31 +113,22 @@ public class SimpleTest {
                 c = c3;
             }
 
-            int polycount = b.getPolygonType()
-                             .getPolygonCount(b.getIndexCount() - b.getIndexOffset());
+            int polycount = b.getPolygonType().getPolygonCount(b.getIndexCount() - b.getIndexOffset());
 
             Entity e = system.addEntity();
-            e.add(Renderable.class).getData().setVertices(b.getVertices())
-             .setLocalBounds(b.getBounds())
-             .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(),
-                         b.getIndexCount());
+            e.add(Renderable.class).getData().setVertices(b.getVertices()).setLocalBounds(b.getBounds())
+             .setIndices(b.getPolygonType(), b.getIndices(), b.getIndexOffset(), b.getIndexCount());
             //            if (Math.random() < .9) {
             e.add(BlinnPhongMaterial.class).getData().setNormals(b.getNormals());
             //            }
             e.add(DiffuseColor.class).getData().setColor(c);
             e.add(Transform.class).getData().setMatrix(new Matrix4().set(1, 0, 0,
-                                                                         Math.random() *
-                                                                         BOUNDS -
-                                                                         BOUNDS / 2, 0, 1,
-                                                                         0,
-                                                                         Math.random() *
-                                                                         BOUNDS -
-                                                                         BOUNDS / 2, 0, 0,
-                                                                         1,
-                                                                         Math.random() *
-                                                                         BOUNDS -
-                                                                         BOUNDS / 2, 0, 0,
-                                                                         0, 1));
+                                                                         Math.random() * BOUNDS - BOUNDS / 2,
+                                                                         0, 1, 0,
+                                                                         Math.random() * BOUNDS - BOUNDS / 2,
+                                                                         0, 0, 1,
+                                                                         Math.random() * BOUNDS - BOUNDS / 2,
+                                                                         0, 0, 0, 1));
             e.add(Animation.class);
             totalpolys += polycount;
         }
@@ -165,53 +147,34 @@ public class SimpleTest {
                         new AxisAlignedBox(new Vector3(-falloff, -falloff, -falloff),
                                            new Vector3(falloff, falloff, falloff)));
             }
-            light.add(Transform.class).getData().setMatrix(new Matrix4().set(1, 0, 0,
-                                                                             Math.random() *
-                                                                             BOUNDS -
-                                                                             BOUNDS / 2,
-                                                                             0, 1, 0,
-                                                                             Math.random() *
-                                                                             BOUNDS -
-                                                                             BOUNDS / 2,
-                                                                             0, 0, 1,
-                                                                             Math.random() *
-                                                                             BOUNDS -
-                                                                             BOUNDS / 2,
-                                                                             0, 0, 0, 1));
+            light.add(Transform.class).getData().setMatrix(new Matrix4().set(1, 0, 0, Math.random() * BOUNDS -
+                                                                                      BOUNDS / 2, 0, 1, 0,
+                                                                             Math.random() * BOUNDS -
+                                                                             BOUNDS / 2, 0, 0, 1,
+                                                                             Math.random() * BOUNDS -
+                                                                             BOUNDS / 2, 0, 0, 0, 1));
         }
-        system.addEntity().add(AmbientLight.class).getData()
-              .setColor(new ColorRGB(0.2, 0.2, 0.2));
+        system.addEntity().add(AmbientLight.class).getData().setColor(new ColorRGB(0.2, 0.2, 0.2));
 
         Entity inf = system.addEntity();
-        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1))
-           .setShadowCaster(false);
+        inf.add(DirectionLight.class).getData().setColor(new ColorRGB(1, 1, 1)).setShadowCaster(false);
         inf.add(Transform.class).getData().setMatrix(new Matrix4().lookAt(new Vector3(),
-                                                                          new Vector3(.3 *
-                                                                                      BOUNDS,
-                                                                                      .3 *
-                                                                                      BOUNDS,
-                                                                                      .3 *
-                                                                                      BOUNDS),
-                                                                          new Vector3(0,
-                                                                                      1,
-                                                                                      0)));
+                                                                          new Vector3(.3 * BOUNDS,
+                                                                                      .3 * BOUNDS,
+                                                                                      .3 * BOUNDS),
+                                                                          new Vector3(0, 1, 0)));
 
         AxisAlignedBox worldBounds = new AxisAlignedBox(
                 new Vector3(-1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2),
                 new Vector3(1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2));
 
-        Job renderJob = system.getScheduler().createJob("render", Timers.measuredDelta(),
-                                                        new AnimationController(),
-                                                        new UpdateWorldBoundsTask(),
-                                                        new ComputeCameraFrustumTask(),
-                                                        new ComputeShadowFrustumTask(),
-                                                        new BuildVisibilityIndexTask(
-                                                                new QuadTree<Entity>(
-                                                                        worldBounds, 6)),
-                                                        new ComputePVSTask(),
-                                                        new ComputeLightGroupTask(),
-                                                        new FixedFunctionRenderTask(
-                                                                framework, 1024, false));
+        Job renderJob = system.getScheduler()
+                              .createJob("render", Timers.measuredDelta(), new AnimationController(),
+                                         new UpdateWorldBoundsTask(), new ComputeCameraFrustumTask(),
+                                         new ComputeShadowFrustumTask(),
+                                         new BuildVisibilityIndexTask(new QuadTree<Entity>(worldBounds, 6)),
+                                         new ComputePVSTask(), new ComputeLightGroupTask(),
+                                         new FixedFunctionRenderTask(framework, 1024, false));
 
         long now = System.nanoTime();
         int numRuns = 0;
@@ -271,8 +234,7 @@ public class SimpleTest {
                 Animation anim = it.next();
                 Vector3 d = anim.getDirection();
 
-                if (anim.getEntity().get(t) &&
-                    anim.getDirection().lengthSquared() > 0.00001) {
+                if (anim.getEntity().get(t) && anim.getDirection().lengthSquared() > 0.00001) {
                     // have a direction, assume its normalized
                     Matrix4 m = t.getMatrix();
 

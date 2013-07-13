@@ -40,8 +40,8 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 /**
- * LwjglGlslShaderResourceDriver is a concrete ResourceDriver that handles GlslShaders
- * using the JOGL OpenGL binding.
+ * LwjglGlslShaderResourceDriver is a concrete ResourceDriver that handles GlslShaders using the JOGL OpenGL
+ * binding.
  *
  * @author Michael Ludwig
  */
@@ -120,8 +120,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateAttributes(OpenGLContext context, GlslShaderHandle handle) {
         int numAttrs = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTES);
-        int maxAttributeNameLength = GL20
-                .glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
+        int maxAttributeNameLength = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxAttributeNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);
@@ -135,8 +134,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             String attrName = new String(bs);
 
             int index = GL20.glGetAttribLocation(handle.programID, attrName);
-            Attribute a = new Attribute(attrName, Utils.getAttributeType(type.get(0)),
-                                        index);
+            Attribute a = new Attribute(attrName, Utils.getAttributeType(type.get(0)), index);
 
             handle.attributes.put(attrName, a);
         }
@@ -145,8 +143,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
     @Override
     protected void updateUniforms(OpenGLContext context, GlslShaderHandle handle) {
         int numUniforms = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORMS);
-        int maxUniformNameLength = GL20
-                .glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
+        int maxUniformNameLength = GL20.glGetProgram(handle.programID, GL20.GL_ACTIVE_UNIFORM_MAX_LENGTH);
         ByteBuffer name = BufferUtil.newByteBuffer(maxUniformNameLength);
 
         IntBuffer nameLen = BufferUtil.newIntBuffer(1);
@@ -159,9 +156,7 @@ public class LwjglGlslShaderResourceDriver extends AbstractGlslShaderResourceDri
             name.get(bs, 0, bs.length).position(0);
             String uniformName = new String(bs);
 
-            Uniform u = new Uniform(uniformName,
-                                            Utils.getUniformType(type.get(0)),
-                                            len.get(0));
+            Uniform u = new Uniform(uniformName, Utils.getUniformType(type.get(0)), len.get(0));
 
             // get uniform location
             int location = GL20.glGetUniformLocation(handle.programID, uniformName);

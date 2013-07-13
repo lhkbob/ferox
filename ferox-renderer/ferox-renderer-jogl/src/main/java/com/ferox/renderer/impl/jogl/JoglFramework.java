@@ -45,8 +45,8 @@ public class JoglFramework extends FrameworkImpl {
         return create(forceNoFfp, forceNoGlsl, false, false);
     }
 
-    public static JoglFramework create(boolean forceNoFfp, boolean forceNoGlsl,
-                                       boolean forceNoPbuffers, boolean forceNoFbos) {
+    public static JoglFramework create(boolean forceNoFfp, boolean forceNoGlsl, boolean forceNoPbuffers,
+                                       boolean forceNoFbos) {
 
         int capBits = 0;
         if (forceNoGlsl) {
@@ -67,8 +67,7 @@ public class JoglFramework extends FrameworkImpl {
         if (GLProfile.isAvailable(GLProfile.GL2)) {
             profile = GLProfile.get(GLProfile.GL2);
         } else {
-            throw new RuntimeException(
-                    "Minimum required GL profile of GL2 is not available");
+            throw new RuntimeException("Minimum required GL profile of GL2 is not available");
         }
 
         // Must configure JOGL to let us control the threading
@@ -77,8 +76,7 @@ public class JoglFramework extends FrameworkImpl {
         }
 
         JoglSurfaceFactory factory = new JoglSurfaceFactory(profile, capBits);
-        JoglFramework framework = new JoglFramework(factory,
-                                                    new JoglTextureResourceDriver(),
+        JoglFramework framework = new JoglFramework(factory, new JoglTextureResourceDriver(),
                                                     new JoglVertexBufferObjectResourceDriver(),
                                                     new JoglGlslShaderResourceDriver());
 

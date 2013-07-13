@@ -34,9 +34,9 @@ import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.Shape;
 
 /**
- * SwappingCollisionAlgorithm is a utility to swap the shape types that a true collision
- * algorithm can handle. For example, there might be a SphereBoxCollisionAlgorithm. This
- * class can be used to automatically create a BoxSphereCollisionAlgorithm.
+ * SwappingCollisionAlgorithm is a utility to swap the shape types that a true collision algorithm can handle.
+ * For example, there might be a SphereBoxCollisionAlgorithm. This class can be used to automatically create a
+ * BoxSphereCollisionAlgorithm.
  *
  * @param <A> The first Shape type
  * @param <B> The second Shape type
@@ -48,9 +48,8 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape>
     private final CollisionAlgorithm<B, A> delegate;
 
     /**
-     * Create a SwappingCollisionAlgorithm that wraps the given CollisionAlgorithm. Any
-     * call to getClosestPair() on this algorithm will delegate to <var>toSwap</var>
-     * except that A and B are swapped.
+     * Create a SwappingCollisionAlgorithm that wraps the given CollisionAlgorithm. Any call to
+     * getClosestPair() on this algorithm will delegate to <var>toSwap</var> except that A and B are swapped.
      *
      * @param toSwap The algorithm to wrap
      *
@@ -64,8 +63,7 @@ public class SwappingCollisionAlgorithm<A extends Shape, B extends Shape>
     }
 
     @Override
-    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, B shapeB,
-                                      @Const Matrix4 transB) {
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, B shapeB, @Const Matrix4 transB) {
         ClosestPair original = delegate.getClosestPair(shapeB, transB, shapeA, transA);
         if (original == null) {
             return null;

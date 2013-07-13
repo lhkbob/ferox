@@ -34,10 +34,8 @@ public class SelfDestructTest {
         System.out.println("framework created");
         final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
                                                                 //            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-                                                                .setUndecorated(true)
-                                                                .setResizable(false)
-                                                                .setWidth(500)
-                                                                .setHeight(500));
+                                                                .setUndecorated(true).setResizable(false)
+                                                                .setWidth(500).setHeight(500));
 
         System.out.println("surface created");
         Thread.sleep(5000);

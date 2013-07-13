@@ -31,43 +31,39 @@ import com.ferox.math.Matrix4;
 
 /**
  * <p/>
- * CollisionAlgorithm is an interface encapsulating the narrow-phase of a collision
- * detection system. CollisionAlgorithm implementations are responsible for computing two
- * vectors within world space. Each vector represents the closest point on one {@link
- * CollisionBody} to the other. Implementations must handle cases where the two objects
- * are intersecting each other as well.
+ * CollisionAlgorithm is an interface encapsulating the narrow-phase of a collision detection system.
+ * CollisionAlgorithm implementations are responsible for computing two vectors within world space. Each
+ * vector represents the closest point on one {@link CollisionBody} to the other. Implementations must handle
+ * cases where the two objects are intersecting each other as well.
  *
  * @author Michael Ludwig
  */
 public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
     /**
      * <p/>
-     * Compute the closest pair of points in world space between <var>shapeA</var> and
-     * <var>shapeB</var>. If the implementation cannot determine a closest pair, it should
-     * return null to indicate that the input was ill-conditioned. When a non-null {@link
-     * ClosestPair} is returned, it means the two Collidables are either guaranteed
-     * separated or intersecting.
+     * Compute the closest pair of points in world space between <var>shapeA</var> and <var>shapeB</var>. If
+     * the implementation cannot determine a closest pair, it should return null to indicate that the input
+     * was ill-conditioned. When a non-null {@link ClosestPair} is returned, it means the two Collidables are
+     * either guaranteed separated or intersecting.
      * <p/>
-     * If the pair's reported distance is negative, it means the two objects are
-     * intersecting. {@link ClosestPair#getClosestPointOnA()} will return the point on the
-     * surface of <var>shapeA</var> and {@link ClosestPair#getClosestPointOnB()} will
-     * return the point on the surface of <var>shapeB</var>. The contact normal between
-     * the two objects will be from A to B (which is also why negative distance implies
-     * intersection). The surface points and contact normal are in world space, as
-     * determined by <var>transA</var> and <var>transB</var>.
+     * If the pair's reported distance is negative, it means the two objects are intersecting. {@link
+     * ClosestPair#getClosestPointOnA()} will return the point on the surface of <var>shapeA</var> and {@link
+     * ClosestPair#getClosestPointOnB()} will return the point on the surface of <var>shapeB</var>. The
+     * contact normal between the two objects will be from A to B (which is also why negative distance implies
+     * intersection). The surface points and contact normal are in world space, as determined by
+     * <var>transA</var> and <var>transB</var>.
      *
      * @param shapeA The Shape of the first object in the collision
      * @param transA The transform that represents the world-space orientation of shapeA
      * @param shapeB The Shape of the second object in the collision
      * @param transB The transform that represents the world-space orientation of shapeB
      *
-     * @return The closest pair of points on the surfaces of shapeA and shapeB, or null if
-     *         no pair could be computed
+     * @return The closest pair of points on the surfaces of shapeA and shapeB, or null if no pair could be
+     *         computed
      *
      * @throws NullPointerException if any argument is null
      */
-    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, B shapeB,
-                                      @Const Matrix4 transB);
+    public ClosestPair getClosestPair(A shapeA, @Const Matrix4 transA, B shapeB, @Const Matrix4 transB);
 
     /**
      * @return The Class representing the type A

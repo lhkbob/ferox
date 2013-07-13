@@ -7,11 +7,11 @@ import com.ferox.math.Vector3;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
+import com.ferox.renderer.VertexAttribute;
+import com.ferox.renderer.geom.TopologyUtil;
+import com.ferox.renderer.geom.VertexBufferObject;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.UnsignedDataView;
-import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.VertexBufferObject;
-import com.ferox.renderer.geom.TopologyUtil;
 import com.ferox.util.ItemView;
 import com.ferox.util.QuickSort;
 
@@ -25,8 +25,7 @@ public class IndexBufferState {
 
     private final Matrix4 modelMatrix = new Matrix4();
 
-    public void set(PolygonType polyType, VertexBufferObject indices, int offset,
-                    int count) {
+    public void set(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
         this.polyType = polyType;
         this.indices = indices;
         indexOffset = offset;
@@ -92,10 +91,8 @@ public class IndexBufferState {
 
     private class OpaqueRenderState extends AbstractRenderState {
         @Override
-        public void visitNode(StateNode currentNode, AppliedEffects effects,
-                              HardwareAccessLayer access) {
-            FixedFunctionRenderer r = access.getCurrentContext()
-                                            .getFixedFunctionRenderer();
+        public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
+            FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
             r.setIndices(indices);
 
@@ -117,46 +114,39 @@ public class IndexBufferState {
         private final VertexBufferObject sortedIndicesShared;
         private final VertexAttribute vertices;
 
-        public TransparentRenderState(VertexBufferObject sortedIndicesShared,
-                                      VertexAttribute vertices) {
+        public TransparentRenderState(VertexBufferObject sortedIndicesShared, VertexAttribute vertices) {
             this.sortedIndicesShared = sortedIndicesShared;
             this.vertices = vertices;
         }
 
         @Override
-        public void visitNode(StateNode currentNode, AppliedEffects effects,
-                              HardwareAccessLayer access) {
-            FixedFunctionRenderer r = access.getCurrentContext()
-                                            .getFixedFunctionRenderer();
+        public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
+            FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
-            int inflatedIndexCount =
-                    polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
+            int inflatedIndexCount = polyType.getPolygonCount(indexCount) * polyType.getPolygonSize();
             PolygonType inflatedType = polyType;
             synchronized (sortedIndicesShared) {
                 if (sortedIndicesShared.getData().getLength() < inflatedIndexCount) {
-                    sortedIndicesShared
-                            .setData(new BufferData(new int[inflatedIndexCount]));
+                    sortedIndicesShared.setData(new BufferData(new int[inflatedIndexCount]));
                 }
                 BufferData sharedData = sortedIndicesShared.getData();
 
                 if (indices == null) {
                     switch (polyType) {
                     case TRIANGLE_STRIP:
-                        TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount,
-                                                               sharedData, 0);
+                        TopologyUtil.inflateTriangleStripArray(indexOffset, indexCount, sharedData, 0);
                         inflatedType = PolygonType.TRIANGLES;
                         break;
                     default:
-                        TopologyUtil
-                                .inflateSimpleArray(indexOffset, indexCount, sharedData,
-                                                    0);
+                        TopologyUtil.inflateSimpleArray(indexOffset, indexCount, sharedData, 0);
                         break;
                     }
                 } else {
                     switch (polyType) {
                     case TRIANGLE_STRIP:
-                        TopologyUtil.inflateTriangleStrip(indices.getData(), indexOffset,
-                                                          indexCount, sharedData, 0);
+                        TopologyUtil
+                                .inflateTriangleStrip(indices.getData(), indexOffset, indexCount, sharedData,
+                                                      0);
                         inflatedType = PolygonType.TRIANGLES;
                         break;
                     default:
@@ -171,8 +161,8 @@ public class IndexBufferState {
                 }
             }
 
-            FaceView view = new FaceView(inflatedType, sortedIndicesShared,
-                                         inflatedIndexCount, vertices, modelMatrix);
+            FaceView view = new FaceView(inflatedType, sortedIndicesShared, inflatedIndexCount, vertices,
+                                         modelMatrix);
             for (int i = 0; i < count; i += 16) {
                 // load and multiply the model with the view
                 modelMatrix.set(matrices, i, false);
@@ -210,8 +200,8 @@ public class IndexBufferState {
 
         // this expects the converted index buffer, so it is offset from 0
         // and contains non-strip polygons only (points, lines, tris, or quads)
-        public FaceView(PolygonType type, VertexBufferObject indices, int count,
-                        VertexAttribute vertices, @Const Matrix4 modelview) {
+        public FaceView(PolygonType type, VertexBufferObject indices, int count, VertexAttribute vertices,
+                        @Const Matrix4 modelview) {
             this.indices = indices.getData().getUnsignedView();
             this.count = count;
             this.polyType = type;

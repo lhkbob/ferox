@@ -115,8 +115,7 @@ public class ForcesTask implements Task, ParallelAware {
             colBody = system.createDataInstance(CollisionBody.class);
             gravity = system.createDataInstance(Gravity.class);
 
-            iterator = new ComponentIterator(system).addRequired(rigidBody)
-                                                    .addRequired(colBody)
+            iterator = new ComponentIterator(system).addRequired(rigidBody).addRequired(colBody)
                                                     .addOptional(gravity);
         }
 
@@ -151,13 +150,11 @@ public class ForcesTask implements Task, ParallelAware {
             // integrate and apply forces to the body's velocity
             Vector3 lv = rigidBody.getVelocity();
             integrator.integrateLinearAcceleration(
-                    force.scale(rigidBody.getTotalForce(), rigidBody.getInverseMass()),
-                    dt, lv);
+                    force.scale(rigidBody.getTotalForce(), rigidBody.getInverseMass()), dt, lv);
             rigidBody.setVelocity(lv);
 
             Vector3 la = rigidBody.getAngularVelocity();
-            integrator.integrateAngularAcceleration(
-                    force.mul(tensor, rigidBody.getTotalTorque()), dt, la);
+            integrator.integrateAngularAcceleration(force.mul(tensor, rigidBody.getTotalTorque()), dt, la);
             rigidBody.setAngularVelocity(la);
 
             // reset forces

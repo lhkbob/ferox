@@ -12,15 +12,13 @@ import com.ferox.renderer.impl.OpenGLContext;
 /**
  *
  */
-public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHandle>
-        implements Sampler {
+public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHandle> implements Sampler {
     public static enum FullFormat {
         DEPTH_24BIT(Sampler.TexelFormat.DEPTH, DataType.UNSIGNED_NORMALIZED_INT),
         DEPTH_16BIT(Sampler.TexelFormat.DEPTH, DataType.UNSIGNED_NORMALIZED_SHORT),
         DEPTH_FLOAT(Sampler.TexelFormat.DEPTH, DataType.FLOAT),
 
-        DEPTH_24BIT_STENCIL_8BIT(Sampler.TexelFormat.DEPTH_STENCIL,
-                                 DataType.INT_BIT_FIELD),
+        DEPTH_24BIT_STENCIL_8BIT(Sampler.TexelFormat.DEPTH_STENCIL, DataType.INT_BIT_FIELD),
 
         R_FLOAT(Sampler.TexelFormat.R, DataType.FLOAT),
         R_BYTE(Sampler.TexelFormat.R, DataType.BYTE),
@@ -54,8 +52,7 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         RGB_USHORT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_SHORT),
         RGB_UINT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_INT),
         RGB_NORMALIZED_UBYTE(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_BYTE),
-        RGB_NORMALIZED_USHORT(Sampler.TexelFormat.RGB,
-                              DataType.UNSIGNED_NORMALIZED_SHORT),
+        RGB_NORMALIZED_USHORT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_SHORT),
         RGB_NORMALIZED_UINT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_INT),
         RGB_HALF_FLOAT(Sampler.TexelFormat.RGB, DataType.HALF_FLOAT),
         RGB_PACKED_FLOAT(Sampler.TexelFormat.RGB, DataType.INT_BIT_FIELD),
@@ -69,8 +66,7 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         BGR_USHORT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_SHORT),
         BGR_UINT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_INT),
         BGR_NORMALIZED_UBYTE(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_BYTE),
-        BGR_NORMALIZED_USHORT(Sampler.TexelFormat.RGB,
-                              DataType.UNSIGNED_NORMALIZED_SHORT),
+        BGR_NORMALIZED_USHORT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_SHORT),
         BGR_NORMALIZED_UINT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_INT),
         BGR_HALF_FLOAT(Sampler.TexelFormat.RGB, DataType.HALF_FLOAT),
 
@@ -81,10 +77,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         RGBA_UBYTE(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_BYTE),
         RGBA_USHORT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_SHORT),
         RGBA_UINT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_INT),
-        RGBA_NORMALIZED_UBYTE(Sampler.TexelFormat.RGBA,
-                              DataType.UNSIGNED_NORMALIZED_BYTE),
-        RGBA_NORMALIZED_USHORT(Sampler.TexelFormat.RGBA,
-                               DataType.UNSIGNED_NORMALIZED_SHORT),
+        RGBA_NORMALIZED_UBYTE(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_BYTE),
+        RGBA_NORMALIZED_USHORT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_SHORT),
         RGBA_NORMALIZED_UINT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_INT),
         RGBA_HALF_FLOAT(Sampler.TexelFormat.RGBA, DataType.HALF_FLOAT),
         RGBA_DXT1(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_BYTE),
@@ -98,10 +92,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         BGRA_UBYTE(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_BYTE),
         BGRA_USHORT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_SHORT),
         BGRA_UINT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_INT),
-        BGRA_NORMALIZED_UBYTE(Sampler.TexelFormat.RGBA,
-                              DataType.UNSIGNED_NORMALIZED_BYTE),
-        BGRA_NORMALIZED_USHORT(Sampler.TexelFormat.RGBA,
-                               DataType.UNSIGNED_NORMALIZED_SHORT),
+        BGRA_NORMALIZED_UBYTE(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_BYTE),
+        BGRA_NORMALIZED_USHORT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_SHORT),
         BGRA_NORMALIZED_UINT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_INT),
         BGRA_HALF_FLOAT(Sampler.TexelFormat.RGBA, DataType.HALF_FLOAT),
 
@@ -147,10 +139,9 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
     private final int baseMipmap;
     private final int maxMipmap;
 
-    public TextureImpl(TextureHandle handle, FullFormat format, int width, int height,
-                       int depth, Vector4 borderColor, double anisotropicFiltering,
-                       Renderer.Comparison depthComparison, boolean interpolated,
-                       WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
+    public TextureImpl(TextureHandle handle, FullFormat format, int width, int height, int depth,
+                       Vector4 borderColor, double anisotropicFiltering, Renderer.Comparison depthComparison,
+                       boolean interpolated, WrapMode wrapMode, Object[][] dataArrays, int baseMipmap,
                        int maxMipmap) {
         super(handle);
 
@@ -238,8 +229,7 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
 
     public RenderTarget getRenderTarget(int layer) {
         if (layer < 0) {
-            throw new IndexOutOfBoundsException(
-                    "Target index cannot be negative: " + layer);
+            throw new IndexOutOfBoundsException("Target index cannot be negative: " + layer);
         }
 
         if (getHandle().target == Target.TEX_3D) {
@@ -249,9 +239,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
             }
         } else {
             if (layer >= dataArrays.length) {
-                throw new IndexOutOfBoundsException(
-                        "Target index must be less than image count (" +
-                        dataArrays.length + "): " + layer);
+                throw new IndexOutOfBoundsException("Target index must be less than image count (" +
+                                                    dataArrays.length + "): " + layer);
             }
         }
 
@@ -302,8 +291,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
     }
 
     /**
-     * Target represenst the OpenGL texture targets, which is why the depth samplers are
-     * not specified here because in OpenGL they are designated by their format only.
+     * Target represenst the OpenGL texture targets, which is why the depth samplers are not specified here
+     * because in OpenGL they are designated by their format only.
      */
     public static enum Target {
         TEX_1D,

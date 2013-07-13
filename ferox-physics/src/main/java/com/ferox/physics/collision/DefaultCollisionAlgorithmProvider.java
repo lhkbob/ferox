@@ -38,12 +38,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DefaultCollisionAlgorithmProvider is the default implementation of
- * CollisionAlgorithmProvider. It is thread safe and supports efficient lookups of
- * algorithms based on shape type pairs. It caches the algorithm selection so that class
- * hierarchy matching is not required after an algorithm has been found for a pair type.
- * Additionally, it uses the {@link SwappingCollisionAlgorithm} to support extra type
- * pairs.
+ * DefaultCollisionAlgorithmProvider is the default implementation of CollisionAlgorithmProvider. It is thread
+ * safe and supports efficient lookups of algorithms based on shape type pairs. It caches the algorithm
+ * selection so that class hierarchy matching is not required after an algorithm has been found for a pair
+ * type. Additionally, it uses the {@link SwappingCollisionAlgorithm} to support extra type pairs.
  *
  * @author Michael Ludwig
  */
@@ -54,8 +52,8 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
     private final List<CollisionAlgorithm<?, ?>> algorithms;
 
     /**
-     * Create a new DefaultCollisionAlgorithmProvider. It initially has a {@link
-     * GjkEpaCollisionAlgorithm} and a {@link SphereSphereCollisionAlgorithm} registered.
+     * Create a new DefaultCollisionAlgorithmProvider. It initially has a {@link GjkEpaCollisionAlgorithm} and
+     * a {@link SphereSphereCollisionAlgorithm} registered.
      */
     public DefaultCollisionAlgorithmProvider() {
         algorithms = new ArrayList<CollisionAlgorithm<?, ?>>();
@@ -65,31 +63,28 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
 
         // wrap the GJK/EPA algorithm with a jittering algorithm to help overcome
         // numerical instabilities
-        register(new JitteringCollisionAlgorithm<ConvexShape, ConvexShape>(
-                new GjkEpaCollisionAlgorithm()));
+        register(new JitteringCollisionAlgorithm<ConvexShape, ConvexShape>(new GjkEpaCollisionAlgorithm()));
         register(new SphereSphereCollisionAlgorithm());
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(
-            Class<A> aType, Class<B> bType) {
+    public <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getAlgorithm(Class<A> aType,
+                                                                                    Class<B> bType) {
         if (aType == null || bType == null) {
             throw new NullPointerException("Shape types cannot be null");
         }
 
         // look for type with current order
         lookup.set(aType, bType);
-        CollisionAlgorithm<A, B> algo = (CollisionAlgorithm<A, B>) algorithmCache
-                .get(lookup);
+        CollisionAlgorithm<A, B> algo = (CollisionAlgorithm<A, B>) algorithmCache.get(lookup);
         if (algo != null) {
             return algo;
         }
 
         // didn't find original type, look for a swapped type
         lookup.set(bType, aType);
-        CollisionAlgorithm<B, A> swapped = (CollisionAlgorithm<B, A>) algorithmCache
-                .get(lookup);
+        CollisionAlgorithm<B, A> swapped = (CollisionAlgorithm<B, A>) algorithmCache.get(lookup);
         if (swapped != null) {
             // return a wrapped instance of the algorithm that swaps everything
             // and store it in the cache
@@ -123,8 +118,8 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
     }
 
     @SuppressWarnings("unchecked")
-    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getBestMatch(
-            Class<A> aType, Class<B> bType) {
+    private <A extends Shape, B extends Shape> CollisionAlgorithm<A, B> getBestMatch(Class<A> aType,
+                                                                                     Class<B> bType) {
         int bestDepth = 0;
         CollisionAlgorithm<?, ?> bestAlgo = null;
 
@@ -136,8 +131,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
                 int depthA = depth(aType, algo.getShapeTypeA());
                 int depthB = depth(bType, algo.getShapeTypeB());
 
-                int depth = depthA * depthA +
-                            depthB * depthB; // this selects for more balanced depths
+                int depth = depthA * depthA + depthB * depthB; // this selects for more balanced depths
                 if (depth == 0) {
                     // best match possible, return now
                     return (CollisionAlgorithm<A, B>) algo;

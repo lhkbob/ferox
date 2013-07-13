@@ -41,14 +41,12 @@ public class ExplicitEulerIntegrator implements Integrator {
     private final Quat4 tempq2 = new Quat4();
 
     @Override
-    public void integrateLinearAcceleration(@Const Vector3 a, double dt,
-                                            Vector3 velocity) {
+    public void integrateLinearAcceleration(@Const Vector3 a, double dt, Vector3 velocity) {
         integrateVector(a, dt, velocity);
     }
 
     @Override
-    public void integrateAngularAcceleration(@Const Vector3 a, double dt,
-                                             Vector3 angularVelocity) {
+    public void integrateAngularAcceleration(@Const Vector3 a, double dt, Vector3 angularVelocity) {
         integrateVector(a, dt, angularVelocity);
         applyDamping(angularVelocity, dt, ANGULAR_VELOCITY_DAMPING);
     }
@@ -63,8 +61,7 @@ public class ExplicitEulerIntegrator implements Integrator {
     }
 
     @Override
-    public void integrateAngularVelocity(@Const Vector3 v, double dt,
-                                         Matrix3 orientation) {
+    public void integrateAngularVelocity(@Const Vector3 v, double dt, Matrix3 orientation) {
         // clamp angular velocity
         Vector3 axis = tempv;
 

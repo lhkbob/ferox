@@ -32,17 +32,15 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.*;
 
 /**
- * PbufferShadowContext is a special form of JoglContext that is suitable for use as a
- * shadow context for a JoglFramework. It uses pbuffers to maintain an offscreen
- * GLContext.
+ * PbufferShadowContext is a special form of JoglContext that is suitable for use as a shadow context for a
+ * JoglFramework. It uses pbuffers to maintain an offscreen GLContext.
  *
  * @author Michael Ludwig
  */
 public class PbufferShadowContext extends JoglContext {
     private final GLPbuffer pbuffer;
 
-    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface,
-                                 RendererProvider provider) {
+    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
         super(creator, surface.getContext(), provider);
         pbuffer = surface;
     }
@@ -54,8 +52,7 @@ public class PbufferShadowContext extends JoglContext {
     }
 
     /**
-     * Create a new PbufferShadowContext that will be returned by {@link
-     * JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
+     * Create a new PbufferShadowContext that will be returned by {@link JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
      * .
      *
      * @param creator   The JoglSurfaceFactory that is creating the shadow context
@@ -67,8 +64,7 @@ public class PbufferShadowContext extends JoglContext {
      *
      * @throws NullPointerException if framework or profile is null
      */
-    public static PbufferShadowContext create(JoglSurfaceFactory creator,
-                                              JoglContext shareWith,
+    public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith,
                                               RendererProvider provider) {
         if (creator == null) {
             throw new NullPointerException(
@@ -80,8 +76,8 @@ public class PbufferShadowContext extends JoglContext {
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
         GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
                                              .createGLPbuffer(device, glCaps,
-                                                              new DefaultGLCapabilitiesChooser(),
-                                                              1, 1, realShare);
+                                                              new DefaultGLCapabilitiesChooser(), 1, 1,
+                                                              realShare);
         try {
             return new PbufferShadowContext(creator, pbuffer, provider);
         } catch (RuntimeException re) {

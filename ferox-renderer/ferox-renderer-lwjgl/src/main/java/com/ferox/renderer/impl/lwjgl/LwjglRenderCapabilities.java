@@ -27,9 +27,9 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.texture.Texture.Target;
 import com.ferox.resource.GlslShader.ShaderType;
 import com.ferox.resource.GlslShader.Version;
-import com.ferox.renderer.texture.Texture.Target;
 import org.lwjgl.opengl.*;
 
 import java.util.EnumSet;
@@ -49,8 +49,7 @@ public class LwjglRenderCapabilities extends Capabilities {
      */
     public static final int FORCE_NO_PBUFFER = 0x2;
     /**
-     * Force the returned RenderCapabilities to report no support for programmable
-     * shaders.
+     * Force the returned RenderCapabilities to report no support for programmable shaders.
      */
     public static final int FORCE_NO_GLSL = 0x4;
 
@@ -93,8 +92,7 @@ public class LwjglRenderCapabilities extends Capabilities {
         version = formatVersion(GL11.glGetString(GL11.GL_VERSION));
 
         if (version >= 2f & !isSet(FORCE_NO_GLSL)) {
-            float glslVersionNum = formatVersion(
-                    GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+            float glslVersionNum = formatVersion(GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
             if (glslVersionNum >= 1f && glslVersionNum < 1.3f) {
                 glslVersion = Version.V1_20;
             } else if (glslVersionNum < 1.4f) {
@@ -120,11 +118,10 @@ public class LwjglRenderCapabilities extends Capabilities {
 
         hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
         hasGlslRenderer = glslVersion != null;
-        pbuffersSupported = !isSet(FORCE_NO_PBUFFER) &&
-                            (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0;
+        pbuffersSupported =
+                !isSet(FORCE_NO_PBUFFER) && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0;
 
-        fboSupported =
-                !isSet(FORCE_NO_FBO) && (version >= 3f || caps.GL_EXT_framebuffer_object);
+        fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || caps.GL_EXT_framebuffer_object);
         if (fboSupported) {
             maxColorTargets = GL11.glGetInteger(GL30.GL_MAX_COLOR_ATTACHMENTS);
         } else {
@@ -153,12 +150,9 @@ public class LwjglRenderCapabilities extends Capabilities {
         }
 
         if (hasGlslRenderer) {
-            maxVertexShaderTextures = GL11
-                    .glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-            maxFragmentShaderTextures = GL11
-                    .glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
-            maxCombinedTextures = GL11
-                    .glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+            maxVertexShaderTextures = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+            maxFragmentShaderTextures = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
+            maxCombinedTextures = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
             maxTextureCoordinates = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_COORDS);
         } else {
             maxVertexShaderTextures = 0;
@@ -171,16 +165,13 @@ public class LwjglRenderCapabilities extends Capabilities {
         fpTextures = version >= 3f || caps.GL_ARB_texture_float;
         s3tcTextures = caps.GL_EXT_texture_compression_s3tc;
 
-        hasDepthTextures =
-                version >= 1.4f || (caps.GL_ARB_depth_texture && caps.GL_ARB_shadow);
-        hasEnvCombine = version >= 1.3f ||
-                        (caps.GL_ARB_texture_env_combine && caps.GL_ARB_texture_env_dot3);
+        hasDepthTextures = version >= 1.4f || (caps.GL_ARB_depth_texture && caps.GL_ARB_shadow);
+        hasEnvCombine = version >= 1.3f || (caps.GL_ARB_texture_env_combine && caps.GL_ARB_texture_env_dot3);
         hasMirrorRepeat = version >= 1.4f || caps.GL_ARB_texture_mirrored_repeat;
         hasClampEdge = version >= 1.2f;
 
         if (caps.GL_EXT_texture_filter_anisotropic) {
-            maxAnisoLevel = GL11.glGetInteger(
-                    EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+            maxAnisoLevel = GL11.glGetInteger(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
         } else {
             maxAnisoLevel = 0f;
         }

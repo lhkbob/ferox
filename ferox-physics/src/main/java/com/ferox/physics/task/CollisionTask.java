@@ -110,8 +110,8 @@ public abstract class CollisionTask implements Task {
         if (algorithm != null) {
             // compute closest pair between the two shapes
             ClosestPair pair = algorithm
-                    .getClosestPair(bodyA.getShape(), bodyA.getTransform(),
-                                    bodyB.getShape(), bodyB.getTransform());
+                    .getClosestPair(bodyA.getShape(), bodyA.getTransform(), bodyB.getShape(),
+                                    bodyB.getTransform());
 
             if (pair != null && pair.isIntersecting()) {
                 // add to manifold only when there is an intersection

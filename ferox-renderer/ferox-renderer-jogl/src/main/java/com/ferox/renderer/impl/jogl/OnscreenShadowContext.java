@@ -37,17 +37,17 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 
 /**
- * OnscreenShadowContext is a special JoglContext that is intended for use as the shadow
- * context of a JoglFramework. To ensure that the underlying OpenGL context always exists,
- * this shadow context creates a 1x1 window without decoration that contains a GLCanvas.
+ * OnscreenShadowContext is a special JoglContext that is intended for use as the shadow context of a
+ * JoglFramework. To ensure that the underlying OpenGL context always exists, this shadow context creates a
+ * 1x1 window without decoration that contains a GLCanvas.
  *
  * @author Michael Ludwig
  */
 public class OnscreenShadowContext extends JoglContext {
     private final Window frame;
 
-    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame,
-                                  GLContext context, RendererProvider provider) {
+    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context,
+                                  RendererProvider provider) {
         super(creator, context, provider);
         this.frame = frame;
     }
@@ -64,8 +64,7 @@ public class OnscreenShadowContext extends JoglContext {
     }
 
     /**
-     * Create a new OnscreenShadowContext that will be returned by {@link
-     * JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
+     * Create a new OnscreenShadowContext that will be returned by {@link JoglSurfaceFactory#createOffscreenContext(com.ferox.renderer.impl.OpenGLContext)}
      *
      * @param creator   The JoglSurfaceFactory that is creating the shadow context
      * @param shareWith The JoglContext to share object data with
@@ -76,8 +75,7 @@ public class OnscreenShadowContext extends JoglContext {
      *
      * @throws NullPointerException if framework or profile is null
      */
-    public static OnscreenShadowContext create(JoglSurfaceFactory creator,
-                                               JoglContext shareWith,
+    public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith,
                                                RendererProvider provider) {
         if (creator == null) {
             throw new NullPointerException(
@@ -88,15 +86,12 @@ public class OnscreenShadowContext extends JoglContext {
         Window window = NewtFactory.createWindow(creator.getScreen(), caps);
         window.setUndecorated(true);
         window.setSize(1, 1);
-        window.setDefaultCloseOperation(
-                WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
+        window.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
 
         window.setVisible(true);
 
-        GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile())
-                                               .createGLDrawable(window);
-        GLContext context = drawable
-                .createContext(shareWith == null ? null : shareWith.getGLContext());
+        GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
+        GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
 
         return new OnscreenShadowContext(creator, window, context, provider);
     }

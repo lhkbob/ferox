@@ -42,8 +42,8 @@ public class LwjglFramework extends FrameworkImpl {
         return create(false, false);
     }
 
-    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl,
-                                        boolean forceNoPbuffers, boolean forceNoFbos) {
+    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl, boolean forceNoPbuffers,
+                                        boolean forceNoFbos) {
         int capBits = 0;
         if (forceNoGlsl) {
             capBits |= LwjglRenderCapabilities.FORCE_NO_GLSL;
@@ -58,8 +58,7 @@ public class LwjglFramework extends FrameworkImpl {
         // FIXME: how to handle forceNoFfp?
 
         LwjglSurfaceFactory factory = new LwjglSurfaceFactory(capBits);
-        LwjglFramework framework = new LwjglFramework(factory,
-                                                      new LwjglTextureResourceDriver(),
+        LwjglFramework framework = new LwjglFramework(factory, new LwjglTextureResourceDriver(),
                                                       new LwjglVertexBufferObjectResourceDriver(),
                                                       new LwjglGlslShaderResourceDriver());
 

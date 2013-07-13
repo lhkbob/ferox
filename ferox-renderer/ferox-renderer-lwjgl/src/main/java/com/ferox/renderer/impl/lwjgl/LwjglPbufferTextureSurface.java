@@ -29,8 +29,8 @@ package com.ferox.renderer.impl.lwjgl;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
@@ -40,10 +40,9 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 
 /**
- * LwjglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers
- * to render into an offscreen buffer before using the glCopyTexImage command to move the
- * buffer contents into a texture. PBuffers are slower than FBOs so {@link
- * LwjglFboTextureSurface} is favored when FBOs are supported.
+ * LwjglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers to render into an
+ * offscreen buffer before using the glCopyTexImage command to move the buffer contents into a texture.
+ * PBuffers are slower than FBOs so {@link LwjglFboTextureSurface} is favored when FBOs are supported.
  *
  * @author Michael Ludwig
  */
@@ -53,10 +52,9 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public LwjglPbufferTextureSurface(FrameworkImpl framework,
-                                      LwjglSurfaceFactory creator,
-                                      TextureSurfaceOptions options,
-                                      LwjglContext shareWith, RendererProvider provider) {
+    public LwjglPbufferTextureSurface(FrameworkImpl framework, LwjglSurfaceFactory creator,
+                                      TextureSurfaceOptions options, LwjglContext shareWith,
+                                      RendererProvider provider) {
         super(framework, options);
 
         Texture[] colorBuffers = new Texture[getNumColorBuffers()];
@@ -89,8 +87,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             throw new FrameworkException("Error flushing Pbuffer", e);
         }
 
-        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0)
-                                                 : null; // will be 1 color target at max
+        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0) : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
         int ct = -1;
@@ -144,8 +141,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
             GL11.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL12.GL_TEXTURE_3D:
-            GL12.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0,
-                                     getWidth(), getHeight());
+            GL12.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0, getWidth(), getHeight());
             break;
         }
     }

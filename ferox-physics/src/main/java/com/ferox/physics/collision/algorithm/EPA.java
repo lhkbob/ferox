@@ -76,8 +76,8 @@ public class EPA {
                     boolean valid = true;
                     if (wdist > EPA_ACCURACY) {
                         for (int j = 0; j < 3 && valid; j++) {
-                            valid &= expand(pass, iw, vw, best.adjacent[j],
-                                            best.faceIndices[j], horizon, hull);
+                            valid &= expand(pass, iw, vw, best.adjacent[j], best.faceIndices[j], horizon,
+                                            hull);
                         }
 
                         if (valid && horizon.numFaces >= 3) {
@@ -104,15 +104,9 @@ public class EPA {
                 }
 
                 Vector3 t = new Vector3();
-                double w1 = Util
-                        .normal(projection, outer.vertices[1], outer.vertices[2], t)
-                        .length();
-                double w2 = Util
-                        .normal(projection, outer.vertices[2], outer.vertices[0], t)
-                        .length();
-                double w3 = Util
-                        .normal(projection, outer.vertices[0], outer.vertices[1], t)
-                        .length();
+                double w1 = Util.normal(projection, outer.vertices[1], outer.vertices[2], t).length();
+                double w2 = Util.normal(projection, outer.vertices[2], outer.vertices[0], t).length();
+                double w3 = Util.normal(projection, outer.vertices[0], outer.vertices[1], t).length();
 
                 double sum = w1 + w2 + w3;
                 simplex.setWeight(0, w1 / sum);
@@ -146,17 +140,16 @@ public class EPA {
         return minf;
     }
 
-    private static boolean expand(int pass, @Const Vector3 iw, @Const Vector3 vw, Face f,
-                                  int e, Horizon horizon, Bag<Face> hull) {
+    private static boolean expand(int pass, @Const Vector3 iw, @Const Vector3 vw, Face f, int e,
+                                  Horizon horizon, Bag<Face> hull) {
         if (f.pass != pass) {
             int e1 = I1_MAP[e];
             if (f.normal.dot(vw) - f.d < -EPA_PLANE_EPS) {
                 // If we need a new face, we clone iw and vw because they're
                 // being reused in the EPA loop. The other vertices are already
                 // in the hull and won't be modified anymore so we can share references.
-                Face nf = newFace(f.inputs[e1], f.vertices[e1], f.inputs[e],
-                                  f.vertices[e], new Vector3(iw), new Vector3(vw), hull,
-                                  false);
+                Face nf = newFace(f.inputs[e1], f.vertices[e1], f.inputs[e], f.vertices[e], new Vector3(iw),
+                                  new Vector3(vw), hull, false);
                 if (nf != null) {
                     bind(nf, 0, f, e);
                     if (horizon.cf != null) {
@@ -171,10 +164,8 @@ public class EPA {
             } else {
                 int e2 = I2_MAP[e];
                 f.pass = pass;
-                if (expand(pass, iw, vw, f.adjacent[e1], f.faceIndices[e1], horizon,
-                           hull) &&
-                    expand(pass, iw, vw, f.adjacent[e2], f.faceIndices[e2], horizon,
-                           hull)) {
+                if (expand(pass, iw, vw, f.adjacent[e1], f.faceIndices[e1], horizon, hull) &&
+                    expand(pass, iw, vw, f.adjacent[e2], f.faceIndices[e2], horizon, hull)) {
                     f.remove(hull);
                     return true;
                 }
@@ -184,11 +175,10 @@ public class EPA {
         return false;
     }
 
-    private static double edgeDistance(@Const Vector3 va, @Const Vector3 vb,
-                                       @Const Vector3 normal) {
+    private static double edgeDistance(@Const Vector3 va, @Const Vector3 vb, @Const Vector3 normal) {
         Vector3 ba = new Vector3().sub(vb, va);
-        Vector3 nab = new Vector3().cross(ba,
-                                          normal); // outward facing edge normal direction on triangle plane
+        Vector3 nab = new Vector3()
+                .cross(ba, normal); // outward facing edge normal direction on triangle plane
 
         double aDotNAB = va
                 .dot(nab); // only care about sign to determine inside/outside, no normalization required
@@ -207,8 +197,7 @@ public class EPA {
             } else {
                 // pick distance to edge a->b
                 double aDotB = va.dot(vb);
-                double d2 = (va.lengthSquared() * vb.lengthSquared() - aDotB * aDotB) /
-                            ba.lengthSquared();
+                double d2 = (va.lengthSquared() * vb.lengthSquared() - aDotB * aDotB) / ba.lengthSquared();
                 return Math.sqrt(Math.max(d2, 0.0));
             }
         } else {
@@ -219,17 +208,13 @@ public class EPA {
     private static Face newFace(Simplex simplex, int i1, int i2, int i3, Bag<Face> hull) {
         // the simplex will be later modified, so we clone the vertices here
         // so that we're not inadvertently editing the hull either
-        return newFace(new Vector3(simplex.getInput(i1)),
-                       new Vector3(simplex.getVertex(i1)),
-                       new Vector3(simplex.getInput(i2)),
-                       new Vector3(simplex.getVertex(i2)),
-                       new Vector3(simplex.getInput(i3)),
-                       new Vector3(simplex.getVertex(i3)), hull, true);
+        return newFace(new Vector3(simplex.getInput(i1)), new Vector3(simplex.getVertex(i1)),
+                       new Vector3(simplex.getInput(i2)), new Vector3(simplex.getVertex(i2)),
+                       new Vector3(simplex.getInput(i3)), new Vector3(simplex.getVertex(i3)), hull, true);
     }
 
-    private static Face newFace(@Const Vector3 ia, @Const Vector3 va, @Const Vector3 ib,
-                                @Const Vector3 vb, @Const Vector3 ic, @Const Vector3 vc,
-                                Bag<Face> hull, boolean force) {
+    private static Face newFace(@Const Vector3 ia, @Const Vector3 va, @Const Vector3 ib, @Const Vector3 vb,
+                                @Const Vector3 ic, @Const Vector3 vc, Bag<Face> hull, boolean force) {
         Face face = new Face();
         face.vertices[0] = va;
         face.vertices[1] = vb;

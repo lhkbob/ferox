@@ -38,8 +38,7 @@ public class PointLightInfluence implements LightInfluence {
     private final double falloff;
 
     public PointLightInfluence(@Const Matrix4 lightTransform, double falloff) {
-        lightPos = new Vector3(lightTransform.m03, lightTransform.m13,
-                               lightTransform.m23);
+        lightPos = new Vector3(lightTransform.m03, lightTransform.m13, lightTransform.m23);
         objectPos = new Vector3();
         this.falloff = falloff * falloff;
     }
@@ -68,8 +67,7 @@ public class PointLightInfluence implements LightInfluence {
                 if (light.getFalloffDistance() <= 0.0) {
                     return GlobalLightInfluence.INSTANCE;
                 } else {
-                    return new PointLightInfluence(lightTransform,
-                                                   light.getFalloffDistance());
+                    return new PointLightInfluence(lightTransform, light.getFalloffDistance());
                 }
             }
         };

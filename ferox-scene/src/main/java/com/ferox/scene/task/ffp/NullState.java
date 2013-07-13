@@ -6,8 +6,7 @@ public class NullState implements State {
     public static final NullState INSTANCE = new NullState();
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         currentNode.visitChildren(effects, access);
     }
 }

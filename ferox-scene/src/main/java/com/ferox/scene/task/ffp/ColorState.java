@@ -18,8 +18,8 @@ public class ColorState implements State {
 
     private double shininess;
 
-    public void set(@Const ColorRGB diffuse, @Const ColorRGB specular,
-                    @Const ColorRGB emitted, double alpha, double shininess) {
+    public void set(@Const ColorRGB diffuse, @Const ColorRGB specular, @Const ColorRGB emitted, double alpha,
+                    double shininess) {
         if (diffuse == null) {
             this.diffuse.set(DEFAULT_DIFFUSE).w = alpha;
         } else {
@@ -42,8 +42,7 @@ public class ColorState implements State {
     }
 
     @Override
-    public void visitNode(StateNode currentNode, AppliedEffects effects,
-                          HardwareAccessLayer access) {
+    public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
         r.setMaterial(DEFAULT_AMBIENT, diffuse, specular, emitted);

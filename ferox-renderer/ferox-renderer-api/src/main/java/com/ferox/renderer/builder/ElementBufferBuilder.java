@@ -7,12 +7,10 @@ import com.ferox.renderer.ElementBuffer;
  *
  * @author Michael Ludwig
  */
-public interface ElementBufferBuilder
-        extends BufferBuilder<ElementBufferBuilder>, Builder<ElementBuffer> {
+public interface ElementBufferBuilder extends BufferBuilder<ElementBufferBuilder>, Builder<ElementBuffer> {
     /**
-     * Provide the data array that will back the element buffer. The data type will be
-     * {@link com.ferox.renderer.DataType#UNSIGNED_INT}. The length of the buffer will be
-     * the length of the array.
+     * Provide the data array that will back the element buffer. The data type will be {@link
+     * com.ferox.renderer.DataType#UNSIGNED_INT}. The length of the buffer will be the length of the array.
      *
      * @param data The data array
      *
@@ -23,9 +21,8 @@ public interface ElementBufferBuilder
     public ElementBufferBuilder fromUnsigned(int[] data);
 
     /**
-     * Provide the data array that will back the element buffer. The data type will be
-     * {@link com.ferox.renderer.DataType#UNSIGNED_SHORT}. The length of the buffer will
-     * be the length of the array.
+     * Provide the data array that will back the element buffer. The data type will be {@link
+     * com.ferox.renderer.DataType#UNSIGNED_SHORT}. The length of the buffer will be the length of the array.
      *
      * @param data The data array
      *
@@ -36,9 +33,8 @@ public interface ElementBufferBuilder
     public ElementBufferBuilder fromUnsigned(short[] data);
 
     /**
-     * Provide the data array that will back the element buffer. The data type will be
-     * {@link com.ferox.renderer.DataType#UNSIGNED_BYTE}. The length of the buffer will be
-     * the length of the array.
+     * Provide the data array that will back the element buffer. The data type will be {@link
+     * com.ferox.renderer.DataType#UNSIGNED_BYTE}. The length of the buffer will be the length of the array.
      *
      * @param data The data array
      *

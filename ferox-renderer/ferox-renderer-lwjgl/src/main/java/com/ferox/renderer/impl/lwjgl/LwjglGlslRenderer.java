@@ -27,6 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
@@ -36,7 +37,6 @@ import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
 import com.ferox.renderer.impl.drivers.TextureHandle;
 import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
 import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 
@@ -60,8 +60,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context,
-                         ResourceManager manager) {
+    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
         super.activate(surface, context, manager);
 
         if (!initialized) {
@@ -80,8 +79,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3,
-                                    float v4) {
+    protected void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3, float v4) {
         switch (rowCount) {
         case 1:
             GL20.glVertexAttrib1f(attr, v1);
@@ -158,8 +156,7 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
         if (supportedTargets.contains(target)) {
             LwjglContext ctx = (LwjglContext) context;
             ctx.setActiveTexture(tex);
-            ctx.bindTexture(Utils.getGLTextureTarget(target),
-                            (handle == null ? 0 : handle.texID));
+            ctx.bindTexture(Utils.getGLTextureTarget(target), (handle == null ? 0 : handle.texID));
         }
     }
 
@@ -191,18 +188,16 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset,
-                                      int stride, int elementSize) {
+    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride,
+                                      int elementSize) {
         int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
 
         if (h.mode == StorageMode.IN_MEMORY) {
             h.inmemoryBuffer.clear().position(offset);
-            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes,
-                                       (FloatBuffer) h.inmemoryBuffer);
+            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes, (FloatBuffer) h.inmemoryBuffer);
         } else {
             int vboOffset = offset * h.dataType.getByteCount();
-            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false,
-                                       strideBytes, vboOffset);
+            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false, strideBytes, vboOffset);
         }
     }
 }

@@ -127,8 +127,8 @@ public class Quat4Property implements ShareableProperty<Quat4> {
     }
 
     /**
-     * Default factory implementation for Quat4Properties, supports the {@link
-     * DefaultQuat4} annotation to specify the default quaternion coordinates.
+     * Default factory implementation for Quat4Properties, supports the {@link DefaultQuat4} annotation to
+     * specify the default quaternion coordinates.
      *
      * @author Michael Ludwig
      */
@@ -145,8 +145,7 @@ public class Quat4Property implements ShareableProperty<Quat4> {
             }
 
             disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() ==
-                           Clone.Policy.DISABLE;
+                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
         }
 
         public Factory(@Const Quat4 v) {
@@ -165,8 +164,7 @@ public class Quat4Property implements ShareableProperty<Quat4> {
         }
 
         @Override
-        public void clone(Quat4Property src, int srcIndex, Quat4Property dst,
-                          int dstIndex) {
+        public void clone(Quat4Property src, int srcIndex, Quat4Property dst, int dstIndex) {
             if (disableClone) {
                 setDefaultValue(dst, dstIndex);
             } else {

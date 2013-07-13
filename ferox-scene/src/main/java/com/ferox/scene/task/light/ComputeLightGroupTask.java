@@ -37,7 +37,10 @@ import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.ComponentIterator;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
@@ -111,11 +114,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                                                             LightInfluence.Factory<T> factory,
                                                             List<LightSource> globalLights,
                                                             List<LightSource> allLights) {
-        ComponentIterator dlt = new ComponentIterator(system).addRequired(light)
-                                                             .addOptional(transform)
+        ComponentIterator dlt = new ComponentIterator(system).addRequired(light).addOptional(transform)
                                                              .addOptional(influenceSet)
-                                                             .addOptional(
-                                                                     influenceRegion);
+                                                             .addOptional(influenceRegion);
         while (dlt.next()) {
             // we don't take advantage of some light types requiring a transform,
             // because we process ambient lights with this same code
@@ -128,11 +129,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 invertBounds = influenceRegion.isNegated();
             }
 
-            LightSource l = new LightSource(allLights.size(), light.getComponent(),
-                                            factory.create(light, t),
-                                            (influenceSet.isEnabled() ? influenceSet
-                                                    .getInfluencedSet() : null), bounds,
-                                            invertBounds);
+            LightSource l = new LightSource(allLights.size(), light.getComponent(), factory.create(light, t),
+                                            (influenceSet.isEnabled() ? influenceSet.getInfluencedSet()
+                                                                      : null), bounds, invertBounds);
 
             if (bounds != null && !invertBounds) {
                 // this light is not a globally influencing light so add it to the index
@@ -149,8 +148,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         }
     }
 
-    private void queryGlobalLights(Entity e, LightCallback callback,
-                                   List<LightSource> globalLights) {
+    private void queryGlobalLights(Entity e, LightCallback callback, List<LightSource> globalLights) {
         // accumulate globally influencing lights into bit set
         int numGlobalLights = globalLights.size();
         for (int i = 0; i < numGlobalLights; i++) {
@@ -199,16 +197,12 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         Profiler.push("collect-lights");
         List<LightSource> allLights = new ArrayList<LightSource>();
         List<LightSource> globalLights = new ArrayList<LightSource>();
-        convertToLightSources(direction, system,
-                              GlobalLightInfluence.<DirectionLight>factory(),
-                              globalLights, allLights);
-        convertToLightSources(ambient, system,
-                              GlobalLightInfluence.<AmbientLight>factory(), globalLights,
+        convertToLightSources(direction, system, GlobalLightInfluence.<DirectionLight>factory(), globalLights,
                               allLights);
-        convertToLightSources(spot, system, SpotLightInfluence.factory(), globalLights,
+        convertToLightSources(ambient, system, GlobalLightInfluence.<AmbientLight>factory(), globalLights,
                               allLights);
-        convertToLightSources(point, system, PointLightInfluence.factory(), globalLights,
-                              allLights);
+        convertToLightSources(spot, system, SpotLightInfluence.factory(), globalLights, allLights);
+        convertToLightSources(point, system, PointLightInfluence.factory(), globalLights, allLights);
         Profiler.pop();
 
         int groupId = 0;
@@ -261,8 +255,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         for (Entry<BitSet, Integer> group : groups.entrySet()) {
             BitSet groupAsBitSet = group.getKey();
             Set<Component<? extends Light<?>>> lightsInGroup = new HashSet<Component<? extends Light<?>>>();
-            for (int i = groupAsBitSet.nextSetBit(0); i >= 0;
-                 i = groupAsBitSet.nextSetBit(i + 1)) {
+            for (int i = groupAsBitSet.nextSetBit(0); i >= 0; i = groupAsBitSet.nextSetBit(i + 1)) {
                 lightsInGroup.add(allLights.get(i).source);
             }
 
@@ -330,9 +323,8 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         final AxisAlignedBox bounds;
         final boolean invertBounds;
 
-        public LightSource(int id, Component<? extends Light<?>> source,
-                           LightInfluence influence, Set<Entity> validEntities,
-                           AxisAlignedBox bounds, boolean invertBounds) {
+        public LightSource(int id, Component<? extends Light<?>> source, LightInfluence influence,
+                           Set<Entity> validEntities, AxisAlignedBox bounds, boolean invertBounds) {
             this.id = id;
             this.source = source;
             this.influence = influence;

@@ -30,8 +30,8 @@ import com.ferox.input.KeyEvent.KeyCode;
 import com.ferox.input.MouseEvent.MouseButton;
 
 /**
- * Predicates provides static factory methods for many of the common predicates needed for
- * input handling, such as mouse movement, button clicks, or key presses.
+ * Predicates provides static factory methods for many of the common predicates needed for input handling,
+ * such as mouse movement, button clicks, or key presses.
  *
  * @author Michael Ludwig
  */
@@ -40,8 +40,7 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the key code transitions from the up
-     * to down position.
+     * Return a Predicate that evaluates to true when the key code transitions from the up to down position.
      *
      * @param code The key that is pressed
      *
@@ -56,15 +55,13 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return !prev.getKeyboardState().isKeyDown(code) &&
-                       next.getKeyboardState().isKeyDown(code);
+                return !prev.getKeyboardState().isKeyDown(code) && next.getKeyboardState().isKeyDown(code);
             }
         };
     }
 
     /**
-     * Return a Predicate that evaluates to true when the key code transitions from the
-     * down to up position.
+     * Return a Predicate that evaluates to true when the key code transitions from the down to up position.
      *
      * @param code The key that is released
      *
@@ -79,16 +76,14 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return prev.getKeyboardState().isKeyDown(code) &&
-                       !next.getKeyboardState().isKeyDown(code);
+                return prev.getKeyboardState().isKeyDown(code) && !next.getKeyboardState().isKeyDown(code);
             }
         };
     }
 
     /**
-     * Return a Predicate that evaluates to true when the key code is held down for the
-     * duration of the state transition. This will continue to evaluate to true until the
-     * key is released.
+     * Return a Predicate that evaluates to true when the key code is held down for the duration of the state
+     * transition. This will continue to evaluate to true until the key is released.
      *
      * @param code The key that is held
      *
@@ -113,9 +108,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the key code is pressed and released
-     * in under 250 milliseconds (i.e. typing that key). This will not evaluate to true
-     * until the key is released. If the release occurs too slowly, it will not trigger.
+     * Return a Predicate that evaluates to true when the key code is pressed and released in under 250
+     * milliseconds (i.e. typing that key). This will not evaluate to true until the key is released. If the
+     * release occurs too slowly, it will not trigger.
      *
      * @param code The key that is typed
      *
@@ -128,10 +123,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the key code is pressed and released
-     * in under <var>delay</var> milliseconds (i.e. typing that key). This will not
-     * evaluate to true until the key is released. If the release occurs too slowly, it
-     * will not trigger.
+     * Return a Predicate that evaluates to true when the key code is pressed and released in under
+     * <var>delay</var> milliseconds (i.e. typing that key). This will not evaluate to true until the key is
+     * released. If the release occurs too slowly, it will not trigger.
      *
      * @param code  The key that is typed
      * @param delay The maximum delay between press and release, in ms
@@ -146,9 +140,8 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button transitions from
-     * the up to down position. When the NONE button is used, it evaluates to true once
-     * all buttons are released.
+     * Return a Predicate that evaluates to true when the mouse button transitions from the up to down
+     * position. When the NONE button is used, it evaluates to true once all buttons are released.
      *
      * @param button The button that is pressed
      *
@@ -170,9 +163,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button transitions from
-     * the down to up position. When the NONE button is used, it evaluates to true when
-     * any button is pressed and there were no other buttons pressed before that.
+     * Return a Predicate that evaluates to true when the mouse button transitions from the down to up
+     * position. When the NONE button is used, it evaluates to true when any button is pressed and there were
+     * no other buttons pressed before that.
      *
      * @param button The button that is released
      *
@@ -194,10 +187,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button is held down for
-     * the duration of the state transition. This will continue to evaluate to true until
-     * the button is released. When the NONE button is used, this evaluates to true so
-     * long as no other physical button is held down.
+     * Return a Predicate that evaluates to true when the mouse button is held down for the duration of the
+     * state transition. This will continue to evaluate to true until the button is released. When the NONE
+     * button is used, this evaluates to true so long as no other physical button is held down.
      *
      * @param button The button that is being held
      *
@@ -219,10 +211,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released once in under 150 milliseconds (i.e. a single click). This will not
-     * evaluate to true until the button is released. If the release occurs too slowly, it
-     * will not trigger.
+     * Return a Predicate that evaluates to true when the mouse button is pressed and released once in under
+     * 150 milliseconds (i.e. a single click). This will not evaluate to true until the button is released. If
+     * the release occurs too slowly, it will not trigger.
      *
      * @param button The button that is clicked
      *
@@ -236,46 +227,41 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released <var>numClicks</var> times in under 150 milliseconds (i.e. multiple
-     * clicks). This will not evaluate to true until the button is released. If the
-     * release occurs too slowly, it will not trigger.
+     * Return a Predicate that evaluates to true when the mouse button is pressed and released
+     * <var>numClicks</var> times in under 150 milliseconds (i.e. multiple clicks). This will not evaluate to
+     * true until the button is released. If the release occurs too slowly, it will not trigger.
      *
      * @param button The button that is clicked
      *
      * @return A Predicate for matching mouse clicking
      *
      * @throws NullPointerException     if button is null
-     * @throws IllegalArgumentException if button is NONE or numClicks is less than or
-     *                                  equal to 0
+     * @throws IllegalArgumentException if button is NONE or numClicks is less than or equal to 0
      */
     public static Predicate mouseClick(MouseButton button, int numClicks) {
         return mouseClick(button, numClicks, 150L);
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released <var>numClicks</var> times in under <var>delay</var> milliseconds (i.e.
-     * multiple clicks). This will not evaluate to true until the button is released. If
-     * the release occurs too slowly, it will not trigger.
+     * Return a Predicate that evaluates to true when the mouse button is pressed and released
+     * <var>numClicks</var> times in under <var>delay</var> milliseconds (i.e. multiple clicks). This will not
+     * evaluate to true until the button is released. If the release occurs too slowly, it will not trigger.
      *
      * @param button The button that is clicked
      *
      * @return A Predicate for matching mouse clicking
      *
      * @throws NullPointerException     if button is null
-     * @throws IllegalArgumentException if button is NONE, or numClicks or delay are less
-     *                                  than or equal to 0
+     * @throws IllegalArgumentException if button is NONE, or numClicks or delay are less than or equal to 0
      */
     public static Predicate mouseClick(MouseButton button, int numClicks, long delay) {
         return new MouseClickedPredicate(button, numClicks, delay);
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse button is pressed and
-     * released twice in under 150 milliseconds (i.e. a double-click). This will not
-     * evaluate to true until the button is released. If the release occurs too slowly, it
-     * will not trigger.
+     * Return a Predicate that evaluates to true when the mouse button is pressed and released twice in under
+     * 150 milliseconds (i.e. a double-click). This will not evaluate to true until the button is released. If
+     * the release occurs too slowly, it will not trigger.
      *
      * @param button The button that is clicked
      *
@@ -289,8 +275,8 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse's position changes and no
-     * button is held down.
+     * Return a Predicate that evaluates to true when the mouse's position changes and no button is held
+     * down.
      *
      * @return A Predicate for matching mouse movement
      */
@@ -301,14 +287,12 @@ public final class Predicates {
     /**
      * <p/>
      * Return a Predicate that evaluates to true when the mouse's position changes. If
-     * <var>allowAnyButton</var> is true, then the predicate does not depend on the
-     * mouse's button state and will return true regardless of which buttons are held
-     * down.
+     * <var>allowAnyButton</var> is true, then the predicate does not depend on the mouse's button state and
+     * will return true regardless of which buttons are held down.
      * <p/>
      * If it is false, the predicate will only return true when no buttons are held down.
      *
-     * @param allowAnyButton True if any button can be pressed and the predicate will
-     *                       still return true
+     * @param allowAnyButton True if any button can be pressed and the predicate will still return true
      *
      * @return A Predicate for matching mouse movement
      */
@@ -330,9 +314,8 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the mouse's position changes and the
-     * specified mouse button is held down. If the NONE button is used, this is equivalent
-     * to {@link #mouseMove()}.
+     * Return a Predicate that evaluates to true when the mouse's position changes and the specified mouse
+     * button is held down. If the NONE button is used, this is equivalent to {@link #mouseMove()}.
      *
      * @param button The button that must be held down for the drag
      *
@@ -345,8 +328,8 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves
-     * in the negative direction, which is synonymous with scrolling the wheel forward.
+     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the negative
+     * direction, which is synonymous with scrolling the wheel forward.
      *
      * @return A Predicate matching forward wheel motion
      */
@@ -354,15 +337,14 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() <
-                       next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() < next.getMouseState().getScrollCount();
             }
         };
     }
 
     /**
-     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves
-     * in the positive direction, which is synonymous with scrolling the wheel backward.
+     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the positive
+     * direction, which is synonymous with scrolling the wheel backward.
      *
      * @return A Predicate matching backward wheel motion
      */
@@ -370,17 +352,15 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() >
-                       next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() > next.getMouseState().getScrollCount();
             }
         };
     }
 
     /**
-     * Return a Predicate that returns true when the logical AND of the left and right
-     * predicates returns true (i.e. when both left and right return true). Both
-     * predicates are always evaluated, even when one is known to be false before
-     * evaluating the second.
+     * Return a Predicate that returns true when the logical AND of the left and right predicates returns true
+     * (i.e. when both left and right return true). Both predicates are always evaluated, even when one is
+     * known to be false before evaluating the second.
      *
      * @param left  The left side of the && operation
      * @param right The right side of the && operation
@@ -405,10 +385,9 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that returns true when the logical OR of the left and right
-     * predicates returns true (i.e. when either left or right return true). Both
-     * predicates are always evaluated, even when one is known to be true before
-     * evaluating the second.
+     * Return a Predicate that returns true when the logical OR of the left and right predicates returns true
+     * (i.e. when either left or right return true). Both predicates are always evaluated, even when one is
+     * known to be true before evaluating the second.
      *
      * @param left  The left side of the || operation
      * @param right The right side of the || operation
@@ -433,8 +412,8 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that returns true when the provided predicate returns false.
-     * This performs a logical NOT operation.
+     * Return a Predicate that returns true when the provided predicate returns false. This performs a logical
+     * NOT operation.
      *
      * @param not The predicate that is negated
      *

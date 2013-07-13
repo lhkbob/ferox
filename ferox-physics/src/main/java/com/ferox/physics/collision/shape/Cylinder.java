@@ -30,9 +30,9 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
 /**
- * Cylinder is a convex shape implementation that represents a cylinder. It has two
- * parameters, the height of the cylinder and the radius of the cylinder caps. The
- * orientation of the cylinder is chosen by its dominant axis.
+ * Cylinder is a convex shape implementation that represents a cylinder. It has two parameters, the height of
+ * the cylinder and the radius of the cylinder caps. The orientation of the cylinder is chosen by its dominant
+ * axis.
  *
  * @author Michael Ludwig
  */
@@ -64,8 +64,7 @@ public class Cylinder extends AxisSweptShape {
 
     public void setCapRadius(double radius) {
         if (radius <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Radius must be greater than 0, not: " + radius);
+            throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         }
         capRadius = radius;
         update();
@@ -73,8 +72,7 @@ public class Cylinder extends AxisSweptShape {
 
     public void setHeight(double height) {
         if (height <= 0.0) {
-            throw new IllegalArgumentException(
-                    "Height must be greater than 0, not: " + height);
+            throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
         }
         halfHeight = height / 2.0;
         update();

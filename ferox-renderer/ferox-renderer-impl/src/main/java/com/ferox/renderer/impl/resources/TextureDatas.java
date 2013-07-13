@@ -8,66 +8,58 @@ import com.ferox.renderer.builder.TextureBuilder;
  */
 public final class TextureDatas {
     public static interface ImageSpecifier {
-        public void setImageData(int image, int mipmap, Object array,
-                                 TextureImpl.FullFormat format);
+        public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format);
     }
 
     private TextureDatas() {
     }
 
-    public static DepthMapBuilder.DepthData forDepth(final ImageSpecifier builder,
-                                                     final int image, final int mipmap) {
+    public static DepthMapBuilder.DepthData forDepth(final ImageSpecifier builder, final int image,
+                                                     final int mipmap) {
         return new DepthMapBuilder.DepthData() {
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.DEPTH_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.DEPTH_FLOAT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.DEPTH_24BIT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.DEPTH_24BIT);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.DEPTH_16BIT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.DEPTH_16BIT);
             }
         };
     }
 
-    public static DepthMapBuilder.DepthStencilData forDepthStencil(
-            final ImageSpecifier builder, final int image, final int mipmap) {
+    public static DepthMapBuilder.DepthStencilData forDepthStencil(final ImageSpecifier builder,
+                                                                   final int image, final int mipmap) {
         return new DepthMapBuilder.DepthStencilData() {
             @Override
             public void fromBits(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.DEPTH_24BIT_STENCIL_8BIT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.DEPTH_24BIT_STENCIL_8BIT);
             }
         };
     }
 
-    public static TextureBuilder.BasicColorData forR(final ImageSpecifier builder,
-                                                     final int image, final int mipmap) {
+    public static TextureBuilder.BasicColorData forR(final ImageSpecifier builder, final int image,
+                                                     final int mipmap) {
         return new TextureBuilder.BasicColorData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.R_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.R_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.R_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.R_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.R_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.R_NORMALIZED_UINT);
             }
 
             @Override
@@ -77,8 +69,7 @@ public final class TextureDatas {
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.R_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.R_USHORT);
             }
 
             @Override
@@ -108,43 +99,37 @@ public final class TextureDatas {
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.R_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.R_HALF_FLOAT);
             }
         };
     }
 
-    public static TextureBuilder.BasicColorData forRG(final ImageSpecifier builder,
-                                                      final int image, final int mipmap) {
+    public static TextureBuilder.BasicColorData forRG(final ImageSpecifier builder, final int image,
+                                                      final int mipmap) {
         return new TextureBuilder.BasicColorData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_NORMALIZED_UINT);
             }
 
             @Override
             public void fromUnsigned(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_UBYTE);
             }
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_USHORT);
             }
 
             @Override
@@ -154,8 +139,7 @@ public final class TextureDatas {
 
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_FLOAT);
             }
 
             @Override
@@ -165,8 +149,7 @@ public final class TextureDatas {
 
             @Override
             public void from(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_SHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_SHORT);
             }
 
             @Override
@@ -176,68 +159,57 @@ public final class TextureDatas {
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RG_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RG_HALF_FLOAT);
             }
         };
     }
 
-    public static TextureBuilder.CompressedRGBData forRGB(final ImageSpecifier builder,
-                                                          final int image,
+    public static TextureBuilder.CompressedRGBData forRGB(final ImageSpecifier builder, final int image,
                                                           final int mipmap) {
         return new TextureBuilder.CompressedRGBData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_NORMALIZED_UINT);
             }
 
             @Override
             public void fromUnsigned(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_UBYTE);
             }
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_USHORT);
             }
 
             @Override
             public void fromUnsigned(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_UINT);
             }
 
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_FLOAT);
             }
 
             @Override
             public void from(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_BYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_BYTE);
             }
 
             @Override
             public void from(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_SHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_SHORT);
             }
 
             @Override
@@ -247,80 +219,67 @@ public final class TextureDatas {
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_HALF_FLOAT);
             }
 
             @Override
             public void fromDXT1(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_DXT1);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_DXT1);
             }
 
             @Override
             public void fromPackedFloats(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGB_PACKED_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGB_PACKED_FLOAT);
             }
         };
     }
 
-    public static TextureBuilder.BasicColorData forBGR(final ImageSpecifier builder,
-                                                       final int image,
+    public static TextureBuilder.BasicColorData forBGR(final ImageSpecifier builder, final int image,
                                                        final int mipmap) {
         return new TextureBuilder.BasicColorData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_NORMALIZED_UINT);
             }
 
             @Override
             public void fromUnsigned(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_UBYTE);
             }
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_USHORT);
             }
 
             @Override
             public void fromUnsigned(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_UINT);
             }
 
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_FLOAT);
             }
 
             @Override
             public void from(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_BYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_BYTE);
             }
 
             @Override
             public void from(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_SHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_SHORT);
             }
 
             @Override
@@ -330,187 +289,157 @@ public final class TextureDatas {
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGR_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGR_HALF_FLOAT);
             }
         };
     }
 
-    public static TextureBuilder.CompressedRGBAData forRGBA(final ImageSpecifier builder,
-                                                            final int image,
+    public static TextureBuilder.CompressedRGBAData forRGBA(final ImageSpecifier builder, final int image,
                                                             final int mipmap) {
         return new TextureBuilder.CompressedRGBAData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_NORMALIZED_UINT);
             }
 
             @Override
             public void fromUnsigned(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_UBYTE);
             }
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_USHORT);
             }
 
             @Override
             public void fromUnsigned(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_UINT);
             }
 
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_FLOAT);
             }
 
             @Override
             public void from(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_BYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_BYTE);
             }
 
             @Override
             public void from(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_SHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_SHORT);
             }
 
             @Override
             public void from(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_INT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_INT);
             }
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_HALF_FLOAT);
             }
 
             @Override
             public void fromDXT1(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_DXT1);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_DXT1);
             }
 
             @Override
             public void fromDXT3(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_DXT3);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_DXT3);
             }
 
             @Override
             public void fromDXT5(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.RGBA_DXT5);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.RGBA_DXT5);
             }
         };
     }
 
-    public static TextureBuilder.BasicColorData forBGRA(final ImageSpecifier builder,
-                                                        final int image,
+    public static TextureBuilder.BasicColorData forBGRA(final ImageSpecifier builder, final int image,
                                                         final int mipmap) {
         return new TextureBuilder.BasicColorData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromUnsignedNormalized(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_NORMALIZED_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_NORMALIZED_USHORT);
             }
 
             @Override
             public void fromUnsignedNormalized(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_NORMALIZED_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_NORMALIZED_UINT);
             }
 
             @Override
             public void fromUnsigned(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_UBYTE);
             }
 
             @Override
             public void fromUnsigned(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_USHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_USHORT);
             }
 
             @Override
             public void fromUnsigned(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_UINT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_UINT);
             }
 
             @Override
             public void from(float[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_FLOAT);
             }
 
             @Override
             public void from(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_BYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_BYTE);
             }
 
             @Override
             public void from(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_SHORT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_SHORT);
             }
 
             @Override
             public void from(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_INT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_INT);
             }
 
             @Override
             public void fromHalfFloats(short[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.BGRA_HALF_FLOAT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.BGRA_HALF_FLOAT);
             }
         };
     }
 
-    public static TextureBuilder.ARGBData forARGB(final ImageSpecifier builder,
-                                                  final int image, final int mipmap) {
+    public static TextureBuilder.ARGBData forARGB(final ImageSpecifier builder, final int image,
+                                                  final int mipmap) {
         return new TextureBuilder.ARGBData() {
             @Override
             public void fromUnsignedNormalized(byte[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.ARGB_NORMALIZED_UBYTE);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.ARGB_NORMALIZED_UBYTE);
             }
 
             @Override
             public void fromPackedBytes(int[] data) {
-                builder.setImageData(image, mipmap, data,
-                                     TextureImpl.FullFormat.ARGB_PACKED_INT);
+                builder.setImageData(image, mipmap, data, TextureImpl.FullFormat.ARGB_PACKED_INT);
             }
         };
     }

@@ -57,10 +57,8 @@ public class LightBlendingTest extends ApplicationStub {
     @Override
     protected void init(OnscreenSurface surface) {
         shape = Box.create(3.0);
-        frustum = new Frustum(60f, surface.getWidth() / (double) surface.getHeight(), .1,
-                              100);
-        frustum.setOrientation(new Vector3(0, 2, -5), new Vector3(0, 0, 1),
-                               new Vector3(0, 1, 0));
+        frustum = new Frustum(60f, surface.getWidth() / (double) surface.getHeight(), .1, 100);
+        frustum.setOrientation(new Vector3(0, 2, -5), new Vector3(0, 0, 1), new Vector3(0, 1, 0));
     }
 
     @Override
@@ -81,8 +79,7 @@ public class LightBlendingTest extends ApplicationStub {
                 ffp.clear(true, true, true, new Vector4(.4, .4, .4, 1), 1, 0);
 
                 ffp.setLightingEnabled(true);
-                ffp.setMaterial(new Vector4(), new Vector4(.5, .5, .5, 1), new Vector4(),
-                                new Vector4());
+                ffp.setMaterial(new Vector4(), new Vector4(.5, .5, .5, 1), new Vector4(), new Vector4());
                 ffp.setNormals(shape.getNormals());
                 ffp.setVertices(shape.getVertices());
 
@@ -90,13 +87,11 @@ public class LightBlendingTest extends ApplicationStub {
                 ffp.setModelViewMatrix(frustum.getViewMatrix());
 
                 // base light
-                ffp.setLightColor(0, new Vector4(), new Vector4(1, 0, 0, 1),
-                                  new Vector4());
+                ffp.setLightColor(0, new Vector4(), new Vector4(1, 0, 0, 1), new Vector4());
                 ffp.setLightPosition(0, new Vector4(0, 4, -4, 1));
                 ffp.setLightEnabled(0, true);
                 //
-                ffp.setLightColor(1, new Vector4(), new Vector4(0, 1, 0, 1),
-                                  new Vector4());
+                ffp.setLightColor(1, new Vector4(), new Vector4(0, 1, 0, 1), new Vector4());
                 ffp.setLightPosition(1, new Vector4(-4, 4, -4, 1));
                 ffp.setLightEnabled(1, true);
                 //                ffp.setLightColor(2, new Vector4(), new Vector4(0, 0, 1, 1),
@@ -105,8 +100,7 @@ public class LightBlendingTest extends ApplicationStub {
                 //                ffp.setLightEnabled(2, true);
 
                 ffp.setIndices(null);
-                ffp.render(shape.getPolygonType(), shape.getIndexOffset(),
-                           shape.getIndexCount());
+                ffp.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
 
                 // second light
                 ffp.setBlendingEnabled(true);
@@ -114,16 +108,14 @@ public class LightBlendingTest extends ApplicationStub {
                 ffp.setDepthWriteMask(false);
                 ffp.setDepthTest(Comparison.LEQUAL);
 
-                ffp.setLightColor(0, new Vector4(), new Vector4(0, 1, 0, 1),
-                                  new Vector4());
+                ffp.setLightColor(0, new Vector4(), new Vector4(0, 1, 0, 1), new Vector4());
                 ffp.setLightPosition(0, new Vector4(-4, 4, -4, 1));
 
                 //                ffp.render(shape.getPolygonType(), shape.getIndexOffset(),
                 //                           shape.getIndexCount());
 
                 // third light
-                ffp.setLightColor(0, new Vector4(), new Vector4(0, 0, 1, 1),
-                                  new Vector4());
+                ffp.setLightColor(0, new Vector4(), new Vector4(0, 0, 1, 1), new Vector4());
                 ffp.setLightPosition(0, new Vector4(4, 4, -4, 1));
 
                 //                ffp.render(shape.getPolygonType(), shape.getIndexOffset(),

@@ -27,23 +27,22 @@
 package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.AbstractTextureSurface;
+import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererProvider;
 import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.resource.BufferData.DataType;
 import com.ferox.renderer.texture.Texture;
 import com.ferox.renderer.texture.TextureFormat;
+import com.ferox.resource.BufferData.DataType;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.*;
 
 /**
- * JoglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers to
- * render into an offscreen buffer before using the glCopyTexImage command to move the
- * buffer contents into a texture. PBuffers are slower than FBOs so {@link
- * JoglFboTextureSurface} is favored when FBOs are supported.
+ * JoglPbufferTextureSurface is a TextureSurface implementation that relies on pbuffers to render into an
+ * offscreen buffer before using the glCopyTexImage command to move the buffer contents into a texture.
+ * PBuffers are slower than FBOs so {@link JoglFboTextureSurface} is favored when FBOs are supported.
  *
  * @author Michael Ludwig
  */
@@ -53,8 +52,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
 
     private int activeLayerForFrame;
 
-    public JoglPbufferTextureSurface(FrameworkImpl framework,
-                                     JoglSurfaceFactory creator,
+    public JoglPbufferTextureSurface(FrameworkImpl framework, JoglSurfaceFactory creator,
                                      TextureSurfaceOptions options, JoglContext shareWith,
                                      RendererProvider provider) {
         super(framework, options);
@@ -65,12 +63,10 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         }
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
-        GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers,
-                                                 getDepthBuffer());
+        GLCapabilities caps = chooseCapabilities(creator.getGLProfile(), colorBuffers, getDepthBuffer());
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
         pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
-                                   .createGLPbuffer(device, caps,
-                                                    new DefaultGLCapabilitiesChooser(),
+                                   .createGLPbuffer(device, caps, new DefaultGLCapabilitiesChooser(),
                                                     getWidth(), getHeight(), realShare);
         pbuffer.setAutoSwapBufferMode(false);
 
@@ -86,8 +82,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     @Override
     public void flush(OpenGLContext context) {
         pbuffer.swapBuffers();
-        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0)
-                                                 : null; // will be 1 color target at max
+        Texture color = getNumColorBuffers() > 0 ? getColorBuffer(0) : null; // will be 1 color target at max
         Texture depth = getDepthBuffer();
 
         GL2GL3 gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
@@ -143,8 +138,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
             gl.glCopyTexSubImage2D(face, 0, 0, 0, 0, 0, getWidth(), getHeight());
             break;
         case GL2ES2.GL_TEXTURE_3D:
-            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0,
-                                   getWidth(), getHeight());
+            gl.glCopyTexSubImage3D(glTarget, 0, 0, 0, activeLayerForFrame, 0, 0, getWidth(), getHeight());
             break;
         }
     }
@@ -171,8 +165,7 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         }
     }
 
-    private static GLCapabilities chooseCapabilities(GLProfile profile, Texture[] colors,
-                                                     Texture depth) {
+    private static GLCapabilities chooseCapabilities(GLProfile profile, Texture[] colors, Texture depth) {
         GLCapabilities caps = new GLCapabilities(profile);
         caps.setPBuffer(true);
 
