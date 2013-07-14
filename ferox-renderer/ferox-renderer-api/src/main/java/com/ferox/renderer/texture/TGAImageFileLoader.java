@@ -26,6 +26,8 @@
  */
 package com.ferox.renderer.texture;
 
+import com.ferox.renderer.Texture2D;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,7 +38,7 @@ import java.io.InputStream;
  */
 public class TGAImageFileLoader implements ImageFileLoader {
     @Override
-    public Texture readImage(InputStream stream) throws IOException {
+    public TextureProxy<Texture2D> readImage(InputStream stream) throws IOException {
         if (TGATexture.isTGATexture(stream)) {
             return TGATexture.readTexture(stream);
         } else {

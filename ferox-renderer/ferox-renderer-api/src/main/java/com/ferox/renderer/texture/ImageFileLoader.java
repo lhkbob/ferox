@@ -32,7 +32,7 @@ import java.io.InputStream;
 /**
  * <p/>
  * ImageFileLoader is a simple interface that provides loading capabilities for various types of image data,
- * to then convert them into TextureImages.
+ * to then convert them into TextureProxies.
  * <p/>
  * To keep the interface simple, it only deals in streams, if a file format cannot be determined using just
  * streams, then this interface is not suitable for that type.
@@ -42,7 +42,7 @@ import java.io.InputStream;
 public interface ImageFileLoader {
     /**
      * <p/>
-     * Process the data from the given stream and return a Texture representing its contents.
+     * Process the data from the given stream and return a TextureProxy representing its contents.
      * <p/>
      * Return null if the stream doesn't represent an image of any supported format. If it is an image of the
      * expected type, but is otherwise invalid or unsupported, then throw an exception.
@@ -52,9 +52,9 @@ public interface ImageFileLoader {
      *
      * @param stream The InputStream to attempt to read an image from
      *
-     * @return The read Texture, or null if this stream doesn't match a supported format
+     * @return The read TextureProxy, or null if this stream doesn't match the expected format
      *
      * @throws IOException if there are any problems reading the texture
      */
-    public Texture readImage(InputStream stream) throws IOException;
+    public TextureProxy<?> readImage(InputStream stream) throws IOException;
 }

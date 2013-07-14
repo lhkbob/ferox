@@ -26,9 +26,13 @@
  */
 package com.ferox.renderer.texture;
 
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.resource.BufferData;
-import com.ferox.resource.Mipmap;
+import com.ferox.renderer.DataType;
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.Sampler;
+import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.Texture2DBuilder;
+import com.ferox.renderer.builder.TextureBuilder;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -46,10 +50,13 @@ import java.io.InputStream;
  * @author Michael Ludwig
  */
 @SuppressWarnings("unused")
-public class TGATexture {
+public class TGATexture implements TextureProxy<Texture2D> {
     private final Header header;
-    private TextureFormat format;
-    private BufferData data;
+
+    // will be RGB or RGBA but the tga images actually specify the data in BGR order
+    private Sampler.TexelFormat format;
+    private Object data;
+    private DataType dataType;
 
     /**
      * <p/>
@@ -65,13 +72,11 @@ public class TGATexture {
      *
      * @throws IOException if there was an IO error or if the tga file is invalid or unsupported
      */
-    public static Texture readTexture(InputStream stream) throws IOException {
+    public static TextureProxy<Texture2D> readTexture(InputStream stream) throws IOException {
         if (stream == null) {
             throw new IOException("Cannot read from a null stream");
         }
-        TGATexture res = new TGATexture(stream);
-        return new Texture(Target.T_2D,
-                           new Mipmap(res.data, res.header.width, res.header.height, 1, res.format));
+        return new TGATexture(stream);
     }
 
     /**
@@ -128,26 +133,45 @@ public class TGATexture {
         decodeImage(stream);
     }
 
+    @Override
+    public Texture2D convert(Framework framework) {
+        Texture2DBuilder t = framework.newTexture2D().width(header.width).height(header.height).interpolated()
+                                      .anisotropy(0.0);
+
+        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> i;
+        if (format == Sampler.TexelFormat.RGB) {
+            i = t.bgr();
+        } else {
+            i = t.bgra();
+        }
+
+        if (dataType == DataType.UNSIGNED_NORMALIZED_BYTE) {
+            i.mipmap(0).fromUnsignedNormalized((byte[]) data);
+        } else {
+            i.mipmap(0).fromUnsignedNormalized((short[]) data);
+        }
+        return i.build();
+    }
+
     /* Set of possible image types in TGA file */
-    private final static int TYPE_NO_IMAGE = 0; // no image data
-    private final static int TYPE_COLORMAP = 1; // uncompressed color mapped
-    // image
-    private final static int TYPE_TRUECOLOR = 2; // uncompressed true color
-    // image
-    private final static int TYPE_BLACKWHITE = 3; // uncompressed black and
-    // white image
-    private final static int TYPE_RL_COLORMAP = 9; // compressed color mapped
-    // image
-    private final static int TYPE_RL_TRUECOLOR = 10; // compressed true color
-    // image
-    private final static int TYPE_RL_BLACKWHITE = 11; // compressed black and
-    // white image
-    private final static int TYPE_HDRL_COLORMAP = 32; // compressed color mapped
-    // dating using
-    // runlength encoding
-    private final static int TYPE_HDRL_BLACKWHITE = 33; // compressed bw mapped
-    // data with runlength
-    // encoding
+    // no image data
+    private final static int TYPE_NO_IMAGE = 0;
+    // uncompressed color mapped image
+    private final static int TYPE_COLORMAP = 1;
+    // uncompressed true color image
+    private final static int TYPE_TRUECOLOR = 2;
+    // uncompressed black and white image
+    private final static int TYPE_BLACKWHITE = 3;
+    // compressed color mapped image
+    private final static int TYPE_RL_COLORMAP = 9;
+    // compressed true color image
+    private final static int TYPE_RL_TRUECOLOR = 10;
+    // compressed black and white image
+    private final static int TYPE_RL_BLACKWHITE = 11;
+    // compressed color mapped dating using runlength encoding
+    private final static int TYPE_HDRL_COLORMAP = 32;
+    // compressed bw mapped data with runlength encoding
+    private final static int TYPE_HDRL_BLACKWHITE = 33;
 
     /* Field image descriptor bitfield values definitions */
     private final static int ID_ATTRIBPERPIXEL = 0xF;
@@ -404,7 +428,7 @@ public class TGATexture {
         switch (header.imageType) {
         case TYPE_COLORMAP:
             // load the color map
-            ColorMap cm = (header.hasColorMap() ? new ColorMap(header, in) : null);
+            ColorMap cm = new ColorMap(header, in);
 
             if (cm.elementByteCount == 2) {
                 decodeColorMap16(cm, in);
@@ -414,7 +438,7 @@ public class TGATexture {
             break;
         case TYPE_TRUECOLOR:
             if (header.pixelDepth == 16) {
-                decodeTrueColor16(in);
+                throw new IOException("16-bit ARGB(1555) images are not supported");
             } else {
                 decodeTrueColor24_32(in);
             }
@@ -434,7 +458,10 @@ public class TGATexture {
         int c; // column index
         short[] tmpData = new short[header.width * header.height];
 
-        format = (cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
+        format = (cm.elementByteCount == 3 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
+        dataType = DataType.UNSIGNED_NORMALIZED_SHORT;
+        data = tmpData;
+
         if (header.pixelDepth == 8) {
             // indices use 2 bytes
             byte[] rawIndices = new byte[header.width << 1];
@@ -462,8 +489,6 @@ public class TGATexture {
                 }
             }
         }
-
-        data = new BufferData(tmpData);
     }
 
     /*
@@ -477,7 +502,10 @@ public class TGATexture {
         int rawWidth = header.width * cm.elementByteCount; // length of expanded color row
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        format = (cm.elementByteCount == 3 ? TextureFormat.BGR : TextureFormat.BGRA);
+        format = (cm.elementByteCount == 3 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
+        dataType = DataType.UNSIGNED_NORMALIZED_BYTE;
+        data = tmpData;
+
         if (header.pixelDepth == 8) {
             // indices use 2 bytes
             byte[] rawIndices = new byte[header.width << 1];
@@ -505,32 +533,6 @@ public class TGATexture {
                 }
             }
         }
-
-        data = new BufferData(tmpData);
-    }
-
-    /* This assumes that the body is a 16 bit ARGB_1555 image. */
-    private void decodeTrueColor16(InputStream dIn) throws IOException {
-        int i; // input row index
-        int y; // output row index
-        int c; // column index
-
-        byte[] rawBuf = new byte[header.width << 1];
-        short[] swapRow = new short[header.width];
-        short[] tmpData = new short[header.width * header.height];
-
-        format = TextureFormat.ARGB_1555;
-        for (i = 0; i < header.height; i++) {
-            readAll(dIn, rawBuf);
-            for (c = 0; c < header.width; c++) {
-                swapRow[c] = (short) bytesToLittleEndianShort(rawBuf, c << 1);
-            }
-
-            y = (header.isTopToBottom() ? header.height - i - 1 : i);
-            System.arraycopy(swapRow, 0, tmpData, y * header.width, swapRow.length);
-        }
-
-        data = new BufferData(tmpData);
     }
 
     /*
@@ -546,14 +548,15 @@ public class TGATexture {
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        format = (header.pixelDepth == 24 ? TextureFormat.BGR : TextureFormat.BGRA);
+        format = (header.pixelDepth == 24 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
+        dataType = DataType.UNSIGNED_NORMALIZED_BYTE;
+        data = tmpData;
+
         for (i = 0; i < header.height; i++) {
             readAll(dIn, rawBuf);
             y = (header.isTopToBottom() ? header.height - i - 1 : i);
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
-
-        data = new BufferData(tmpData);
     }
 
     // read bytes from the given stream until the array is full
@@ -561,7 +564,7 @@ public class TGATexture {
     private static void readAll(InputStream in, byte[] array) throws IOException {
         int remaining = array.length;
         int offset = 0;
-        int read = 0;
+        int read;
         while (remaining > 0) {
             read = in.read(array, offset, remaining);
             if (read < 0) {
@@ -573,7 +576,7 @@ public class TGATexture {
     }
 
     private static int bytesToLittleEndianShort(byte[] b, int offset) {
-        return ((b[offset + 0] & 0xff) | ((b[offset + 1] & 0xff) << 8));
+        return ((b[offset] & 0xff) | ((b[offset + 1] & 0xff) << 8));
     }
 
     // read an short represented in little endian from the given input stream

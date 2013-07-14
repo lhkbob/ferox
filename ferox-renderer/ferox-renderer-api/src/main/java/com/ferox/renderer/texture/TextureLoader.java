@@ -26,6 +26,9 @@
  */
 package com.ferox.renderer.texture;
 
+import com.ferox.renderer.Texture1D;
+import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.TextureCubeMap;
 import com.ferox.renderer.texture.Texture.Target;
 import com.ferox.resource.BufferData;
 import com.ferox.resource.BufferData.DataType;
@@ -104,20 +107,14 @@ public class TextureLoader {
      *
      * @throws IOException if the file can't be read, if it's unsupported, etc.
      */
-    public static Texture readTexture(File file) throws IOException {
+    public static TextureProxy<?> readTexture(File file) throws IOException {
         if (file == null) {
             throw new IOException("Cannot load a texture image from a null file");
         }
 
-        InputStream stream = new FileInputStream(file);
-        Texture image;
-        try {
-            image = readTexture(stream);
-        } finally {
-            stream.close();
+        try (InputStream stream = new FileInputStream(file)) {
+            return readTexture(stream);
         }
-
-        return image;
     }
 
     /**
@@ -129,19 +126,13 @@ public class TextureLoader {
      *
      * @throws IOException if the texture couldn't be read, if it's unsupported or invalid, etc.
      */
-    public static Texture readTexture(URL url) throws IOException {
+    public static TextureProxy<?> readTexture(URL url) throws IOException {
         if (url == null) {
             throw new IOException("Cannot read from a null URL");
         }
-        InputStream urlStream = url.openStream();
-        Texture image;
-        try {
-            image = readTexture(urlStream);
-        } finally {
-            urlStream.close();
+        try (InputStream urlStream = url.openStream()) {
+            return readTexture(urlStream);
         }
-
-        return image;
     }
 
     /**
@@ -163,33 +154,25 @@ public class TextureLoader {
      * @throws IOException if the stream can't be read from, it represents an invalid or unsupported texture
      *                     type, etc.
      */
-    public static Texture readTexture(InputStream stream) throws IOException {
-        try {
-            // make sure we're buffered
-            if (!(stream instanceof BufferedInputStream)) {
-                stream = new BufferedInputStream(stream);
-            }
+    public static TextureProxy<?> readTexture(InputStream stream) throws IOException {
+        // make sure we're buffered
+        if (!(stream instanceof BufferedInputStream)) {
+            stream = new BufferedInputStream(stream);
+        }
 
-            // load the file
-            Texture t;
+        // load the file
+        TextureProxy<?> t;
 
-            synchronized (loaders) {
-                for (int i = loaders.size() - 1; i >= 0; i--) {
-                    t = loaders.get(i).readImage(stream);
-                    if (t != null) {
-                        return t; // we've loaded it
-                    }
+        synchronized (loaders) {
+            for (int i = loaders.size() - 1; i >= 0; i--) {
+                t = loaders.get(i).readImage(stream);
+                if (t != null) {
+                    return t; // we've loaded it
                 }
             }
-
-            throw new IOException("Unable to load the given texture, no registered loader with support");
-        } catch (Exception io) {
-            if (!(io instanceof IOException)) {
-                throw new IOException(io);
-            } else {
-                throw (IOException) io;
-            }
         }
+
+        throw new IOException("Unable to load the given texture, no registered loader with support");
     }
 
     /**
@@ -204,7 +187,7 @@ public class TextureLoader {
      * @throws NullPointerException     if image is null
      * @throws IllegalArgumentException if image doesn't have a height of 1
      */
-    public static Texture createTexture1D(BufferedImage image) {
+    public static TextureProxy<Texture1D> createTexture1D(BufferedImage image) {
         if (image == null) {
             throw new NullPointerException("Cannot convert a null BufferedImage");
         }
@@ -245,7 +228,7 @@ public class TextureLoader {
      *
      * @throws NullPointerException if image is null
      */
-    public static Texture createTexture2D(BufferedImage image) {
+    public static TextureProxy<Texture2D> createTexture2D(BufferedImage image) {
         if (image == null) {
             throw new NullPointerException("Cannot convert a null BufferedImage");
         }
@@ -298,7 +281,7 @@ public class TextureLoader {
      * @throws NullPointerException     if image is null
      * @throws IllegalArgumentException if image.getWidth() / 4 != image.getHeight() / 3
      */
-    public static Texture createTextureCubeMap(BufferedImage image) {
+    public static TextureProxy<TextureCubeMap> createTextureCubeMap(BufferedImage image) {
         if (image == null) {
             throw new NullPointerException("Cannot create a cube map from a null BufferedImage");
         }

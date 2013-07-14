@@ -36,7 +36,7 @@ import java.io.InputStream;
  */
 public class DDSImageFileLoader implements ImageFileLoader {
     @Override
-    public Texture readImage(InputStream stream) throws IOException {
+    public TextureProxy<?> readImage(InputStream stream) throws IOException {
         if (DDSTexture.isDDSTexture(stream)) {
             return DDSTexture.readTexture(stream);
         } else {
