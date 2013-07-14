@@ -26,16 +26,10 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.Resource.Status;
+import com.ferox.renderer.Sampler;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
-import com.ferox.renderer.TextureSurfaceOptions;
-import com.ferox.renderer.texture.Texture;
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.texture.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.Mipmap;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 /**
  * AbstractTextureSurface is a mostly complete implementation of TextureSurface that is also an
@@ -45,369 +39,108 @@ import com.ferox.resource.Mipmap;
  * @author Michael Ludwig
  */
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
-    private volatile int activeLayer;
-    private volatile int activeDepth;
+    private final int width;
+    private final int height;
 
-    private final Texture[] colorTextures;
-    private final Texture depthTexture;
+    private final Sampler.TexelFormat depthRenderBuffer;
 
-    private final TextureSurfaceOptions options;
+    private final TextureImpl.RenderTargetImpl[] colorTargets;
+    private TextureImpl.RenderTargetImpl depthTarget;
 
-    private final Object[] colorLocks;
-    private Object depthLock;
 
-    public AbstractTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options) {
+    public AbstractTextureSurface(FrameworkImpl framework, int width, int height,
+                                  Sampler.TexelFormat depthRenderBuffer) {
         super(framework);
-        if (options == null) {
-            options = new TextureSurfaceOptions();
+
+        int maxDimension = framework.getCapabilities().getMaxTextureSurfaceSize();
+        if (width > maxDimension || height > maxDimension) {
+            throw new SurfaceCreationException(
+                    "Cannot create texture surface of requested size: beyond max supported dimension");
         }
 
-        Capabilities caps = framework.getCapabilities();
-        options = validateFormat(options, caps);
-        options = validateDimensions(options, caps);
+        this.width = width;
+        this.height = height;
+        this.depthRenderBuffer = depthRenderBuffer;
 
-        colorTextures = createColorTextures(this, options);
-        depthTexture = createDepthTexture(this, options);
-
-        this.options = options;
-        activeLayer = options.getActiveLayer();
-        activeDepth = options.getActiveDepthPlane();
-
-        colorLocks = new Object[colorTextures.length];
-        depthLock = null;
-
-        updateTextures(colorTextures, depthTexture, framework);
-    }
-
-    protected Object getColorHandle(int i) {
-        return colorLocks[i];
-    }
-
-    protected Object getDepthHandle() {
-        return depthLock;
+        colorTargets = new TextureImpl.RenderTargetImpl[framework.getCapabilities().getMaxColorBuffers()];
     }
 
     @Override
-    public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
-        super.onSurfaceActivate(context, activeLayer);
-
-        // lock all used textures completely so that even if they aren't
-        // mutated/read by another surface when being rendered into
-        ResourceManager manager = getFramework().getResourceManager();
-        for (int i = 0; i < colorLocks.length; i++) {
-            colorLocks[i] = manager.lockExclusively(colorTextures[i]);
-        }
-
-        if (depthTexture != null) {
-            depthLock = manager.lockExclusively(depthTexture);
-        } else {
-            depthLock = null;
-        }
+    public Sampler.TexelFormat getDepthRenderBufferFormat() {
+        return depthRenderBuffer;
     }
 
     @Override
-    public void onSurfaceDeactivate(OpenGLContext context) {
-        super.onSurfaceDeactivate(context);
-
-        // unlock all held locks in reverse order they were acquired
-        ResourceManager manager = getFramework().getResourceManager();
-        if (depthLock != null) {
-            manager.unlockExclusively(depthTexture);
-            depthLock = null;
-        }
-
-        for (int i = colorLocks.length - 1; i >= 0; i--) {
-            if (colorLocks[i] != null) {
-                manager.unlockExclusively(colorTextures[i]);
-                colorLocks[i] = null;
-            }
-        }
+    public TextureImpl.RenderTargetImpl getDepthBuffer() {
+        return depthTarget;
     }
 
     @Override
-    public TextureSurfaceOptions getOptions() {
-        return options;
-    }
-
-    @Override
-    public int getActiveDepthPlane() {
-        return activeDepth;
-    }
-
-    @Override
-    public int getActiveLayer() {
-        return activeLayer;
-    }
-
-    @Override
-    public Texture getColorBuffer(int buffer) {
-        return colorTextures[buffer];
-    }
-
-    @Override
-    public Texture getDepthBuffer() {
-        return depthTexture;
-    }
-
-    @Override
-    public int getNumColorBuffers() {
-        return colorTextures.length;
-    }
-
-    @Override
-    public Target getTarget() {
-        return options.getTarget();
-    }
-
-    @Override
-    public void setActiveDepthPlane(int depth) {
-        if (depth < 0 || depth >= getDepth()) {
-            throw new IllegalArgumentException("Active depth is invalid: " + depth);
-        }
-        activeDepth = depth;
-    }
-
-    @Override
-    public void setActiveLayer(int layer) {
-        if (layer < 0 || layer >= getNumLayers()) {
-            throw new IllegalArgumentException("Active layer is invalid: " + layer);
-        }
-        activeLayer = layer;
-    }
-
-    @Override
-    public int getHeight() {
-        return options.getHeight();
+    public TextureImpl.RenderTargetImpl getColorBuffer(int buffer) {
+        return colorTargets[buffer];
     }
 
     @Override
     public int getWidth() {
-        return options.getWidth();
+        return width;
     }
 
     @Override
-    public int getDepth() {
-        return options.getDepth();
+    public int getHeight() {
+        return height;
     }
 
-    @Override
-    public int getNumLayers() {
-        if (getTarget() == Target.T_CUBEMAP) {
-            return 6;
-        } else {
-            return 1;
-        }
-    }
-
-    /*
-     * Internal validation and option-modifications
-     */
-
-    private static TextureSurfaceOptions validateFormat(TextureSurfaceOptions options, Capabilities caps) {
-        int numBuffers = Math.min(caps.getMaxColorBuffers(), options.getNumColorBuffers());
-
-        TextureFormat[] formats = new TextureFormat[numBuffers];
-        for (int i = 0; i < formats.length; i++) {
-            formats[i] = options.getColorBufferFormat(i);
-            if (formats[i].isCompressed()) {
-                throw new SurfaceCreationException(
-                        "Cannot create a TextureSurface using a compressed format: " + formats[i]);
-            }
-
-            if (!caps.getUnclampedFloatTextureSupport() &&
-                (formats[i] == TextureFormat.RGB_FLOAT || formats[i] == TextureFormat.RGBA_FLOAT)) {
-                formats[i] = (formats[i] == TextureFormat.RGB_FLOAT ? TextureFormat.RGB : TextureFormat.RGBA);
-            }
+    public void setRenderTargets(OpenGLContext ctx, Sampler.RenderTarget[] colorTargets,
+                                 Sampler.RenderTarget depthTarget) {
+        // first validate new targets, before delegating to the subclass to perform the OpenGL
+        // operations necessary
+        if (depthRenderBuffer != null && depthTarget != null) {
+            throw new IllegalArgumentException(
+                    "Cannot specify a depth render target when a depth renderbuffer is used");
         }
 
-        // FIXME: update capabilities to encode support for depth cubemaps
-        options = options.setColorBufferFormats(formats);
-        if (options.hasDepthTexture() &&
-            (options.getTarget() == Target.T_CUBEMAP || options.getTarget() == Target.T_3D)) {
-            options = options.setUseDepthTexture(false);
-        }
-        if (options.hasDepthTexture() && !caps.getDepthTextureSupport()) {
-            options = options.setUseDepthTexture(false);
-        }
-        return options;
-    }
-
-    private static TextureSurfaceOptions validateDimensions(TextureSurfaceOptions options,
-                                                            Capabilities caps) {
-        // set unneeded dimensions to expected values for target
-        switch (options.getTarget()) {
-        case T_1D:
-            options = options.setHeight(1).setDepth(1);
-            break;
-        case T_2D:
-            options = options.setDepth(1);
-            break;
-        case T_CUBEMAP:
-            options = options.setHeight(options.getWidth()).setDepth(1);
-            break;
-        default:
-            // no validation needed for T_3D
-            break;
-        }
-
-        if (!caps.getNpotTextureSupport()) {
-            // make dimensions power of two's
-            switch (options.getTarget()) {
-            case T_3D:
-                options = options.setDepth(ceilPot(options.getDepth()));
-            case T_2D:
-            case T_CUBEMAP:
-                options = options.setHeight(ceilPot(options.getHeight()));
-            case T_1D:
-                options = options.setWidth(ceilPot(options.getWidth()));
-            }
-        }
-
-        // clamp the dimensions to the max supported size
-        int maxDimension = 0;
-        switch (options.getTarget()) {
-        case T_1D:
-        case T_2D:
-            maxDimension = caps.getMaxTextureSize();
-            break;
-        case T_CUBEMAP:
-            maxDimension = caps.getMaxTextureCubeMapSize();
-            break;
-        case T_3D:
-            maxDimension = caps.getMaxTexture3DSize();
-            break;
-        }
-        maxDimension = Math.min(maxDimension, caps.getMaxTextureSurfaceSize());
-
-        options = options.setWidth(Math.min(options.getWidth(), maxDimension))
-                         .setHeight(Math.min(options.getHeight(), maxDimension))
-                         .setDepth(Math.min(options.getDepth(), maxDimension));
-
-        if (options.getActiveDepthPlane() >= options.getDepth()) {
-            options = options.setActiveDepthPlane(options.getDepth() - 1);
-        }
-        if (options.getTarget() == Target.T_CUBEMAP) {
-            // cube map has 6 layers
-            options = options.setActiveLayer(Math.min(options.getActiveLayer(), 6));
-        } else {
-            options = options.setActiveLayer(0);
-        }
-
-        return options;
-    }
-
-    private static Texture[] createColorTextures(AbstractTextureSurface owner,
-                                                 TextureSurfaceOptions options) {
-        Texture[] colorTextures = new Texture[options.getNumColorBuffers()];
-
-        if (options.getTarget() == Target.T_CUBEMAP) {
-            for (int i = 0; i < colorTextures.length; i++) {
-                Mipmap[] mips = new Mipmap[] {
-                        createMipmap(options.getColorBufferFormat(i), options),
-                        createMipmap(options.getColorBufferFormat(i), options),
-                        createMipmap(options.getColorBufferFormat(i), options),
-                        createMipmap(options.getColorBufferFormat(i), options),
-                        createMipmap(options.getColorBufferFormat(i), options),
-                        createMipmap(options.getColorBufferFormat(i), options)
-                };
-                colorTextures[i] = new OwnedTexture(owner, options.getTarget(), mips);
-            }
-        } else {
-            for (int i = 0; i < colorTextures.length; i++) {
-                colorTextures[i] = new OwnedTexture(owner, options.getTarget(), new Mipmap[] {
-                        createMipmap(options.getColorBufferFormat(i), options)
-                });
-            }
-        }
-
-        return colorTextures;
-    }
-
-    private static Mipmap createMipmap(TextureFormat format, TextureSurfaceOptions options) {
-        DataType type = format.getSupportedType();
-        if (type == null) {
-            type = DataType.FLOAT;
-        }
-        return new Mipmap(type, false, options.getWidth(), options.getHeight(), options.getDepth(), format);
-    }
-
-    private static Texture createDepthTexture(AbstractTextureSurface owner, TextureSurfaceOptions options) {
-        if (options.hasDepthTexture()) {
-            return new OwnedTexture(owner, options.getTarget(), new Mipmap[] {
-                    createMipmap(TextureFormat.DEPTH, options)
-            });
-        } else {
-            return null;
-        }
-    }
-
-    private static void updateTextures(Texture[] color, Texture depth, FrameworkImpl framework) {
-        ContextManager contextManager = framework.getContextManager();
-        if (contextManager.isContextThread()) {
-            // Don't use the Framework methods since then we'll deadblock
-            OpenGLContext context = contextManager.ensureContext();
-            ResourceManager resourceManager = framework.getResourceManager();
-
-            for (int i = 0; i < color.length; i++) {
-                if (resourceManager.update(context, color[i]) != Status.READY) {
-                    // Something went wrong, so we should fail
-                    throw new SurfaceCreationException(
-                            "Requested options created an invalid color texture, cannot construct the TextureSurface");
+        TextureImpl.FullFormat colorFormat = null;
+        for (int i = 0; i < colorTargets.length; i++) {
+            if (colorTargets[i] != null) {
+                TextureImpl t = (TextureImpl) colorTargets[i].getSampler();
+                if (t.getWidth() != width || t.getHeight() != height) {
+                    throw new IllegalArgumentException(String.format(
+                            "Color buffer %d does not match surface dimensions, expected %d x %d but was %d x %d",
+                            i, width, height, t.getWidth(), t.getHeight()));
                 }
-            }
-            if (depth != null) {
-                if (resourceManager.update(context, depth) != Status.READY) {
-                    // Fail like before
-                    throw new SurfaceCreationException(
-                            "Requested options created an unsupported depth texture, cannot construct the TextureSurface");
-                }
-            }
-        } else {
-            // Just use the Framework methods to schedule update tasks
-            for (int i = 0; i < color.length; i++) {
-                if (framework.update(color[i]) != Status.READY) {
-                    // Something went wrong, so we should fail
-                    throw new SurfaceCreationException(
-                            "Requested options created an invalid color texture, cannot construct the TextureSurface");
-                }
-            }
-            if (depth != null) {
-                if (framework.update(depth) != Status.READY) {
-                    // Fail like before
-                    throw new SurfaceCreationException(
-                            "Requested options created an unsupported depth texture, cannot construct the TextureSurface");
+
+                if (colorFormat == null) {
+                    colorFormat = t.getFullFormat();
+                } else if (t.getFullFormat() != colorFormat) {
+                    throw new IllegalArgumentException(String.format(
+                            "Color buffer %d uses different color format, expected %s but was %s", i,
+                            colorFormat, t.getFullFormat()));
                 }
             }
         }
-    }
-
-    private static int ceilPot(int num) {
-        int pot = 1;
-        while (pot < num) {
-            pot = pot << 1;
-        }
-        return pot;
-    }
-
-    /**
-     * A Texture extension that overrides {@link #getOwner()} to return a non-null TextureSurface.
-     *
-     * @author Michael Ludwig
-     */
-    private static class OwnedTexture extends Texture {
-        private TextureSurface owner;
-
-        public OwnedTexture(TextureSurface owner, Target target, Mipmap[] mipmaps) {
-            super(target, mipmaps);
-            this.owner = owner;
-        }
-
-        @Override
-        public synchronized TextureSurface getOwner() {
-            if (owner != null && owner.isDestroyed()) {
-                owner = null;
+        if (depthTarget != null) {
+            if (depthTarget.getSampler().getWidth() != width ||
+                depthTarget.getSampler().getHeight() != height) {
+                throw new IllegalArgumentException(String.format(
+                        "Depth buffer does not match surface dimensions, expected %d x %d but was %d x %d",
+                        width, height, depthTarget.getSampler().getWidth(),
+                        depthTarget.getSampler().getHeight()));
             }
-            return owner;
         }
+
+        // about as valid as we can guarantee at this point
+        for (int i = 0; i < this.colorTargets.length; i++) {
+            if (i >= colorTargets.length) {
+                this.colorTargets[i] = null;
+            } else {
+                this.colorTargets[i] = (TextureImpl.RenderTargetImpl) colorTargets[i];
+            }
+        }
+        this.depthTarget = (TextureImpl.RenderTargetImpl) depthTarget;
+
+        // notify the implementation to re-bind textures if necessary
+        updateRenderTargets(ctx);
     }
+
+    protected abstract void updateRenderTargets(OpenGLContext ctx);
 }

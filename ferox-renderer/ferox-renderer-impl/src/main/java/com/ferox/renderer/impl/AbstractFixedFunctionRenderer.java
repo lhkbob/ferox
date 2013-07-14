@@ -88,9 +88,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         // get temporary reference to context's state that we modify
         state = context.getCurrentFixedFunctionState();
-
-        // ensure there's no shader in use
-        context.bindShader(null);
     }
 
     @Override

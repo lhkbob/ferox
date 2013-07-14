@@ -78,28 +78,23 @@ public abstract class AbstractSurface implements Surface {
     /**
      * <p/>
      * onSurfaceActivate() is a listener method that is invoked by ContextManager when a surface is activated.
-     * The provided context is the current context on the calling thread and will not be null. The
-     * <var>layer</var> argument represents the layer to activate. If the surface does not use layers (such as
-     * an OnscreenSurface or 2D TextureSurface) it can be ignored. If it is a cubemap TextureSurface, the
-     * represents one of the six faces. If it is a 3D TextureSurface, it represents the depth plane. It can be
-     * assumed that the layer argument is valid.
+     * The provided context is the current context on the calling thread and will not be null.
      * <p/>
      * This method can be overridden by subclasses to perform more actions. The current implementation
-     * activates and sets the viewport on any renderers the context has.
+     * activates any renderers the context provides.
      *
      * @param context The current context
-     * @param layer   The layer to activate if the surface is a TextureSurface of an appropriate target
      */
-    public void onSurfaceActivate(OpenGLContext context, int layer) {
+    public void onSurfaceActivate(OpenGLContext context) {
         Capabilities caps = context.getRenderCapabilities();
         FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
         if (ffp instanceof AbstractRenderer) {
-            ((AbstractRenderer) ffp).activate(this, context, framework.getResourceManager());
+            ((AbstractRenderer) ffp).activate(this, context);
         }
 
         GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
         if (glsl instanceof AbstractRenderer) {
-            ((AbstractRenderer) glsl).activate(this, context, framework.getResourceManager());
+            ((AbstractRenderer) glsl).activate(this, context);
         }
     }
 

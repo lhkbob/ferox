@@ -158,7 +158,10 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         this.dataArrays = dataArrays;
         this.baseMipmap = baseMipmap;
         this.maxMipmap = maxMipmap;
+    }
 
+    public FullFormat getFullFormat() {
+        return format;
     }
 
     public Renderer.Comparison getDepthComparison() {
@@ -285,7 +288,7 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         }
 
         @Override
-        public Sampler getSampler() {
+        public TextureImpl getSampler() {
             return texture;
         }
     }

@@ -27,8 +27,7 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.Resource.Status;
-import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.impl.resources.AbstractResource;
 
 /**
  * HardwareAccessLayerImpl is a simple implementation of {@link HardwareAccessLayer} for use with the
@@ -42,24 +41,49 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
     private ContextImpl currentContext;
 
-    /**
-     * Create a new HardwareAccessLayerImpl that will use the ContextManager and ResourceManager of the given
-     * AbstractFramework
-     *
-     * @param framework The framework this layer will be used with
-     *
-     * @throws NullPointerException if framework is null
-     */
     public HardwareAccessLayerImpl(FrameworkImpl framework) {
-        if (framework == null) {
-            throw new NullPointerException("Framework cannot be null");
+        this.framework = framework;
+    }
+
+    @Override
+    public Context setActiveSurface(Surface surface) {
+        if (surface.getFramework() != framework) {
+            throw new IllegalArgumentException("Surface not created by this framework");
         }
 
-        this.framework = framework;
-        // Although there might be an OpenGL context current on the thread,
-        // the access layer never starts with an already activated surface,
-        // so the Context type at this level of the API should be null
-        currentContext = null;
+        AbstractSurface s = (AbstractSurface) surface;
+        OpenGLContext context = framework.getContextManager().setActiveSurface(s);
+        if (context == null) {
+            currentContext = null;
+        } else {
+            currentContext = new ContextImpl(context, s);
+        }
+
+        return currentContext;
+    }
+
+    @Override
+    public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget singleColorBuffer) {
+        return setActiveSurface(surface, singleColorBuffer, null);
+    }
+
+    @Override
+    public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget singleColorBuffer,
+                                    Sampler.RenderTarget depthBuffer) {
+        Sampler.RenderTarget[] targets = new Sampler.RenderTarget[] { singleColorBuffer };
+        return setActiveSurface(surface, targets, depthBuffer);
+    }
+
+    @Override
+    public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget[] colorBuffers,
+                                    Sampler.RenderTarget depthBuffer) {
+        Context ctx = setActiveSurface(surface);
+        if (ctx != null) {
+            ((AbstractTextureSurface) surface)
+                    .setRenderTargets(currentContext.context, colorBuffers, depthBuffer);
+        }
+
+        return ctx;
     }
 
     @Override
@@ -68,106 +92,28 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     }
 
     @Override
-    public Context setActiveSurface(Surface surface) {
-        // Special handling for TextureSurface
-        if (surface instanceof TextureSurface) {
-            TextureSurface ts = (TextureSurface) surface;
-            if (ts.getTarget() == Target.T_3D) {
-                return setActiveSurface(ts, ts.getActiveDepthPlane());
-            } else if (ts.getTarget() == Target.T_CUBEMAP) {
-                return setActiveSurface(ts, ts.getActiveLayer());
-            } else {
-                return setActiveSurface(ts, 0);
-            }
-        }
-
-        // Validate the Framework of the surface, we don't check destroyed
-        // since that will be handled by the ContextManager
-        if (surface != null && framework != surface.getFramework()) {
-            throw new IllegalArgumentException("Surface is not owned by the current Framework");
-        }
-
-        // Since this isn't a TextureSurface, there is no need to validate
-        // the layer and we just use 0.
-        OpenGLContext context = framework.getContextManager().setActiveSurface((AbstractSurface) surface, 0);
-        if (context == null) {
-            currentContext = null;
-        } else {
-            currentContext = new ContextImpl(context, (AbstractSurface) surface, 0);
-        }
-
-        return currentContext;
+    public void refresh(Resource resource) {
+        OpenGLContext ctx = (currentContext == null ? framework.getContextManager().ensureContext()
+                                                    : currentContext.context);
+        framework.getResourceFactory().refresh(ctx, (AbstractResource<?>) resource);
     }
 
     @Override
-    public Context setActiveSurface(TextureSurface surface, int layer) {
-        if (surface != null) {
-            // Validate the Framework of the surface, we don't check destroyed
-            // since that will be handled by the ContextManager
-            if (framework != surface.getFramework()) {
-                throw new IllegalArgumentException("Surface is not owned by the current Framework");
-            }
-
-            // Validate the layer argument
-            int maxLayer;
-            switch (surface.getTarget()) {
-            case T_3D:
-                maxLayer = surface.getDepth();
-                break;
-            case T_CUBEMAP:
-                maxLayer = surface.getNumLayers();
-                break;
-            default:
-                maxLayer = 1;
-                break;
-            }
-
-            if (layer >= maxLayer || layer < 0) {
-                throw new IllegalArgumentException(
-                        "Layer is out of range, must be in [0, " + maxLayer + "), not: " +
-                        layer);
-            }
-        }
-
-        OpenGLContext context = framework.getContextManager()
-                                         .setActiveSurface((AbstractSurface) surface, layer);
-        if (context == null) {
-            currentContext = null;
-        } else {
-            currentContext = new ContextImpl(context, (AbstractSurface) surface, layer);
-        }
-
-        return currentContext;
-    }
-
-    @Override
-    public <R extends Resource> Status update(R resource) {
-        OpenGLContext context = framework.getContextManager().ensureContext();
-        return framework.getResourceManager().update(context, resource);
-    }
-
-    @Override
-    public <R extends Resource> void dispose(R resource) {
-        OpenGLContext context = framework.getContextManager().ensureContext();
-        framework.getResourceManager().dispose(context, resource);
-    }
-
-    @Override
-    public <R extends Resource> void reset(R resource) {
-        framework.getResourceManager().reset(resource);
+    public void destroy(Resource resource) {
+        OpenGLContext ctx = (currentContext == null ? framework.getContextManager().ensureContext()
+                                                    : currentContext.context);
+        ((AbstractResource<?>) resource).getHandle().destroy(ctx);
     }
 
     private class ContextImpl implements Context {
         private final OpenGLContext context;
         private final AbstractSurface surface;
-        private final int layer;
 
         private Renderer selectedRenderer;
 
-        public ContextImpl(OpenGLContext context, AbstractSurface surface, int layer) {
+        public ContextImpl(OpenGLContext context, AbstractSurface surface) {
             this.context = context;
             this.surface = surface;
-            this.layer = layer;
         }
 
         @Override
@@ -229,11 +175,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         @Override
         public Surface getSurface() {
             return surface;
-        }
-
-        @Override
-        public int getSurfaceLayer() {
-            return layer;
         }
     }
 }

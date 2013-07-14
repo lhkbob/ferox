@@ -147,8 +147,8 @@ public class ContextManager {
             throw new NullPointerException("Task cannot be null");
         }
         // Create the Future now so that it can be easily canceled later if need be
-        Sync<T> sync = new Sync<T>(task);
-        Future<T> future = new FutureSync<T>(sync);
+        Sync<T> sync = new Sync<>(task);
+        Future<T> future = new FutureSync<>(sync);
 
         lifecycleManager.getLock().lock();
         try {
@@ -211,25 +211,17 @@ public class ContextManager {
      * returned.
      *
      * @param surface The AbstractSurface to activate
-     * @param layer   The layer to activate, will be passed directly to {@link AbstractSurface#onSurfaceActivate(OpenGLContext,
-     *                int)}
      *
      * @return The OpenGLContext that is current after this surface has been activated
      *
      * @throws IllegalStateException if {@link #isContextThread()} returns false
      */
-    // FIXME how do we specify the render targets? Is that a later part of the
-    // surface activation specific to the texture surfaces? e.g. it's something
-    // the hardware access layer is concerned with and not the context manager?
-    //
-    // This seems reasonable; we can also move surface activation/deactivation there?
-    // or at least move renderer resetting to the hardware access layer
-    public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
+    public OpenGLContext setActiveSurface(AbstractSurface surface) {
         // Further validation is handled in the ContextThread after the lock is made
         Thread current = Thread.currentThread();
         if (current == thread) {
             // Delegate to the thread implementation
-            return thread.setActiveSurface(surface, layer);
+            return thread.setActiveSurface(surface);
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
             throw new IllegalThreadStateException("setActiveSurface() cannot be called on this Thread");
@@ -304,7 +296,7 @@ public class ContextManager {
 
         public ContextThread(ThreadGroup group, String name) {
             super(group, name);
-            tasks = new LinkedBlockingDeque<Sync<?>>(10);
+            tasks = new LinkedBlockingDeque<>(10);
             setDaemon(true);
         }
 
@@ -325,7 +317,7 @@ public class ContextManager {
             return currentContext;
         }
 
-        public OpenGLContext setActiveSurface(AbstractSurface surface, int layer) {
+        public OpenGLContext setActiveSurface(AbstractSurface surface) {
             if (surface != activeSurface) {
                 // The new surface is different from the active surface, so
                 // we must deactivate the last active surface.
@@ -354,12 +346,12 @@ public class ContextManager {
                 }
 
                 activeSurface = surface;
-                surface.onSurfaceActivate(currentContext, layer);
+                surface.onSurfaceActivate(currentContext);
             } else {
                 // This is already the active surface, but cycle deactivate/activate
                 // to make it notice the switch
                 surface.onSurfaceDeactivate(currentContext);
-                surface.onSurfaceActivate(currentContext, layer);
+                surface.onSurfaceActivate(currentContext);
             }
 
             return currentContext;

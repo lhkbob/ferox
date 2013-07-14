@@ -169,57 +169,57 @@ public class FrameworkImpl implements Framework {
 
     @Override
     public VertexBufferBuilder newVertexBuffer() {
-        return impl.resourceManager.newVertexBufferBuilder(this);
+        return impl.resourceFactory.newVertexBufferBuilder(this);
     }
 
     @Override
     public ElementBufferBuilder newElementBuffer() {
-        return impl.resourceManager.newElementBufferBuilder(this);
+        return impl.resourceFactory.newElementBufferBuilder(this);
     }
 
     @Override
     public ShaderBuilder newShader() {
-        return impl.resourceManager.newShaderBuilder(this);
+        return impl.resourceFactory.newShaderBuilder(this);
     }
 
     @Override
     public Texture1DBuilder newTexture1D() {
-        return null;
+        return impl.resourceFactory.newTexture1DBuilder(this);
     }
 
     @Override
     public Texture2DBuilder newTexture2D() {
-        return null;
+        return impl.resourceFactory.newTexture2DBuilder(this);
     }
 
     @Override
     public TextureCubeMapBuilder newTextureCubeMap() {
-        return null;
+        return impl.resourceFactory.newTextureCubeMapBuilder(this);
     }
 
     @Override
     public Texture3DBuilder newTexture3D() {
-        return null;
+        return impl.resourceFactory.newTexture3DBuilder(this);
     }
 
     @Override
     public Texture1DArrayBuilder newTexture1DArray() {
-        return null;
+        return impl.resourceFactory.newTexture1DArrayBuilder(this);
     }
 
     @Override
     public Texture2DArrayBuilder newTexture2DArray() {
-        return null;
+        return impl.resourceFactory.newTexture2DArrayBuilder(this);
     }
 
     @Override
     public DepthMap2DBuilder newDepthMap2D() {
-        return null;
+        return impl.resourceFactory.newDepthMap2DBuilder(this);
     }
 
     @Override
     public DepthCubeMapBuilder newDepthCubeMap() {
-        return null;
+        return impl.resourceFactory.newDepthCubeMapBuilder(this);
     }
 
     private <T> T getFuture(Future<T> future) {
@@ -255,7 +255,7 @@ public class FrameworkImpl implements Framework {
      * @return The ResourceFactory that handles resource creation and refreshing
      */
     public ResourceFactory getResourceFactory() {
-        return impl.resourceManager;
+        return impl.resourceFactory;
     }
 
     /**
@@ -272,6 +272,9 @@ public class FrameworkImpl implements Framework {
         return impl.lifecycleManager;
     }
 
+    /**
+     * @return The DestructibleManager that controls GC cleanup for Destructibles with this framework
+     */
     public DestructibleManager getDestructibleManager() {
         return impl.destructibleManager;
     }
@@ -374,16 +377,16 @@ public class FrameworkImpl implements Framework {
 
         private final LifeCycleManager lifecycleManager;
         private final DestructibleManager destructibleManager;
-        private final ResourceFactory resourceManager;
+        private final ResourceFactory resourceFactory;
         private final ContextManager contextManager;
 
         public ManagedFramework(SurfaceFactory surfaceFactory, LifeCycleManager lifecycleManager,
-                                DestructibleManager destructibleManager, ResourceFactory resourceManager,
+                                DestructibleManager destructibleManager, ResourceFactory resourceFactory,
                                 ContextManager contextManager) {
             this.surfaceFactory = surfaceFactory;
             this.lifecycleManager = lifecycleManager;
             this.destructibleManager = destructibleManager;
-            this.resourceManager = resourceManager;
+            this.resourceFactory = resourceFactory;
             this.contextManager = contextManager;
         }
 
