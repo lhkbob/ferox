@@ -1037,13 +1037,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     // FIXME data type checking and pass through to the attribute pointer calls
     @Override
     public void setVertices(VertexAttribute vertices) {
-        if (vertices != null && vertices.getElementSize() == 1) {
-            throw new IllegalArgumentException("Vertices element size cannot be 1");
-        }
-
         if (vertices == null) {
             setAttribute(state.vertexBinding, null, 0, 0, 0);
         } else {
+            if (vertices.getElementSize() == 1) {
+                throw new IllegalArgumentException("Vertices element size cannot be 1");
+            }
+            if (!vertices.getVBO().getDataType().isDecimalNumber()) {
+                throw new IllegalArgumentException("VBO must have a decimal data type");
+            }
+
             setAttribute(state.vertexBinding, ((BufferImpl) vertices.getVBO()).getHandle(),
                          vertices.getOffset(), vertices.getStride(), vertices.getElementSize());
         }
@@ -1051,13 +1054,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setNormals(VertexAttribute normals) {
-        if (normals != null && normals.getElementSize() != 3) {
-            throw new IllegalArgumentException("Normals element size must be 3");
-        }
-
         if (normals == null) {
             setAttribute(state.normalBinding, null, 0, 0, 0);
         } else {
+            if (normals.getElementSize() != 3) {
+                throw new IllegalArgumentException("Normals element size must be 3");
+            }
+            if (!normals.getVBO().getDataType().isDecimalNumber()) {
+                throw new IllegalArgumentException("VBO must have a decimal data type");
+            }
+
             setAttribute(state.normalBinding, ((BufferImpl) normals.getVBO()).getHandle(),
                          normals.getOffset(), normals.getStride(), normals.getElementSize());
         }
@@ -1065,17 +1071,19 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setColors(VertexAttribute colors) {
-        if (colors != null && colors.getElementSize() != 3 &&
-            colors.getElementSize() != 4) {
-            throw new IllegalArgumentException("Colors element size must be 3 or 4");
-        }
-
         if (colors == null) {
             setAttribute(state.colorBinding, null, 0, 0, 0);
             // per-vertex coloring is disabled, so make sure we have a predictable diffuse color
             glMaterialColor(LightColor.DIFFUSE, DEFAULT_MAT_D_COLOR);
             state.matDiffuse.set(DEFAULT_MAT_D_COLOR);
         } else {
+            if (colors.getElementSize() != 3 && colors.getElementSize() != 4) {
+                throw new IllegalArgumentException("Colors element size must be 3 or 4");
+            }
+            if (!colors.getVBO().getDataType().isDecimalNumber()) {
+                throw new IllegalArgumentException("VBO must have a decimal data type");
+            }
+
             setAttribute(state.colorBinding, ((BufferImpl) colors.getVBO()).getHandle(), colors.getOffset(),
                          colors.getStride(), colors.getElementSize());
         }
@@ -1086,6 +1094,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (texCoords == null) {
             setAttribute(state.texBindings[tex], null, 0, 0, 0);
         } else {
+            if (!texCoords.getVBO().getDataType().isDecimalNumber()) {
+                throw new IllegalArgumentException("VBO must have a decimal data type");
+            }
             setAttribute(state.texBindings[tex], ((BufferImpl) texCoords.getVBO()).getHandle(),
                          texCoords.getOffset(), texCoords.getStride(), texCoords.getElementSize());
         }

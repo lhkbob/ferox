@@ -272,9 +272,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                     String.format("%s textures are not supported on current hardware", textureType));
         }
 
-        // FIXME verify texture target support
-        // - need to check for 1D array, 2D array, 3D, cube map, and depth cube maps
-
         // detect and validate image format consistency
         for (int i = 0; i < imageFormats.length; i++) {
             for (int j = 0; j < imageFormats[i].length; j++) {

@@ -108,9 +108,8 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     protected void validate() {
-        // FIXME should we just fallback to forcing dynamic buffers?
         if (!framework.getCapabilities().getVertexBufferSupport()) {
-            throw new ResourceException("VertexBuffers aren't supported by current hardware");
+            dynamic = true;
         }
         if (array == null) {
             throw new ResourceException("Data array must be specified");

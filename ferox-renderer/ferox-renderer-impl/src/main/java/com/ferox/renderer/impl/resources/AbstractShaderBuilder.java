@@ -24,8 +24,8 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
     private final Map<String, Integer> mappedBuffers;
 
     private int detectedShaderVersion; // cached in validate()
-    private List<Shader.Uniform> detectedUniforms; // cached in pushToGPU()
-    private List<Shader.Attribute> detectedAttributes; // cached in pushToGPU()
+    private List<ShaderImpl.UniformImpl> detectedUniforms; // cached in pushToGPU()
+    private List<ShaderImpl.AttributeImpl> detectedAttributes; // cached in pushToGPU()
     private Map<String, Integer> detectedBufferMapping; // cached in pushToGPU()
 
     public AbstractShaderBuilder(FrameworkImpl framework) {
@@ -200,9 +200,9 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
     protected abstract void linkProgram(OpenGLContext context, int programID);
 
-    protected abstract List<Shader.Uniform> getUniforms(OpenGLContext context, int programID);
+    protected abstract List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context, int programID);
 
-    protected abstract List<Shader.Attribute> getAttributes(OpenGLContext context, int programID);
+    protected abstract List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context, int programID);
 
     protected abstract void bindFragmentLocation(OpenGLContext context, int programID, String variable,
                                                  int buffer);

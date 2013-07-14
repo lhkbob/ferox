@@ -15,14 +15,20 @@ import java.util.concurrent.Future;
  */
 public abstract class AbstractBuilder<T extends Resource, H extends ResourceHandle> implements Builder<T> {
     protected final FrameworkImpl framework;
+    private boolean built;
 
     public AbstractBuilder(FrameworkImpl framework) {
         this.framework = framework;
+        built = false;
     }
 
     @Override
     public T build() {
-        // FIXME how to protect against multi-build and changing state after build?
+        if (built) {
+            throw new IllegalStateException("Cannot call build() multiple times");
+        }
+
+        built = true;
         validate();
         Future<T> resource = framework.getContextManager().invokeOnContextThread(new Callable<T>() {
             @Override

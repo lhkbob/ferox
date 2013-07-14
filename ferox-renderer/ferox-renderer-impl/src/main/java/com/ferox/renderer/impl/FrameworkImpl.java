@@ -30,6 +30,7 @@ import com.ferox.renderer.*;
 import com.ferox.renderer.builder.*;
 import com.ferox.renderer.impl.resources.ResourceFactory;
 
+import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -47,7 +48,7 @@ public class FrameworkImpl implements Framework {
 
     // fullscreen support
     private final Object fullscreenLock;
-    private OnscreenSurface fullscreenSurface;
+    private WeakReference<OnscreenSurface> fullscreenSurface;
 
     /**
      * <p/>
@@ -247,7 +248,7 @@ public class FrameworkImpl implements Framework {
     @Override
     public OnscreenSurface getFullscreenSurface() {
         synchronized (fullscreenLock) {
-            return fullscreenSurface;
+            return fullscreenSurface.get();
         }
     }
 
@@ -277,28 +278,6 @@ public class FrameworkImpl implements Framework {
      */
     public DestructibleManager getDestructibleManager() {
         return impl.destructibleManager;
-    }
-
-    /**
-     * Remove the given surface from the framework's set of active lists.
-     *
-     * @param surface The surface to remove
-     *
-     * @throws NullPointerException if surface is null
-     */
-    // FIXME do we even still need the fullscreenSurface and lock?
-    void markSurfaceDestroyed(AbstractSurface surface) {
-        if (surface == null) {
-            throw new NullPointerException("Surface cannot be null");
-        }
-
-        if (surface instanceof OnscreenSurface) {
-            synchronized (fullscreenLock) {
-                if (fullscreenSurface == surface) {
-                    fullscreenSurface = null;
-                }
-            }
-        }
     }
 
     /*
@@ -331,7 +310,8 @@ public class FrameworkImpl implements Framework {
         @Override
         public OnscreenSurface call() throws Exception {
             synchronized (fullscreenLock) {
-                if (options.getFullscreenMode() != null && fullscreenSurface != null) {
+                if (options.getFullscreenMode() != null && fullscreenSurface != null &&
+                    fullscreenSurface.get() != null) {
                     throw new SurfaceCreationException(
                             "Cannot create fullscreen surface when an existing surface is fullscreen");
                 }
@@ -341,10 +321,10 @@ public class FrameworkImpl implements Framework {
                                                                              impl.contextManager
                                                                                  .getSharedContext());
                 if (created.isFullscreen()) {
-                    fullscreenSurface = created;
+                    fullscreenSurface = new WeakReference<OnscreenSurface>(created);
                 }
 
-                impl.contextManager.setActiveSurface(created, 0);
+                impl.contextManager.setActiveSurface(created);
                 return created;
             }
         }
@@ -367,7 +347,7 @@ public class FrameworkImpl implements Framework {
                                                                        impl.contextManager
                                                                            .getSharedContext());
 
-            impl.contextManager.setActiveSurface(created, 0);
+            impl.contextManager.setActiveSurface(created);
             return created;
         }
     }
