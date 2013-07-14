@@ -37,7 +37,9 @@ public abstract class AbstractBuilder<T extends Resource, H extends ResourceHand
                 H handle = allocate(ctx);
                 try {
                     pushToGPU(ctx, handle);
-                    return wrap(handle);
+                    T resource = wrap(handle);
+                    framework.getDestructibleManager().manage(resource, handle);
+                    return resource;
                 } catch (Exception e) {
                     handle.destroy(ctx);
                     throw e;

@@ -16,11 +16,6 @@ public abstract class AbstractResource<T extends ResourceHandle> implements Reso
 
     public AbstractResource(T handle) {
         this.handle = handle;
-
-        FrameworkImpl f = handle.getFramework();
-        if (f != null) {
-            f.getDestructibleManager().manage(this, handle);
-        }
     }
 
     public T getHandle() {

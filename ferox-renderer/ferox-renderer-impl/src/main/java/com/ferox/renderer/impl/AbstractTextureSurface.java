@@ -50,8 +50,6 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
 
     public AbstractTextureSurface(FrameworkImpl framework, int width, int height,
                                   Sampler.TexelFormat depthRenderBuffer) {
-        super(framework);
-
         int maxDimension = framework.getCapabilities().getMaxTextureSurfaceSize();
         if (width > maxDimension || height > maxDimension) {
             throw new SurfaceCreationException(

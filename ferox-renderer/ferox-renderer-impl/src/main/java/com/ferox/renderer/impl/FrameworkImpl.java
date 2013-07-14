@@ -47,8 +47,7 @@ public class FrameworkImpl implements Framework {
     private Capabilities renderCaps; // final after initialize() has been called.
 
     // fullscreen support
-    private final Object fullscreenLock;
-    private WeakReference<OnscreenSurface> fullscreenSurface;
+    private volatile WeakReference<OnscreenSurface> fullscreenSurface;
 
     /**
      * <p/>
@@ -72,7 +71,6 @@ public class FrameworkImpl implements Framework {
         impl = new ManagedFramework(surfaceFactory, new LifeCycleManager(getClass().getSimpleName()),
                                     new DestructibleManager(), resourceFactory, contextManager);
 
-        fullscreenLock = new Object();
         fullscreenSurface = null;
     }
 
@@ -247,8 +245,11 @@ public class FrameworkImpl implements Framework {
 
     @Override
     public OnscreenSurface getFullscreenSurface() {
-        synchronized (fullscreenLock) {
-            return fullscreenSurface.get();
+        WeakReference<OnscreenSurface> f = fullscreenSurface;
+        if (f != null) {
+            return f.get();
+        } else {
+            return null;
         }
     }
 
@@ -309,24 +310,28 @@ public class FrameworkImpl implements Framework {
 
         @Override
         public OnscreenSurface call() throws Exception {
-            synchronized (fullscreenLock) {
-                if (options.getFullscreenMode() != null && fullscreenSurface != null &&
-                    fullscreenSurface.get() != null) {
-                    throw new SurfaceCreationException(
-                            "Cannot create fullscreen surface when an existing surface is fullscreen");
-                }
-
-                AbstractOnscreenSurface created = impl.surfaceFactory
-                                                      .createOnscreenSurface(FrameworkImpl.this, options,
-                                                                             impl.contextManager
-                                                                                 .getSharedContext());
-                if (created.isFullscreen()) {
-                    fullscreenSurface = new WeakReference<OnscreenSurface>(created);
-                }
-
-                impl.contextManager.setActiveSurface(created);
-                return created;
+            // fullscreenSurface is only ever written by the GL thread, so this is safe
+            if (options.getFullscreenMode() != null && fullscreenSurface != null &&
+                fullscreenSurface.get() != null) {
+                throw new SurfaceCreationException(
+                        "Cannot create fullscreen surface when an existing surface is fullscreen");
             }
+            // minor cleanup
+            if (fullscreenSurface != null && fullscreenSurface.get() == null) {
+                fullscreenSurface = null;
+            }
+
+            AbstractOnscreenSurface created = impl.surfaceFactory
+                                                  .createOnscreenSurface(FrameworkImpl.this, options,
+                                                                         impl.contextManager
+                                                                             .getSharedContext());
+            impl.destructibleManager.manage(created, created.getSurfaceDestructible());
+            impl.contextManager.setActiveSurface(created);
+
+            if (created.isFullscreen()) {
+                fullscreenSurface = new WeakReference<OnscreenSurface>(created);
+            }
+            return created;
         }
     }
 
@@ -346,7 +351,7 @@ public class FrameworkImpl implements Framework {
                                                  .createTextureSurface(FrameworkImpl.this, options,
                                                                        impl.contextManager
                                                                            .getSharedContext());
-
+            impl.destructibleManager.manage(created, created.getSurfaceDestructible());
             impl.contextManager.setActiveSurface(created);
             return created;
         }

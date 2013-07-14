@@ -36,7 +36,4 @@ import com.ferox.renderer.OnscreenSurface;
  * @author Michael Ludwig
  */
 public abstract class AbstractOnscreenSurface extends AbstractSurface implements OnscreenSurface {
-    public AbstractOnscreenSurface(FrameworkImpl framework) {
-        super(framework);
-    }
 }

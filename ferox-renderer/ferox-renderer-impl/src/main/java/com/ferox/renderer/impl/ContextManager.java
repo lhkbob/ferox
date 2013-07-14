@@ -198,7 +198,7 @@ public class ContextManager {
      * <p/>
      * An activated surface that has its own context will continue to have its context current on the thread
      * after the task completes until a new surface is activated with its own context, or {@link
-     * #forceRelease(AbstractSurface)} method is called.
+     * #forceRelease()} method is called.
      * <p/>
      * Passing in a null Surface will deactivate the currently active surface, and the layer parameter is
      * ignored.
@@ -230,27 +230,21 @@ public class ContextManager {
 
     /**
      * <p/>
-     * Force the context thread to deactivate the given surface (if it was active), and release the surface's
-     * context if it is still current. The context may need to be released even if the surface wasn't active.
-     * If a second surface is relying on the given surface's context, that surface will be forcefully
-     * deactivated as well.
+     * Force the context thread to deactivate any surface (if it was active), and release any  context if it
+     * is still current. The context may need to be released even if the surface wasn't active. If a second
+     * surface is relying on the given surface's context, that surface will be forcefully deactivated as
+     * well.
      * <p/>
      * This can only be called on the task thread of this manager.
-     *
-     * @param surface The surface to release
      *
      * @throws NullPointerException  if surface is null
      * @throws IllegalStateException if this is not the context thread
      */
-    public void forceRelease(AbstractSurface surface) {
-        if (surface == null) {
-            throw new NullPointerException("Surface cannot be null");
-        }
-
+    public void forceRelease() {
         Thread current = Thread.currentThread();
         if (current == thread) {
             // Delegate to the thread implementation
-            thread.releaseSurface(surface);
+            thread.releaseSurface();
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
             throw new IllegalThreadStateException("forceRelease() cannot be called on this Thread");
@@ -357,11 +351,9 @@ public class ContextManager {
             return currentContext;
         }
 
-        public void releaseSurface(AbstractSurface surface) {
+        public void releaseSurface() {
             // first deactivate it if it's the active surface
-            if (surface == activeSurface) {
-                deactivateSurface();
-            }
+            deactivateSurface();
 
             // then make sure we release the current context because many libs
             // make the surface being destroyed current prior to destruction
