@@ -34,9 +34,9 @@ import com.ferox.renderer.VertexAttribute;
 
 /**
  * <p/>
- * Geometry is utility provider of indices and vertex attributes to represent renderable shapes. The geometry
- * information should be considered immutable unless something else edits them. Geometry implementations will
- * provide the geometry but will not modify it.
+ * Geometry is utility container of indices and vertex attributes to represent renderable shapes. The Geometry
+ * implementations provide buffers containing loaded or computed geometric data. Generally this requires
+ * access to a Framework so the actual buffers can be created.
  *
  * @author Michael Ludwig
  */

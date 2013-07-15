@@ -28,10 +28,10 @@ package com.ferox.renderer.geom;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
-import com.ferox.resource.BufferData;
 
 import java.util.Arrays;
 
@@ -49,29 +49,15 @@ public final class Teapot {
     /**
      * Instantiates a new Teapot object with the given scale with a StorageMode of IN_MEMORY.
      *
-     * @param scale The scale factor that affects the size of the teapot
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param scale     The scale factor that affects the size of the teapot
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if scale is negative
      */
-    public static Geometry create(double scale) {
-        return create(scale, StorageMode.IN_MEMORY);
-    }
-
-    /**
-     * Instantiates a new Teapot object with the given scale and storage mode.
-     *
-     * @param scale The scale factor that affects the size of the teapot
-     * @param mode  The StorageMode to use
-     *
-     * @return The new geometry
-     *
-     * @throws IllegalArgumentException if scale is negative
-     * @throws NullPointerException     if mode is null
-     */
-    public static Geometry create(double scale, StorageMode mode) {
-        return new TeapotImpl((float) scale, mode);
+    public static Geometry create(Framework framework, double scale) {
+        return new TeapotImpl(framework, (float) scale);
     }
 
     private static class TeapotImpl implements Geometry {
@@ -79,16 +65,13 @@ public final class Teapot {
         private final VertexAttribute normals;
         private final VertexAttribute texCoords;
 
-        private final VertexBufferObject indices;
+        private final ElementBuffer indices;
 
         private final AxisAlignedBox bounds;
 
-        public TeapotImpl(float scale, StorageMode mode) {
+        public TeapotImpl(Framework framework, float scale) {
             if (scale <= 0f) {
                 throw new IllegalArgumentException("Scale must be greater than 0");
-            }
-            if (mode == null) {
-                throw new NullPointerException("StorageMode cannot be null");
             }
 
             // copy the teapot so that each instance can be modified separately
@@ -103,10 +86,10 @@ public final class Teapot {
                 }
             }
 
-            vertices = new VertexAttribute(new VertexBufferObject(new BufferData(v), mode), 3);
-            normals = new VertexAttribute(new VertexBufferObject(new BufferData(n), mode), 3);
-            texCoords = new VertexAttribute(new VertexBufferObject(new BufferData(t), mode), 2);
-            indices = new VertexBufferObject(new BufferData(i), mode);
+            vertices = new VertexAttribute(framework.newVertexBuffer().from(v).build(), 3);
+            normals = new VertexAttribute(framework.newVertexBuffer().from(n).build(), 3);
+            texCoords = new VertexAttribute(framework.newVertexBuffer().from(t).build(), 2);
+            indices = framework.newElementBuffer().fromUnsigned(i).build();
 
             bounds = new AxisAlignedBox(v, 0, 0, v.length / 3);
         }
@@ -117,7 +100,7 @@ public final class Teapot {
         }
 
         @Override
-        public VertexBufferObject getIndices() {
+        public ElementBuffer getIndices() {
             return indices;
         }
 
@@ -134,7 +117,7 @@ public final class Teapot {
 
         @Override
         public int getIndexCount() {
-            return indices.getData().getLength();
+            return indices.getLength();
         }
 
         @Override

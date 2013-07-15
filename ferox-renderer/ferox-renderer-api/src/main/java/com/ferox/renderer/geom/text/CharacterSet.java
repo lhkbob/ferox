@@ -26,12 +26,12 @@
  */
 package com.ferox.renderer.geom.text;
 
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.Texture2DBuilder;
+import com.ferox.renderer.builder.TextureBuilder;
 import com.ferox.renderer.geom.text.RectanglePacker.Rectangle;
-import com.ferox.renderer.texture.Texture;
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.texture.TextureFormat;
-import com.ferox.resource.BufferData;
-import com.ferox.resource.Mipmap;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -78,7 +78,7 @@ public class CharacterSet {
         DEFAULT_CHAR_SET = b.toString();
     }
 
-    private Texture characters;
+    private Texture2D characters;
     private final Font font;
     private FontRenderContext context;
     private final boolean antiAlias;
@@ -89,23 +89,24 @@ public class CharacterSet {
     /**
      * Create a CharacterSet using the Font "Arial-PLAIN-12" and DEFAULT_CHAR_SET.
      *
+     * @param framework      The Framework that creates the underlying character set texture
      * @param antiAlias      Whether or not the edges of the text should be antialiased
      * @param useNpotTexture Whether or not an NPOT Texture2D can be used
      */
-    public CharacterSet(boolean antiAlias, boolean useNpotTexture) {
-        this(null, antiAlias, useNpotTexture);
+    public CharacterSet(Framework framework, boolean antiAlias, boolean useNpotTexture) {
+        this(framework, null, antiAlias, useNpotTexture);
     }
 
     /**
      * Create a CharacterSet usint the given font and DEFAULT_CHAR_SET. If the font is null, then
      * Arial-PLAIN-12 is used instead.
      *
-     * @param font           The font to use, "Arial-PLAIN-12" is used if null
+     * @param framework      The Framework that creates the underlying character set texture
      * @param antiAlias      Whether or not the edges of the text should be antialiased
      * @param useNpotTexture Whether or not an NPOT Texture2D can be used
      */
-    public CharacterSet(Font font, boolean antiAlias, boolean useNpotTexture) {
-        this(font, null, antiAlias, useNpotTexture);
+    public CharacterSet(Framework framework, Font font, boolean antiAlias, boolean useNpotTexture) {
+        this(framework, font, null, antiAlias, useNpotTexture);
     }
 
     /**
@@ -113,13 +114,15 @@ public class CharacterSet {
      * used. If the characterSet is null, DEFAULT_CHAR_SET is used. Characters that are not present in the
      * font, that are whitespace, or are duplicates are not included in the rendered character set texture.
      *
+     * @param framework      The Framework that creates the underlying character set texture
      * @param font           The font to use, "Arial-PLAIN-12" is used if null
      * @param characterSet   Specify the characters to have present in the rendered texture for this
      *                       CharacterSet
      * @param antiAlias      Whether or not the edges of the text should be antialiased
      * @param useNpotTexture Whether or not an NPOT Texture2D can be used
      */
-    public CharacterSet(Font font, String characterSet, boolean antiAlias, boolean useNpotTexture) {
+    public CharacterSet(Framework framework, Font font, String characterSet, boolean antiAlias,
+                        boolean useNpotTexture) {
         if (font == null) {
             font = Font.decode("Arial-BOLD-14");
         }
@@ -130,8 +133,8 @@ public class CharacterSet {
         this.font = font;
         this.antiAlias = antiAlias;
         this.useNpotTexture = useNpotTexture;
-        metrics = new HashMap<Character, Glyph>();
-        buildCharacterSet(characterSet);
+        metrics = new HashMap<>();
+        buildCharacterSet(framework, characterSet);
     }
 
     /**
@@ -147,10 +150,10 @@ public class CharacterSet {
      * @return The Glyph that should be used to render c
      */
     public Glyph getGlyph(char c) {
-        Glyph g = metrics.get(Character.valueOf(c));
+        Glyph g = metrics.get(c);
         if (g == null) {
             c = (char) font.getMissingGlyphCode();
-            g = metrics.get(Character.valueOf(c));
+            g = metrics.get(c);
         }
 
         return g;
@@ -165,7 +168,7 @@ public class CharacterSet {
      *
      * @return The Texture holding all rendered characters
      */
-    public Texture getTexture() {
+    public Texture2D getTexture() {
         return characters;
     }
 
@@ -197,7 +200,7 @@ public class CharacterSet {
      * Compute metrics[] and metricOffset, must be called after font is assigned
      * and generate the Texture2D that stores the packed glyphs.
      */
-    private void buildCharacterSet(String characterSet) {
+    private void buildCharacterSet(Framework framework, String characterSet) {
         char[] characters = getCharArray(characterSet);
 
         BufferedImage charSet = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
@@ -205,7 +208,7 @@ public class CharacterSet {
         context = g2d.getFontRenderContext();
 
         // pack all the glyphs
-        RectanglePacker<GlyphMetrics> rp = new RectanglePacker<GlyphMetrics>(64, 64);
+        RectanglePacker<GlyphMetrics> rp = new RectanglePacker<>(64, 64);
         GlyphVector v = font
                 .layoutGlyphVector(context, characters, 0, characters.length, Font.LAYOUT_LEFT_TO_RIGHT);
 
@@ -264,7 +267,7 @@ public class CharacterSet {
                               // local x and y positions
                               (float) glyphBounds.getWidth() + CHAR_PADDING * 2,
                               (float) glyphBounds.getHeight() + CHAR_PADDING * 2); // width-height
-            metrics.put(Character.valueOf(characters[i]), glyph);
+            metrics.put(characters[i], glyph);
 
             g2d.drawChars(characters, i, 1, r.getX() - (int) glyphBounds.getX() + CHAR_PADDING,
                           r.getY() - (int) glyphBounds.getY() + CHAR_PADDING);
@@ -273,8 +276,15 @@ public class CharacterSet {
 
         // create the texture
         int[] data = ((DataBufferInt) charSet.getRaster().getDataBuffer()).getData();
-        this.characters = new Texture(Target.T_2D, new Mipmap(new BufferData(data), width, height, 1,
-                                                              TextureFormat.ARGB_8888));
+
+        Texture2DBuilder b = framework.newTexture2D();
+        b.width(width).height(height);
+        if (antiAlias) {
+            b.interpolated();
+        }
+        SingleImageBuilder<Texture2D, TextureBuilder.ARGBData> img = b.argb();
+        img.mipmap(0).fromPackedBytes(data);
+        this.characters = img.build();
     }
 
     /*
@@ -282,21 +292,21 @@ public class CharacterSet {
      * code. Only includes characters the font can render.
      */
     private char[] getCharArray(String characterSet) {
-        Set<Character> set = new HashSet<Character>();
+        Set<Character> set = new HashSet<>();
         for (char c : characterSet.toCharArray()) {
             if (font.canDisplay(c) && !Character.isWhitespace(c)) {
-                set.add(Character.valueOf(c));
+                set.add(c);
             }
         }
 
         // always add these
-        set.add(Character.valueOf((char) font.getMissingGlyphCode()));
-        set.add(Character.valueOf(' '));
+        set.add((char) font.getMissingGlyphCode());
+        set.add(' ');
 
         char[] characters = new char[set.size()];
         int i = 0;
         for (Character c : set) {
-            characters[i++] = c.charValue();
+            characters[i++] = c;
         }
 
         return characters;

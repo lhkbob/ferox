@@ -28,12 +28,12 @@ package com.ferox.renderer.geom.text;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
+import com.ferox.renderer.VertexBuffer;
 import com.ferox.renderer.geom.Geometry;
-import com.ferox.renderer.geom.VertexBufferObject;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
-import com.ferox.resource.BufferData;
 
 import java.awt.font.LineMetrics;
 
@@ -59,9 +59,9 @@ import java.awt.font.LineMetrics;
  * <p/>
  * After modifying a Text's textual content, via {@link #setText(String)}, or by modifying its layout
  * parameters, via {@link #setWrapWidth(float)} or {@link #setCharacterSet(CharacterSet)}, any Geometry
- * created after that with {@link #create()} will reflect the new parameteres. Previously created geometries
- * are unaffected. Essentially, a single Text instance can be used to produce many different blocks of text
- * over its lifetime.
+ * created after that with {@link #create(Framework)} will reflect the new parameteres. Previously created
+ * geometries are unaffected. Essentially, a single Text instance can be used to produce many different blocks
+ * of text over its lifetime.
  * <p/>
  * It is HIGHLY recommended that CharacterSets are shared by multiple instances of Text that need the same
  * font.
@@ -131,7 +131,7 @@ public class Text {
      * a 1x1 pixel mapping. If using other projections, it may be desired to use a higher-point Font but still
      * use small quads.
      * <p/>
-     * This does not affect Geometries previously created by {@link #create()}.
+     * This does not affect Geometries previously created by {@link #create(Framework)}.
      *
      * @param scale The new scale factor
      *
@@ -157,7 +157,7 @@ public class Text {
     /**
      * <p/>
      * Get the current width of this Text. The returned value is suitable for drawing a tightly packed box
-     * around Geometries returned by {@link #create()}.
+     * around Geometries returned by {@link #create(Framework)}.
      * <p/>
      * The center of the block of text is considered to be the origin, and the left edge extends to an x-value
      * with <code>-{@link #getTextWidth()} / 2</code> and the right edge extends to an x-value with
@@ -172,7 +172,7 @@ public class Text {
     /**
      * <p/>
      * Get the current height of this Text. The returned value can be used to draw a tightly packed box around
-     * around Geometries returned by {@link #create()}.
+     * around Geometries returned by {@link #create(Framework)}.
      * <p/>
      * The center of the block of text is considered to be the origin, and the bottom edge extends to a
      * y-value with <code>-{@link #getTextHeight()} / 2</code> and the top edge extends to an y-value with
@@ -262,11 +262,7 @@ public class Text {
         layoutText();
     }
 
-    public Geometry create() {
-        return create(StorageMode.IN_MEMORY);
-    }
-
-    public Geometry create(StorageMode mode) {
+    public Geometry create(Framework framework) {
         final int vertexCount = lastTextLayout.length / 4;
 
         float[] v = new float[vertexCount * 8]; // V3F_N3F_T2F
@@ -293,7 +289,7 @@ public class Text {
             v[i++] = lastTextLayout[j * 4 + 1];
         }
 
-        VertexBufferObject vbo = new VertexBufferObject(new BufferData(v), mode);
+        VertexBuffer vbo = framework.newVertexBuffer().from(v).build();
         final VertexAttribute vs = new VertexAttribute(vbo, 3, 0, 5);
         final VertexAttribute ns = new VertexAttribute(vbo, 3, 3, 5);
         final VertexAttribute ts = new VertexAttribute(vbo, 2, 6, 6);
@@ -313,7 +309,7 @@ public class Text {
             }
 
             @Override
-            public VertexBufferObject getIndices() {
+            public ElementBuffer getIndices() {
                 return null;
             }
 

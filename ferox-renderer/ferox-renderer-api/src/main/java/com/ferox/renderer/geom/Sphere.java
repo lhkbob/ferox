@@ -29,10 +29,11 @@ package com.ferox.renderer.geom;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
-import com.ferox.resource.BufferData;
+import com.ferox.renderer.VertexBuffer;
 
 /**
  * <p/>
@@ -53,84 +54,52 @@ public final class Sphere {
     }
 
     /**
-     * Create a new Sphere with the given radius, a resolution of 8, and a StorageMode of IN_MEMORY.
+     * Create a new Sphere with the given radius, a resolution of 8.
      *
-     * @param radius The radius of the sphere, in local space
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param radius    The radius of the sphere, in local space
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if radius <= 0
      */
-    public static Geometry create(double radius) {
-        return create(radius, 8);
+    public static Geometry create(Framework framework, double radius) {
+        return create(framework, radius, 8);
     }
 
     /**
-     * Create a new Sphere with the given radius and resolution. It uses a StorageMode of IN_MEMORY.
+     * Create a new Sphere with the given radius and resolution.
      *
-     * @param radius The radius of the sphere, in local space
-     * @param res    The resolution of the sphere, the higher the value the smoother the tesselation
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param radius    The radius of the sphere, in local space
+     * @param res       The resolution of the sphere, the higher the value the smoother the tesselation
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if radius <= 0 or if res < 4
      */
-    public static Geometry create(double radius, int res) {
-        return create(radius, res, StorageMode.IN_MEMORY);
-    }
-
-    /**
-     * Create a new Sphere with the given radius and StorageMode. It uses a resolution of 8.
-     *
-     * @param radius The radius of the sphere, in local space
-     * @param mode   The StorageMode to use
-     *
-     * @return The new geometry
-     *
-     * @throws IllegalArgumentException if radius <= 0
-     * @throws NullPointerException     if mode is null
-     */
-    public static Geometry create(double radius, StorageMode mode) {
-        return create(radius, 8, mode);
-    }
-
-    /**
-     * Create a new Sphere with the given radius, resolution and StorageMode.
-     *
-     * @param radius The radius of the sphere, in local space
-     * @param res    The resolution of the sphere
-     * @param mode   The StorageMode to use
-     *
-     * @return The new geometry
-     *
-     * @throws IllegalArgumentException if radius <= 0 or if res < 4
-     * @throws NullPointerException     if mode is null
-     */
-    public static Geometry create(double radius, int res, StorageMode mode) {
-        return new SphereImpl(radius, res, mode);
+    public static Geometry create(Framework framework, double radius, int res) {
+        return new SphereImpl(framework, radius, res);
     }
 
     private static class SphereImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
-        private final VertexBufferObject vertexAttributes;
+        private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
         private final VertexAttribute texCoords;
 
-        private final VertexBufferObject indices;
+        private final ElementBuffer indices;
 
         private final AxisAlignedBox bounds;
 
-        public SphereImpl(double radius, int res, StorageMode mode) {
+        public SphereImpl(Framework framework, double radius, int res) {
             if (radius <= 0) {
                 throw new IllegalArgumentException("Invalid radius, must be > 0, not: " + radius);
             }
             if (res < 4) {
                 throw new IllegalArgumentException("Invalid resolution, must be > 3, not: " + res);
-            }
-            if (mode == null) {
-                throw new NullPointerException("StorageMode cannot be null");
             }
 
             int vertexCount = res * (res + 1);
@@ -200,8 +169,8 @@ public final class Sphere {
                 }
             }
 
-            this.indices = new VertexBufferObject(new BufferData(indices), mode);
-            vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+            this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
+            vertexAttributes = framework.newVertexBuffer().from(va).build();
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
@@ -216,7 +185,7 @@ public final class Sphere {
         }
 
         @Override
-        public VertexBufferObject getIndices() {
+        public ElementBuffer getIndices() {
             return indices;
         }
 
@@ -227,7 +196,7 @@ public final class Sphere {
 
         @Override
         public int getIndexCount() {
-            return indices.getData().getLength();
+            return indices.getLength();
         }
 
         @Override

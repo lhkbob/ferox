@@ -29,10 +29,11 @@ package com.ferox.renderer.geom;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
-import com.ferox.resource.BufferData;
+import com.ferox.renderer.VertexBuffer;
 
 /**
  * <p/>
@@ -48,66 +49,47 @@ public final class Rectangle {
 
     /**
      * Create a Rectangle with an x basis vector of (1, 0, 0) and a y basis vector of (0, 1, 0), and the given
-     * edge dimensions. The storage mode is IN_MEMORY.
+     * edge dimensions..
      *
-     * @param left   The left edge of the rectangle
-     * @param right  The right edge of the rectangle
-     * @param bottom The bottom edge of the rectangle
-     * @param top    The top edge of the rectangle
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param left      The left edge of the rectangle
+     * @param right     The right edge of the rectangle
+     * @param bottom    The bottom edge of the rectangle
+     * @param top       The top edge of the rectangle
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if left > right or bottom > top
      */
-    public static Geometry create(double left, double right, double bottom, double top) {
-        return create(left, right, bottom, top, new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
+    public static Geometry create(Framework framework, double left, double right, double bottom, double top) {
+        return create(framework, left, right, bottom, top, new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f));
     }
 
     /**
-     * Create a Rectangle with the given basis vectors and edge dimensions and a storage mode of IN_MEMORY.
+     * Create a Rectangle with the given basis vectors and edge dimensions.
      *
-     * @param left   The left edge of the rectangle
-     * @param right  The right edge of the rectangle
-     * @param bottom The bottom edge of the rectangle
-     * @param top    The top edge of the rectangle
-     * @param xAxis  Local x-axis of the rectangle
-     * @param yAxis  Local y-axis of the rectangle
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param left      The left edge of the rectangle
+     * @param right     The right edge of the rectangle
+     * @param bottom    The bottom edge of the rectangle
+     * @param top       The top edge of the rectangle
+     * @param xAxis     Local x-axis of the rectangle
+     * @param yAxis     Local y-axis of the rectangle
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if left > right or bottom > top
      * @throws NullPointerException     if xAxis or yAxis are null
      */
-    public static Geometry create(double left, double right, double bottom, double top, @Const Vector3 xAxis,
-                                  @Const Vector3 yAxis) {
-        return create(left, right, bottom, top, xAxis, yAxis, StorageMode.IN_MEMORY);
-    }
-
-    /**
-     * Create a Rectangle with the given basis vectors, edge dimensions and storage mode
-     *
-     * @param xAxis
-     * @param yAxis
-     * @param left
-     * @param right
-     * @param bottom
-     * @param top
-     * @param mode   The storage mode to use
-     *
-     * @return The new geometry
-     *
-     * @throws IllegalArgumentException if left > right or bottom > top
-     * @throws NullPointerException     if xAxis, yAxis, or mode are null
-     */
-    public static Geometry create(double left, double right, double bottom, double top, @Const Vector3 xAxis,
-                                  @Const Vector3 yAxis, StorageMode mode) {
-        return new RectangleImpl(left, right, bottom, top, xAxis, yAxis, mode);
+    public static Geometry create(Framework framework, double left, double right, double bottom, double top,
+                                  @Const Vector3 xAxis, @Const Vector3 yAxis) {
+        return new RectangleImpl(framework, left, right, bottom, top, xAxis, yAxis);
     }
 
     private static class RectangleImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
         // ordered in such a way as to not need indices
-        private final VertexBufferObject vertexAttributes;
+        private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
@@ -115,16 +97,13 @@ public final class Rectangle {
 
         private final AxisAlignedBox bounds;
 
-        public RectangleImpl(double left, double right, double bottom, double top, @Const Vector3 xAxis,
-                             @Const Vector3 yAxis, StorageMode mode) {
+        public RectangleImpl(Framework framework, double left, double right, double bottom, double top,
+                             @Const Vector3 xAxis, @Const Vector3 yAxis) {
             if (left > right || bottom > top) {
                 throw new IllegalArgumentException("Side positions of the square are incorrect");
             }
             if (xAxis == null || yAxis == null) {
                 throw new NullPointerException("Axis cannot be null");
-            }
-            if (mode == null) {
-                throw new NullPointerException("StorageMode cannot be null");
             }
 
             Vector3 normal = new Vector3().cross(xAxis, yAxis);
@@ -180,7 +159,7 @@ public final class Rectangle {
             va[i++] = 0f;
             va[i++] = 1f;
 
-            vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+            vertexAttributes = framework.newVertexBuffer().from(va).build();
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
@@ -194,7 +173,7 @@ public final class Rectangle {
         }
 
         @Override
-        public VertexBufferObject getIndices() {
+        public ElementBuffer getIndices() {
             return null;
         }
 

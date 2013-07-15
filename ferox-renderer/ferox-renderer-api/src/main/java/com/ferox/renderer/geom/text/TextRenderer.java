@@ -35,7 +35,6 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.geom.Geometry;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -139,10 +138,6 @@ public class TextRenderer {
 
     private final Anchor anchor;
 
-    public TextRenderer(String... text) {
-        this(new CharacterSet(true, false), text);
-    }
-
     public TextRenderer(CharacterSet charSet, String... text) {
         this(charSet, new ColorRGB(1, 1, 1), text);
     }
@@ -169,11 +164,11 @@ public class TextRenderer {
         Text factory = new Text(charSet);
         factory.setWrapWidth(surface.getWidth());
 
-        final Map<Geometry, Matrix4> textLayout = new HashMap<Geometry, Matrix4>();
+        final Map<Geometry, Matrix4> textLayout = new HashMap<>();
         for (String t : textBlocks) {
             factory.setText(t);
 
-            Geometry block = factory.create(StorageMode.IN_MEMORY);
+            Geometry block = factory.create(surface.getFramework());
             Matrix4 pos = new Matrix4().setIdentity();
             pos.m03 = anchor.getNextX(factory.getTextWidth(), prevX, prevWidth);
             pos.m13 = anchor.getNextY(factory.getTextHeight(), prevY, prevHeight);
@@ -190,7 +185,7 @@ public class TextRenderer {
         Frustum ortho = new Frustum(true, 0, surface.getWidth(), 0, surface.getHeight(), -1, 1);
         final Matrix4 projection = ortho.getProjectionMatrix();
 
-        return surface.getFramework().queue(new Task<Void>() {
+        return surface.getFramework().invoke(new Task<Void>() {
             @Override
             public Void run(HardwareAccessLayer access) {
                 Context ctx = access.setActiveSurface(surface);

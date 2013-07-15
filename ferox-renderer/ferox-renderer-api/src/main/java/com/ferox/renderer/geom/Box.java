@@ -29,10 +29,11 @@ package com.ferox.renderer.geom;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
-import com.ferox.resource.BufferData;
+import com.ferox.renderer.VertexBuffer;
 
 /**
  * <p/>
@@ -46,76 +47,43 @@ public final class Box {
 
     /**
      * Construct a box centered on its origin, with the given side length. So, Box(1f) creates a unit cube.
-     * Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
      *
-     * @param side The side length of the created cube
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param side      The side length of the created cube
      *
      * @return The new geometry
      *
      * @throws IllegalArgumentException if side is negative
      */
-    public static Geometry create(double side) {
-        return create(side, StorageMode.IN_MEMORY);
-    }
-
-    /**
-     * Construct a new Box with the given minimum and maximum points. These points are opposite corners of the
-     * box. Uses StorageMode.IN_MEMORY for its VertexBufferObjects.
-     *
-     * @param min Minimum corner of the box
-     * @param max Maximum corner of the box
-     *
-     * @return The new geometry
-     *
-     * @throws NullPointerException     if min or max are null
-     * @throws IllegalArgumentException if min has any coordinate less than the corresponding coordinate of
-     *                                  max
-     */
-    public static Geometry create(@Const Vector3 min, @Const Vector3 max) {
-        return create(min, max, StorageMode.IN_MEMORY);
-    }
-
-    /**
-     * Construct a box centered on its origin, with the given side length. So, Box(1.0) creates a unit cube.
-     *
-     * @param side The side length of the created cube
-     * @param mode The storage mode to use for the Box
-     *
-     * @return The new geometry
-     *
-     * @throws NullPointerException     if mode is null
-     * @throws IllegalArgumentException if side is negative
-     */
-    public static Geometry create(double side, StorageMode mode) {
-        return create(new Vector3(-side / 2, -side / 2, -side / 2), new Vector3(side / 2, side / 2, side / 2),
-                      mode);
+    public static Geometry create(Framework framework, double side) {
+        return create(framework, side, side, side);
     }
 
     /**
      * Construct a box centered on its origin, with the given side lengths along each local axis.
      *
-     * @param xExtent The side length along the x axis
-     * @param yExtent The side length along the y axis
-     * @param zExtent The side length along the z axis
-     * @param mode    The storage mode
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param xExtent   The side length along the x axis
+     * @param yExtent   The side length along the y axis
+     * @param zExtent   The side length along the z axis
      *
      * @return The new geometry
      *
      * @throws NullPointerException         if mode is null
      * @throws IllegalMonitorStateException if any dimension is negative
      */
-    public static Geometry create(double xExtent, double yExtent, double zExtent, StorageMode mode) {
-        return create(new Vector3(-xExtent / 2, -yExtent / 2, -zExtent / 2),
-                      new Vector3(xExtent / 2, yExtent / 2, zExtent / 2), mode);
+    public static Geometry create(Framework framework, double xExtent, double yExtent, double zExtent) {
+        return create(framework, new Vector3(-xExtent / 2, -yExtent / 2, -zExtent / 2),
+                      new Vector3(xExtent / 2, yExtent / 2, zExtent / 2));
     }
 
     /**
      * Construct a new Box with the given minimum and maximum points. These points are opposite corners of the
      * box.
      *
-     * @param min  Minimum corner of the box
-     * @param max  Maximum corner of the box
-     * @param mode The compile type to use for the Box
+     * @param framework The Framework that creates the vertex and element buffers
+     * @param min       Minimum corner of the box
+     * @param max       Maximum corner of the box
      *
      * @return The new geometry
      *
@@ -123,14 +91,14 @@ public final class Box {
      * @throws IllegalArgumentException if min has any coordinate less than the corresponding coordinate of
      *                                  max
      */
-    public static Geometry create(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
-        return new BoxImpl(min, max, mode);
+    public static Geometry create(Framework framework, @Const Vector3 min, @Const Vector3 max) {
+        return new BoxImpl(framework, min, max);
     }
 
     private static class BoxImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
         // ordered in such a way as to not need indices
-        private final VertexBufferObject vertexAttributes;
+        private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
@@ -138,13 +106,10 @@ public final class Box {
 
         private final AxisAlignedBox bounds;
 
-        public BoxImpl(@Const Vector3 min, @Const Vector3 max, StorageMode mode) {
+        public BoxImpl(Framework framework, @Const Vector3 min, @Const Vector3 max) {
 
             if (min == null || max == null) {
                 throw new NullPointerException("Min and max vectors cannot be null");
-            }
-            if (mode == null) {
-                throw new NullPointerException("StorageMode cannot be null");
             }
 
             if (min.x > max.x || min.y > max.y || min.z > max.z) {
@@ -391,7 +356,7 @@ public final class Box {
             va[i++] = 1f;
             va[i++] = 0f;
 
-            vertexAttributes = new VertexBufferObject(new BufferData(va), mode);
+            vertexAttributes = framework.newVertexBuffer().from(va).build();
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
             texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
@@ -405,7 +370,7 @@ public final class Box {
         }
 
         @Override
-        public VertexBufferObject getIndices() {
+        public ElementBuffer getIndices() {
             return null;
         }
 
