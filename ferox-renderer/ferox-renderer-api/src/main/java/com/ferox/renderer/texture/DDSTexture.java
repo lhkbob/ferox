@@ -53,191 +53,16 @@ public class DDSTexture {
     // representation of the dds texture
     private DXGIPixelFormat format;
     private DDPFMap oldFormat;
-
     private Class<? extends Sampler> target;
 
     private int mipmapCount; // at least 1
+    private int imageCount; // at least 1, always 6 for cubemaps
     // depth may be unused for cube maps and 2D textures
     // (in which case it's set to 1)
     private int width, height, depth;
-    private Object[][] data; // accessed [face][mipmap]
 
-
-    @SuppressWarnings("unchecked")
-    private <T> T getImageBuilder(SamplerBuilder<?> builder) {
-        String methodName;
-        if (format != null) {
-            if (format.format == Sampler.TexelFormat.COMPRESSED_RGB) {
-                methodName = "rgb";
-            } else if (format.format == Sampler.TexelFormat.COMPRESSED_RGBA) {
-                methodName = "rgba";
-            } else if (format.format == Sampler.TexelFormat.DEPTH_STENCIL) {
-                methodName = "depthStencil";
-            } else if (format == DXGIPixelFormat.DXGI_FORMAT_B8G8R8A8_UNORM) {
-                methodName = "bgra";
-            } else {
-                methodName = format.format.name().toLowerCase();
-            }
-        } else {
-            methodName = oldFormat.swizzle.name().toLowerCase();
-        }
-
-        try {
-            Method image = builder.getClass().getMethod(methodName);
-            return (T) image.invoke(builder);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("Bug in format method selection", e);
-        }
-    }
-
-    private void setImageData(Object layer, int image, int mipmap) {
-        String methodName;
-        DataType type = (format != null ? format.type : oldFormat.type);
-
-        if (format == DXGIPixelFormat.DXGI_FORMAT_BC1_TYPELESS ||
-            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM ||
-            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM_SRGB) {
-            methodName = "fromDXT1";
-        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC2_TYPELESS ||
-                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM ||
-                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM_SRGB) {
-            methodName = "fromDXT3";
-        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC3_TYPELESS ||
-                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM ||
-                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM_SRGB) {
-            methodName = "fromDXT5";
-        } else if (format == DXGIPixelFormat.DXGI_FORMAT_R11G11B10_FLOAT) {
-            methodName = "fromPackedFloats";
-        } else if (format == DXGIPixelFormat.DXGI_FORMAT_D24_UNORM_S8_UINT) {
-            methodName = "fromBits";
-        } else if (type == DataType.INT || type == DataType.SHORT || type == DataType.BYTE ||
-                   type == DataType.FLOAT) {
-            methodName = "from";
-        } else if (type == DataType.NORMALIZED_INT || type == DataType.NORMALIZED_SHORT ||
-                   type == DataType.NORMALIZED_BYTE) {
-            methodName = "fromNormalized";
-        } else if (type == DataType.UNSIGNED_INT || type == DataType.UNSIGNED_SHORT ||
-                   type == DataType.UNSIGNED_BYTE) {
-            methodName = "fromUnsigned";
-        } else if (type == DataType.UNSIGNED_NORMALIZED_INT || type == DataType.UNSIGNED_NORMALIZED_SHORT ||
-                   type == DataType.UNSIGNED_NORMALIZED_BYTE) {
-            methodName = "fromUnsignedNormalized";
-        } else if (type == DataType.HALF_FLOAT) {
-            methodName = "fromHalfFloats";
-        } else {
-            throw new RuntimeException("Unexpected data type: " + type);
-        }
-
-        try {
-            Class<?> arrayType = data[image][mipmap].getClass();
-            Method m = layer.getClass().getMethod(methodName, arrayType);
-            m.invoke(layer, data[image][mipmap]);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("Bug in format method selection", e);
-        }
-    }
-
-    private TextureProxy<Texture2D> asTexture2D() {
-        return new TextureProxy<Texture2D>() {
-            @Override
-            public Texture2D convert(Framework framework) {
-                Texture2DBuilder t = framework.newTexture2D().width(width).height(height).anisotropy(0.0)
-                                              .interpolated();
-                SingleImageBuilder<Texture2D, ?> i = getImageBuilder(t);
-                for (int m = 0; m < mipmapCount; m++) {
-                    setImageData(i.mipmap(m), 0, m);
-                }
-
-                return i.build();
-            }
-        };
-    }
-
-    private TextureProxy<Texture2DArray> asTexture2DArray() {
-        return new TextureProxy<Texture2DArray>() {
-            @Override
-            public Texture2DArray convert(Framework framework) {
-                Texture2DArrayBuilder t = framework.newTexture2DArray().width(width).height(height)
-                                                   .imageCount(data.length).anisotropy(0.0).interpolated();
-                ArrayImageBuilder<Texture2DArray, ?> i = getImageBuilder(t);
-                for (int j = 0; j < data.length; j++) {
-                    for (int m = 0; m < mipmapCount; m++) {
-                        setImageData(i.mipmap(j, m), j, m);
-                    }
-                }
-                return i.build();
-            }
-        };
-    }
-
-    private TextureProxy<Texture3D> asTexture3D() {
-        return new TextureProxy<Texture3D>() {
-            @Override
-            public Texture3D convert(Framework framework) {
-                Texture3DBuilder t = framework.newTexture3D().width(width).height(height).depth(depth)
-                                              .anisotropy(0.0).interpolated();
-                SingleImageBuilder<Texture3D, ?> i = getImageBuilder(t);
-                for (int m = 0; m < mipmapCount; m++) {
-                    setImageData(i.mipmap(m), 0, m);
-                }
-                return i.build();
-            }
-        };
-    }
-
-    private TextureProxy<TextureCubeMap> asTextureCubeMap() {
-        return new TextureProxy<TextureCubeMap>() {
-            @Override
-            public TextureCubeMap convert(Framework framework) {
-                TextureCubeMapBuilder t = framework.newTextureCubeMap().side(width).anisotropy(0.0)
-                                                   .interpolated();
-                CubeImageBuilder<TextureCubeMap, ?> i = getImageBuilder(t);
-                for (int m = 0; m < mipmapCount; m++) {
-                    setImageData(i.positiveX(m), 0, m);
-                    setImageData(i.negativeX(m), 1, m);
-                    setImageData(i.positiveY(m), 2, m);
-                    setImageData(i.negativeY(m), 3, m);
-                    setImageData(i.positiveZ(m), 4, m);
-                    setImageData(i.negativeZ(m), 5, m);
-                }
-                return i.build();
-            }
-        };
-    }
-
-    private TextureProxy<DepthMap2D> asDepthMap2D() {
-        return new TextureProxy<DepthMap2D>() {
-            @Override
-            public DepthMap2D convert(Framework framework) {
-                DepthMap2DBuilder t = framework.newDepthMap2D().width(width).height(height).interpolated();
-                SingleImageBuilder<DepthMap2D, ?> i = getImageBuilder(t);
-                for (int m = 0; m < mipmapCount; m++) {
-                    setImageData(i.mipmap(m), 0, m);
-                }
-
-                return i.build();
-            }
-        };
-    }
-
-    private TextureProxy<DepthCubeMap> asDepthCubeMap() {
-        return new TextureProxy<DepthCubeMap>() {
-            @Override
-            public DepthCubeMap convert(Framework framework) {
-                DepthCubeMapBuilder t = framework.newDepthCubeMap().side(width).interpolated();
-                CubeImageBuilder<DepthCubeMap, ?> i = getImageBuilder(t);
-                for (int m = 0; m < mipmapCount; m++) {
-                    setImageData(i.positiveX(m), 0, m);
-                    setImageData(i.negativeX(m), 1, m);
-                    setImageData(i.positiveY(m), 2, m);
-                    setImageData(i.negativeY(m), 3, m);
-                    setImageData(i.positiveZ(m), 4, m);
-                    setImageData(i.negativeZ(m), 5, m);
-                }
-                return i.build();
-            }
-        };
-    }
+    private final SamplerBuilder<?> texBuilder;
+    private final Builder<? extends Sampler> imageBuilder;
 
     /**
      * <p/>
@@ -248,35 +73,21 @@ public class DDSTexture {
      * It assumes that the stream starts at the first byte of the header section for the DDS texture. The
      * stream will not be closed.
      *
-     * @param stream The InputStream to read the texture from
+     * @param framework The Framework that creates the texture
+     * @param stream    The InputStream to read the texture from
      *
      * @return The Texture read from stream
      *
      * @throws IOException if an IOException occurs while reading, or if the stream is an invalid or
      *                     unsupported DDS texture
      */
-    public static TextureProxy<?> readTexture(InputStream stream) throws IOException {
+    public static Builder<? extends Sampler> readTexture(Framework framework, InputStream stream)
+            throws IOException {
         if (stream == null) {
             throw new IOException("Cannot read a texture from a null stream");
         }
 
-        DDSTexture texture = new DDSTexture(stream);
-        if (texture.target.equals(Texture2D.class)) {
-            return texture.asTexture2D();
-        } else if (texture.target.equals(Texture2DArray.class)) {
-            return texture.asTexture2DArray();
-        } else if (texture.target.equals(Texture3D.class)) {
-            return texture.asTexture3D();
-        } else if (texture.target.equals(TextureCubeMap.class)) {
-            return texture.asTextureCubeMap();
-        } else if (texture.target.equals(DepthMap2D.class)) {
-            return texture.asDepthMap2D();
-        } else if (texture.target.equals(DepthCubeMap.class)) {
-            return texture.asDepthCubeMap();
-        } else {
-            // shouldn't happen unless the implementation gets beyond this method
-            throw new UnsupportedOperationException("Unsupported texture target: " + texture.target);
-        }
+        return new DDSTexture(framework, stream).imageBuilder;
     }
 
     /**
@@ -337,7 +148,7 @@ public class DDSTexture {
      * and supported dds texture, the entire file will be read within this
      * constructor.
      */
-    private DDSTexture(InputStream in) throws IOException {
+    private DDSTexture(Framework framework, InputStream in) throws IOException {
         header = readHeader(in);
 
         // validate and interpret the header
@@ -345,7 +156,16 @@ public class DDSTexture {
         identifyBuildParams();
         identifyTextureFormat();
 
-        readData(in);
+        texBuilder = createSamplerBuilder(framework);
+        imageBuilder = createImageBuilder();
+
+        if (imageBuilder instanceof SingleImageBuilder) {
+            readData(in, (SingleImageBuilder<?, ?>) imageBuilder);
+        } else if (imageBuilder instanceof ArrayImageBuilder) {
+            readData(in, (ArrayImageBuilder<?, ?>) imageBuilder);
+        } else {
+            readData(in, (CubeImageBuilder<?, ?>) imageBuilder);
+        }
     }
 
     /*
@@ -754,16 +574,18 @@ public class DDSTexture {
 
         // We won't check for DDSCAPS_COMPLEX, since some files seem to ignore
         // it when creating cube maps or 3d textures
+        imageCount = 1;
         if (isFlagSet(header.caps2, DDSCAPS2_VOLUME)) {
             target = Texture3D.class;
         } else if (isFlagSet(header.caps2, DDSCAPS2_CUBEMAP)) {
             target = TextureCubeMap.class;
+            imageCount = 6;
         } else {
             target = Texture2D.class;
         }
 
-        depth = 1;
         // further validate the dimensions
+        depth = 1;
         if (target.equals(Texture3D.class)) {
             if (isFlagSet(header.flags, DDSD_DEPTH)) {
                 depth = header.depth;
@@ -787,6 +609,7 @@ public class DDSTexture {
                 }
                 if (header.headerDX10.arraySize > 1) {
                     target = Texture2DArray.class;
+                    imageCount = header.headerDX10.arraySize;
                 }
             } else if (target.equals(Texture3D.class)) {
                 if (header.headerDX10.resourceDimension != D3D10_RESOURCE_DIMENSION_TEXTURE3D) {
@@ -824,6 +647,25 @@ public class DDSTexture {
             }
         } else {
             mipmapCount = 1;
+        }
+    }
+
+    private SamplerBuilder<?> createSamplerBuilder(Framework framework) {
+        // configure the sampler builder based on target
+        if (target.equals(TextureCubeMap.class)) {
+            return framework.newTextureCubeMap().side(width);
+        } else if (target.equals(Texture3D.class)) {
+            return framework.newTexture3D().width(width).height(height).depth(depth);
+        } else if (target.equals(Texture2D.class)) {
+            return framework.newTexture2D().width(width).height(height);
+        } else if (target.equals(Texture2DArray.class)) {
+            return framework.newTexture2DArray().width(width).height(height).imageCount(imageCount);
+        } else if (target.equals(DepthCubeMap.class)) {
+            return framework.newDepthCubeMap().side(width);
+        } else if (target.equals(DepthMap2D.class)) {
+            return framework.newDepthMap2D().width(width).height(height);
+        } else {
+            throw new UnsupportedOperationException("Unexpected target type: " + target);
         }
     }
 
@@ -905,6 +747,33 @@ public class DDSTexture {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private Builder<? extends Sampler> createImageBuilder() {
+        String methodName;
+        if (format != null) {
+            if (format.format == Sampler.TexelFormat.COMPRESSED_RGB) {
+                methodName = "rgb";
+            } else if (format.format == Sampler.TexelFormat.COMPRESSED_RGBA) {
+                methodName = "rgba";
+            } else if (format.format == Sampler.TexelFormat.DEPTH_STENCIL) {
+                methodName = "depthStencil";
+            } else if (format == DXGIPixelFormat.DXGI_FORMAT_B8G8R8A8_UNORM) {
+                methodName = "bgra";
+            } else {
+                methodName = format.format.name().toLowerCase();
+            }
+        } else {
+            methodName = oldFormat.swizzle.name().toLowerCase();
+        }
+
+        try {
+            return (Builder<? extends Sampler>) texBuilder.getClass().getMethod(methodName)
+                                                          .invoke(texBuilder);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Bug in format method selection", e);
+        }
+    }
+
     /*
      * Methods to read in a DDS file from an input stream.
      */
@@ -958,31 +827,106 @@ public class DDSTexture {
         return h;
     }
 
-    /**
-     * Read the data from the input stream, assuming that it is a fully valid DDS file, where the next byte
-     * read is the first byte in the texture data (header already read from stream).
-     */
-    private void readData(InputStream in) throws IOException {
-        int width, height, depth, size;
-        int arrayCount;
-        if (target.equals(TextureCubeMap.class)) {
-            arrayCount = 6; // faces are ordered px, nx, py, ny, pz, nz
-        } else if (target.equals(Texture2DArray.class)) {
-            arrayCount = header.headerDX10.arraySize;
-        } else {
-            arrayCount = 1;
+    private void readData(InputStream in, SingleImageBuilder<?, ?> img) throws IOException {
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.mipmap(m), createBuffer(raw));
+        }
+    }
+
+    private void readData(InputStream in, ArrayImageBuilder<?, ?> img) throws IOException {
+        for (int i = 0; i < imageCount; i++) {
+            for (int m = 0; m < mipmapCount; m++) {
+                byte[] raw = new byte[getBufferSize(m)];
+                readAll(in, raw);
+                setImageData(img.mipmap(i, m), createBuffer(raw));
+            }
+        }
+    }
+
+    private void readData(InputStream in, CubeImageBuilder<?, ?> img) throws IOException {
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.positiveX(m), createBuffer(raw));
         }
 
-        data = new Object[arrayCount][mipmapCount];
-        byte[] image;
-        for (int i = 0; i < arrayCount; i++) {
-            for (int m = 0; m < mipmapCount; m++) {
-                size = getBufferSize(m);
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.negativeX(m), createBuffer(raw));
+        }
 
-                image = new byte[size];
-                readAll(in, image);
-                data[i][m] = createBuffer(image);
-            }
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.positiveY(m), createBuffer(raw));
+        }
+
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.negativeY(m), createBuffer(raw));
+        }
+
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.positiveZ(m), createBuffer(raw));
+        }
+
+        for (int m = 0; m < mipmapCount; m++) {
+            byte[] raw = new byte[getBufferSize(m)];
+            readAll(in, raw);
+            setImageData(img.negativeZ(m), createBuffer(raw));
+        }
+    }
+
+    private void setImageData(Object layer, Object data) {
+        String methodName;
+        DataType type = (format != null ? format.type : oldFormat.type);
+
+        if (format == DXGIPixelFormat.DXGI_FORMAT_BC1_TYPELESS ||
+            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM ||
+            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM_SRGB) {
+            methodName = "fromDXT1";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC2_TYPELESS ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM_SRGB) {
+            methodName = "fromDXT3";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC3_TYPELESS ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM_SRGB) {
+            methodName = "fromDXT5";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_R11G11B10_FLOAT) {
+            methodName = "fromPackedFloats";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_D24_UNORM_S8_UINT) {
+            methodName = "fromBits";
+        } else if (type == DataType.INT || type == DataType.SHORT || type == DataType.BYTE ||
+                   type == DataType.FLOAT) {
+            methodName = "from";
+        } else if (type == DataType.NORMALIZED_INT || type == DataType.NORMALIZED_SHORT ||
+                   type == DataType.NORMALIZED_BYTE) {
+            methodName = "fromNormalized";
+        } else if (type == DataType.UNSIGNED_INT || type == DataType.UNSIGNED_SHORT ||
+                   type == DataType.UNSIGNED_BYTE) {
+            methodName = "fromUnsigned";
+        } else if (type == DataType.UNSIGNED_NORMALIZED_INT || type == DataType.UNSIGNED_NORMALIZED_SHORT ||
+                   type == DataType.UNSIGNED_NORMALIZED_BYTE) {
+            methodName = "fromUnsignedNormalized";
+        } else if (type == DataType.HALF_FLOAT) {
+            methodName = "fromHalfFloats";
+        } else {
+            throw new RuntimeException("Unexpected data type: " + type);
+        }
+
+        try {
+            Class<?> arrayType = data.getClass();
+            Method m = layer.getClass().getMethod(methodName, arrayType);
+            m.invoke(layer, data);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Bug in format method selection", e);
         }
     }
 

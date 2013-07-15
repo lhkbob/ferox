@@ -26,6 +26,10 @@
  */
 package com.ferox.renderer.texture;
 
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.Sampler;
+import com.ferox.renderer.builder.Builder;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -36,9 +40,9 @@ import java.io.InputStream;
  */
 public class DDSImageFileLoader implements ImageFileLoader {
     @Override
-    public TextureProxy<?> readImage(InputStream stream) throws IOException {
+    public Builder<? extends Sampler> readImage(Framework framework, InputStream stream) throws IOException {
         if (DDSTexture.isDDSTexture(stream)) {
-            return DDSTexture.readTexture(stream);
+            return DDSTexture.readTexture(framework, stream);
         } else {
             return null;
         }

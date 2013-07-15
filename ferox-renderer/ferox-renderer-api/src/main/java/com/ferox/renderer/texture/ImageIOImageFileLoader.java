@@ -26,7 +26,9 @@
  */
 package com.ferox.renderer.texture;
 
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.builder.Builder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -41,13 +43,13 @@ import java.io.InputStream;
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {
     @Override
-    public TextureProxy<Texture2D> readImage(InputStream stream) throws IOException {
+    public Builder<Texture2D> readImage(Framework framework, InputStream stream) throws IOException {
         // I'm assuming that read() will restore the stream's position
         // if no reader is found
 
         BufferedImage b = ImageIO.read(stream);
         if (b != null) {
-            return TextureLoader.createTexture2D(b);
+            return TextureLoader.createTexture2D(framework, b);
         } else {
             return null;
         }

@@ -26,10 +26,9 @@
  */
 package com.ferox.renderer.texture;
 
-import com.ferox.renderer.DataType;
 import com.ferox.renderer.Framework;
-import com.ferox.renderer.Sampler;
 import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.builder.Builder;
 import com.ferox.renderer.builder.SingleImageBuilder;
 import com.ferox.renderer.builder.Texture2DBuilder;
 import com.ferox.renderer.builder.TextureBuilder;
@@ -50,13 +49,10 @@ import java.io.InputStream;
  * @author Michael Ludwig
  */
 @SuppressWarnings("unused")
-public class TGATexture implements TextureProxy<Texture2D> {
+public class TGATexture {
+    private final Texture2DBuilder texBuilder;
     private final Header header;
-
-    // will be RGB or RGBA but the tga images actually specify the data in BGR order
-    private Sampler.TexelFormat format;
-    private Object data;
-    private DataType dataType;
+    private final SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> imageBuilder;
 
     /**
      * <p/>
@@ -66,17 +62,18 @@ public class TGATexture implements TextureProxy<Texture2D> {
      * It does not support runlength compressed images, black and white images, or images that go right to
      * left. The tga footer present in newer tga files is ignored.
      *
-     * @param stream The InputStream to read the tga texture from
+     * @param framework The Framework that creates the texture
+     * @param stream    The InputStream to read the tga texture from
      *
      * @return The read Texture with a target of T_2D
      *
      * @throws IOException if there was an IO error or if the tga file is invalid or unsupported
      */
-    public static TextureProxy<Texture2D> readTexture(InputStream stream) throws IOException {
+    public static Builder<Texture2D> readTexture(Framework framework, InputStream stream) throws IOException {
         if (stream == null) {
             throw new IOException("Cannot read from a null stream");
         }
-        return new TGATexture(stream);
+        return new TGATexture(framework, stream).imageBuilder;
     }
 
     /**
@@ -119,7 +116,7 @@ public class TGATexture implements TextureProxy<Texture2D> {
         return validateHeader(header) == null;
     }
 
-    private TGATexture(InputStream stream) throws IOException {
+    private TGATexture(Framework framework, InputStream stream) throws IOException {
         header = new Header(stream, true);
         String msg = validateHeader(header);
         if (msg != null) {
@@ -129,28 +126,11 @@ public class TGATexture implements TextureProxy<Texture2D> {
         if (msg != null) {
             throw new IOException("TGA image is unsupported, because: " + msg);
         }
+
         // we should be supported now, so decode the image
-        decodeImage(stream);
-    }
-
-    @Override
-    public Texture2D convert(Framework framework) {
-        Texture2DBuilder t = framework.newTexture2D().width(header.width).height(header.height).interpolated()
-                                      .anisotropy(0.0);
-
-        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> i;
-        if (format == Sampler.TexelFormat.RGB) {
-            i = t.bgr();
-        } else {
-            i = t.bgra();
-        }
-
-        if (dataType == DataType.UNSIGNED_NORMALIZED_BYTE) {
-            i.mipmap(0).fromUnsignedNormalized((byte[]) data);
-        } else {
-            i.mipmap(0).fromUnsignedNormalized((short[]) data);
-        }
-        return i.build();
+        texBuilder = framework.newTexture2D();
+        texBuilder.width(header.width).height(header.height);
+        imageBuilder = decodeImage(stream);
     }
 
     /* Set of possible image types in TGA file */
@@ -424,25 +404,24 @@ public class TGATexture implements TextureProxy<Texture2D> {
      * Identifies the image type of the tga image data and loads it into a
      * byte[] array.
      */
-    private void decodeImage(InputStream in) throws IOException {
+    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeImage(InputStream in)
+            throws IOException {
         switch (header.imageType) {
         case TYPE_COLORMAP:
             // load the color map
             ColorMap cm = new ColorMap(header, in);
 
             if (cm.elementByteCount == 2) {
-                decodeColorMap16(cm, in);
+                throw new IOException("16-bit color mapped images are not supported");
             } else {
-                decodeColorMap24_32(cm, in);
+                return decodeColorMap24_32(cm, in);
             }
-            break;
         case TYPE_TRUECOLOR:
             if (header.pixelDepth == 16) {
                 throw new IOException("16-bit ARGB(1555) images are not supported");
             } else {
-                decodeTrueColor24_32(in);
+                return decodeTrueColor24_32(in);
             }
-            break;
         default:
             throw new IOException("Unsupported image type: " + header.imageType);
         }
@@ -450,61 +429,22 @@ public class TGATexture implements TextureProxy<Texture2D> {
 
     /*
      * Decode the image based on the given color map, assuming that the color
-     * map has a bit depth of 16.
-     */
-    private void decodeColorMap16(ColorMap cm, InputStream dIn) throws IOException {
-        int i; // input row index
-        int y; // output row index
-        int c; // column index
-        short[] tmpData = new short[header.width * header.height];
-
-        format = (cm.elementByteCount == 3 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
-        dataType = DataType.UNSIGNED_NORMALIZED_SHORT;
-        data = tmpData;
-
-        if (header.pixelDepth == 8) {
-            // indices use 2 bytes
-            byte[] rawIndices = new byte[header.width << 1];
-            int index;
-            for (i = 0; i < header.height; i++) {
-                readAll(dIn, rawIndices);
-                y = (header.isTopToBottom() ? header.height - i - 1 : i);
-
-                for (c = 0; c < header.width; c++) {
-                    index = bytesToLittleEndianShort(rawIndices, c << 1);
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
-                }
-            }
-        } else {
-            // indices use only 1 byte
-            byte[] rawIndices = new byte[header.width];
-            int index;
-            for (i = 0; i < header.height; i++) {
-                readAll(dIn, rawIndices);
-                y = (header.isTopToBottom() ? header.height - i - 1 : i);
-
-                for (c = 0; c < header.width; c++) {
-                    index = rawIndices[c];
-                    tmpData[y * header.width + c] = (short) bytesToLittleEndianShort(cm.colorMapData, index);
-                }
-            }
-        }
-    }
-
-    /*
-     * Decode the image based on the given color map, assuming that the color
      * map has bit depth of 24 or 32.
      */
-    private void decodeColorMap24_32(ColorMap cm, InputStream dIn) throws IOException {
+    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeColorMap24_32(
+            ColorMap cm, InputStream dIn) throws IOException {
         int i; // input row index
         int y; // output row index
         int c; // column index
         int rawWidth = header.width * cm.elementByteCount; // length of expanded color row
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        format = (cm.elementByteCount == 3 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
-        dataType = DataType.UNSIGNED_NORMALIZED_BYTE;
-        data = tmpData;
+        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> img;
+        if (cm.elementByteCount == 3) {
+            img = texBuilder.bgr();
+        } else {
+            img = texBuilder.bgra();
+        }
 
         if (header.pixelDepth == 8) {
             // indices use 2 bytes
@@ -533,6 +473,9 @@ public class TGATexture implements TextureProxy<Texture2D> {
                 }
             }
         }
+
+        img.mipmap(0).fromUnsignedNormalized(tmpData);
+        return img;
     }
 
     /*
@@ -540,7 +483,8 @@ public class TGATexture implements TextureProxy<Texture2D> {
      * image respectively. (really a ARGB image, but its in LE order, but just
      * using BGRA is faster) FIXME: does this assumption work for 24 bit images?
      */
-    private void decodeTrueColor24_32(InputStream dIn) throws IOException {
+    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeTrueColor24_32(
+            InputStream dIn) throws IOException {
         int i; // input row index
         int y; // output row index
         int rawWidth = header.width * (header.pixelDepth >> 3);
@@ -548,15 +492,21 @@ public class TGATexture implements TextureProxy<Texture2D> {
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        format = (header.pixelDepth == 24 ? Sampler.TexelFormat.RGB : Sampler.TexelFormat.RGBA);
-        dataType = DataType.UNSIGNED_NORMALIZED_BYTE;
-        data = tmpData;
+        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> img;
+        if (header.pixelDepth == 24) {
+            img = texBuilder.bgr();
+        } else {
+            img = texBuilder.bgra();
+        }
 
         for (i = 0; i < header.height; i++) {
             readAll(dIn, rawBuf);
             y = (header.isTopToBottom() ? header.height - i - 1 : i);
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
+
+        img.mipmap(0).fromUnsignedNormalized(tmpData);
+        return img;
     }
 
     // read bytes from the given stream until the array is full
