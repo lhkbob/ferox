@@ -27,11 +27,13 @@
 package com.ferox.renderer.texture;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.builder.Texture2DBuilder;
+import com.ferox.renderer.builder.*;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * <p/>
@@ -60,14 +62,93 @@ public class DDSTexture {
     private int width, height, depth;
     private Object[][] data; // accessed [face][mipmap]
 
-    // FIXME massive format switch if I'm not careful here
+
+    @SuppressWarnings("unchecked")
+    private <T> T getImageBuilder(SamplerBuilder<?> builder) {
+        String methodName;
+        if (format != null) {
+            if (format.format == Sampler.TexelFormat.COMPRESSED_RGB) {
+                methodName = "rgb";
+            } else if (format.format == Sampler.TexelFormat.COMPRESSED_RGBA) {
+                methodName = "rgba";
+            } else if (format.format == Sampler.TexelFormat.DEPTH_STENCIL) {
+                methodName = "depthStencil";
+            } else if (format == DXGIPixelFormat.DXGI_FORMAT_B8G8R8A8_UNORM) {
+                methodName = "bgra";
+            } else {
+                methodName = format.format.name().toLowerCase();
+            }
+        } else {
+            methodName = oldFormat.swizzle.name().toLowerCase();
+        }
+
+        try {
+            Method image = builder.getClass().getMethod(methodName);
+            return (T) image.invoke(builder);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Bug in format method selection", e);
+        }
+    }
+
+    private void setImageData(Object layer, int image, int mipmap) {
+        String methodName;
+        DataType type = (format != null ? format.type : oldFormat.type);
+
+        if (format == DXGIPixelFormat.DXGI_FORMAT_BC1_TYPELESS ||
+            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM ||
+            format == DXGIPixelFormat.DXGI_FORMAT_BC1_UNORM_SRGB) {
+            methodName = "fromDXT1";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC2_TYPELESS ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC2_UNORM_SRGB) {
+            methodName = "fromDXT3";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_BC3_TYPELESS ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM ||
+                   format == DXGIPixelFormat.DXGI_FORMAT_BC3_UNORM_SRGB) {
+            methodName = "fromDXT5";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_R11G11B10_FLOAT) {
+            methodName = "fromPackedFloats";
+        } else if (format == DXGIPixelFormat.DXGI_FORMAT_D24_UNORM_S8_UINT) {
+            methodName = "fromBits";
+        } else if (type == DataType.INT || type == DataType.SHORT || type == DataType.BYTE ||
+                   type == DataType.FLOAT) {
+            methodName = "from";
+        } else if (type == DataType.NORMALIZED_INT || type == DataType.NORMALIZED_SHORT ||
+                   type == DataType.NORMALIZED_BYTE) {
+            methodName = "fromNormalized";
+        } else if (type == DataType.UNSIGNED_INT || type == DataType.UNSIGNED_SHORT ||
+                   type == DataType.UNSIGNED_BYTE) {
+            methodName = "fromUnsigned";
+        } else if (type == DataType.UNSIGNED_NORMALIZED_INT || type == DataType.UNSIGNED_NORMALIZED_SHORT ||
+                   type == DataType.UNSIGNED_NORMALIZED_BYTE) {
+            methodName = "fromUnsignedNormalized";
+        } else if (type == DataType.HALF_FLOAT) {
+            methodName = "fromHalfFloats";
+        } else {
+            throw new RuntimeException("Unexpected data type: " + type);
+        }
+
+        try {
+            Class<?> arrayType = data[image][mipmap].getClass();
+            Method m = layer.getClass().getMethod(methodName, arrayType);
+            m.invoke(layer, data[image][mipmap]);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Bug in format method selection", e);
+        }
+    }
+
     private TextureProxy<Texture2D> asTexture2D() {
         return new TextureProxy<Texture2D>() {
             @Override
             public Texture2D convert(Framework framework) {
                 Texture2DBuilder t = framework.newTexture2D().width(width).height(height).anisotropy(0.0)
                                               .interpolated();
-                return null;
+                SingleImageBuilder<Texture2D, ?> i = getImageBuilder(t);
+                for (int m = 0; m < mipmapCount; m++) {
+                    setImageData(i.mipmap(m), 0, m);
+                }
+
+                return i.build();
             }
         };
     }
@@ -76,7 +157,15 @@ public class DDSTexture {
         return new TextureProxy<Texture2DArray>() {
             @Override
             public Texture2DArray convert(Framework framework) {
-                return null;
+                Texture2DArrayBuilder t = framework.newTexture2DArray().width(width).height(height)
+                                                   .imageCount(data.length).anisotropy(0.0).interpolated();
+                ArrayImageBuilder<Texture2DArray, ?> i = getImageBuilder(t);
+                for (int j = 0; j < data.length; j++) {
+                    for (int m = 0; m < mipmapCount; m++) {
+                        setImageData(i.mipmap(j, m), j, m);
+                    }
+                }
+                return i.build();
             }
         };
     }
@@ -85,7 +174,13 @@ public class DDSTexture {
         return new TextureProxy<Texture3D>() {
             @Override
             public Texture3D convert(Framework framework) {
-                return null;
+                Texture3DBuilder t = framework.newTexture3D().width(width).height(height).depth(depth)
+                                              .anisotropy(0.0).interpolated();
+                SingleImageBuilder<Texture3D, ?> i = getImageBuilder(t);
+                for (int m = 0; m < mipmapCount; m++) {
+                    setImageData(i.mipmap(m), 0, m);
+                }
+                return i.build();
             }
         };
     }
@@ -94,7 +189,18 @@ public class DDSTexture {
         return new TextureProxy<TextureCubeMap>() {
             @Override
             public TextureCubeMap convert(Framework framework) {
-                return null;
+                TextureCubeMapBuilder t = framework.newTextureCubeMap().side(width).anisotropy(0.0)
+                                                   .interpolated();
+                CubeImageBuilder<TextureCubeMap, ?> i = getImageBuilder(t);
+                for (int m = 0; m < mipmapCount; m++) {
+                    setImageData(i.positiveX(m), 0, m);
+                    setImageData(i.negativeX(m), 1, m);
+                    setImageData(i.positiveY(m), 2, m);
+                    setImageData(i.negativeY(m), 3, m);
+                    setImageData(i.positiveZ(m), 4, m);
+                    setImageData(i.negativeZ(m), 5, m);
+                }
+                return i.build();
             }
         };
     }
@@ -103,7 +209,13 @@ public class DDSTexture {
         return new TextureProxy<DepthMap2D>() {
             @Override
             public DepthMap2D convert(Framework framework) {
-                return null;
+                DepthMap2DBuilder t = framework.newDepthMap2D().width(width).height(height).interpolated();
+                SingleImageBuilder<DepthMap2D, ?> i = getImageBuilder(t);
+                for (int m = 0; m < mipmapCount; m++) {
+                    setImageData(i.mipmap(m), 0, m);
+                }
+
+                return i.build();
             }
         };
     }
@@ -112,7 +224,17 @@ public class DDSTexture {
         return new TextureProxy<DepthCubeMap>() {
             @Override
             public DepthCubeMap convert(Framework framework) {
-                return null;
+                DepthCubeMapBuilder t = framework.newDepthCubeMap().side(width).interpolated();
+                CubeImageBuilder<DepthCubeMap, ?> i = getImageBuilder(t);
+                for (int m = 0; m < mipmapCount; m++) {
+                    setImageData(i.positiveX(m), 0, m);
+                    setImageData(i.negativeX(m), 1, m);
+                    setImageData(i.positiveY(m), 2, m);
+                    setImageData(i.negativeY(m), 3, m);
+                    setImageData(i.positiveZ(m), 4, m);
+                    setImageData(i.negativeZ(m), 5, m);
+                }
+                return i.build();
             }
         };
     }
