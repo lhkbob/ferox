@@ -1034,7 +1034,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      */
     protected abstract void glActiveTexture(int unit);
 
-    // FIXME data type checking and pass through to the attribute pointer calls
     @Override
     public void setVertices(VertexAttribute vertices) {
         if (vertices == null) {
