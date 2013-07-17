@@ -8,6 +8,8 @@ import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
+import java.nio.ByteBuffer;
+
 /**
  *
  */
@@ -64,9 +66,6 @@ public abstract class AbstractElementBufferBuilder
 
     @Override
     protected void validate() {
-        if (!framework.getCapabilities().getVertexBufferSupport()) {
-            throw new ResourceException("VertexBuffers aren't supported by current hardware");
-        }
         if (array == null) {
             throw new ResourceException("Data array must be specified");
         }
@@ -76,10 +75,10 @@ public abstract class AbstractElementBufferBuilder
     protected BufferImpl.BufferHandle allocate(OpenGLContext ctx) {
         if (dynamic) {
             // use an inmemory buffer
-            return new BufferImpl.BufferHandle(framework, BufferUtil.newBuffer(array));
+            return new BufferImpl.BufferHandle(framework, type, BufferUtil.newBuffer(array));
         } else {
             // get a new vbo id and use that
-            return new BufferImpl.BufferHandle(framework, generateNewBufferID(ctx));
+            return new BufferImpl.BufferHandle(framework, type, generateNewBufferID(ctx));
         }
     }
 
@@ -87,22 +86,22 @@ public abstract class AbstractElementBufferBuilder
     protected void pushToGPU(OpenGLContext ctx, BufferImpl.BufferHandle handle) {
         if (handle.vboID > 0) {
             ctx.bindElementVBO(handle);
-            pushBufferData(ctx, BufferUtil.newBuffer(array));
+            pushBufferData(ctx, type, BufferUtil.newBuffer(array));
         } // else I don't have any more work to do for this type of vbo
     }
 
     @Override
     protected ElementBuffer wrap(BufferImpl.BufferHandle handle) {
-        return new ElementBufferImpl(handle, type, length, array);
+        return new ElementBufferImpl(handle, length, array);
     }
 
     protected abstract int generateNewBufferID(OpenGLContext ctx);
 
-    protected abstract void pushBufferData(OpenGLContext ctx, java.nio.Buffer buffer);
+    protected abstract void pushBufferData(OpenGLContext ctx, DataType type, ByteBuffer buffer);
 
     private static class ElementBufferImpl extends BufferImpl implements ElementBuffer {
-        public ElementBufferImpl(BufferHandle handle, DataType type, int length, Object dataArray) {
-            super(handle, type, length, dataArray);
+        public ElementBufferImpl(BufferHandle handle, int length, Object dataArray) {
+            super(handle, length, dataArray);
         }
     }
 }

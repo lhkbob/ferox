@@ -1,5 +1,6 @@
 package com.ferox.renderer.impl.resources;
 
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.Shader;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
@@ -108,12 +109,12 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
                 type == VariableType.MAT2 || type == VariableType.MAT3 ||
                 type == VariableType.MAT4) {
                 // only floating point types
-                floatValues = BufferUtil.newFloatBuffer(bufferSize);
+                floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, bufferSize).asFloatBuffer();
                 intValues = null;
             } else {
                 // all other types are stored as ints
                 floatValues = null;
-                intValues = BufferUtil.newIntBuffer(bufferSize);
+                intValues = BufferUtil.newByteBuffer(DataType.INT, bufferSize).asIntBuffer();
             }
 
             texture = null;

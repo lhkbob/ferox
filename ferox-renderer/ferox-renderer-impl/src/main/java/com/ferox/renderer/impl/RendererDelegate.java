@@ -64,7 +64,7 @@ public abstract class RendererDelegate {
 
         if (defaultState == null) {
             // init state
-            defaultState = new SharedState(surface);
+            defaultState = new SharedState(surface.getFramework().getCapabilities().getMaxCombinedTextures());
         }
 
         defaultState.viewWidth = surface.getWidth();

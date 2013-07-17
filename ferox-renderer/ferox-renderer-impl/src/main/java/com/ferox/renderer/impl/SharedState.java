@@ -28,7 +28,6 @@ package com.ferox.renderer.impl;
 
 import com.ferox.math.Vector4;
 import com.ferox.renderer.Renderer.*;
-import com.ferox.renderer.Surface;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -104,7 +103,7 @@ public class SharedState {
     public int viewWidth;
     public int viewHeight;
 
-    public SharedState(Surface surface) {
+    public SharedState(int numTextures) {
         blendColor = new Vector4(DEFAULT_BLEND_COLOR);
         blendFuncRgb = BlendFunction.ADD;
         blendFuncAlpha = BlendFunction.ADD;
@@ -149,14 +148,13 @@ public class SharedState {
 
         viewX = 0;
         viewY = 0;
-        viewWidth = surface.getWidth();
-        viewHeight = surface.getHeight();
+        viewWidth = -1;
+        viewHeight = -1;
 
         elementVBO = null;
         arrayVBO = null;
         shader = null;
-        textures = new TextureImpl.TextureHandle[surface.getFramework().getCapabilities()
-                                                        .getMaxCombinedTextures()];
+        textures = new TextureImpl.TextureHandle[numTextures];
         activeTexture = 0;
     }
 

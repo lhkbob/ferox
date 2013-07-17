@@ -8,6 +8,8 @@ import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
+import java.nio.ByteBuffer;
+
 /**
  *
  */
@@ -108,9 +110,6 @@ public abstract class AbstractVertexBufferBuilder
 
     @Override
     protected void validate() {
-        if (!framework.getCapabilities().getVertexBufferSupport()) {
-            dynamic = true;
-        }
         if (array == null) {
             throw new ResourceException("Data array must be specified");
         }
@@ -120,10 +119,10 @@ public abstract class AbstractVertexBufferBuilder
     protected BufferImpl.BufferHandle allocate(OpenGLContext ctx) {
         if (dynamic) {
             // use an inmemory buffer
-            return new BufferImpl.BufferHandle(framework, BufferUtil.newBuffer(array));
+            return new BufferImpl.BufferHandle(framework, type, BufferUtil.newBuffer(array));
         } else {
             // get a new vbo id and use that
-            return new BufferImpl.BufferHandle(framework, generateNewBufferID(ctx));
+            return new BufferImpl.BufferHandle(framework, type, generateNewBufferID(ctx));
         }
     }
 
@@ -131,23 +130,22 @@ public abstract class AbstractVertexBufferBuilder
     protected void pushToGPU(OpenGLContext ctx, BufferImpl.BufferHandle handle) {
         if (handle.vboID > 0) {
             ctx.bindArrayVBO(handle);
-            pushBufferData(ctx, BufferUtil.newBuffer(array));
+            pushBufferData(ctx, type, BufferUtil.newBuffer(array));
         } // else I don't have any more work to do for this type of vbo
     }
 
     @Override
     protected VertexBuffer wrap(BufferImpl.BufferHandle handle) {
-        return new VertexBufferImpl(handle, type, length, array);
+        return new VertexBufferImpl(handle, length, array);
     }
 
     protected abstract int generateNewBufferID(OpenGLContext ctx);
 
-    protected abstract void pushBufferData(OpenGLContext ctx, java.nio.Buffer buffer);
+    protected abstract void pushBufferData(OpenGLContext ctx, DataType type, ByteBuffer buffer);
 
     private static class VertexBufferImpl extends BufferImpl implements VertexBuffer {
-
-        public VertexBufferImpl(BufferHandle handle, DataType type, int length, Object dataArray) {
-            super(handle, type, length, dataArray);
+        public VertexBufferImpl(BufferHandle handle, int length, Object dataArray) {
+            super(handle, length, dataArray);
         }
     }
 }

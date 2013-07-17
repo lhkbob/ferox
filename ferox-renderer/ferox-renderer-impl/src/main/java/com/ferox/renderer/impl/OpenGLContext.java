@@ -61,8 +61,7 @@ public interface OpenGLContext {
 
     /**
      * Destroy this context. If the context is not shared with any other un-destroyed context, any graphics
-     * resources that would be shared can be cleaned as well. This must be called in a thread-safe environment
-     * (such as {@link AbstractSurface#destroyImpl()}) and the context should not be current on any thread.
+     * resources that would be shared can be cleaned as well. This must be called on the OpenGL thread
      */
     public void destroy();
 
@@ -74,12 +73,14 @@ public interface OpenGLContext {
     public void makeCurrent();
 
     /**
-     * Release this context from the calling thread. It is assumed that the context is current on this
-     * thread.This must be called in a thread-safe environment and should usually be left up to {@link
-     * ContextManager} to manage (so use {@link ContextManager#forceRelease(AbstractSurface)} instead).
+     * Release this context from the calling thread. It is assumed that the context is current on this thread.
+     * This must be called in a thread-safe environment and should usually be left up to {@link
+     * ContextManager} to manage (so use {@link ContextManager#forceRelease()} instead).
      */
     public void release();
 
+    // FIXME document returning null if not available, and use this as an indicator for renderer selection
+    // FIXME also make sure everywhere that needs it guards properly
     public FixedFunctionState getCurrentFixedFunctionState();
 
     public ShaderOnlyState getCurrentShaderState();

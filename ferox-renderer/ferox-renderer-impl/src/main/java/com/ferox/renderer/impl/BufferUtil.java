@@ -29,7 +29,8 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.DataType;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * BufferUtil is a utility class for creating NIO Buffer objects. All created Buffer objects are direct
@@ -39,99 +40,69 @@ import java.nio.*;
  */
 public class BufferUtil {
     /**
-     * Create a new FloatBuffer of the given capacity.
+     * Create a new ByteBuffer of the given number of typed primitives. The actual byte buffer will have a
+     * capacity equal to {@code size * type.getByteCount()}. The buffer will be direct with native byte
+     * ordering. Although it will be sized for the given type, the correct put() methods on the ByteBuffer
+     * must be used as well.
      *
-     * @param size The capacity of the returned buffer
+     * @param size The number of primitives for the returned buffer
      *
-     * @return A new direct FloatBuffer
+     * @return A new byte buffer
      */
-    public static FloatBuffer newFloatBuffer(int size) {
-        return newByteBuffer(size * DataType.FLOAT.getByteCount()).asFloatBuffer();
-    }
-
-    /**
-     * Create a new IntBuffer of the given capacity.
-     *
-     * @param size The capacity of the returned buffer
-     *
-     * @return A new direct IntBuffer
-     */
-    public static IntBuffer newIntBuffer(int size) {
-        return newByteBuffer(size * DataType.INT.getByteCount()).asIntBuffer();
-    }
-
-    /**
-     * Create a new ShortBuffer of the given capacity.
-     *
-     * @param size The capacity of the returned buffer
-     *
-     * @return A new direct ShortBuffer
-     */
-    public static ShortBuffer newShortBuffer(int size) {
-        return newByteBuffer(size * DataType.SHORT.getByteCount()).asShortBuffer();
-    }
-
-    /**
-     * Create a new ByteBuffer of the given capacity.
-     *
-     * @param size The capacity of the returned buffer
-     *
-     * @return A new direct ByteBuffer
-     */
-    public static ByteBuffer newByteBuffer(int size) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(size);
+    public static ByteBuffer newByteBuffer(DataType type, int size) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(type.getByteCount() * size);
         buffer.order(ByteOrder.nativeOrder());
         return buffer;
     }
 
     /**
-     * Create a new FloatBuffer that will have the same capacity as the length of the given array, and its
+     * Create a new ByteBuffer that will have the same capacity as the 4 * length of the given array, and its
      * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
      * capacity.
      *
      * @param data The float[] that fills the returned buffer
      *
-     * @return A new direct FloatBuffer
+     * @return A new direct ByteBuffer
      *
      * @throws NullPointerException if data is null
      */
-    public static FloatBuffer newFloatBuffer(float[] data) {
-        FloatBuffer buffer = newFloatBuffer(data.length);
-        buffer.put(data).rewind();
+    public static ByteBuffer newFloatBuffer(float[] data) {
+        ByteBuffer buffer = newByteBuffer(DataType.FLOAT, data.length);
+        buffer.asFloatBuffer().put(data);
         return buffer;
     }
 
     /**
-     * Create a new IntBuffer that will have the same capacity as the length of the given array, and its
+     * Create a new ByteBuffer that will have the same capacity as the 4 * length of the given array, and its
      * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
      * capacity.
      *
      * @param data The int[] that fills the returned buffer
      *
-     * @return A new direct IntBuffer
+     * @return A new direct ByteBuffer
      *
      * @throws NullPointerException if data is null
      */
-    public static IntBuffer newIntBuffer(int[] data) {
-        IntBuffer buffer = newIntBuffer(data.length);
-        buffer.put(data).rewind();
+    public static ByteBuffer newIntBuffer(int[] data) {
+        ByteBuffer buffer = newByteBuffer(DataType.INT, data.length);
+        buffer.asIntBuffer().put(data);
         return buffer;
     }
 
     /**
-     * Create a new ShortBuffer that will have the same capacity as the length of the given array, and its
+     * Create a new ByteBuffer that will have the same capacity as the 2 * length of the given array, and its
      * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
      * capacity.
      *
      * @param data The short[] that fills the returned buffer
      *
-     * @return A new direct ShortBuffer
+     * @return A new direct ByteBuffer
      *
      * @throws NullPointerException if data is null
      */
-    public static ShortBuffer newShortBuffer(short[] data) {
-        ShortBuffer buffer = newShortBuffer(data.length);
-        buffer.put(data).rewind();
+    public static ByteBuffer newShortBuffer(short[] data) {
+        ByteBuffer buffer = newByteBuffer(DataType.SHORT, data.length);
+        buffer.asShortBuffer().put(data);
         return buffer;
     }
 
@@ -147,60 +118,23 @@ public class BufferUtil {
      * @throws NullPointerException if data is null
      */
     public static ByteBuffer newByteBuffer(byte[] data) {
-        ByteBuffer buffer = newByteBuffer(data.length);
+        ByteBuffer buffer = newByteBuffer(DataType.BYTE, data.length);
         buffer.put(data).rewind();
         return buffer;
     }
 
     /**
-     * Create a new Buffer based on the given {@link DataType} and size. The returned buffer will have a
-     * capacity equal to <var>size</var> and the returned buffer type will equal the Class returned by {@link
-     * #getBufferType(DataType)}.
-     *
-     * @param type The DataType controlling the return type of the Buffer
-     * @param size The capacity of the buffer
-     *
-     * @return A new direct buffer, suitable for holding data of the give type
-     *
-     * @throws NullPointerException if type is null
-     */
-    public static Buffer newBuffer(DataType type, int size) {
-        switch (type) {
-        case FLOAT:
-            return newFloatBuffer(size);
-        case BYTE:
-        case NORMALIZED_BYTE:
-        case UNSIGNED_BYTE:
-        case UNSIGNED_NORMALIZED_BYTE:
-            return newByteBuffer(size);
-        case INT:
-        case NORMALIZED_INT:
-        case UNSIGNED_INT:
-        case UNSIGNED_NORMALIZED_INT:
-        case INT_BIT_FIELD:
-            return newIntBuffer(size);
-        case SHORT:
-        case NORMALIZED_SHORT:
-        case UNSIGNED_SHORT:
-        case UNSIGNED_NORMALIZED_SHORT:
-            return newShortBuffer(size);
-        default:
-            throw new IllegalArgumentException();
-        }
-    }
-
-    /**
-     * Create a new Buffer from the primitive array. The array instance must be a {@code int[]}, {@code
+     * Create a new ByteBuffer from the primitive array. The array instance must be a {@code int[]}, {@code
      * short[]}, {@code byte[]}, or {@code float[]}. The exact interpretation of the primitives is
      * irrelevant.
      *
      * @param array The primitive to clone into an NIO buffer
      *
-     * @return A new direct Buffer
+     * @return A new direct ByteBuffer
      *
      * @throws IllegalArgumentException if the array isn't an expected buffer array type
      */
-    public static Buffer newBuffer(Object array) {
+    public static ByteBuffer newBuffer(Object array) {
         if (array instanceof float[]) {
             return newFloatBuffer((float[]) array);
         } else if (array instanceof int[]) {
@@ -236,41 +170,5 @@ public class BufferUtil {
         } else {
             throw new IllegalArgumentException("Unsupported array type: " + array);
         }
-    }
-
-    /**
-     * Return the Class of Buffer that will be created by {@link #newBuffer(DataType, int)} based on the given
-     * DataType. A DataType of FLOAT creates FloatBuffers; a DataType of BYTE creates ByteBuffers; a type of
-     * INT creates IntBuffers; and a type of SHORT creates ShortBuffers.
-     *
-     * @param type The DataType
-     *
-     * @return The class of buffer matching the given DataType
-     *
-     * @throws NullPointerException if type is null
-     */
-    public static Class<? extends Buffer> getBufferType(DataType type) {
-        switch (type) {
-        case FLOAT:
-            return FloatBuffer.class;
-        case BYTE:
-        case NORMALIZED_BYTE:
-        case UNSIGNED_BYTE:
-        case UNSIGNED_NORMALIZED_BYTE:
-            return ByteBuffer.class;
-        case INT:
-        case NORMALIZED_INT:
-        case UNSIGNED_INT:
-        case UNSIGNED_NORMALIZED_INT:
-        case INT_BIT_FIELD:
-            return IntBuffer.class;
-        case SHORT:
-        case NORMALIZED_SHORT:
-        case UNSIGNED_SHORT:
-        case UNSIGNED_NORMALIZED_SHORT:
-            return ShortBuffer.class;
-        }
-
-        return null; // won't happen
     }
 }

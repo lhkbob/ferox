@@ -53,16 +53,6 @@ import java.util.Set;
  * @author Michael Ludwig
  */
 public abstract class AbstractGlslRenderer extends AbstractRenderer implements GlslRenderer {
-    private static class ShaderState implements ContextState<GlslRenderer> {
-        private final ShaderOnlyState shaderState;
-        private final SharedState sharedState;
-
-        public ShaderState(SharedState shared, ShaderOnlyState shader) {
-            shaderState = shader;
-            sharedState = shared;
-        }
-    }
-
     protected ShaderOnlyState state;
     protected ShaderOnlyState defaultState;
 
@@ -162,7 +152,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 reservedUnits.add(unit);
                 u.intValues.put(0, unit);
                 u.initialized = true;
-                glUniform(u, u.intValues, 1);
+                glUniform(u, u.intValues);
 
                 // bind a null texture
                 context.bindTexture(unit, null);
@@ -453,7 +443,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (!u.initialized || u.floatValues.get(0) != val) {
             u.initialized = true;
             u.floatValues.put(0, (float) val);
-            glUniform(u, u.floatValues, 1);
+            glUniform(u, u.floatValues);
         }
     }
 
@@ -471,7 +461,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.initialized = true;
             u.floatValues.put(0, (float) v1);
             u.floatValues.put(1, (float) v2);
-            glUniform(u, u.floatValues, 1);
+            glUniform(u, u.floatValues);
         }
     }
 
@@ -492,7 +482,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(1, (float) v2);
             u.floatValues.put(2, (float) v3);
             u.floatValues.put(3, (float) v4);
-            glUniform(u, u.floatValues, 1);
+            glUniform(u, u.floatValues);
         }
     }
 
@@ -508,7 +498,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         val.get(u.floatValues, 0, false);
         u.initialized = true;
-        glUniform(u, u.floatValues, 1);
+        glUniform(u, u.floatValues);
     }
 
     @Override
@@ -523,7 +513,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         val.get(u.floatValues, 0, false);
         u.initialized = true;
-        glUniform(u, u.floatValues, 1);
+        glUniform(u, u.floatValues);
     }
 
     @Override
@@ -546,7 +536,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(0, (float) x);
             u.floatValues.put(1, (float) y);
             u.floatValues.put(2, (float) z);
-            glUniform(u, u.floatValues, 1);
+            glUniform(u, u.floatValues);
         }
     }
 
@@ -584,7 +574,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (!u.initialized || u.intValues.get(0) != val) {
             u.initialized = true;
             u.intValues.put(0, val);
-            glUniform(u, u.intValues, 1);
+            glUniform(u, u.intValues);
         }
     }
 
@@ -604,7 +594,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.initialized = true;
             u.intValues.put(0, v1);
             u.intValues.put(1, v2);
-            glUniform(u, u.intValues, 1);
+            glUniform(u, u.intValues);
         }
     }
 
@@ -626,7 +616,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(0, v1);
             u.intValues.put(1, v2);
             u.intValues.put(2, v3);
-            glUniform(u, u.intValues, 1);
+            glUniform(u, u.intValues);
         }
     }
 
@@ -649,7 +639,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(1, v2);
             u.intValues.put(2, v3);
             u.intValues.put(3, v4);
-            glUniform(u, u.intValues, 1);
+            glUniform(u, u.intValues);
         }
     }
 
@@ -918,13 +908,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
      * Set the given uniform's values. The uniform could have any of the INT_ types, the BOOL type or any of
      * the texture sampler types, and could possibly be an array.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, IntBuffer values, int count);
+    protected abstract void glUniform(ShaderImpl.UniformImpl u, IntBuffer values);
 
     /**
      * Set the given uniform's values. The uniform could have any of the FLOAT_ types and could possibly be an
      * array. The buffer will have been rewound already.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values, int count);
+    protected abstract void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values);
 
     /**
      * Enable the given generic vertex attribute to read in data from an attribute pointer as last assigned by
@@ -948,4 +938,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
     protected abstract void glAttributeValue(int attr, int rowCount, boolean unsigned, int v1, int v2, int v3,
                                              int v4);
+
+    private static class ShaderState implements ContextState<GlslRenderer> {
+        private final ShaderOnlyState shaderState;
+        private final SharedState sharedState;
+
+        public ShaderState(SharedState shared, ShaderOnlyState shader) {
+            shaderState = shader;
+            sharedState = shared;
+        }
+    }
 }

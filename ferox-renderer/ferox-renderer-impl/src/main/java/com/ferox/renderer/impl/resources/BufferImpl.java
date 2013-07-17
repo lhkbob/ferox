@@ -5,17 +5,17 @@ import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
+import java.nio.ByteBuffer;
+
 /**
  *
  */
 public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandle> implements Buffer {
     private final int length;
-    private final DataType type;
     private final Object dataArray;
 
-    public BufferImpl(BufferHandle handle, DataType type, int length, Object dataArray) {
+    public BufferImpl(BufferHandle handle, int length, Object dataArray) {
         super(handle);
-        this.type = type;
         this.length = length;
         this.dataArray = dataArray;
     }
@@ -31,22 +31,25 @@ public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandl
 
     @Override
     public DataType getDataType() {
-        return type;
+        return getHandle().type;
     }
 
     public static class BufferHandle extends ResourceHandle {
         public final int vboID;
-        public final java.nio.Buffer inmemoryBuffer;
+        public final DataType type;
+        public final ByteBuffer inmemoryBuffer;
 
-        public BufferHandle(FrameworkImpl framework, int vboID) {
+        public BufferHandle(FrameworkImpl framework, DataType type, int vboID) {
             super(framework);
             this.vboID = vboID;
+            this.type = type;
             inmemoryBuffer = null;
         }
 
-        public BufferHandle(FrameworkImpl framework, java.nio.Buffer inmemoryBuffer) {
+        public BufferHandle(FrameworkImpl framework, DataType type, ByteBuffer inmemoryBuffer) {
             super(framework);
             this.inmemoryBuffer = inmemoryBuffer;
+            this.type = type;
             vboID = 0;
         }
 

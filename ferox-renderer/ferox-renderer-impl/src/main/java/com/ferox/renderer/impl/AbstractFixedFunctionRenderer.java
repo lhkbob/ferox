@@ -61,8 +61,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     private boolean isModelInverseDirty;
 
     /**
-     * Create an AbstractFixedFunctionRenderer that will use the given RendererDelegate. If this renderer is
-     * used with another GlslRenderer on the same context, they should share RendererDelegate instances.
+     * Create an AbstractFixedFunctionRenderer that will use the given RendererDelegate.
      *
      * @param delegate The RendererDelegate that completes the implementations Renderer behavior
      *
@@ -80,10 +79,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         if (defaultState == null) {
             // init state
-            Capabilities caps = surface.getFramework().getCapabilities();
-            defaultState = new FixedFunctionState(caps.getMaxActiveLights(),
-                                                  caps.getMaxFixedPipelineTextures(),
-                                                  caps.getMaxTextureCoordinates());
+            defaultState = new FixedFunctionState();
         }
 
         // get temporary reference to context's state that we modify
@@ -130,7 +126,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         setSmoothedLightingEnabled(f.lightingSmoothed);
         setTwoSidedLightingEnabled(f.lightingTwoSided);
 
-        setMaterial(f.matAmbient, f.matDiffuse, f.matSpecular, f.matEmmissive);
+        setMaterial(f.matAmbient, f.matDiffuse, f.matSpecular, f.matEmissive);
         setMaterialShininess(f.matShininess);
 
         setLineAntiAliasingEnabled(f.lineAAEnabled);
@@ -203,12 +199,12 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
                          f.colorBinding.elementSize);
         }
 
-        for (int i = 0; i < f.texBindings.length; i++) {
-            VertexState fv = f.texBindings[i];
+        for (int i = 0; i < f.texCoordBindings.length; i++) {
+            VertexState fv = f.texCoordBindings[i];
             if (fv.vbo == null) {
-                setAttribute(state.texBindings[i], null, 0, 0, 0);
+                setAttribute(state.texCoordBindings[i], null, 0, 0, 0);
             } else {
-                setAttribute(state.texBindings[i], fv.vbo, fv.offset, fv.stride, fv.elementSize);
+                setAttribute(state.texCoordBindings[i], fv.vbo, fv.offset, fv.stride, fv.elementSize);
             }
         }
 
@@ -581,30 +577,53 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     @Override
     public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec,
                             @Const Vector4 emm) {
-        if (amb == null || diff == null || spec == null || emm == null) {
-            throw new NullPointerException(
-                    "Material colors can't be null: " + amb + ", " + diff + ", " + spec +
-                    ", " + emm);
+        setMaterialAmbient(amb);
+        setMaterialDiffuse(diff);
+        setMaterialSpecular(spec);
+        setMaterialEmissive(emm);
+    }
+
+    @Override
+    public void setMaterialDiffuse(@Const Vector4 diff) {
+        if (diff == null) {
+            throw new NullPointerException("Color cannot be null");
+        }
+        if (!state.matDiffuse.equals(diff)) {
+            clamp(diff, 0, 1, state.matDiffuse);
+            glMaterialColor(LightColor.DIFFUSE, state.matDiffuse);
+        }
+    }
+
+    @Override
+    public void setMaterialAmbient(@Const Vector4 amb) {
+        if (amb == null) {
+            throw new NullPointerException("Color cannot be null");
         }
         if (!state.matAmbient.equals(amb)) {
             clamp(amb, 0, 1, state.matAmbient);
             glMaterialColor(LightColor.AMBIENT, state.matAmbient);
         }
+    }
 
-        if (!state.matDiffuse.equals(diff)) {
-            clamp(diff, 0, 1, state.matDiffuse);
-            glMaterialColor(LightColor.DIFFUSE, state.matDiffuse);
+    @Override
+    public void setMaterialSpecular(@Const Vector4 spec) {
+        if (spec == null) {
+            throw new NullPointerException("Color cannot be null");
         }
-
         if (!state.matSpecular.equals(spec)) {
-            state.matSpecular.set(spec);
             clamp(spec, 0, 1, state.matSpecular);
             glMaterialColor(LightColor.SPECULAR, state.matSpecular);
         }
+    }
 
-        if (!state.matEmmissive.equals(emm)) {
-            clamp(emm, 0, Float.MAX_VALUE, state.matEmmissive);
-            glMaterialColor(LightColor.EMISSIVE, state.matEmmissive);
+    @Override
+    public void setMaterialEmissive(@Const Vector4 emm) {
+        if (emm == null) {
+            throw new NullPointerException("Color cannot be null");
+        }
+        if (!state.matEmissive.equals(emm)) {
+            clamp(emm, 0, 1, state.matEmissive);
+            glMaterialColor(LightColor.EMISSIVE, state.matEmissive);
         }
     }
 
@@ -674,6 +693,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setTexture(int tex, Sampler image) {
+        if (tex < 0 || tex >= FixedFunctionState.MAX_TEXTURES) {
+            throw new IndexOutOfBoundsException("Bad texture unit: " + tex);
+        }
+
         if (image == null) {
             enableTexture(tex, null);
             context.bindTexture(tex, null);
@@ -939,22 +962,30 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         switch (coord) {
         case S:
-            t.eyePlaneS.mul(t.eyePlaneS, inverseModelView);
+            t.eyePlaneS.mul(plane, inverseModelView);
             break;
         case T:
-            t.eyePlaneT.mul(t.eyePlaneT, inverseModelView);
+            t.eyePlaneT.mul(plane, inverseModelView);
             break;
         case R:
-            t.eyePlaneR.mul(t.eyePlaneR, inverseModelView);
+            t.eyePlaneR.mul(plane, inverseModelView);
             break;
         case Q:
-            t.eyePlaneQ.mul(t.eyePlaneQ, inverseModelView);
+            t.eyePlaneQ.mul(plane, inverseModelView);
             break;
         }
 
         flushModelView();
         setTextureUnit(tex);
         glTexEyePlane(coord, plane);
+    }
+
+    @Override
+    public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
+        setTextureEyePlane(tex, TexCoord.S, planes.getCol(0));
+        setTextureEyePlane(tex, TexCoord.T, planes.getCol(1));
+        setTextureEyePlane(tex, TexCoord.R, planes.getCol(2));
+        setTextureEyePlane(tex, TexCoord.Q, planes.getCol(3));
     }
 
     /**
@@ -1004,6 +1035,14 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
     }
 
+    @Override
+    public void setTextureObjectPlanes(int tex, @Const Matrix4 planes) {
+        setTextureObjectPlane(tex, TexCoord.S, planes.getCol(0));
+        setTextureObjectPlane(tex, TexCoord.T, planes.getCol(1));
+        setTextureObjectPlane(tex, TexCoord.R, planes.getCol(2));
+        setTextureObjectPlane(tex, TexCoord.Q, planes.getCol(3));
+    }
+
     /**
      * Invoke OpenGL to set the object plane for the active texture
      */
@@ -1042,8 +1081,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             if (vertices.getElementSize() == 1) {
                 throw new IllegalArgumentException("Vertices element size cannot be 1");
             }
-            if (!vertices.getVBO().getDataType().isDecimalNumber()) {
-                throw new IllegalArgumentException("VBO must have a decimal data type");
+            if (vertices.getVBO().getDataType().isNormalized()) {
+                throw new IllegalArgumentException("Vertices do not accept normalized types");
+            }
+            if (vertices.getVBO().getDataType().getJavaPrimitive().equals(byte.class)) {
+                throw new IllegalArgumentException("Vertices cannot be specified with byte values");
             }
 
             setAttribute(state.vertexBinding, ((BufferImpl) vertices.getVBO()).getHandle(),
@@ -1062,6 +1104,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             if (!normals.getVBO().getDataType().isDecimalNumber()) {
                 throw new IllegalArgumentException("VBO must have a decimal data type");
             }
+            // if it's a decimal number it's either floating point or normalized so it's valid
 
             setAttribute(state.normalBinding, ((BufferImpl) normals.getVBO()).getHandle(),
                          normals.getOffset(), normals.getStride(), normals.getElementSize());
@@ -1082,6 +1125,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             if (!colors.getVBO().getDataType().isDecimalNumber()) {
                 throw new IllegalArgumentException("VBO must have a decimal data type");
             }
+            // if it's a decimal number it's either floating point or normalized so it's valid
 
             setAttribute(state.colorBinding, ((BufferImpl) colors.getVBO()).getHandle(), colors.getOffset(),
                          colors.getStride(), colors.getElementSize());
@@ -1091,12 +1135,16 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     @Override
     public void setTextureCoordinates(int tex, VertexAttribute texCoords) {
         if (texCoords == null) {
-            setAttribute(state.texBindings[tex], null, 0, 0, 0);
+            setAttribute(state.texCoordBindings[tex], null, 0, 0, 0);
         } else {
-            if (!texCoords.getVBO().getDataType().isDecimalNumber()) {
-                throw new IllegalArgumentException("VBO must have a decimal data type");
+            if (texCoords.getVBO().getDataType().isNormalized()) {
+                throw new IllegalArgumentException("Texture coordinates do not accept normalized types");
             }
-            setAttribute(state.texBindings[tex], ((BufferImpl) texCoords.getVBO()).getHandle(),
+            if (texCoords.getVBO().getDataType().getJavaPrimitive().equals(byte.class)) {
+                throw new IllegalArgumentException(
+                        "Texture coordinates cannot be specified with byte values");
+            }
+            setAttribute(state.texCoordBindings[tex], ((BufferImpl) texCoords.getVBO()).getHandle(),
                          texCoords.getOffset(), texCoords.getStride(), texCoords.getElementSize());
         }
     }

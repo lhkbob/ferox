@@ -77,6 +77,9 @@ public class FixedFunctionState {
         COLORS
     }
 
+    public static final int MAX_LIGHTS = 8;
+    public static final int MAX_TEXTURES = 4;
+
     // cached defaults
     private static final Vector4 DEFAULT_MAT_A_COLOR = new Vector4(.2, .2, .2, 1);
     private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8, .8, .8, 1);
@@ -300,7 +303,7 @@ public class FixedFunctionState {
     public final Vector4 matDiffuse;
     public final Vector4 matAmbient;
     public final Vector4 matSpecular;
-    public final Vector4 matEmmissive;
+    public final Vector4 matEmissive;
 
     public double matShininess;
 
@@ -319,7 +322,7 @@ public class FixedFunctionState {
     public final VertexState vertexBinding;
     public final VertexState normalBinding;
     public final VertexState colorBinding;
-    public final VertexState[] texBindings;
+    public final VertexState[] texCoordBindings;
 
     public int activeClientTexture;
 
@@ -328,7 +331,7 @@ public class FixedFunctionState {
     public final Matrix4 modelView;
     public final Matrix4 projection;
 
-    public FixedFunctionState(int numLights, int numTextures, int numTextureUnits) {
+    public FixedFunctionState() {
         alphaTest = Comparison.ALWAYS;
         alphaRefValue = 1;
 
@@ -344,8 +347,8 @@ public class FixedFunctionState {
         lightingTwoSided = false;
         lightingSmoothed = true;
 
-        lights = new LightState[numLights];
-        for (int i = 0; i < numLights; i++) {
+        lights = new LightState[MAX_LIGHTS];
+        for (int i = 0; i < MAX_LIGHTS; i++) {
             lights[i] = new LightState(i == 0);
             lights[i].specular.set(i == 0 ? WHITE : BLACK);
             lights[i].diffuse.set(i == 0 ? WHITE : BLACK);
@@ -354,7 +357,7 @@ public class FixedFunctionState {
         matDiffuse = new Vector4(DEFAULT_MAT_D_COLOR);
         matAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
         matSpecular = new Vector4(BLACK);
-        matEmmissive = new Vector4(BLACK);
+        matEmissive = new Vector4(BLACK);
 
         matShininess = 0;
 
@@ -365,8 +368,8 @@ public class FixedFunctionState {
         lineWidth = 1;
         pointWidth = 1;
 
-        textures = new TextureState[numTextures];
-        for (int i = 0; i < numTextures; i++) {
+        textures = new TextureState[MAX_TEXTURES];
+        for (int i = 0; i < MAX_TEXTURES; i++) {
             textures[i] = new TextureState(i);
         }
         activeClientTexture = 0;
@@ -374,9 +377,9 @@ public class FixedFunctionState {
         vertexBinding = new VertexState(VertexTarget.VERTICES, 0);
         normalBinding = new VertexState(VertexTarget.NORMALS, 0);
         colorBinding = new VertexState(VertexTarget.COLORS, 0);
-        texBindings = new VertexState[numTextureUnits];
-        for (int i = 0; i < numTextureUnits; i++) {
-            texBindings[i] = new VertexState(VertexTarget.TEXCOORDS, i);
+        texCoordBindings = new VertexState[MAX_TEXTURES];
+        for (int i = 0; i < MAX_TEXTURES; i++) {
+            texCoordBindings[i] = new VertexState(VertexTarget.TEXCOORDS, i);
         }
 
         matrixMode = MatrixMode.MODELVIEW;
@@ -406,7 +409,7 @@ public class FixedFunctionState {
         matDiffuse = new Vector4(toClone.matDiffuse);
         matAmbient = new Vector4(toClone.matAmbient);
         matSpecular = new Vector4(toClone.matSpecular);
-        matEmmissive = new Vector4(toClone.matEmmissive);
+        matEmissive = new Vector4(toClone.matEmissive);
         matShininess = toClone.matShininess;
         lineAAEnabled = toClone.lineAAEnabled;
         pointAAEnabled = toClone.pointAAEnabled;
@@ -424,9 +427,9 @@ public class FixedFunctionState {
         normalBinding = new VertexState(toClone.normalBinding);
         colorBinding = new VertexState(toClone.colorBinding);
 
-        texBindings = new VertexState[toClone.texBindings.length];
-        for (int i = 0; i < texBindings.length; i++) {
-            texBindings[i] = new VertexState(toClone.texBindings[i]);
+        texCoordBindings = new VertexState[toClone.texCoordBindings.length];
+        for (int i = 0; i < texCoordBindings.length; i++) {
+            texCoordBindings[i] = new VertexState(toClone.texCoordBindings[i]);
         }
 
         matrixMode = toClone.matrixMode;

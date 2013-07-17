@@ -2,7 +2,6 @@ package com.ferox.renderer.impl.resources;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
-import com.ferox.math.Functions;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.ArrayImageBuilder;
@@ -20,9 +19,6 @@ import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 /**
  *
@@ -212,56 +208,44 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
     }
 
-    private java.nio.Buffer consolidateBuffer(int mipmap) {
-        int perImage = getBufferSize(mipmap);
+    private ByteBuffer consolidateBuffer(int mipmap) {
+        int perImage = getBufferSize(mipmap) * detectedFormat.getType().getByteCount();
         int size = perImage * imageCount;
+
+        ByteBuffer b = BufferUtil.newByteBuffer(detectedFormat.getType(), size);
 
         Class<?> primitive = detectedFormat.getType().getJavaPrimitive();
         if (float.class.equals(primitive)) {
-            FloatBuffer b = BufferUtil.newFloatBuffer(size);
             for (int i = 0; i < imageCount; i++) {
                 if (imageData[i][mipmap] != null) {
-                    b.put((float[]) imageData[i][mipmap]);
-                } else {
-                    // skip image size in the buffer
-                    b.position(b.position() + perImage);
+                    b.position(i * perImage).limit((i + 1) * perImage);
+                    b.asFloatBuffer().put((float[]) imageData[i][mipmap]);
                 }
             }
-            return b.rewind();
         } else if (int.class.equals(primitive)) {
-            IntBuffer b = BufferUtil.newIntBuffer(size);
             for (int i = 0; i < imageCount; i++) {
                 if (imageData[i][mipmap] != null) {
-                    b.put((int[]) imageData[i][mipmap]);
-                } else {
-                    // skip image size in the buffer
-                    b.position(b.position() + perImage);
+                    b.position(i * perImage).limit((i + 1) * perImage);
+                    b.asIntBuffer().put((int[]) imageData[i][mipmap]);
                 }
             }
-            return b.rewind();
         } else if (short.class.equals(primitive)) {
-            ShortBuffer b = BufferUtil.newShortBuffer(size);
             for (int i = 0; i < imageCount; i++) {
                 if (imageData[i][mipmap] != null) {
-                    b.put((short[]) imageData[i][mipmap]);
-                } else {
-                    // skip image size in the buffer
-                    b.position(b.position() + perImage);
+                    b.position(i * perImage).limit((i + 1) * perImage);
+                    b.asShortBuffer().put((short[]) imageData[i][mipmap]);
                 }
             }
-            return b.rewind();
         } else { // byte
-            ByteBuffer b = BufferUtil.newByteBuffer(size);
             for (int i = 0; i < imageCount; i++) {
                 if (imageData[i][mipmap] != null) {
+                    b.position(i * perImage).limit((i + 1) * perImage);
                     b.put((byte[]) imageData[i][mipmap]);
-                } else {
-                    // skip image size in the buffer
-                    b.position(b.position() + perImage);
                 }
             }
-            return b.rewind();
         }
+        b.clear();
+        return b;
     }
 
     @Override
@@ -290,11 +274,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
 
         // verify format support
         switch (detectedFormat.getFormat()) {
-        case DEPTH:
-            if (!framework.getCapabilities().getDepthTextureSupport()) {
-                throw new ResourceException("Depth textures aren't supported");
-            }
-            break;
         case DEPTH_STENCIL:
             if (!framework.getCapabilities().getDepthStencilTextureSupport()) {
                 throw new ResourceException("Depth+stencil textures aren't supported");
@@ -306,6 +285,15 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                 throw new ResourceException("DXT texture compression isn't supported");
             }
             break;
+        }
+
+        if (detectedFormat.getType() != DataType.INT_BIT_FIELD &&
+            !detectedFormat.getType().isDecimalNumber()) {
+            // check for integer texture support
+            if (!framework.getCapabilities().getIntegerTextureSupport()) {
+                throw new ResourceException(
+                        "Unnormalized signed and unsigned integer textures are not supported");
+            }
         }
 
         // detect base and max mipmap ranges (using format and not image array since
@@ -333,14 +321,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             if (width % 4 != 0 || height % 4 != 0) {
                 throw new ResourceException(
                         "DXT compressed textures must have dimensions that are multiples of 4");
-            }
-        }
-
-        // check NPOT support if necessary
-        if (!framework.getCapabilities().getNPOTTextureSupport()) {
-            if (!Functions.isPowerOfTwo(width) || !Functions.isPowerOfTwo(height) ||
-                !Functions.isPowerOfTwo(depth)) {
-                throw new ResourceException("NPOT textures are not supported");
             }
         }
 
@@ -449,7 +429,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
 
     protected abstract int generateTextureID(OpenGLContext context);
 
-    protected abstract void pushImage(OpenGLContext context, int image, int mipmap, java.nio.Buffer imageData,
+    protected abstract void pushImage(OpenGLContext context, int image, int mipmap, ByteBuffer imageData,
                                       TextureImpl.FullFormat format, int width, int height, int depth);
 
     protected abstract void setBorderColor(OpenGLContext context, @Const Vector4 borderColor);
