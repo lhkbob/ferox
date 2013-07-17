@@ -26,56 +26,18 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
-import com.ferox.renderer.impl.AbstractSurface;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceManager;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.renderer.texture.Texture.Target;
-import org.lwjgl.opengl.GL11;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL30;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.EnumSet;
 
 public class LwjglGlslRenderer extends AbstractGlslRenderer {
-    private boolean initialized;
-    private EnumSet<Target> supportedTargets;
-
     public LwjglGlslRenderer(LwjglRendererDelegate delegate) {
         super(delegate);
-    }
-
-    // FIXME: must understand how to implement binding to a render target,
-    //   especially across shader versions
-    @Override
-    public void bindRenderTarget(String fragmentVariable, int target) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
-        super.activate(surface, context, manager);
-
-        if (!initialized) {
-            // detect caps
-            Capabilities caps = surface.getFramework().getCapabilities();
-            supportedTargets = caps.getSupportedTextureTargets();
-
-            initialized = true;
-        }
-    }
-
-    @Override
-    protected void glUseProgram(GlslShaderHandle shader) {
-        int pid = (shader == null ? 0 : shader.programID);
-        ((LwjglContext) context).bindGlslProgram(pid);
     }
 
     @Override
@@ -97,66 +59,124 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glUniform(Uniform u, FloatBuffer values, int count) {
-        switch (u.uniform.getType()) {
+    protected void glAttributeValue(int attr, int rowCount, boolean unsigned, int v1, int v2, int v3,
+                                    int v4) {
+        if (unsigned) {
+            switch (rowCount) {
+            case 1:
+                GL30.glVertexAttribI1ui(attr, v1);
+                break;
+            case 2:
+                GL30.glVertexAttribI2ui(attr, v1, v2);
+                break;
+            case 3:
+                GL30.glVertexAttribI3ui(attr, v1, v2, v3);
+                break;
+            case 4:
+                GL30.glVertexAttribI4ui(attr, v1, v2, v3, v4);
+                break;
+            }
+        } else {
+            switch (rowCount) {
+            case 1:
+                GL30.glVertexAttribI1i(attr, v1);
+                break;
+            case 2:
+                GL30.glVertexAttribI2i(attr, v1, v2);
+                break;
+            case 3:
+                GL30.glVertexAttribI3i(attr, v1, v2, v3);
+                break;
+            case 4:
+                GL30.glVertexAttribI4i(attr, v1, v2, v3, v4);
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values) {
+        switch (u.getType()) {
         case FLOAT:
-            GL20.glUniform1(u.index, values);
+            GL20.glUniform1(u.getIndex(), values);
             break;
-        case FLOAT_VEC2:
-            GL20.glUniform2(u.index, values);
+        case VEC2:
+            GL20.glUniform2(u.getIndex(), values);
             break;
-        case FLOAT_VEC3:
-            GL20.glUniform3(u.index, values);
+        case VEC3:
+            GL20.glUniform3(u.getIndex(), values);
             break;
-        case FLOAT_VEC4:
-            GL20.glUniform4(u.index, values);
+        case VEC4:
+            GL20.glUniform4(u.getIndex(), values);
             break;
-        case FLOAT_MAT2:
-            GL20.glUniformMatrix2(u.index, false, values);
+        case MAT2:
+            GL20.glUniformMatrix2(u.getIndex(), false, values);
             break;
-        case FLOAT_MAT3:
-            GL20.glUniformMatrix3(u.index, false, values);
+        case MAT3:
+            GL20.glUniformMatrix3(u.getIndex(), false, values);
             break;
-        case FLOAT_MAT4:
-            GL20.glUniformMatrix4(u.index, false, values);
+        case MAT4:
+            GL20.glUniformMatrix4(u.getIndex(), false, values);
             break;
         default:
-            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
+            throw new RuntimeException("Unexpected enum value: " + u.getType());
         }
     }
 
     @Override
-    protected void glUniform(Uniform u, IntBuffer values, int count) {
-        switch (u.uniform.getType()) {
-        case BOOL:
+    protected void glUniform(ShaderImpl.UniformImpl u, IntBuffer values) {
+        switch (u.getType()) {
         case INT:
-        case SHADOW_MAP:
-        case TEXTURE_1D:
-        case TEXTURE_2D:
-        case TEXTURE_3D:
-        case TEXTURE_CUBEMAP:
-            GL20.glUniform1(u.index, values);
+        case BOOL:
+        case SAMPLER_1D:
+        case SAMPLER_2D:
+        case SAMPLER_3D:
+        case SAMPLER_CUBE:
+        case SAMPLER_1D_SHADOW:
+        case SAMPLER_2D_SHADOW:
+        case SAMPLER_CUBE_SHADOW:
+        case SAMPLER_1D_ARRAY:
+        case SAMPLER_2D_ARRAY:
+        case USAMPLER_1D:
+        case USAMPLER_2D:
+        case USAMPLER_3D:
+        case USAMPLER_CUBE:
+        case USAMPLER_1D_ARRAY:
+        case USAMPLER_2D_ARRAY:
+        case ISAMPLER_1D:
+        case ISAMPLER_2D:
+        case ISAMPLER_3D:
+        case ISAMPLER_CUBE:
+        case ISAMPLER_1D_ARRAY:
+        case ISAMPLER_2D_ARRAY:
+            GL20.glUniform1(u.getIndex(), values);
             break;
-        case INT_VEC2:
-            GL20.glUniform2(u.index, values);
+        case UINT:
+            GL30.glUniform1u(u.getIndex(), values);
             break;
-        case INT_VEC3:
-            GL20.glUniform3(u.index, values);
+        case IVEC2:
+        case BVEC2:
+            GL20.glUniform2(u.getIndex(), values);
             break;
-        case INT_VEC4:
-            GL20.glUniform4(u.index, values);
+        case IVEC3:
+        case BVEC3:
+            GL20.glUniform3(u.getIndex(), values);
+            break;
+        case IVEC4:
+        case BVEC4:
+            GL20.glUniform4(u.getIndex(), values);
+            break;
+        case UVEC2:
+            GL30.glUniform2u(u.getIndex(), values);
+            break;
+        case UVEC3:
+            GL30.glUniform3u(u.getIndex(), values);
+            break;
+        case UVEC4:
+            GL30.glUniform4u(u.getIndex(), values);
             break;
         default:
-            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
-        }
-    }
-
-    @Override
-    protected void glBindTexture(int tex, Target target, TextureHandle handle) {
-        if (supportedTargets.contains(target)) {
-            LwjglContext ctx = (LwjglContext) context;
-            ctx.setActiveTexture(tex);
-            ctx.bindTexture(Utils.getGLTextureTarget(target), (handle == null ? 0 : handle.texID));
+            throw new RuntimeException("Unexpected enum value: " + u.getType());
         }
     }
 
@@ -170,34 +190,30 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
-        LwjglContext ctx = (LwjglContext) context;
+    protected void glAttributePointer(int attr, BufferImpl.BufferHandle handle, int offset, int stride,
+                                      int elementSize) {
+        int strideBytes = (elementSize + stride) * handle.type.getByteCount();
+        int vboOffset = offset * handle.type.getByteCount();
 
-        if (h != null) {
-            if (h.mode != StorageMode.IN_MEMORY) {
-                // Must bind the VBO
-                ctx.bindArrayVbo(h.vboID);
+        if (handle.inmemoryBuffer != null) {
+            handle.inmemoryBuffer.clear().position(vboOffset);
+            if (!handle.type.isDecimalNumber()) {
+                GL30.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), strideBytes,
+                                            handle.inmemoryBuffer);
             } else {
-                // Must unbind any old VBO, will grab the in-memory buffer during render call
-                ctx.bindArrayVbo(0);
+                // always specify the type as normalized, since any non-normalized integer type will
+                // fall into this if blcok, and the parameter is ignored for already floating-point data
+                GL20.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
+                                           handle.inmemoryBuffer);
             }
         } else {
-            // Must unbind the vbo
-            ctx.bindArrayVbo(0);
-        }
-    }
-
-    @Override
-    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride,
-                                      int elementSize) {
-        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
-
-        if (h.mode == StorageMode.IN_MEMORY) {
-            h.inmemoryBuffer.clear().position(offset);
-            GL20.glVertexAttribPointer(attr, elementSize, false, strideBytes, (FloatBuffer) h.inmemoryBuffer);
-        } else {
-            int vboOffset = offset * h.dataType.getByteCount();
-            GL20.glVertexAttribPointer(attr, elementSize, GL11.GL_FLOAT, false, strideBytes, vboOffset);
+            if (!handle.type.isDecimalNumber()) {
+                GL30.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), strideBytes,
+                                            vboOffset);
+            } else {
+                GL20.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
+                                           vboOffset);
+            }
         }
     }
 }

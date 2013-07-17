@@ -28,20 +28,16 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.Renderer.*;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
-import com.ferox.renderer.impl.ResourceManager;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
+import com.ferox.renderer.impl.resources.BufferImpl;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GL20;
 
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
@@ -52,11 +48,6 @@ import java.nio.ShortBuffer;
  */
 public class LwjglRendererDelegate extends RendererDelegate {
     // capabilities
-    private boolean supportsBlending;
-    private boolean supportsSeparateBlending;
-    private boolean supportsSeparateStencil;
-    private boolean supportsStencilWrap;
-
     private boolean initialized;
 
     // state tracking for buffer clearing
@@ -71,31 +62,19 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glBlendColor(@Const Vector4 color) {
-        if (supportsBlending) {
-            GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
-        }
+        GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
     }
 
     @Override
     protected void glBlendEquations(BlendFunction funcRgb, BlendFunction funcAlpha) {
-        if (supportsBlending) {
-            if (supportsSeparateBlending) {
-                GL20.glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb),
-                                             Utils.getGLBlendEquation(funcAlpha));
-            } else {
-                GL14.glBlendEquation(Utils.getGLBlendEquation(funcRgb));
-            }
-        }
+        GL20.glBlendEquationSeparate(Utils.getGLBlendEquation(funcRgb), Utils.getGLBlendEquation(funcAlpha));
     }
 
     @Override
     protected void glBlendFactors(BlendFactor srcRgb, BlendFactor dstRgb, BlendFactor srcAlpha,
                                   BlendFactor dstAlpha) {
-        if (supportsBlending) {
-            // separate blend functions were supported before separate blend equations
-            GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
-                                     Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
-        }
+        GL14.glBlendFuncSeparate(Utils.getGLBlendFactor(srcRgb), Utils.getGLBlendFactor(dstRgb),
+                                 Utils.getGLBlendFactor(srcAlpha), Utils.getGLBlendFactor(dstAlpha));
     }
 
     @Override
@@ -187,40 +166,25 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glStencilMask(boolean front, int mask) {
-        if (supportsSeparateStencil) {
-            int face = (front ? GL11.GL_FRONT : GL11.GL_BACK);
-            GL20.glStencilMaskSeparate(face, mask);
-        } else if (front) {
-            // fallback to use front mask
-            GL11.glStencilMask(mask);
-        }
+        int face = (front ? GL11.GL_FRONT : GL11.GL_BACK);
+        GL20.glStencilMaskSeparate(face, mask);
     }
 
     @Override
     protected void glStencilTest(Comparison test, int refValue, int mask, boolean isFront) {
-        if (supportsSeparateStencil) {
-            int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
-            GL20.glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
-        } else if (isFront) {
-            // fallback to use front mask
-            GL11.glStencilFunc(Utils.getGLPixelTest(test), refValue, mask);
-        }
+        int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
+        GL20.glStencilFuncSeparate(face, Utils.getGLPixelTest(test), refValue, mask);
     }
 
     @Override
     protected void glStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
                                    StencilUpdate depthPass, boolean isFront) {
-        int sf = Utils.getGLStencilOp(stencilFail, supportsStencilWrap);
-        int df = Utils.getGLStencilOp(depthFail, supportsStencilWrap);
-        int dp = Utils.getGLStencilOp(depthPass, supportsStencilWrap);
+        int sf = Utils.getGLStencilOp(stencilFail);
+        int df = Utils.getGLStencilOp(depthFail);
+        int dp = Utils.getGLStencilOp(depthPass);
 
-        if (supportsSeparateStencil) {
-            int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
-            GL20.glStencilOpSeparate(face, sf, df, dp);
-        } else if (isFront) {
-            // fallback to use the front mask
-            GL11.glStencilOp(sf, df, dp);
-        }
+        int face = (isFront ? GL11.GL_FRONT : GL11.GL_BACK);
+        GL20.glStencilOpSeparate(face, sf, df, dp);
     }
 
     @Override
@@ -230,17 +194,10 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
-        super.activate(surface, context, manager);
+    public void activate(AbstractSurface surface, OpenGLContext context) {
+        super.activate(surface, context);
 
         if (!initialized) {
-            // grab capabilities
-            Capabilities caps = surface.getFramework().getCapabilities();
-            supportsBlending = caps.isBlendingSupported();
-            supportsSeparateBlending = caps.getSeparateBlendSupport();
-            supportsSeparateStencil = caps.getSeparateStencilSupport();
-            supportsStencilWrap = caps.getVersion() >= 1.4f;
-
             // initial state configuration
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             GL11.glEnable(GL11.GL_CULL_FACE);
@@ -290,28 +247,29 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    protected void glDrawElements(PolygonType type, VertexBufferObjectHandle h, int offset, int count) {
+    protected void glDrawElements(PolygonType type, BufferImpl.BufferHandle h, int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
-        int glDataType = Utils.getGLType(h.dataType, false);
 
-        if (h.mode == StorageMode.IN_MEMORY) {
-            Buffer data = h.inmemoryBuffer;
-            data.limit(offset + count).position(offset);
-            switch (h.dataType) {
-            case BYTE:
-                GL11.glDrawElements(glPolyType, (ByteBuffer) data);
-                break;
-            case SHORT:
-                GL11.glDrawElements(glPolyType, (ShortBuffer) data);
-                break;
-            case INT:
-                GL11.glDrawElements(glPolyType, (IntBuffer) data);
-                break;
-            default:
-                throw new RuntimeException("Unsupported enum value: " + h.dataType);
+        if (h.inmemoryBuffer != null) {
+            // TODO when LWJGL supports a ByteBuffer + type glDrawElements instead of forcing us to wrap
+            // TODO this code must be updated to take advantage of that
+            if (h.type == DataType.UNSIGNED_INT) {
+                IntBuffer wrapped = h.inmemoryBuffer.asIntBuffer();
+                wrapped.limit(offset + count).position(offset);
+                GL11.glDrawElements(glPolyType, wrapped);
+            } else if (h.type == DataType.UNSIGNED_SHORT) {
+                ShortBuffer wrapped = h.inmemoryBuffer.asShortBuffer();
+                wrapped.limit(offset + count).position(offset);
+                GL11.glDrawElements(glPolyType, wrapped);
+            } else if (h.type == DataType.UNSIGNED_BYTE) {
+                h.inmemoryBuffer.limit(offset + count).position(offset);
+                GL11.glDrawElements(glPolyType, h.inmemoryBuffer);
+            } else {
+                throw new RuntimeException("Unexpected buffer type: " + h.type);
             }
         } else {
-            GL11.glDrawElements(glPolyType, count, glDataType, offset * h.dataType.getByteCount());
+            int glDataType = Utils.getGLType(h.type);
+            GL11.glDrawElements(glPolyType, count, glDataType, offset * h.type.getByteCount());
         }
     }
 
@@ -319,23 +277,5 @@ public class LwjglRendererDelegate extends RendererDelegate {
     protected void glDrawArrays(PolygonType type, int first, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         GL11.glDrawArrays(glPolyType, first, count);
-    }
-
-    @Override
-    protected void glBindElementVbo(VertexBufferObjectHandle h) {
-        LwjglContext ctx = (LwjglContext) context;
-
-        if (h != null) {
-            if (h.mode != StorageMode.IN_MEMORY) {
-                // Must bind the VBO
-                ctx.bindElementVbo(h.vboID);
-            } else {
-                // Must unbind any old VBO, will grab the in-memory buffer during render call
-                ctx.bindElementVbo(0);
-            }
-        } else {
-            // Must unbind the vbo
-            ctx.bindElementVbo(0);
-        }
     }
 }

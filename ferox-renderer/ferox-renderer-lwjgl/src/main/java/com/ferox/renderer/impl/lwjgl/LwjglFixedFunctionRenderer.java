@@ -30,8 +30,7 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.BufferUtil;
@@ -40,14 +39,12 @@ import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 
 import java.nio.FloatBuffer;
-import java.util.EnumSet;
 
 /**
  * LwjglFixedFunctionRenderer is a complete implementation of FixedFunctionRenderer that uses a {@link
@@ -57,10 +54,6 @@ import java.util.EnumSet;
  */
 public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     // capabilities
-    private boolean supportsMultitexture;
-    private boolean supportsCombine;
-    private EnumSet<Target> supportedTargets;
-
     private boolean initialized;
 
     // math object transfer objects
@@ -74,22 +67,16 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
         initialized = false;
 
-        transferBuffer = BufferUtil.newFloatBuffer(16);
+        transferBuffer = BufferUtil.newByteBuffer(DataType.FLOAT, 16).asFloatBuffer();
         alphaTestEnabled = false;
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
-        super.activate(surface, context, manager);
+    public void activate(AbstractSurface surface, OpenGLContext context) {
+        super.activate(surface, context);
 
         if (!initialized) {
-            // detect caps
-            Capabilities caps = surface.getFramework().getCapabilities();
-            supportsMultitexture = caps.getMaxFixedPipelineTextures() > 1;
-            supportsCombine = caps.getCombineEnvModeSupport();
-            supportedTargets = caps.getSupportedTextureTargets();
-
-            // set initial state
+            // set initial state not actually tracked
             GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE);
             GL11.glEnable(GL11.GL_COLOR_MATERIAL);
 
@@ -272,24 +259,9 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glBindTexture(Target target, TextureHandle image) {
-        if (supportedTargets.contains(target)) {
-            int glTarget = Utils.getGLTextureTarget(target);
-
-            if (image == null) {
-                ((LwjglContext) context).bindTexture(glTarget, 0);
-            } else {
-                ((LwjglContext) context).bindTexture(glTarget, image.texID);
-            }
-        }
-    }
-
-    @Override
-    protected void glEnableTexture(Target target, boolean enable) {
-        if (supportedTargets.contains(target)) {
-            int type = Utils.getGLTextureTarget(target);
-            glEnable(type, enable);
-        }
+    protected void glEnableTexture(TextureImpl.Target target, boolean enable) {
+        int type = Utils.getGLTextureTarget(target);
+        glEnable(type, enable);
     }
 
     @Override
@@ -300,19 +272,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glCombineFunction(CombineFunction func, boolean rgb) {
-        if (supportsCombine) {
-            int c = Utils.getGLCombineFunc(func);
-            int target = (rgb ? GL13.GL_COMBINE_RGB : GL13.GL_COMBINE_ALPHA);
-            GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, target, c);
-        }
+        int c = Utils.getGLCombineFunc(func);
+        int target = (rgb ? GL13.GL_COMBINE_RGB : GL13.GL_COMBINE_ALPHA);
+        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, target, c);
     }
 
     @Override
     protected void glCombineSrc(int operand, CombineSource src, boolean rgb) {
-        if (!supportsCombine) {
-            return;
-        }
-
         int o = Utils.getGLCombineSrc(src);
         int target = -1;
         if (rgb) {
@@ -346,10 +312,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glCombineOp(int operand, CombineOperand op, boolean rgb) {
-        if (!supportsCombine) {
-            return;
-        }
-
         int o = Utils.getGLCombineOp(op);
         int target = -1;
         if (rgb) {
@@ -386,10 +348,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         if (gen == TexCoordSource.ATTRIBUTE) {
             return; // don't need to do anything, it's already disabled
         }
-        if ((gen == TexCoordSource.REFLECTION || gen == TexCoordSource.NORMAL) &&
-            !supportedTargets.contains(Target.T_CUBEMAP)) {
-            gen = TexCoordSource.OBJECT;
-        }
 
         int mode = Utils.getGLTexGen(gen);
         int tc = Utils.getGLTexCoord(coord, false);
@@ -417,73 +375,50 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     protected void glActiveTexture(int unit) {
-        if (supportsMultitexture) {
-            ((LwjglContext) context).setActiveTexture(unit);
-        }
+        ((LwjglContext) context).setActiveTexture(unit);
     }
 
     @Override
     protected void glActiveClientTexture(int unit) {
-        if (supportsMultitexture) {
-            GL13.glClientActiveTexture(GL13.GL_TEXTURE0 + unit);
-        }
+        GL13.glClientActiveTexture(GL13.GL_TEXTURE0 + unit);
     }
 
     @Override
-    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
-        LwjglContext ctx = (LwjglContext) context;
-
-        if (h != null) {
-            if (h.mode != StorageMode.IN_MEMORY) {
-                // Must bind the VBO
-                ctx.bindArrayVbo(h.vboID);
-            } else {
-                // Must unbind any old VBO, will grab the in-memory buffer during render call
-                ctx.bindArrayVbo(0);
-            }
-        } else {
-            // Must unbind the vbo
-            ctx.bindArrayVbo(0);
-        }
-    }
-
-    @Override
-    protected void glAttributePointer(VertexTarget target, VertexBufferObjectHandle h, int offset, int stride,
+    protected void glAttributePointer(VertexTarget target, BufferImpl.BufferHandle h, int offset, int stride,
                                       int elementSize) {
-        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
+        int strideBytes = (elementSize + stride) * h.type.getByteCount();
+        int vboOffset = offset * h.type.getByteCount();
 
-        if (h.mode == StorageMode.IN_MEMORY) {
-            h.inmemoryBuffer.clear().position(offset);
+        if (h.inmemoryBuffer != null) {
+            h.inmemoryBuffer.clear().position(vboOffset);
 
             switch (target) {
             case NORMALS:
-                GL11.glNormalPointer(strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glNormalPointer(Utils.getGLType(h.type), strideBytes, h.inmemoryBuffer);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glTexCoordPointer(elementSize, Utils.getGLType(h.type), strideBytes, h.inmemoryBuffer);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glVertexPointer(elementSize, Utils.getGLType(h.type), strideBytes, h.inmemoryBuffer);
                 break;
             case COLORS:
-                GL11.glColorPointer(elementSize, strideBytes, (FloatBuffer) h.inmemoryBuffer);
+                GL11.glColorPointer(elementSize, Utils.getGLType(h.type), strideBytes, h.inmemoryBuffer);
                 break;
             }
         } else {
-            int vboOffset = offset * h.dataType.getByteCount();
-
             switch (target) {
             case NORMALS:
-                GL11.glNormalPointer(GL11.GL_FLOAT, strideBytes, vboOffset);
+                GL11.glNormalPointer(Utils.getGLType(h.type), strideBytes, vboOffset);
                 break;
             case TEXCOORDS:
-                GL11.glTexCoordPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
+                GL11.glTexCoordPointer(elementSize, Utils.getGLType(h.type), strideBytes, vboOffset);
                 break;
             case VERTICES:
-                GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
+                GL11.glVertexPointer(elementSize, Utils.getGLType(h.type), strideBytes, vboOffset);
                 break;
             case COLORS:
-                GL11.glVertexPointer(elementSize, GL11.GL_FLOAT, strideBytes, vboOffset);
+                GL11.glVertexPointer(elementSize, Utils.getGLType(h.type), strideBytes, vboOffset);
             }
         }
     }
