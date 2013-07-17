@@ -57,6 +57,13 @@ import java.util.concurrent.Future;
  * Resources created by one Framework cannot be used with any other Framework instance and will be
  * automatically destroyed when the framework is destroyed. All non-destroyed surfaces will be destroyed when
  * the framework is destroyed.
+ * <p/>
+ * Framework implementations are not required to function correctly when the OpenGL version is less than 2.0.
+ * This means it can assume that vertex buffer objects, earlier GLSL language versions, and a number of buffer
+ * operations related to blending and stenciling are available. All VertexBuffer, ElementBuffer, Shaders with
+ * GLSL 1.0, Texture1D, Texture2D, TextureCubeMap, Texture3D, and DepthMap2D with non-integer data are always
+ * supported. More modern shader language versions, geometry shaders, integer textures, texture arrays, and
+ * depth cube maps may only be supported on newer hardware.
  *
  * @author Michael Ludwig
  */

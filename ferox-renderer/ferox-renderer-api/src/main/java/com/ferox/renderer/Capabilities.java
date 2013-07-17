@@ -44,20 +44,6 @@ import java.util.Set;
  */
 public abstract class Capabilities {
     // texture properties
-    protected int maxVertexShaderTextures = -1; //
-    protected int maxFragmentShaderTextures = -1; //
-    protected int maxFixedPipelineTextures = -1; //
-    protected int maxCombinedTextures = -1; //
-
-    protected float maxAnisoLevel = 0f; //
-
-    protected boolean hasDepthTextures = false; //
-    protected boolean hasDepthStencilTextures = false; //
-    protected boolean hasEnvCombine = false; //
-    protected boolean hasMirrorRepeat = false; //
-    protected boolean hasClampEdge = false; //
-
-    // texture + renderbuffer dimensions
     protected int maxTextureSize = 0; //
     protected int maxTextureCubeMapSize = 0; //
     protected int maxTexture3DSize = 0; //
@@ -65,30 +51,21 @@ public abstract class Capabilities {
 
     protected int maxArrayImages = 0; //
 
-    // type of supported textures
     protected boolean fpTextures = false; //
-    protected boolean npotTextures = false; //
     protected boolean s3tcTextures = false; //
+    protected boolean hasDepthStencilTextures = false; //
+    protected boolean hasIntegerTextures = false; //
+    protected float maxAnisoLevel = 0f; //
 
     protected Set<Class<? extends Sampler>> supportedTargets = Collections.emptySet(); //
 
-    // geometry properties
-    protected int maxVertexAttributes = 0; //
-    protected int maxTextureCoordinates = 0; //
-    protected boolean vboSupported = false; //
-
-    // misc
-    protected int maxActiveLights = 0; //
-    protected boolean blendSupported = false; //
-    protected boolean hasSeparateBlend = false; //
-    protected boolean hasSeparateStencil = false; //
-
-    protected boolean hasFfpRenderer = false; //
-
     // glsl
-    protected boolean hasGlslRenderer = false; //
     protected boolean geometryShaderSupport = false; //
     protected int glslVersion;
+    protected int maxVertexShaderTextures = -1; //
+    protected int maxFragmentShaderTextures = -1; //
+    protected int maxCombinedTextures = -1; //
+    protected int maxVertexAttributes = 0; //
 
     protected String vendor = ""; //
     protected int majorVersion = 0;
@@ -159,13 +136,6 @@ public abstract class Capabilities {
     }
 
     /**
-     * @return True if the blending operation exposed in {@link Renderer} is supported.
-     */
-    public boolean isBlendingSupported() {
-        return blendSupported;
-    }
-
-    /**
      * @return The set of supported sampler interfaces on this hardware.
      */
     public Set<Class<? extends Sampler>> getSupportedTextureTargets() {
@@ -180,13 +150,6 @@ public abstract class Capabilities {
     }
 
     /**
-     * @return True if the DEPTH BaseFormat is supported
-     */
-    public boolean getDepthTextureSupport() {
-        return hasDepthTextures;
-    }
-
-    /**
      * @return True if the DEPTH_STENCIL BaseFormat is supported
      */
     public boolean getDepthStencilTextureSupport() {
@@ -194,39 +157,10 @@ public abstract class Capabilities {
     }
 
     /**
-     * @return True if the COMBINE EnvMode is supported by FixedFunctionRenderers
+     * @return True if textures can use unnormalized signed and unsigned integer types
      */
-    public boolean getCombineEnvModeSupport() {
-        return hasEnvCombine;
-    }
-
-    /**
-     * @return True if the MIRROR WrapMode is supported
-     */
-    public boolean getMirrorWrapModeSupport() {
-        return hasMirrorRepeat;
-    }
-
-    /**
-     * @return True if the CLAMP WrapMode can use the GL_CLAMP_TO_EDGE extension, which improves appearance,
-     *         or false when it must fallback to GL_CLAMP
-     */
-    public boolean getClampToEdgeSupport() {
-        return hasClampEdge;
-    }
-
-    /**
-     * @return True if blending can be correctly separated across front and back facing polygons.
-     */
-    public boolean getSeparateBlendSupport() {
-        return hasSeparateBlend;
-    }
-
-    /**
-     * @return True if stencil operations can be correctly separated across front and back facing polygons.
-     */
-    public boolean getSeparateStencilSupport() {
-        return hasSeparateStencil;
+    public boolean getIntegerTextureSupport() {
+        return hasIntegerTextures;
     }
 
     /**
@@ -296,16 +230,6 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the max number of textures usable by a {@link FixedFunctionRenderer}. Textures beyond this will be
-     * ignored when using a fixed function renderer, GLSL renderers may support more available textures.
-     *
-     * @return Total number of textures usable in fixed-function
-     */
-    public int getMaxFixedPipelineTextures() {
-        return maxFixedPipelineTextures;
-    }
-
-    /**
      * Get the max number of textures used by an entire GLSL program. This may be less than the sum of {@link
      * #getMaxVertexShaderTextures()} and {@link #getMaxFragmentShaderTextures()}.
      *
@@ -337,15 +261,6 @@ public abstract class Capabilities {
     }
 
     /**
-     * Whether or not non-power of two dimensions are supported for textures.
-     *
-     * @return If NPOT texturing is available for 1d, 2d, 3d and cube map textures
-     */
-    public boolean getNPOTTextureSupport() {
-        return npotTextures;
-    }
-
-    /**
      * Whether or not the S3TC extension is present. This allows for DXT1, DXT3, and DXT5 texture compression
      * on the graphics card.
      *
@@ -362,53 +277,6 @@ public abstract class Capabilities {
      */
     public int getMaxVertexAttributes() {
         return maxVertexAttributes;
-    }
-
-    /**
-     * Get the maximum number of texture coordinates for each vertex. This may be different then the maximum
-     * number of textures.
-     *
-     * @return Number of texture coordinates
-     */
-    public int getMaxTextureCoordinates() {
-        return maxTextureCoordinates;
-    }
-
-    /**
-     * Whether or not vertex and element buffers stored directly on the GPU are supported.
-     *
-     * @return True if non-dynamic buffers can be cached to the GPU
-     */
-    public boolean getVertexBufferSupport() {
-        return vboSupported;
-    }
-
-    /**
-     * Get the maximum number of lights that can affect a rendered object at one time when using a {@link
-     * FixedFunctionRenderer}.
-     *
-     * @return Total number of simultaneous lights
-     */
-    public int getMaxActiveLights() {
-        return maxActiveLights;
-    }
-
-    /**
-     * Whether or not this Framework can provide Renderers that implement {@link GlslRenderer}.
-     *
-     * @return True if shaders can be used
-     */
-    public boolean hasGlslRenderer() {
-        return hasGlslRenderer;
-    }
-
-    /**
-     * Whether or not this Framework can provide Renderers that implement {@link FixedFunctionRenderer}.
-     *
-     * @return True if fixed-function pipeline can be used
-     */
-    public boolean hasFixedFunctionRenderer() {
-        return hasFfpRenderer;
     }
 
     /**
@@ -455,9 +323,9 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get the GLSL shading language available on the computer. If {@link #hasGlslRenderer()} returns false,
-     * this value is undefined. The reported version is the integer value used in the #version declaration in
-     * source code. Example: for GLSL 1.4 the returned value is 140, for 3.3 it is 330.
+     * Get the GLSL shading language available on the computer. The reported version is the integer value used
+     * in the #version declaration in source code. Example: for GLSL 1.4 the returned value is 140, for 3.3 it
+     * is 330.
      *
      * @return Version in integer form
      */

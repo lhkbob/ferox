@@ -37,6 +37,9 @@ import com.ferox.math.Vector4;
  * fixed-function pipeline of pre-3.1 OpenGL implementations. Although the OpenGL versions between 2.0 and 3.0
  * had support for GLSL shaders (and even earlier using extensions), this Renderer does not expose that since
  * it's more robust to completely separate fixed and programmable pipelines.
+ * <p/>
+ * For the purposes of lighting, the renderer supports 8 simultaneous lights. For the purposes of texturing,
+ * the renderer supports 4 simultaneous textures.
  *
  * @author Michael Ludwig
  */
@@ -483,11 +486,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * <p/>
      * Every light is initially disabled.
      *
-     * @param light  The given light, from 0 to the maximum number of lights available (usually 8)
+     * @param light  The given light, from 0 to the maximum number of lights available
      * @param enable True if it's enabled
      *
-     * @throws IndexOutOfBoundsException if the hardware does not support a light at the provided index, or if
-     *                                   light is less than 0
+     * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
     public void setLightEnabled(int light, boolean enable);
 
@@ -506,16 +508,15 @@ public interface FixedFunctionRenderer extends Renderer {
      * is called, which converts the position into 'eye' space so that all lighting calculations can be done
      * in eye space when a Geometry is finally rendered.
      * <p/>
-     * Every light's default position is (0, 0, 1, 0) so it will act as a directionaly lighting shining along
+     * Every light's default position is (0, 0, 1, 0) so it will act as a directional lighting shining along
      * (0, 0, -1).
      *
-     * @param light The given light, from 0 to the maximum number of lights available (usually 8)
+     * @param light The given light, from 0 to the maximum number of lights available
      * @param pos   The position vector for this light
      *
      * @throws NullPointerException      if pos is null
      * @throws IllegalArgumentException  if pos.w is not 0 or 1
-     * @throws IndexOutOfBoundsException if the hardware does not support a light at the provided index, or if
-     *                                   light is less than 0
+     * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
     public void setLightPosition(int light, @Const Vector4 pos);
 
@@ -541,8 +542,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param spec  The new specular color of the light
      *
      * @throws NullPointerException      if amb, diff, or spec are null
-     * @throws IndexOutOfBoundsException if the hardware does not support a light at the provided index, or if
-     *                                   light is less than 0
+     * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
     public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec);
 
@@ -567,8 +567,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException      if dir is null
      * @throws IllegalArgumentException  if angle is not in [0, 90] or equal to 180
-     * @throws IndexOutOfBoundsException if the hardware does not support a light at the provided index, or if
-     *                                   light is less than 0
+     * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
     public void setSpotlight(int light, @Const Vector3 dir, double angle);
 
@@ -597,8 +596,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param quadratic The quadratic attenuation factor, >= 0
      *
      * @throws IllegalArgumentException  if constant, linear or quadratic < 0
-     * @throws IndexOutOfBoundsException if the hardware does not support a light at the provided index, or if
-     *                                   light is less than 0
+     * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
     public void setLightAttenuation(int light, double constant, double linear, double quadratic);
 
@@ -704,8 +702,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param image The Texture to be bound to tex
      *
      * @throws IllegalArgumentException  if tex is less than 0
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTexture(int tex, Sampler image);
 
@@ -723,8 +720,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param color The new constant texture color for the unit
      *
      * @throws NullPointerException      if color is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureColor(int tex, @Const Vector4 color);
 
@@ -739,8 +735,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param gen The TexCoordSource for all four coordinates
      *
      * @throws NullPointerException      if gen is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      * @see #setTextureCoordGeneration(int, TexCoord, TexCoordSource)
      */
     public void setTextureCoordGeneration(int tex, TexCoordSource gen);
@@ -758,8 +753,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param gen   The new texture coordinate source
      *
      * @throws NullPointerException      if coord or gen are null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen);
 
@@ -778,8 +772,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param plane The object plane that's used for this unit and coordinate
      *
      * @throws NullPointerException      if coord or plane are null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane);
 
@@ -791,8 +784,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param planes The matrix holding the 4 plane equations in row-order
      *
      * @throws NullPointerException      if planes is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      * @see #setTextureObjectPlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
      *      com.ferox.math.Vector4)
      */
@@ -814,8 +806,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param plane The eye plane to be specified, values are before inverse modelview multiplication
      *
      * @throws NullPointerException      if coord or plane are null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane);
 
@@ -827,8 +818,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param planes The matrix holding the 4 plane equations in row-order
      *
      * @throws NullPointerException      if planes is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      * @see #setTextureEyePlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
      *      com.ferox.math.Vector4)
      */
@@ -846,8 +836,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param matrix The texture coordinate transform matrix
      *
      * @throws NullPointerException      if matrix is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureTransform(int tex, @Const Matrix4 matrix);
 
@@ -872,8 +861,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param op2      The operand applied to the 2nd source
      *
      * @throws NullPointerException      if any argument is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureCombineRGB(int tex, CombineFunction function, CombineSource src0,
                                      CombineOperand op0, CombineSource src1, CombineOperand op1,
@@ -903,8 +891,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param op2      The operand applied to the 2nd source
      *
      * @throws NullPointerException      if any argument is null
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureCombineAlpha(int tex, CombineFunction function, CombineSource src0,
                                        CombineOperand op0, CombineSource src1, CombineOperand op1,
@@ -1041,8 +1028,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param texCoords The VertexAttribute holding the texture coordinate data and access information
      *
      * @throws IllegalArgumentException  if texCoords' data type is not a decimal type
-     * @throws IndexOutOfBoundsException if the hardware does not support a texture at the provided index, or
-     *                                   if tex is less than 0
+     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
     public void setTextureCoordinates(int tex, VertexAttribute texCoords);
 }
