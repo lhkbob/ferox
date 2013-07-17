@@ -90,20 +90,7 @@ public class FrameworkImpl implements Framework {
                 // register this framework to be auto-destroyed
                 impl.destructibleManager.manage(FrameworkImpl.this, impl);
 
-                // Fetch the RenderCapabilities now, we do it this way to improve
-                // the Framework creation time instead of forcing OpenGL wrappers to
-                // create and discard a context solely for capabilities detection.
-                Future<Capabilities> caps = impl.contextManager
-                                                .invokeOnContextThread(new Callable<Capabilities>() {
-                                                    @Override
-                                                    public Capabilities call() throws Exception {
-                                                        OpenGLContext context = impl.contextManager
-                                                                                    .ensureContext();
-                                                        return context.getRenderCapabilities();
-                                                    }
-                                                }, false);
-
-                renderCaps = getFuture(caps);
+                renderCaps = impl.surfaceFactory.getCapabilities();
             }
         });
     }

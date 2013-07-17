@@ -26,7 +26,6 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -45,19 +44,6 @@ public interface OpenGLContext {
      * @return The RendererProvider for this context
      */
     public RendererProvider getRendererProvider();
-
-    /**
-     * <p/>
-     * Determine the RenderCapabilities of the current context. Since a Framework will have multiple contexts,
-     * these capabilities should be the same for created contexts running in the same process since the
-     * hardware will be the same.
-     * <p/>
-     * <p/>
-     * Implementations can assume that the context is current on the calling thread.
-     *
-     * @return A new RenderCapabilities
-     */
-    public Capabilities getRenderCapabilities();
 
     /**
      * Destroy this context. If the context is not shared with any other un-destroyed context, any graphics

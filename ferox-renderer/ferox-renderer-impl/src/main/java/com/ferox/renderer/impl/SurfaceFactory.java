@@ -26,10 +26,7 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.Framework;
-import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.TextureSurfaceOptions;
+import com.ferox.renderer.*;
 
 /**
  * SurfaceFactory is a factory that interfaces with lower-level OpenGL wrappers to create concrete
@@ -90,9 +87,9 @@ public interface SurfaceFactory {
     public DisplayMode getDefaultDisplayMode();
 
     /**
-     * @return Available display modes, as required for {@link com.ferox.renderer.Capabilities#getAvailableDisplayModes()}
+     * @return The current hardware capabilities
      */
-    public DisplayMode[] getAvailableDisplayModes();
+    public Capabilities getCapabilities();
 
     /**
      * Perform any native resource destruction, called by the Framework when it's lifecycle is completed.
