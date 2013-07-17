@@ -55,16 +55,15 @@ public abstract class BufferImpl extends AbstractResource<BufferImpl.BufferHandl
 
         @Override
         protected void destroyImpl(OpenGLContext context) {
-            if (vboID > 0) {
-                // only one of these if's should be true at a time, but let's play it safe
-                if (context.getCurrentSharedState().arrayVBO == this) {
-                    context.bindArrayVBO(null);
-                }
-                if (context.getCurrentSharedState().elementVBO == this) {
-                    context.bindElementVBO(null);
-                }
-                getFramework().getResourceFactory().deleteVBO(context, this);
+            // only one of these if's should be true at a time, but let's play it safe
+            if (context.getCurrentSharedState().arrayVBO == this) {
+                context.bindArrayVBO(null);
             }
+            if (context.getCurrentSharedState().elementVBO == this) {
+                context.bindElementVBO(null);
+            }
+            // this should be safe if vboID == 0
+            getFramework().getResourceFactory().deleteVBO(context, this);
         }
     }
 }

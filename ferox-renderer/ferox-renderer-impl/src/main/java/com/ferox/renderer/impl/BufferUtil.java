@@ -29,8 +29,7 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.DataType;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.nio.*;
 
 /**
  * BufferUtil is a utility class for creating NIO Buffer objects. All created Buffer objects are direct
@@ -39,6 +38,57 @@ import java.nio.ByteOrder;
  * @author Michael Ludwig
  */
 public class BufferUtil {
+    /**
+     * Create a new FloatBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
+     *
+     * @param data The float[] that fills the returned buffer
+     *
+     * @return A new direct FloatBuffer
+     *
+     * @throws NullPointerException if data is null
+     */
+    public static FloatBuffer newFloatBuffer(float[] data) {
+        FloatBuffer f = newByteBuffer(DataType.FLOAT, data.length).asFloatBuffer();
+        f.put(data).clear();
+        return f;
+    }
+
+    /**
+     * Create a new IntBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
+     *
+     * @param data The int[] that fills the returned buffer
+     *
+     * @return A new direct IntBuffer
+     *
+     * @throws NullPointerException if data is null
+     */
+    public static IntBuffer newIntBuffer(int[] data) {
+        IntBuffer buffer = newByteBuffer(DataType.INT, data.length).asIntBuffer();
+        buffer.put(data).clear();
+        return buffer;
+    }
+
+    /**
+     * Create a new ShortBuffer that will have the same capacity as the length of the given array, and its
+     * contents will be equal the array. The returned buffer will have its position at 0 and limit at the
+     * capacity.
+     *
+     * @param data The short[] that fills the returned buffer
+     *
+     * @return A new direct ShortBuffer
+     *
+     * @throws NullPointerException if data is null
+     */
+    public static ShortBuffer newShortBuffer(short[] data) {
+        ShortBuffer buffer = newByteBuffer(DataType.SHORT, data.length).asShortBuffer();
+        buffer.put(data).clear();
+        return buffer;
+    }
+
     /**
      * Create a new ByteBuffer of the given number of typed primitives. The actual byte buffer will have a
      * capacity equal to {@code size * type.getByteCount()}. The buffer will be direct with native byte
@@ -66,7 +116,7 @@ public class BufferUtil {
      *
      * @throws NullPointerException if data is null
      */
-    public static ByteBuffer newFloatBuffer(float[] data) {
+    public static ByteBuffer newBuffer(float[] data) {
         ByteBuffer buffer = newByteBuffer(DataType.FLOAT, data.length);
         buffer.asFloatBuffer().put(data);
         return buffer;
@@ -83,7 +133,7 @@ public class BufferUtil {
      *
      * @throws NullPointerException if data is null
      */
-    public static ByteBuffer newIntBuffer(int[] data) {
+    public static ByteBuffer newBuffer(int[] data) {
         ByteBuffer buffer = newByteBuffer(DataType.INT, data.length);
         buffer.asIntBuffer().put(data);
         return buffer;
@@ -100,7 +150,7 @@ public class BufferUtil {
      *
      * @throws NullPointerException if data is null
      */
-    public static ByteBuffer newShortBuffer(short[] data) {
+    public static ByteBuffer newBuffer(short[] data) {
         ByteBuffer buffer = newByteBuffer(DataType.SHORT, data.length);
         buffer.asShortBuffer().put(data);
         return buffer;
@@ -117,9 +167,9 @@ public class BufferUtil {
      *
      * @throws NullPointerException if data is null
      */
-    public static ByteBuffer newByteBuffer(byte[] data) {
+    public static ByteBuffer newBuffer(byte[] data) {
         ByteBuffer buffer = newByteBuffer(DataType.BYTE, data.length);
-        buffer.put(data).rewind();
+        buffer.put(data).clear();
         return buffer;
     }
 
@@ -136,13 +186,13 @@ public class BufferUtil {
      */
     public static ByteBuffer newBuffer(Object array) {
         if (array instanceof float[]) {
-            return newFloatBuffer((float[]) array);
+            return newBuffer((float[]) array);
         } else if (array instanceof int[]) {
-            return newIntBuffer((int[]) array);
+            return newBuffer((int[]) array);
         } else if (array instanceof short[]) {
-            return newShortBuffer((short[]) array);
+            return newBuffer((short[]) array);
         } else if (array instanceof byte[]) {
-            return newByteBuffer((byte[]) array);
+            return newBuffer((byte[]) array);
         } else {
             throw new IllegalArgumentException("Unsupported array type: " + array);
         }
