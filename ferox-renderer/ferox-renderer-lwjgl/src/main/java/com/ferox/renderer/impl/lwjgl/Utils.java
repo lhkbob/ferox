@@ -26,17 +26,13 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.Capabilities;
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.FixedFunctionRenderer.*;
 import com.ferox.renderer.Renderer.*;
-import com.ferox.renderer.texture.Texture;
-import com.ferox.renderer.texture.Texture.Filter;
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.texture.Texture.WrapMode;
-import com.ferox.renderer.texture.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
-import com.ferox.resource.GlslShader.AttributeType;
-import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.Uniform.UniformType;
+import com.ferox.renderer.Sampler;
+import com.ferox.renderer.Shader;
+import com.ferox.renderer.impl.resources.TextureImpl;
 import org.lwjgl.opengl.*;
 
 import java.awt.EventQueue;
@@ -50,93 +46,98 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class Utils {
     /**
-     * Return the UniformType enum value associated with the returned GL11 enum for uniform variable type.
-     * Returns null if there's no matching UniformType.
+     * Return the VariableType enum value associated with the returned GL enum for glsl variable type.
      */
-    public static UniformType getUniformType(int type) {
+    public static Shader.VariableType getVariableType(int type) {
         switch (type) {
         case GL11.GL_FLOAT:
-            return UniformType.FLOAT;
+            return Shader.VariableType.FLOAT;
         case GL20.GL_FLOAT_VEC2:
-            return UniformType.FLOAT_VEC2;
+            return Shader.VariableType.VEC2;
         case GL20.GL_FLOAT_VEC3:
-            return UniformType.FLOAT_VEC3;
+            return Shader.VariableType.VEC3;
         case GL20.GL_FLOAT_VEC4:
-            return UniformType.FLOAT_VEC4;
+            return Shader.VariableType.VEC4;
 
         case GL20.GL_FLOAT_MAT2:
-            return UniformType.FLOAT_MAT2;
+            return Shader.VariableType.MAT2;
         case GL20.GL_FLOAT_MAT3:
-            return UniformType.FLOAT_MAT3;
+            return Shader.VariableType.MAT3;
         case GL20.GL_FLOAT_MAT4:
-            return UniformType.FLOAT_MAT4;
+            return Shader.VariableType.MAT4;
 
         case GL11.GL_INT:
-            return UniformType.INT;
+            return Shader.VariableType.INT;
         case GL20.GL_INT_VEC2:
-            return UniformType.INT_VEC2;
+            return Shader.VariableType.IVEC2;
         case GL20.GL_INT_VEC3:
-            return UniformType.INT_VEC3;
+            return Shader.VariableType.IVEC3;
         case GL20.GL_INT_VEC4:
-            return UniformType.INT_VEC4;
+            return Shader.VariableType.IVEC4;
+
+        case GL11.GL_UNSIGNED_INT:
+            return Shader.VariableType.UINT;
+        case GL30.GL_UNSIGNED_INT_VEC2:
+            return Shader.VariableType.IVEC2;
+        case GL30.GL_UNSIGNED_INT_VEC3:
+            return Shader.VariableType.IVEC3;
+        case GL30.GL_UNSIGNED_INT_VEC4:
+            return Shader.VariableType.IVEC4;
 
         case GL20.GL_BOOL:
-            return UniformType.BOOL;
+            return Shader.VariableType.BOOL;
+        case GL20.GL_BOOL_VEC2:
+            return Shader.VariableType.BVEC2;
+        case GL20.GL_BOOL_VEC3:
+            return Shader.VariableType.BVEC3;
+        case GL20.GL_BOOL_VEC4:
+            return Shader.VariableType.BVEC4;
 
         case GL20.GL_SAMPLER_1D:
-            return UniformType.TEXTURE_1D;
+            return Shader.VariableType.SAMPLER_1D;
         case GL20.GL_SAMPLER_2D:
-            return UniformType.TEXTURE_2D;
+            return Shader.VariableType.SAMPLER_2D;
         case GL20.GL_SAMPLER_3D:
-            return UniformType.TEXTURE_3D;
+            return Shader.VariableType.SAMPLER_3D;
         case GL20.GL_SAMPLER_CUBE:
-            return UniformType.TEXTURE_CUBEMAP;
+            return Shader.VariableType.SAMPLER_CUBE;
         case GL20.GL_SAMPLER_2D_SHADOW:
-            return UniformType.SHADOW_MAP;
+            return Shader.VariableType.SAMPLER_2D_SHADOW;
+        case GL30.GL_SAMPLER_CUBE_SHADOW:
+            return Shader.VariableType.SAMPLER_CUBE_SHADOW;
+        case GL30.GL_SAMPLER_1D_ARRAY:
+            return Shader.VariableType.SAMPLER_1D_ARRAY;
+        case GL30.GL_SAMPLER_2D_ARRAY:
+            return Shader.VariableType.SAMPLER_2D_ARRAY;
+
+        case GL30.GL_INT_SAMPLER_1D:
+            return Shader.VariableType.ISAMPLER_1D;
+        case GL30.GL_INT_SAMPLER_2D:
+            return Shader.VariableType.ISAMPLER_2D;
+        case GL30.GL_INT_SAMPLER_3D:
+            return Shader.VariableType.ISAMPLER_3D;
+        case GL30.GL_INT_SAMPLER_CUBE:
+            return Shader.VariableType.ISAMPLER_CUBE;
+        case GL30.GL_INT_SAMPLER_1D_ARRAY:
+            return Shader.VariableType.ISAMPLER_1D_ARRAY;
+        case GL30.GL_INT_SAMPLER_2D_ARRAY:
+            return Shader.VariableType.ISAMPLER_2D_ARRAY;
+
+        case GL30.GL_UNSIGNED_INT_SAMPLER_1D:
+            return Shader.VariableType.ISAMPLER_1D;
+        case GL30.GL_UNSIGNED_INT_SAMPLER_2D:
+            return Shader.VariableType.ISAMPLER_2D;
+        case GL30.GL_UNSIGNED_INT_SAMPLER_3D:
+            return Shader.VariableType.ISAMPLER_3D;
+        case GL30.GL_UNSIGNED_INT_SAMPLER_CUBE:
+            return Shader.VariableType.ISAMPLER_CUBE;
+        case GL30.GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+            return Shader.VariableType.ISAMPLER_1D_ARRAY;
+        case GL30.GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+            return Shader.VariableType.ISAMPLER_2D_ARRAY;
         }
 
         return null;
-    }
-
-    /**
-     * Return the AttributeType enum value associated with the returned GL11 enum for attribute variable type.
-     * Returns null if there's no matching AttributeType.
-     */
-    public static AttributeType getAttributeType(int type) {
-        switch (type) {
-        case GL11.GL_FLOAT:
-            return AttributeType.FLOAT;
-        case GL20.GL_FLOAT_VEC2:
-            return AttributeType.FLOAT_VEC2;
-        case GL20.GL_FLOAT_VEC3:
-            return AttributeType.FLOAT_VEC3;
-        case GL20.GL_FLOAT_VEC4:
-            return AttributeType.FLOAT_VEC4;
-        case GL20.GL_FLOAT_MAT2:
-            return AttributeType.FLOAT_MAT2;
-        case GL20.GL_FLOAT_MAT3:
-            return AttributeType.FLOAT_MAT3;
-        case GL20.GL_FLOAT_MAT4:
-            return AttributeType.FLOAT_MAT4;
-        }
-
-        return null;
-    }
-
-    /**
-     * Return the GL shader type enum for the given type.
-     */
-    public static int getGLShaderType(ShaderType type) {
-        switch (type) {
-        case FRAGMENT:
-            return GL20.GL_FRAGMENT_SHADER;
-        case GEOMETRY:
-            return EXTGeometryShader4.GL_GEOMETRY_SHADER_EXT;
-        case VERTEX:
-            return GL20.GL_VERTEX_SHADER;
-        default:
-            return -1;
-        }
     }
 
     /**
@@ -186,43 +187,35 @@ public class Utils {
     }
 
     /**
-     * Return the gl enum associated with the given filter for minification. filter must not be null.
+     * Return the gl enum associated with the given filter for minification.
      */
-    public static int getGLMinFilter(Filter filter) {
-        switch (filter) {
-        case LINEAR:
-            return GL11.GL_LINEAR;
-        case NEAREST:
-            return GL11.GL_NEAREST;
-        case MIPMAP_LINEAR:
-            return GL11.GL_LINEAR_MIPMAP_LINEAR;
-        case MIPMAP_NEAREST:
-            return GL11.GL_NEAREST_MIPMAP_NEAREST;
+    public static int getGLMinFilter(boolean interpolate, boolean hasMipmaps) {
+        if (interpolate) {
+            if (hasMipmaps) {
+                return GL11.GL_LINEAR_MIPMAP_LINEAR;
+            } else {
+                return GL11.GL_LINEAR;
+            }
+        } else {
+            if (hasMipmaps) {
+                return GL11.GL_NEAREST_MIPMAP_NEAREST;
+            } else {
+                return GL11.GL_NEAREST;
+            }
         }
-
-        return -1;
     }
 
     /**
      * Return the gl enum associated with the given filter for magnification. filter must not be null.
      */
-    public static int getGLMagFilter(Filter filter) {
-        switch (filter) {
-        case LINEAR:
-        case MIPMAP_LINEAR:
-            return GL11.GL_LINEAR;
-        case NEAREST:
-        case MIPMAP_NEAREST:
-            return GL11.GL_NEAREST;
-        }
-
-        return -1;
+    public static int getGLMagFilter(boolean interpolate) {
+        return interpolate ? GL11.GL_LINEAR : GL11.GL_NEAREST;
     }
 
     /**
      * Wrap must not be null.
      */
-    public static int getGLWrapMode(WrapMode wrap) {
+    public static int getGLWrapMode(Sampler.WrapMode wrap) {
         switch (wrap) {
         case CLAMP:
             return GL12.GL_CLAMP_TO_EDGE;
@@ -242,17 +235,17 @@ public class Utils {
      */
     public static int getGLCubeFace(int face) {
         switch (face) {
-        case Texture.PX:
+        case TextureImpl.POSITIVE_X:
             return GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_X;
-        case Texture.NX:
+        case TextureImpl.NEGATIVE_X:
             return GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
-        case Texture.PY:
+        case TextureImpl.POSITIVE_Y:
             return GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
-        case Texture.NY:
+        case TextureImpl.NEGATIVE_Y:
             return GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
-        case Texture.PZ:
+        case TextureImpl.POSITIVE_Z:
             return GL13.GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
-        case Texture.NZ:
+        case TextureImpl.NEGATIVE_Z:
             return GL13.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
         }
 
@@ -262,242 +255,470 @@ public class Utils {
     /**
      * Target must not be null.
      */
-    public static int getGLTextureTarget(Target tar) {
+    public static int getGLTextureTarget(TextureImpl.Target tar) {
         switch (tar) {
-        case T_1D:
+        case TEX_1D:
             return GL11.GL_TEXTURE_1D;
-        case T_2D:
+        case TEX_2D:
             return GL11.GL_TEXTURE_2D;
-        case T_3D:
+        case TEX_3D:
             return GL12.GL_TEXTURE_3D;
-        case T_CUBEMAP:
+        case TEX_CUBEMAP:
             return GL13.GL_TEXTURE_CUBE_MAP;
+        case TEX_1D_ARRAY:
+            return GL30.GL_TEXTURE_1D_ARRAY;
+        case TEX_2D_ARRAY:
+            return GL30.GL_TEXTURE_2D_ARRAY;
         }
 
         return -1;
     }
 
-    /**
-     * Format must not be null. Returns an enum for the src format in glTexImage. Returns -1 for compressed
-     * formats.
-     */
-    public static int getGLSrcFormat(TextureFormat format) {
+    public static int getGLSrcFormat(TextureImpl.FullFormat format, Capabilities caps) {
         switch (format) {
-        // packed of the RGBA variety (packed type distinguishes them)
-        case ABGR_1555:
-        case ABGR_4444:
-        case ABGR_8888:
-            return GL11.GL_RGBA;
-        case RGBA_4444:
-        case RGBA_5551:
-        case RGBA_8888:
-            return GL11.GL_RGBA;
-
-        // packed of the BGRA variety (packed type distinguishes them)
-        case ARGB_1555:
-        case ARGB_4444:
-        case ARGB_8888:
-            return GL12.GL_BGRA;
-        case BGRA_4444:
-        case BGRA_5551:
-        case BGRA_8888:
-            return GL12.GL_BGRA;
-
-        // packed and unpacked RGB types
-        case RGB:
-        case RGB_565:
-        case RGB_FLOAT:
-            return GL11.GL_RGB;
-
-        // packed and unpacked BGR types
-        case BGR:
-            return GL12.GL_BGR;
-        case BGR_565:
-            return GL11.GL_RGB; // type swaps the ordering
-
-        // unpacked RGBA and BGRA types
-        case RGBA:
-        case RGBA_FLOAT:
-            return GL11.GL_RGBA;
-        case BGRA:
-            return GL12.GL_BGRA;
-
-        // depth formats
-        case DEPTH:
+        case DEPTH_24BIT:
+        case DEPTH_16BIT:
+        case DEPTH_FLOAT:
             return GL11.GL_DEPTH_COMPONENT;
-
-        // red formats
-        case R:
+        case DEPTH_24BIT_STENCIL_8BIT:
+            return GL30.GL_DEPTH_STENCIL;
+        case R_BYTE:
+        case R_SHORT:
+        case R_INT:
+        case R_UBYTE:
+        case R_USHORT:
+        case R_UINT:
+            return GL30.GL_RED_INTEGER;
         case R_FLOAT:
-            return GL11.GL_ALPHA;
-
-        // RG formats
-        case RG:
+        case R_NORMALIZED_UBYTE:
+        case R_NORMALIZED_USHORT:
+        case R_NORMALIZED_UINT:
+        case R_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE;
+            } else {
+                // This doesn't get promoted to a valid format until 3.0
+                return GL11.GL_RED;
+            }
+        case RG_BYTE:
+        case RG_SHORT:
+        case RG_INT:
+        case RG_UBYTE:
+        case RG_USHORT:
+        case RG_UINT:
+            return GL30.GL_RG_INTEGER;
         case RG_FLOAT:
-            return GL11.GL_LUMINANCE_ALPHA;
-
+        case RG_NORMALIZED_UBYTE:
+        case RG_NORMALIZED_USHORT:
+        case RG_NORMALIZED_UINT:
+        case RG_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE_ALPHA;
+            } else {
+                return GL30.GL_RG;
+            }
+        case RGB_BYTE:
+        case RGB_SHORT:
+        case RGB_INT:
+        case RGB_UBYTE:
+        case RGB_USHORT:
+        case RGB_UINT:
+            return GL30.GL_RGB_INTEGER;
+        case RGB_FLOAT:
+        case RGB_NORMALIZED_UBYTE:
+        case RGB_NORMALIZED_USHORT:
+        case RGB_NORMALIZED_UINT:
+        case RGB_HALF_FLOAT:
+        case RGB_PACKED_FLOAT:
+            return GL11.GL_RGB;
+        case BGR_BYTE:
+        case BGR_SHORT:
+        case BGR_INT:
+        case BGR_UBYTE:
+        case BGR_USHORT:
+        case BGR_UINT:
+            return GL30.GL_BGR_INTEGER;
+        case BGR_FLOAT:
+        case BGR_NORMALIZED_UBYTE:
+        case BGR_NORMALIZED_USHORT:
+        case BGR_NORMALIZED_UINT:
+        case BGR_HALF_FLOAT:
+            return GL12.GL_BGR;
+        case RGBA_BYTE:
+        case RGBA_SHORT:
+        case RGBA_INT:
+        case RGBA_UBYTE:
+        case RGBA_USHORT:
+        case RGBA_UINT:
+            return GL30.GL_RGBA_INTEGER;
+        case RGBA_FLOAT:
+        case RGBA_NORMALIZED_UBYTE:
+        case RGBA_NORMALIZED_USHORT:
+        case RGBA_NORMALIZED_UINT:
+        case RGBA_HALF_FLOAT:
+            return GL11.GL_RGBA;
+        case RGB_DXT1:
+        case RGBA_DXT1:
+        case RGBA_DXT3:
+        case RGBA_DXT5:
+            return -1; // no src format for compressed types
+        case BGRA_BYTE:
+        case BGRA_SHORT:
+        case BGRA_INT:
+        case BGRA_UBYTE:
+        case BGRA_USHORT:
+        case BGRA_UINT:
+            return GL30.GL_BGRA_INTEGER;
+        case BGRA_FLOAT:
+        case BGRA_NORMALIZED_UBYTE:
+        case BGRA_NORMALIZED_USHORT:
+        case BGRA_NORMALIZED_UINT:
+        case BGRA_HALF_FLOAT:
+        case ARGB_NORMALIZED_UBYTE:
+        case ARGB_PACKED_INT:
+            return GL12.GL_BGRA;
         default:
-            // a compressed type
-            return -1;
+            throw new RuntimeException("Unexpected format value: " + format);
         }
     }
 
-    /**
-     * Format and type can't be null. Returns an enum for the dst format in glTexImage.
-     */
-    public static int getGLDstFormat(TextureFormat format, DataType type) {
+    public static int getGLDstFormat(TextureImpl.FullFormat format, Capabilities caps) {
         switch (format) {
-        // packed RGB5_A1
-        case ABGR_1555:
-        case ARGB_1555:
-        case RGBA_5551:
-        case BGRA_5551:
-            return GL11.GL_RGB5_A1;
-
-        // packed RGBA4
-        case ABGR_4444:
-        case ARGB_4444:
-        case RGBA_4444:
-        case BGRA_4444:
-            return GL11.GL_RGBA4;
-
-        // packed RGBA8
-        case ABGR_8888:
-        case ARGB_8888:
-        case RGBA_8888:
-        case BGRA_8888:
-            return GL11.GL_RGBA8;
-
-        // packed RGB8
-        case RGB_565:
-        case BGR_565:
-            return GL11.GL_RGB5;
-
-        // unclamped floating point
-        case RGB_FLOAT:
-            return ARBTextureFloat.GL_RGB32F_ARB;
-        case RGBA_FLOAT:
-            return ARBTextureFloat.GL_RGBA32F_ARB;
+        case DEPTH_24BIT:
+            return GL14.GL_DEPTH_COMPONENT24;
+        case DEPTH_16BIT:
+            return GL14.GL_DEPTH_COMPONENT16;
+        case DEPTH_FLOAT:
+            if (!caps.getUnclampedFloatTextureSupport()) {
+                return GL11.GL_DEPTH_COMPONENT;
+            } else if (caps.getMajorVersion() < 3) {
+                return ARBDepthBufferFloat.GL_DEPTH_COMPONENT32F;
+            } else {
+                return GL30.GL_DEPTH_COMPONENT32F;
+            }
+        case DEPTH_24BIT_STENCIL_8BIT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTPackedDepthStencil.GL_DEPTH24_STENCIL8_EXT;
+            } else {
+                return GL30.GL_DEPTH24_STENCIL8;
+            }
         case R_FLOAT:
-            return ARBTextureFloat.GL_LUMINANCE32F_ARB;
+            if (!caps.getUnclampedFloatTextureSupport()) {
+                return GL11.GL_LUMINANCE16;
+            } else if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_LUMINANCE32F_ARB;
+            } else {
+                return GL30.GL_R32F;
+            }
+        case R_BYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE8I_EXT;
+            } else {
+                return GL30.GL_R8I;
+            }
+        case R_SHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE16I_EXT;
+            } else {
+                return GL30.GL_R16I;
+            }
+        case R_INT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE32I_EXT;
+            } else {
+                return GL30.GL_R32I;
+            }
+        case R_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE8UI_EXT;
+            } else {
+                return GL30.GL_R8UI;
+            }
+        case R_USHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE16UI_EXT;
+            } else {
+                return GL30.GL_R16UI;
+            }
+        case R_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE32UI_EXT;
+            } else {
+                return GL30.GL_R32UI;
+            }
+        case R_NORMALIZED_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE8;
+            } else {
+                return GL30.GL_R8;
+            }
+        case R_NORMALIZED_USHORT:
+        case R_NORMALIZED_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE16;
+            } else {
+                return GL30.GL_R16;
+            }
+        case R_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_LUMINANCE16F_ARB;
+            } else {
+                return GL30.GL_R16F;
+            }
         case RG_FLOAT:
-            return ARBTextureFloat.GL_LUMINANCE_ALPHA32F_ARB;
-
-        // DXT_n compression
+            if (!caps.getUnclampedFloatTextureSupport()) {
+                return GL11.GL_LUMINANCE16_ALPHA16;
+            } else if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_LUMINANCE_ALPHA32F_ARB;
+            } else {
+                return GL30.GL_RG32F;
+            }
+        case RG_BYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA8I_EXT;
+            } else {
+                return GL30.GL_RG8I;
+            }
+        case RG_SHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA16I_EXT;
+            } else {
+                return GL30.GL_RG16I;
+            }
+        case RG_INT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA32I_EXT;
+            } else {
+                return GL30.GL_RG32I;
+            }
+        case RG_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA8UI_EXT;
+            } else {
+                return GL30.GL_RG8UI;
+            }
+        case RG_USHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA16UI_EXT;
+            } else {
+                return GL30.GL_RG16UI;
+            }
+        case RG_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_LUMINANCE_ALPHA32UI_EXT;
+            } else {
+                return GL30.GL_RG32UI;
+            }
+        case RG_NORMALIZED_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE8_ALPHA8;
+            } else {
+                return GL30.GL_RG8;
+            }
+        case RG_NORMALIZED_USHORT:
+        case RG_NORMALIZED_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return GL11.GL_LUMINANCE16_ALPHA16;
+            } else {
+                return GL30.GL_RG16;
+            }
+        case RG_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_LUMINANCE_ALPHA16F_ARB;
+            } else {
+                return GL30.GL_RG16F;
+            }
+        case RGB_FLOAT:
+        case BGR_FLOAT:
+            if (!caps.getUnclampedFloatTextureSupport()) {
+                return GL11.GL_RGB16;
+            } else if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_RGB32F_ARB;
+            } else {
+                return GL30.GL_RGB32F;
+            }
+        case RGB_BYTE:
+        case BGR_BYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB8I_EXT;
+            } else {
+                return GL30.GL_RGB8I;
+            }
+        case RGB_SHORT:
+        case BGR_SHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB16I_EXT;
+            } else {
+                return GL30.GL_RGB16I;
+            }
+        case RGB_INT:
+        case BGR_INT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB32I_EXT;
+            } else {
+                return GL30.GL_RGB32I;
+            }
+        case RGB_UBYTE:
+        case BGR_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB8UI_EXT;
+            } else {
+                return GL30.GL_RGB8UI;
+            }
+        case RGB_USHORT:
+        case BGR_USHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB16UI_EXT;
+            } else {
+                return GL30.GL_RGB16UI;
+            }
+        case RGB_UINT:
+        case BGR_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGB32UI_EXT;
+            } else {
+                return GL30.GL_RGB32UI;
+            }
+        case RGB_NORMALIZED_UBYTE:
+        case BGR_NORMALIZED_UBYTE:
+            return GL11.GL_RGB8;
+        case RGB_NORMALIZED_USHORT:
+        case RGB_NORMALIZED_UINT:
+        case BGR_NORMALIZED_USHORT:
+        case BGR_NORMALIZED_UINT:
+            return GL11.GL_RGB16;
+        case RGB_HALF_FLOAT:
+        case BGR_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_RGB16F_ARB;
+            } else {
+                return GL30.GL_RGB16F;
+            }
+        case RGB_PACKED_FLOAT:
+            return GL30.GL_R11F_G11F_B10F;
         case RGB_DXT1:
             return EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+        case RGBA_FLOAT:
+        case BGRA_FLOAT:
+            if (!caps.getUnclampedFloatTextureSupport()) {
+                return GL11.GL_RGBA16;
+            } else if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_RGBA32F_ARB;
+            } else {
+                return GL30.GL_RGB32F;
+            }
+        case RGBA_BYTE:
+        case BGRA_BYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA8I_EXT;
+            } else {
+                return GL30.GL_RGB8I;
+            }
+        case RGBA_SHORT:
+        case BGRA_SHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA16I_EXT;
+            } else {
+                return GL30.GL_RGB16I;
+            }
+        case RGBA_INT:
+        case BGRA_INT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA32I_EXT;
+            } else {
+                return GL30.GL_RGB32I;
+            }
+        case RGBA_UBYTE:
+        case BGRA_UBYTE:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA8UI_EXT;
+            } else {
+                return GL30.GL_RGB8UI;
+            }
+        case RGBA_USHORT:
+        case BGRA_USHORT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA16UI_EXT;
+            } else {
+                return GL30.GL_RGB16UI;
+            }
+        case RGBA_UINT:
+        case BGRA_UINT:
+            if (caps.getMajorVersion() < 3) {
+                return EXTTextureInteger.GL_RGBA32UI_EXT;
+            } else {
+                return GL30.GL_RGB32UI;
+            }
+        case RGBA_NORMALIZED_UBYTE:
+        case BGRA_NORMALIZED_UBYTE:
+        case ARGB_NORMALIZED_UBYTE:
+        case ARGB_PACKED_INT:
+            return GL11.GL_RGBA8;
+        case RGBA_NORMALIZED_USHORT:
+        case RGBA_NORMALIZED_UINT:
+        case BGRA_NORMALIZED_USHORT:
+        case BGRA_NORMALIZED_UINT:
+            return GL11.GL_RGBA16;
+        case RGBA_HALF_FLOAT:
+        case BGRA_HALF_FLOAT:
+            if (caps.getMajorVersion() < 3) {
+                return ARBTextureFloat.GL_RGBA16F_ARB;
+            } else {
+                return GL30.GL_RGBA16F;
+            }
         case RGBA_DXT1:
             return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
         case RGBA_DXT3:
             return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
         case RGBA_DXT5:
             return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-
-        // if we've gotten here, we have a type-less format, and have to
-        // take the type into account
-        case R:
-            if (type == DataType.BYTE) {
-                return GL11.GL_LUMINANCE8;
-            } else if (type == DataType.SHORT || type == DataType.INT) {
-                return GL11.GL_LUMINANCE16;
-            } else {
-                return GL11.GL_LUMINANCE;
-            }
-        case RG:
-            if (type == DataType.BYTE) {
-                return GL11.GL_LUMINANCE8_ALPHA8;
-            } else if (type == DataType.SHORT || type == DataType.INT) {
-                return GL11.GL_LUMINANCE16_ALPHA16;
-            } else {
-                return GL11.GL_LUMINANCE_ALPHA;
-            }
-        case DEPTH:
-            if (type == DataType.BYTE) {
-                return GL14.GL_DEPTH_COMPONENT16;
-            } else if (type == DataType.SHORT) {
-                return GL14.GL_DEPTH_COMPONENT24;
-            } else if (type == DataType.INT) {
-                return GL14.GL_DEPTH_COMPONENT32;
-            } else {
-                return GL11.GL_DEPTH_COMPONENT;
-            }
-        case RGB:
-        case BGR:
-            if (type == DataType.BYTE) {
-                return GL11.GL_RGB8;
-            } else if (type == DataType.SHORT || type == DataType.INT) {
-                return GL11.GL_RGB16;
-            } else {
-                return GL11.GL_RGB;
-            }
-        case RGBA:
-        case BGRA:
-            if (type == DataType.BYTE) {
-                return GL11.GL_RGBA8;
-            } else if (type == DataType.SHORT || type == DataType.INT) {
-                return GL11.GL_RGBA16;
-            } else {
-                return GL11.GL_RGBA;
-            }
-
         default:
-            throw new RuntimeException("Unsupported enum value: " + format);
+            throw new RuntimeException("Unexpected format value: " + format);
         }
     }
 
-    /**
-     * Format must not be null. Returns an appropriate data type for packed source format. Returns -1 if it's
-     * not a packed type. These are chosen with the assumption of big-endian byte ordering.
-     */
-    public static int getGLPackedType(TextureFormat format) {
+    public static int getGLDataTypeForPackedTextureFormat(TextureImpl.FullFormat format) {
         switch (format) {
-        // packed ABGR and ARGB types
-        case ABGR_1555:
-        case ARGB_1555:
-            return GL12.GL_UNSIGNED_SHORT_1_5_5_5_REV;
-        case ABGR_4444:
-        case ARGB_4444:
-            return GL12.GL_UNSIGNED_SHORT_4_4_4_4_REV;
-        case ABGR_8888:
-        case ARGB_8888:
+        case ARGB_NORMALIZED_UBYTE:
+        case ARGB_PACKED_INT:
             return GL12.GL_UNSIGNED_INT_8_8_8_8_REV;
-
-        // packed BGRA and RGBA types
-        case BGRA_5551:
-        case RGBA_5551:
-            return GL12.GL_UNSIGNED_SHORT_5_5_5_1;
-        case BGRA_4444:
-        case RGBA_4444:
-            return GL12.GL_UNSIGNED_SHORT_4_4_4_4;
-        case BGRA_8888:
-        case RGBA_8888:
-            return GL12.GL_UNSIGNED_INT_8_8_8_8;
-
-        // packed BGR and RGB types
-        case BGR_565:
-            return GL12.GL_UNSIGNED_SHORT_5_6_5_REV;
-        case RGB_565:
-            return GL12.GL_UNSIGNED_SHORT_5_6_5;
+        case DEPTH_24BIT_STENCIL_8BIT:
+            return GL30.GL_UNSIGNED_INT_24_8;
         default:
-            throw new RuntimeException("Unsupported enum value: " + format);
+            throw new RuntimeException("Unexpected format value: " + format);
         }
     }
 
     /**
-     * This shouldn't be used for packed data types.
+     * This shouldn't be used for INT_BIT_FIELD types.
      */
-    public static int getGLType(DataType type, boolean signed) {
+    public static int getGLType(DataType type) {
         switch (type) {
         case FLOAT:
             return GL11.GL_FLOAT;
-        case BYTE:
-            return (signed ? GL11.GL_BYTE : GL11.GL_UNSIGNED_BYTE);
+        case HALF_FLOAT:
+            return GL30.GL_HALF_FLOAT;
         case INT:
-            return (signed ? GL11.GL_INT : GL11.GL_UNSIGNED_INT);
+        case NORMALIZED_INT: // normalization is determined by the use case
+            return GL11.GL_INT;
+        case UNSIGNED_INT:
+        case UNSIGNED_NORMALIZED_INT:
+        case INT_BIT_FIELD: // best match here, more specific values are determined by use case
+            return GL11.GL_UNSIGNED_INT;
         case SHORT:
-            return (signed ? GL11.GL_SHORT : GL11.GL_UNSIGNED_SHORT);
+        case NORMALIZED_SHORT:
+            return GL11.GL_SHORT;
+        case UNSIGNED_SHORT:
+        case UNSIGNED_NORMALIZED_SHORT:
+            return GL11.GL_UNSIGNED_SHORT;
+        case BYTE:
+        case NORMALIZED_BYTE:
+            return GL11.GL_BYTE;
+        case UNSIGNED_BYTE:
+        case UNSIGNED_NORMALIZED_BYTE:
+            return GL11.GL_UNSIGNED_BYTE;
         default:
-            throw new RuntimeException("Unsupported enum value: " + type);
+            return -1;
         }
     }
 
@@ -564,16 +785,16 @@ public class Utils {
     /**
      * Op must not be null.
      */
-    public static int getGLStencilOp(StencilUpdate op, boolean wrapSupported) {
+    public static int getGLStencilOp(StencilUpdate op) {
         switch (op) {
         case DECREMENT:
             return GL11.GL_DECR;
         case DECREMENT_WRAP:
-            return (wrapSupported ? GL14.GL_DECR_WRAP : GL11.GL_DECR);
+            return GL14.GL_DECR_WRAP;
         case INCREMENT:
             return GL11.GL_INCR;
         case INCREMENT_WRAP:
-            return (wrapSupported ? GL14.GL_INCR_WRAP : GL11.GL_INCR);
+            return GL14.GL_INCR_WRAP;
         case ZERO:
             return GL11.GL_ZERO;
         case KEEP:
@@ -764,9 +985,7 @@ public class Utils {
             if (block) {
                 try {
                     EventQueue.invokeAndWait(r);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (InvocationTargetException e) {
+                } catch (InterruptedException | InvocationTargetException e) {
                     throw new RuntimeException(e);
                 }
             } else {

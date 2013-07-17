@@ -26,13 +26,13 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.resource.GlslShader.ShaderType;
-import com.ferox.resource.GlslShader.Version;
+import com.ferox.renderer.*;
 import org.lwjgl.opengl.*;
 
-import java.util.EnumSet;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * An extension of RenderCapabilities that implements querying OpenGL via JOGL.
@@ -48,13 +48,14 @@ public class LwjglRenderCapabilities extends Capabilities {
      * Force the returned RenderCapabilities to report no support for pbuffers.
      */
     public static final int FORCE_NO_PBUFFER = 0x2;
-    /**
-     * Force the returned RenderCapabilities to report no support for programmable shaders.
-     */
-    public static final int FORCE_NO_GLSL = 0x4;
 
     private final int forceBits;
 
+    /**
+     * Query the capabilities of the current hardware. This is not a fast constructor.
+     *
+     * @param forceBits
+     */
     public LwjglRenderCapabilities(int forceBits) {
         this.forceBits = forceBits;
         query();
@@ -89,86 +90,47 @@ public class LwjglRenderCapabilities extends Capabilities {
 
         vendor = GL11.glGetString(GL11.GL_VENDOR) + "-" +
                  GL11.glGetString(GL11.GL_RENDERER);
-        version = formatVersion(GL11.glGetString(GL11.GL_VERSION));
 
-        if (version >= 2f & !isSet(FORCE_NO_GLSL)) {
-            float glslVersionNum = formatVersion(GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
-            if (glslVersionNum >= 1f && glslVersionNum < 1.3f) {
-                glslVersion = Version.V1_20;
-            } else if (glslVersionNum < 1.4f) {
-                glslVersion = Version.V1_30;
-            } else if (glslVersionNum < 1.5f) {
-                glslVersion = Version.V1_40;
-            } else if (glslVersionNum < 3.3f) {
-                glslVersion = Version.V1_50;
-            } else if (glslVersionNum < 4.0f) {
-                glslVersion = Version.V3_30;
-            } else {
-                glslVersion = Version.V4_00;
-            }
+        // GL_MAJOR_VERSION and GL_MINOR_VERSION are only supported on 3+ so that seems kind of silly
+        float version = formatVersion(GL11.glGetString(GL11.GL_VERSION));
+        majorVersion = (int) Math.floor(version);
+        minorVersion = (int) Math.floor(10 * (version - majorVersion));
 
-            supportedShaders = EnumSet.of(ShaderType.VERTEX, ShaderType.FRAGMENT);
-            if (caps.GL_EXT_geometry_shader4 || version >= 3f) {
-                supportedShaders.add(ShaderType.GEOMETRY);
-            }
-        } else {
-            supportedShaders = EnumSet.noneOf(ShaderType.class);
-            glslVersion = null;
-        }
 
-        hasFfpRenderer = true; // there is always support, it might just be emulated by a shader
-        hasGlslRenderer = glslVersion != null;
+        float glslVersionNum = formatVersion(GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
+        glslVersion = (int) Math.floor(100 * glslVersionNum);
+
+        geometryShaderSupport = caps.GL_EXT_geometry_shader4 || (majorVersion >= 3 && minorVersion >= 3);
         pbuffersSupported =
-                !isSet(FORCE_NO_PBUFFER) && (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0;
+                !isSet(FORCE_NO_PBUFFER) && (Pbuffer.getCapabilities() & Pbuffer.PBUFFER_SUPPORTED) != 0;
 
-        fboSupported = !isSet(FORCE_NO_FBO) && (version >= 3f || caps.GL_EXT_framebuffer_object);
+        fboSupported = !isSet(FORCE_NO_FBO) && (majorVersion >= 3 || caps.GL_EXT_framebuffer_object);
         if (fboSupported) {
             maxColorTargets = GL11.glGetInteger(GL30.GL_MAX_COLOR_ATTACHMENTS);
         } else {
-            maxColorTargets = 0;
+            maxColorTargets = 1;
         }
 
-        hasSeparateBlend = version >= 2f || caps.GL_EXT_blend_equation_separate;
-        hasSeparateStencil = version >= 2f || caps.GL_EXT_stencil_two_side;
-        blendSupported = version >= 1.4f;
+        maxVertexAttributes = GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
 
-        maxActiveLights = GL11.glGetInteger(GL11.GL_MAX_LIGHTS);
+        maxVertexShaderTextures = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+        maxFragmentShaderTextures = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
+        maxCombinedTextures = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
 
-        vboSupported = version >= 1.5f || caps.GL_ARB_vertex_buffer_object;
-
-        if (hasGlslRenderer) {
-            maxVertexAttributes = GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
-        } else {
-            maxVertexAttributes = 0;
-        }
-
-        boolean multiTexture = version >= 1.3f || caps.GL_ARB_multitexture;
-        if (multiTexture) {
-            maxFixedPipelineTextures = GL11.glGetInteger(GL13.GL_MAX_TEXTURE_UNITS);
-        } else {
-            maxFixedPipelineTextures = 1;
-        }
-
-        if (hasGlslRenderer) {
-            maxVertexShaderTextures = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-            maxFragmentShaderTextures = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
-            maxCombinedTextures = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
-            maxTextureCoordinates = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_COORDS);
-        } else {
-            maxVertexShaderTextures = 0;
-            maxFragmentShaderTextures = 0;
-            maxCombinedTextures = 0;
-            maxTextureCoordinates = maxFixedPipelineTextures;
-        }
-
-        npotTextures = version >= 2f || caps.GL_ARB_texture_non_power_of_two;
         fpTextures = version >= 3f || caps.GL_ARB_texture_float;
         s3tcTextures = caps.GL_EXT_texture_compression_s3tc;
+        hasDepthStencilTextures = false; // FIXME
+        hasIntegerTextures = false; // FIXME
+        maxArrayImages = 0; //
 
-        hasDepthTextures = version >= 1.4f || (caps.GL_ARB_depth_texture && caps.GL_ARB_shadow);
-        hasEnvCombine = version >= 1.3f || (caps.GL_ARB_texture_env_combine && caps.GL_ARB_texture_env_dot3);
-        hasMirrorRepeat = version >= 1.4f || caps.GL_ARB_texture_mirrored_repeat;
-        hasClampEdge = version >= 1.2f;
+        // FIXME how do I implement this?
+        depthBufferSizes = null;
+        stencilBufferSizes = null;
+        msaaSamples = null;
+        availableModes = null;
+
+        // LWJGL does not support multiple windows with its static display
+        supportsMultipleOnscreenSurfaces = false;
 
         if (caps.GL_EXT_texture_filter_anisotropic) {
             maxAnisoLevel = GL11.glGetInteger(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
@@ -176,23 +138,16 @@ public class LwjglRenderCapabilities extends Capabilities {
             maxAnisoLevel = 0f;
         }
 
-        boolean hasCubeMaps = version >= 1.3f || caps.GL_ARB_texture_cube_map;
-        boolean has3dTextures = version >= 1.2f || caps.GL_EXT_texture_3d;
-        supportedTargets = EnumSet.of(Target.T_1D, Target.T_2D);
-        if (hasCubeMaps) {
-            supportedTargets.add(Target.T_CUBEMAP);
-        }
-        if (has3dTextures) {
-            supportedTargets.add(Target.T_3D);
-        }
+        Set<Class<? extends Sampler>> supportedSamplers = new HashSet<>();
+        supportedSamplers
+                .addAll(Arrays.asList(Texture1D.class, Texture2D.class, Texture3D.class, TextureCubeMap.class,
+                                      DepthMap2D.class));
+        supportedTargets = Collections.unmodifiableSet(supportedSamplers);
+
 
         maxTextureSize = GL11.glGetInteger(GL11.GL_MAX_TEXTURE_SIZE);
-        if (hasCubeMaps) {
-            maxTextureCubeMapSize = GL11.glGetInteger(GL13.GL_MAX_CUBE_MAP_TEXTURE_SIZE);
-        }
-        if (has3dTextures) {
-            maxTexture3DSize = GL11.glGetInteger(GL12.GL_MAX_3D_TEXTURE_SIZE);
-        }
+        maxTextureCubeMapSize = GL11.glGetInteger(GL13.GL_MAX_CUBE_MAP_TEXTURE_SIZE);
+        maxTexture3DSize = GL11.glGetInteger(GL12.GL_MAX_3D_TEXTURE_SIZE);
 
         if (fboSupported) {
             maxRenderbufferSize = GL11.glGetInteger(GL30.GL_MAX_RENDERBUFFER_SIZE);

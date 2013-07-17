@@ -29,8 +29,10 @@ package com.ferox.renderer.impl.lwjgl;
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.Resource;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.RendererProvider;
+import com.ferox.renderer.impl.*;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.*;
 
@@ -42,72 +44,49 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * @author Michael Ludwig
  */
-public class LwjglContext extends OpenGLContext {
-    private final LwjglSurfaceFactory creator;
+public class LwjglContext implements OpenGLContext {
     private final Drawable context;
 
-    private Capabilities cachedCaps;
+    private final LwjglRendererProvider rendererProvider;
 
     // cleanup
-    private List<Runnable> cleanupTasks;
+    private final List<Runnable> cleanupTasks;
 
-    // bound object state
-    private boolean stateInitialized;
-    private int activeTexture;
-
-    private int[] textures;
-    private int[] boundTargets;
-
-    private int arrayVbo;
-    private int elementVbo;
+    private final SharedState sharedState;
+    private final FixedFunctionState fixedState; // null for GL 3+
+    private final ShaderOnlyState shaderOnlyState;
 
     private int fbo;
 
-    private int glslProgram;
-
     // cached switches for extensions
-    private boolean useARBVertexBufferObject;
-    private boolean useEXTFramebufferObject;
+    private final boolean useEXTFramebufferObject;
 
     /**
-     * Create a LWJGLContext wrapper around the given Drawable. It is assumed that the given
-     * LwjglSurfaceFactory is the creator.
+     * Create a LWJGLContext wrapper around the given Drawable. It is assumed the provided Capabilities
+     * accurately reflect the hardware.
      *
-     * @param factory  The factory creating, or indirectly creating this context
-     * @param context  The actual Drawable
-     * @param provider The provider of renderers
+     * @param caps    The capabilities of the context
+     * @param context The actual Drawable
      *
      * @throws NullPointerException if factory, context, or provider are null
      */
-    public LwjglContext(LwjglSurfaceFactory factory, Drawable context, RendererProvider provider) {
-        super(provider);
-        if (factory == null || context == null) {
-            throw new NullPointerException("Factory and context cannot be null");
+    public LwjglContext(Capabilities caps, Drawable context) {
+        if (caps == null || context == null) {
+            throw new NullPointerException("Capabilities and context cannot be null");
         }
 
         this.context = context;
-        creator = factory;
-        stateInitialized = false;
-        cleanupTasks = new CopyOnWriteArrayList<Runnable>();
-    }
 
-    private void initializedMaybe() {
-        if (!stateInitialized) {
-            Capabilities caps = getRenderCapabilities();
+        cleanupTasks = new CopyOnWriteArrayList<>();
 
-            int ffp = caps.getMaxFixedPipelineTextures();
-            int frag = caps.getMaxFragmentShaderTextures();
-            int vert = caps.getMaxVertexShaderTextures();
+        // if functions related to this are called, we assume FBOs are supported somehow
+        useEXTFramebufferObject = caps.getMajorVersion() < 3;
 
-            int maxTextures = Math.max(ffp, Math.max(frag, vert));
-            textures = new int[maxTextures];
-            boundTargets = new int[maxTextures];
+        sharedState = new SharedState(caps.getMaxCombinedTextures());
+        fixedState = (caps.getMajorVersion() < 3 ? new FixedFunctionState() : null);
+        shaderOnlyState = new ShaderOnlyState(caps.getMaxVertexAttributes());
 
-            useARBVertexBufferObject = caps.getVersion() < 1.5f;
-            useEXTFramebufferObject = caps.getVersion() < 3.0f;
-
-            stateInitialized = true;
-        }
+        rendererProvider = new LwjglRendererProvider(fixedState, shaderOnlyState);
     }
 
     /**
@@ -132,34 +111,6 @@ public class LwjglContext extends OpenGLContext {
     }
 
     /**
-     * @return The id of the GLSL program object currently in use
-     */
-    public int getGlslProgram() {
-        return glslProgram;
-    }
-
-    /**
-     * @return The id of the VBO bound to the ARRAY_BUFFER target
-     */
-    public int getArrayVbo() {
-        return arrayVbo;
-    }
-
-    /**
-     * @return The id of the VBO bound to the ELEMENT_ARRAY_BUFFER target
-     */
-    public int getElementVbo() {
-        return elementVbo;
-    }
-
-    /**
-     * @return The active texture, index from 0
-     */
-    public int getActiveTexture() {
-        return activeTexture;
-    }
-
-    /**
      * @return The id of the currently bound framebuffer object
      */
     public int getFbo() {
@@ -167,125 +118,26 @@ public class LwjglContext extends OpenGLContext {
     }
 
     /**
-     * @param tex The 0-based texture unit to lookup
-     *
-     * @return The id of the currently bound texture image
-     */
-    public int getTexture(int tex) {
-        initializedMaybe();
-        return textures[tex];
-    }
-
-    /**
-     * @param tex The 0-based texture unit to lookup
-     *
-     * @return The OpenGL texture target enum for the bound texture
-     */
-    public int getTextureTarget(int tex) {
-        initializedMaybe();
-        return boundTargets[tex];
-    }
-
-    /**
-     * Bind the given glsl program so that it will be in use for the next rendering call.
-     *
-     * @param gl      The GL to use
-     * @param program The program id to bind
-     */
-    public void bindGlslProgram(int program) {
-        initializedMaybe();
-        if (program != glslProgram) {
-            glslProgram = program;
-            GL20.glUseProgram(program);
-        }
-    }
-
-    /**
-     * Bind the given vbo to the ARRAY_BUFFER target.
-     *
-     * @param gl  The GL to use
-     * @param vbo The VBO id to bind
-     */
-    public void bindArrayVbo(int vbo) {
-        initializedMaybe();
-        if (vbo != arrayVbo) {
-            arrayVbo = vbo;
-
-            if (useARBVertexBufferObject) {
-                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, vbo);
-            } else {
-                GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, vbo);
-            }
-        }
-    }
-
-    /**
-     * Bind the given vbo to the ARRAY_BUFFER target.
-     *
-     * @param gl  The GL to use
-     * @param vbo The VBO id to bind
-     */
-    public void bindElementVbo(int vbo) {
-        initializedMaybe();
-        if (vbo != elementVbo) {
-            elementVbo = vbo;
-
-            if (useARBVertexBufferObject) {
-                ARBBufferObject.glBindBufferARB(ARBVertexBufferObject.GL_ELEMENT_ARRAY_BUFFER_ARB, vbo);
-            } else {
-                GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, vbo);
-            }
-        }
-    }
-
-    /**
      * Set the active texture. This should be called before any texture operations are needed, since it
      * switches which texture unit is active.
      *
-     * @param gl  The GL to use
      * @param tex The texture unit, 0 based
      */
     public void setActiveTexture(int tex) {
-        initializedMaybe();
-        if (activeTexture != tex) {
-            activeTexture = tex;
+        // This is safe even with no multitexture support because 0 is the default value, and no
+        // other texture unit should be specified by higher-levels of code if there's no support
+        if (tex != sharedState.activeTexture) {
+            sharedState.activeTexture = tex;
             GL13.glActiveTexture(GL13.GL_TEXTURE0 + tex);
-        }
-    }
-
-    /**
-     * Bind a texture image to the current active texture. <var>target</var> must be one of GL_TEXTURE_1D,
-     * GL_TEXTURE_2D, GL_TEXTURE_3D, etc.
-     *
-     * @param gl     The GL to use
-     * @param target The valid OpenGL texture target enum for texture image
-     * @param texId  The id of the texture image to bind
-     */
-    public void bindTexture(int target, int texId) {
-        initializedMaybe();
-        int prevTarget = boundTargets[activeTexture];
-        int prevTex = textures[activeTexture];
-
-        if (prevTex != texId) {
-            if (prevTex != 0 && prevTarget != target) {
-                // unbind old texture
-                GL11.glBindTexture(prevTarget, 0);
-            }
-            GL11.glBindTexture(target, texId);
-
-            boundTargets[activeTexture] = target;
-            textures[activeTexture] = texId;
         }
     }
 
     /**
      * Bind the given framebuffer object.
      *
-     * @param gl    The GL to use
      * @param fboId The id of the fbo
      */
     public void bindFbo(int fboId) {
-        initializedMaybe();
         if (fbo != fboId) {
             fbo = fboId;
 
@@ -305,12 +157,8 @@ public class LwjglContext extends OpenGLContext {
     }
 
     @Override
-    public Capabilities getRenderCapabilities() {
-        if (cachedCaps == null) {
-            cachedCaps = new LwjglRenderCapabilities(creator.getCapabilityForceBits());
-        }
-
-        return cachedCaps;
+    public RendererProvider getRendererProvider() {
+        return rendererProvider;
     }
 
     @Override
@@ -337,6 +185,74 @@ public class LwjglContext extends OpenGLContext {
             context.releaseContext();
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to release context", e);
+        }
+    }
+
+    @Override
+    public FixedFunctionState getCurrentFixedFunctionState() {
+        return fixedState;
+    }
+
+    @Override
+    public ShaderOnlyState getCurrentShaderState() {
+        return shaderOnlyState;
+    }
+
+    @Override
+    public SharedState getCurrentSharedState() {
+        return sharedState;
+    }
+
+    @Override
+    public void bindArrayVBO(BufferImpl.BufferHandle vbo) {
+        if (vbo != sharedState.arrayVBO) {
+            sharedState.arrayVBO = vbo;
+            int bufferID = (vbo == null || vbo.inmemoryBuffer == null ? 0 : vbo.vboID);
+
+            GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
+        }
+    }
+
+    @Override
+    public void bindElementVBO(BufferImpl.BufferHandle vbo) {
+        if (vbo != sharedState.elementVBO) {
+            sharedState.elementVBO = vbo;
+            int bufferID = (vbo == null || vbo.inmemoryBuffer == null ? 0 : vbo.vboID);
+
+            GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, bufferID);
+        }
+    }
+
+    @Override
+    public void bindShader(ShaderImpl.ShaderHandle shader) {
+        if (shader != sharedState.shader) {
+            sharedState.shader = shader;
+            int shaderID = (shader == null ? 0 : shader.programID);
+            GL20.glUseProgram(shaderID);
+        }
+    }
+
+    @Override
+    public void bindTexture(int textureUnit, TextureImpl.TextureHandle texture) {
+        TextureImpl.TextureHandle prevTex = sharedState.textures[textureUnit];
+
+        if (texture != prevTex) {
+            setActiveTexture(textureUnit);
+
+            TextureImpl.Target newTarget = null;
+            int textureID = 0;
+            if (texture != null) {
+                newTarget = texture.target;
+                textureID = texture.texID;
+            }
+
+            if (prevTex != null && prevTex.target != newTarget) {
+                // unbind old texture
+                GL11.glBindTexture(Utils.getGLTextureTarget(prevTex.target), 0);
+            }
+            GL11.glBindTexture(Utils.getGLTextureTarget(newTarget), textureID);
+
+            sharedState.textures[textureUnit] = texture;
         }
     }
 }
