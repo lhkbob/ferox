@@ -30,42 +30,42 @@ public class LwjglResourceFactory implements ResourceFactory {
 
     @Override
     public Texture2DBuilder newTexture2DBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTexture2DBuilder(framework);
     }
 
     @Override
     public Texture2DArrayBuilder newTexture2DArrayBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTexture2DArrayBuilder(framework);
     }
 
     @Override
     public Texture1DBuilder newTexture1DBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTexture1DBuilder(framework);
     }
 
     @Override
     public Texture1DArrayBuilder newTexture1DArrayBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTexture1DArrayBuilder(framework);
     }
 
     @Override
     public Texture3DBuilder newTexture3DBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTexture3DBuilder(framework);
     }
 
     @Override
     public TextureCubeMapBuilder newTextureCubeMapBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglTextureCubeMapBuilder(framework);
     }
 
     @Override
     public DepthMap2DBuilder newDepthMap2DBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglDepthMap2DBuilder(framework);
     }
 
     @Override
     public DepthCubeMapBuilder newDepthCubeMapBuilder(FrameworkImpl framework) {
-        return null;
+        return new LwjglDepthCubeMapBuilder(framework);
     }
 
     @Override
