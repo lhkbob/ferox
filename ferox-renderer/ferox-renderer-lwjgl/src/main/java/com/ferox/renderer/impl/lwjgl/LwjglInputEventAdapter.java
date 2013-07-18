@@ -44,8 +44,8 @@ import org.lwjgl.opengl.Display;
 public class LwjglInputEventAdapter {
     private final MouseKeyEventDispatcher dispatcher;
 
-    private final int lastMouseX = Integer.MIN_VALUE;
-    private final int lastMouseY = Integer.MIN_VALUE;
+    private int lastMouseX = Integer.MIN_VALUE;
+    private int lastMouseY = Integer.MIN_VALUE;
 
     public LwjglInputEventAdapter(MouseKeyEventDispatcher dispatcher) {
         if (dispatcher == null) {
@@ -71,6 +71,8 @@ public class LwjglInputEventAdapter {
                 // push a mouse-moved event
                 dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), x, y, 0,
                                                         MouseEvent.MouseButton.NONE));
+                lastMouseX = x;
+                lastMouseY = y;
             }
 
             int scrollDelta = Mouse.getEventDWheel();
