@@ -43,7 +43,7 @@ public class DisplayMode {
     /**
      * Create a new DisplayMode with the given screen dimensions, color bit depth, and refresh rate. This may
      * not be valid for the current hardware. The only DisplayModes that are guaranteed valid come from {@link
-     * com.ferox.renderer.Framework#getAvailableDisplayModes()}
+     * com.ferox.renderer.Capabilities#getAvailableDisplayModes()}
      *
      * @param width       The screen width
      * @param height      The screen height
