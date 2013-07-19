@@ -26,6 +26,8 @@
  */
 package com.ferox.renderer.impl;
 
+import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -40,11 +42,6 @@ import com.ferox.renderer.impl.resources.TextureImpl;
  * @author Michael Ludwig
  */
 public interface OpenGLContext {
-    /**
-     * @return The RendererProvider for this context
-     */
-    public RendererProvider getRendererProvider();
-
     /**
      * Destroy this context. If the context is not shared with any other un-destroyed context, any graphics
      * resources that would be shared can be cleaned as well. This must be called on the OpenGL thread
@@ -64,6 +61,10 @@ public interface OpenGLContext {
      * ContextManager} to manage (so use {@link ContextManager#forceRelease()} instead).
      */
     public void release();
+
+    public FixedFunctionRenderer getFixedFunctionRenderer();
+
+    public GlslRenderer getGlslRenderer();
 
     // FIXME document returning null if not available, and use this as an indicator for renderer selection
     // FIXME also make sure everywhere that needs it guards properly

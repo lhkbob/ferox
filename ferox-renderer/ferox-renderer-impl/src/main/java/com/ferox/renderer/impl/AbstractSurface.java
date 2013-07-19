@@ -26,7 +26,10 @@
  */
 package com.ferox.renderer.impl;
 
-import com.ferox.renderer.*;
+import com.ferox.renderer.Context;
+import com.ferox.renderer.FixedFunctionRenderer;
+import com.ferox.renderer.GlslRenderer;
+import com.ferox.renderer.Surface;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -64,13 +67,12 @@ public abstract class AbstractSurface implements Surface {
      * @param context The current context
      */
     public void onSurfaceActivate(OpenGLContext context) {
-        Capabilities caps = context.getRenderCapabilities();
-        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
+        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
         if (ffp instanceof AbstractRenderer) {
             ((AbstractRenderer) ffp).activate(this, context);
         }
 
-        GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
+        GlslRenderer glsl = context.getGlslRenderer();
         if (glsl instanceof AbstractRenderer) {
             ((AbstractRenderer) glsl).activate(this, context);
         }
@@ -86,13 +88,12 @@ public abstract class AbstractSurface implements Surface {
      */
     public void onSurfaceDeactivate(OpenGLContext context) {
         // Reset the renderers so that the next task sees a clean slate
-        Capabilities caps = context.getRenderCapabilities();
-        FixedFunctionRenderer ffp = context.getRendererProvider().getFixedFunctionRenderer(caps);
+        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
         if (ffp != null) {
             ffp.reset();
         }
 
-        GlslRenderer glsl = context.getRendererProvider().getGlslRenderer(caps);
+        GlslRenderer glsl = context.getGlslRenderer();
         if (glsl != null) {
             glsl.reset();
         }
@@ -115,7 +116,7 @@ public abstract class AbstractSurface implements Surface {
 
     protected static abstract class SurfaceDestructible implements DestructibleManager.ManagedDestructible {
         private final AtomicBoolean destroyed;
-        private final FrameworkImpl framework;
+        protected final FrameworkImpl framework;
 
         public SurfaceDestructible(FrameworkImpl framework) {
             destroyed = new AtomicBoolean(false);

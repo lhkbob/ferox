@@ -120,8 +120,7 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public GlslRenderer getGlslRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider()
-                                          .getGlslRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getGlslRenderer();
 
                 if (selectedRenderer != null) {
                     // have selected a GlslRenderer to use
@@ -140,8 +139,7 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         public FixedFunctionRenderer getFixedFunctionRenderer() {
             if (selectedRenderer == null) {
                 // need to select a renderer
-                selectedRenderer = context.getRendererProvider()
-                                          .getFixedFunctionRenderer(context.getRenderCapabilities());
+                selectedRenderer = context.getFixedFunctionRenderer();
 
                 if (selectedRenderer != null) {
                     // have selected a FixedFunctionRenderer to use
@@ -163,13 +161,12 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
 
         @Override
         public boolean hasGlslRenderer() {
-            return context.getRendererProvider().getGlslRenderer(context.getRenderCapabilities()) != null;
+            return context.getCurrentShaderState() != null;
         }
 
         @Override
         public boolean hasFixedFunctionRenderer() {
-            return context.getRendererProvider().getFixedFunctionRenderer(context.getRenderCapabilities()) !=
-                   null;
+            return context.getCurrentFixedFunctionState() != null;
         }
 
         @Override

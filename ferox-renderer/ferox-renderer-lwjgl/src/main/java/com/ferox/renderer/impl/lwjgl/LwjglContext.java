@@ -26,10 +26,11 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.FrameworkException;
-import com.ferox.renderer.Resource;
-import com.ferox.renderer.impl.*;
+import com.ferox.renderer.*;
+import com.ferox.renderer.impl.FixedFunctionState;
+import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.ShaderOnlyState;
+import com.ferox.renderer.impl.SharedState;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -47,14 +48,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class LwjglContext implements OpenGLContext {
     private final Drawable context;
 
-    private final LwjglRendererProvider rendererProvider;
-
-    // cleanup
     private final List<Runnable> cleanupTasks;
 
     private final SharedState sharedState;
     private final FixedFunctionState fixedState; // null for GL 3+
     private final ShaderOnlyState shaderOnlyState;
+
+    private final LwjglFixedFunctionRenderer fixed;
+    private final LwjglGlslRenderer glsl;
 
     private int fbo;
 
@@ -86,7 +87,9 @@ public class LwjglContext implements OpenGLContext {
         fixedState = (caps.getMajorVersion() < 3 ? new FixedFunctionState() : null);
         shaderOnlyState = new ShaderOnlyState(caps.getMaxVertexAttributes());
 
-        rendererProvider = new LwjglRendererProvider(fixedState, shaderOnlyState);
+        LwjglRendererDelegate shared = new LwjglRendererDelegate();
+        fixed = (fixedState == null ? null : new LwjglFixedFunctionRenderer(shared));
+        glsl = new LwjglGlslRenderer(shared);
     }
 
     /**
@@ -157,11 +160,6 @@ public class LwjglContext implements OpenGLContext {
     }
 
     @Override
-    public RendererProvider getRendererProvider() {
-        return rendererProvider;
-    }
-
-    @Override
     public void destroy() {
         context.destroy();
     }
@@ -186,6 +184,16 @@ public class LwjglContext implements OpenGLContext {
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to release context", e);
         }
+    }
+
+    @Override
+    public FixedFunctionRenderer getFixedFunctionRenderer() {
+        return fixed;
+    }
+
+    @Override
+    public GlslRenderer getGlslRenderer() {
+        return glsl;
     }
 
     @Override
