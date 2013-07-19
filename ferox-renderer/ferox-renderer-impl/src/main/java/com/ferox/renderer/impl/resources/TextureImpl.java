@@ -160,6 +160,10 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         this.maxMipmap = maxMipmap;
     }
 
+    public Object getDataArray(int image, int mipmap) {
+        return dataArrays[image][mipmap];
+    }
+
     public FullFormat getFullFormat() {
         return format;
     }

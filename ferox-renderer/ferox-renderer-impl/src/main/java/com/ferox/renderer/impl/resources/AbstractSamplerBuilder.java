@@ -41,8 +41,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     private TextureImpl.FullFormat[][] imageFormats;
 
     private final Class<B> builderType;
-    private final Class<T> textureType;
-    private final TextureImpl.Target target;
+    protected final Class<T> textureType;
+    protected final TextureImpl.Target target;
 
     // cached in validate()
     private TextureImpl.FullFormat detectedFormat;

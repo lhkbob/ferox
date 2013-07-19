@@ -1,11 +1,13 @@
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.ElementBuffer;
+import com.ferox.renderer.Sampler;
 import com.ferox.renderer.VertexBuffer;
 import com.ferox.renderer.builder.*;
-import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.resources.*;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 
@@ -87,54 +89,19 @@ public class LwjglResourceFactory implements ResourceFactory {
 
     @Override
     public void deleteTexture(OpenGLContext context, TextureImpl.TextureHandle texture) {
+        GL11.glDeleteTextures(texture.texID);
     }
 
     @Override
     public void refresh(OpenGLContext context, AbstractResource<?> resource) {
-        if (resource instanceof BufferImpl) {
-            refreshVBO(context, (BufferImpl) resource);
+        if (resource instanceof ElementBuffer) {
+            LwjglElementBufferBuilder.refreshElementBuffer(context, (ElementBuffer) resource);
+        } else if (resource instanceof VertexBuffer) {
+            LwjglVertexBufferBuilder.refreshVertexBuffer(context, (VertexBuffer) resource);
+        } else if (resource instanceof Sampler) {
+            LwjglSamplerBuilder.refreshTexture(context, (Sampler) resource);
         }
 
         // otherwise the resource does not support refreshing its state
-    }
-
-    private void refreshVBO(OpenGLContext ctx, BufferImpl vbo) {
-        BufferImpl.BufferHandle h = vbo.getHandle();
-        Object data = vbo.getDataArray();
-        if (h.inmemoryBuffer != null) {
-            // refill the inmemory buffer, don't need to validate size since that is fixed
-            if (vbo.getDataType().getJavaPrimitive().equals(float.class)) {
-                h.inmemoryBuffer.clear();
-                h.inmemoryBuffer.asFloatBuffer().put((float[]) data);
-            } else if (vbo.getDataType().getJavaPrimitive().equals(int.class)) {
-                h.inmemoryBuffer.clear();
-                h.inmemoryBuffer.asIntBuffer().put((int[]) data);
-            } else if (vbo.getDataType().getJavaPrimitive().equals(short.class)) {
-                h.inmemoryBuffer.clear();
-                h.inmemoryBuffer.asShortBuffer().put((short[]) data);
-            } else if (vbo.getDataType().getJavaPrimitive().equals(byte.class)) {
-                h.inmemoryBuffer.clear();
-                h.inmemoryBuffer.put((byte[]) data);
-            }
-        } else {
-            int target;
-            if (vbo instanceof VertexBuffer) {
-                ctx.bindArrayVBO(h);
-                target = GL15.GL_ARRAY_BUFFER;
-            } else {
-                ctx.bindElementVBO(h);
-                target = GL15.GL_ELEMENT_ARRAY_BUFFER;
-            }
-
-            if (vbo.getDataType().getJavaPrimitive().equals(float.class)) {
-                GL15.glBufferSubData(target, 0, BufferUtil.newFloatBuffer((float[]) data));
-            } else if (vbo.getDataType().getJavaPrimitive().equals(int.class)) {
-                GL15.glBufferSubData(target, 0, BufferUtil.newIntBuffer((int[]) data));
-            } else if (vbo.getDataType().getJavaPrimitive().equals(short.class)) {
-                GL15.glBufferSubData(target, 0, BufferUtil.newShortBuffer((short[]) data));
-            } else if (vbo.getDataType().getJavaPrimitive().equals(byte.class)) {
-                GL15.glBufferSubData(target, 0, BufferUtil.newBuffer((byte[]) data));
-            }
-        }
     }
 }

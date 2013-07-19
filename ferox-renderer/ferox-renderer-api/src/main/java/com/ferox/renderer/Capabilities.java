@@ -55,7 +55,7 @@ public abstract class Capabilities {
     protected boolean s3tcTextures = false; //
     protected boolean hasDepthStencilTextures = false; //
     protected boolean hasIntegerTextures = false; //
-    protected float maxAnisoLevel = 0f; //
+    protected double maxAnisoLevel = 0; //
 
     protected Set<Class<? extends Sampler>> supportedTargets = Collections.emptySet(); //
 
@@ -246,7 +246,7 @@ public abstract class Capabilities {
      *
      * @return Maximum level of anistropic filtering
      */
-    public float getMaxAnisotropicLevel() {
+    public double getMaxAnisotropicLevel() {
         return maxAnisoLevel;
     }
 
