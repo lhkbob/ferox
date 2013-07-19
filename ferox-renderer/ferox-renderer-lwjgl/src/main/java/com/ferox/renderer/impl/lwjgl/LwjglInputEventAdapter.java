@@ -26,38 +26,45 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
-import com.ferox.input.AWTEventAdapter;
-import com.ferox.input.KeyEvent;
-import com.ferox.input.MouseEvent;
-import com.ferox.input.MouseKeyEventDispatcher;
+import com.ferox.input.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
+import java.lang.ref.WeakReference;
+
 /**
- * A MouseKeyEventSource that wraps the static {@link Mouse} and {@link Keyboard}, and mimics another
+ * An event adapter that wraps the static {@link Mouse} and {@link Keyboard}, and mimics another
  * MouseKeyEventSource that actually triggers the events. This is purely a helper implementation for mapping
- * the events, much like the {@link AWTEventAdapter}.
+ * the events, much like the {@link AWTEventAdapter}. It maintains only a weak reference to the actual source,
+ * and does not fire any events when the source has been GC'ed.
  *
  * @author Michael Ludwig
  */
 public class LwjglInputEventAdapter {
     private final MouseKeyEventDispatcher dispatcher;
+    private final WeakReference<MouseKeyEventSource> source;
 
     private int lastMouseX = Integer.MIN_VALUE;
     private int lastMouseY = Integer.MIN_VALUE;
 
-    public LwjglInputEventAdapter(MouseKeyEventDispatcher dispatcher) {
+    public LwjglInputEventAdapter(MouseKeyEventSource source, MouseKeyEventDispatcher dispatcher) {
         if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
         }
 
+        this.source = new WeakReference<>(source);
         this.dispatcher = dispatcher;
     }
 
     public void poll() {
         // Must call processMessages() to read new events from the OS
         Display.processMessages();
+
+        MouseKeyEventSource source = this.source.get();
+        if (source == null) {
+            return;
+        }
 
         // Process all incoming mouse events
         // FIXME race condition exists if shutdown occurs after above
@@ -69,8 +76,8 @@ public class LwjglInputEventAdapter {
 
             if (x != lastMouseX || y != lastMouseY) {
                 // push a mouse-moved event
-                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), x, y, 0,
-                                                        MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(
+                        new MouseEvent(MouseEvent.Type.MOVE, source, x, y, 0, MouseEvent.MouseButton.NONE));
                 lastMouseX = x;
                 lastMouseY = y;
             }
@@ -79,30 +86,27 @@ public class LwjglInputEventAdapter {
             if (scrollDelta != 0) {
                 // push a mouse-wheel-scroll event
                 dispatcher.dispatchEvent(
-                        new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), x, y, 0,
-                                       MouseEvent.MouseButton.NONE));
+                        new MouseEvent(MouseEvent.Type.SCROLL, source, x, y, 0, MouseEvent.MouseButton.NONE));
             }
 
             switch (Mouse.getEventButton()) {
             case 0: {
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS
                                                                     : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(
-                        new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.LEFT));
+                dispatcher.dispatchEvent(new MouseEvent(type, source, x, y, 0, MouseEvent.MouseButton.LEFT));
                 break;
             }
             case 1: {
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS
                                                                     : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(
-                        new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.RIGHT));
+                dispatcher.dispatchEvent(new MouseEvent(type, source, x, y, 0, MouseEvent.MouseButton.RIGHT));
                 break;
             }
             case 2: {
                 MouseEvent.Type type = (Mouse.getEventButtonState() ? MouseEvent.Type.PRESS
                                                                     : MouseEvent.Type.RELEASE);
-                dispatcher.dispatchEvent(
-                        new MouseEvent(type, dispatcher.getSource(), x, y, 0, MouseEvent.MouseButton.CENTER));
+                dispatcher
+                        .dispatchEvent(new MouseEvent(type, source, x, y, 0, MouseEvent.MouseButton.CENTER));
                 break;
             }
             default:
@@ -121,7 +125,7 @@ public class LwjglInputEventAdapter {
 
             KeyEvent.Type type = (Keyboard.getEventKeyState() ? KeyEvent.Type.PRESS : KeyEvent.Type.RELEASE);
 
-            dispatcher.dispatchEvent(new KeyEvent(type, dispatcher.getSource(), keyCode, eventChar));
+            dispatcher.dispatchEvent(new KeyEvent(type, source, keyCode, eventChar));
         }
     }
 

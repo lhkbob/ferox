@@ -47,18 +47,21 @@ public class AWTEventAdapter
     private Component component;
 
     private final MouseKeyEventDispatcher dispatcher;
+    private final MouseKeyEventSource source;
 
     /**
      * Create a new AWTEventAdapter that will convert AWT events and dispatch them to the given
      * MouseKeyEventDispatcher.
      *
+     * @param source     The event source
      * @param dispatcher The dispatcher to use
      */
-    public AWTEventAdapter(MouseKeyEventDispatcher dispatcher) {
+    public AWTEventAdapter(MouseKeyEventSource source, MouseKeyEventDispatcher dispatcher) {
         if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
         }
 
+        this.source = source;
         this.dispatcher = dispatcher;
     }
 
@@ -373,15 +376,13 @@ public class AWTEventAdapter
 
     @Override
     public void keyPressed(java.awt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(), getKeyCode(e),
-                                      getCharacter(e));
+        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, source, getKeyCode(e), getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, dispatcher.getSource(), getKeyCode(e),
-                                      getCharacter(e));
+        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, source, getKeyCode(e), getCharacter(e));
         dispatcher.dispatchEvent(event);
     }
 
@@ -407,15 +408,14 @@ public class AWTEventAdapter
 
     @Override
     public void mousePressed(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(), e.getX(), getY(e), 0,
-                                          getButton(e));
+        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, source, e.getX(), getY(e), 0, getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseReleased(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(), e.getX(), getY(e),
-                                          0, getButton(e));
+        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, source, e.getX(), getY(e), 0,
+                                          getButton(e));
         dispatcher.dispatchEvent(event);
     }
 
@@ -428,14 +428,14 @@ public class AWTEventAdapter
 
     @Override
     public void mouseMoved(java.awt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), e.getX(), getY(e), 0,
+        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, source, e.getX(), getY(e), 0,
                                           MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), e.getX(), getY(e),
+        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, source, e.getX(), getY(e),
                                           e.getWheelRotation(), MouseButton.NONE);
         dispatcher.dispatchEvent(event);
     }

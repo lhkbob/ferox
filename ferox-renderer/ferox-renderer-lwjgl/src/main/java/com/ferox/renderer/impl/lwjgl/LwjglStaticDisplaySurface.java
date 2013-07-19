@@ -30,17 +30,12 @@ import com.ferox.input.KeyListener;
 import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.OnscreenSurfaceOptions.DepthFormat;
-import com.ferox.renderer.OnscreenSurfaceOptions.MultiSampling;
-import com.ferox.renderer.OnscreenSurfaceOptions.StencilFormat;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.RendererProvider;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.Drawable;
@@ -60,109 +55,48 @@ import java.util.concurrent.CancellationException;
  *
  * @author Michael Ludwig
  */
-public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implements WindowListener {
-    // parentFrame and glCanvas are null when Display.setParent() was not used
-    private final Frame parentFrame;
-    private final Canvas glCanvas;
+public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
+    private final LwjglStaticDisplayDestructible impl;
 
-    private final LwjglContext context;
-    private final MouseKeyEventDispatcher dispatcher;
-    private final LwjglInputEventAdapter adapter;
-
-    private volatile OnscreenSurfaceOptions options;
-    private boolean optionsNeedVerify;
-
-    private final Object surfaceLock; // guards editing properties of this surface
+    private final int depthBits;
+    private final int stencilBits;
+    private final int sampleCount;
 
     private boolean vsync;
     private boolean vsyncNeedsUpdate;
-    private boolean closable;
 
     public LwjglStaticDisplaySurface(FrameworkImpl framework, LwjglSurfaceFactory factory,
-                                     OnscreenSurfaceOptions options, LwjglContext shareWith,
-                                     RendererProvider provider) {
-        super(framework);
-
+                                     final OnscreenSurfaceOptions options, LwjglContext shareWith) {
         if (Display.isCreated()) {
             throw new SurfaceCreationException(
                     "Static LWJGL Display is already in use, cannot create another surface");
         }
 
-        surfaceLock = new Object();
-
-        if (options == null) {
-            options = new OnscreenSurfaceOptions();
-        }
-
         org.lwjgl.opengl.PixelFormat format = factory.choosePixelFormat(options);
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
 
-        boolean fullscreen = false;
+        Canvas glCanvas = null;
+        Frame parentFrame = null;
+
         if (options.getFullscreenMode() != null) {
-            // try to configure this as a fullscreen window without an AWT parent
-            DisplayMode bestMode = factory.chooseCompatibleDisplayMode(options.getFullscreenMode());
-            org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(bestMode);
-
-            if (lwjglMode != null) {
-                try {
-                    Display.setDisplayModeAndFullscreen(lwjglMode);
-                    Display.create(format, realShare);
-
-                    // By default, create() makes the surface current on the calling thread,
-                    // which is incorrect behavior in this case.
-                    Display.releaseContext();
-                } catch (LWJGLException e) {
-                    if (Display.isCreated()) {
-                        Display.destroy();
-                    }
-                    throw new SurfaceCreationException("Unable to create static display", e);
+            // configure this as a fullscreen window without an AWT parent
+            boolean validDisplay = false;
+            for (DisplayMode valid : framework.getCapabilities().getAvailableDisplayModes()) {
+                if (valid.equals(options.getFullscreenMode())) {
+                    validDisplay = true;
+                    break;
                 }
-
-                // update options to reflect successful fullscreen support
-                options = options.setResizable(false).setUndecorated(true).setFullscreenMode(bestMode)
-                                 .setWidth(bestMode.getWidth()).setHeight(bestMode.getHeight()).setX(0)
-                                 .setY(0);
-
-                fullscreen = true;
             }
 
-            // fall through to parent'ed AWT display
-        }
+            if (!validDisplay) {
+                throw new SurfaceCreationException(
+                        "Display mode is not available: " + options.getFullscreenMode());
+            }
 
-        this.options = options;
-        optionsNeedVerify = true;
-
-        if (!fullscreen) {
-            // not a fullscreen window
-            glCanvas = new PaintDisabledCanvas();
-
-            parentFrame = new Frame();
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    OnscreenSurfaceOptions options = LwjglStaticDisplaySurface.this.options;
-                    parentFrame.setResizable(options.isResizable());
-                    parentFrame.setUndecorated(options.isUndecorated());
-                    parentFrame.setBounds(options.getX(), options.getY(), options.getWidth(),
-                                          options.getHeight());
-
-                    parentFrame.add(glCanvas);
-
-                    parentFrame.setVisible(true);
-                    glCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
-
-                    parentFrame.setIgnoreRepaint(true);
-                    glCanvas.setIgnoreRepaint(true);
-                }
-            }, true);
-
+            org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(options.getFullscreenMode());
             try {
-                Display.setParent(glCanvas);
+                Display.setDisplayModeAndFullscreen(lwjglMode);
                 Display.create(format, realShare);
-
-                // By default, create() makes the surface current on the calling thread,
-                // which is incorrect behavior in this case.
-                Display.releaseContext();
             } catch (LWJGLException e) {
                 if (Display.isCreated()) {
                     Display.destroy();
@@ -170,45 +104,88 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
                 throw new SurfaceCreationException("Unable to create static display", e);
             }
         } else {
-            // have to null out the parent
-            glCanvas = null;
-            parentFrame = null;
+            // not a fullscreen window
+            final Frame innerFrame = new Frame();
+            final Canvas innerCanvas = new PaintDisabledCanvas();
+
+            Utils.invokeOnAWTThread(new Runnable() {
+                @Override
+                public void run() {
+                    innerFrame.setResizable(options.isResizable());
+                    innerFrame.setUndecorated(options.isUndecorated());
+                    innerFrame.setBounds(options.getX(), options.getY(), options.getWidth(),
+                                         options.getHeight());
+
+                    innerFrame.add(innerCanvas);
+
+                    innerFrame.setVisible(true);
+                    innerCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
+
+                    innerFrame.setIgnoreRepaint(true);
+                    innerCanvas.setIgnoreRepaint(true);
+                }
+            }, true);
+
+            try {
+                Display.setParent(glCanvas);
+                Display.create(format, realShare);
+            } catch (LWJGLException e) {
+                if (Display.isCreated()) {
+                    Display.destroy();
+                }
+                throw new SurfaceCreationException("Unable to create static display", e);
+            }
+
+            parentFrame = innerFrame;
+            glCanvas = innerCanvas;
         }
 
-        context = new LwjglContext(factory, Display.getDrawable(), provider);
+        // Detect buffer config while the context is current
+        stencilBits = GL11.glGetInteger(GL11.GL_STENCIL_BITS);
+        depthBits = GL11.glGetInteger(GL11.GL_DEPTH_BITS);
+
+        int samples = GL11.glGetInteger(GL13.GL_SAMPLES);
+        int sampleBuffers = GL11.glGetInteger(GL13.GL_SAMPLE_BUFFERS);
+
+        if (sampleBuffers != 0) {
+            sampleCount = samples;
+            GL11.glEnable(GL13.GL_MULTISAMPLE);
+        } else {
+            sampleCount = 0;
+            GL11.glDisable(GL13.GL_MULTISAMPLE);
+        }
+
+        try {
+            // By default, create() makes the surface current on the calling thread,
+            // which messes with our bookkeeping so we release the context here
+            Display.releaseContext();
+        } catch (LWJGLException e) {
+            if (Display.isCreated()) {
+                Display.destroy();
+            }
+            throw new SurfaceCreationException("Unable to create static display", e);
+        }
+
+        LwjglContext context = new LwjglContext(framework.getCapabilities(), Display.getDrawable());
 
         vsync = false;
         vsyncNeedsUpdate = true;
-        closable = true;
 
-        dispatcher = new MouseKeyEventDispatcher(this);
-        adapter = new LwjglInputEventAdapter(dispatcher);
+        impl = new LwjglStaticDisplayDestructible(framework, this, context, parentFrame, glCanvas);
     }
 
     /**
      * Start the monitoring threads needed for event pulling and window management.
      */
     public void initialize() {
-        ThreadGroup managedGroup = getFramework().getLifeCycleManager().getManagedThreadGroup();
-        Thread eventMonitor = new Thread(managedGroup, new EventMonitor(), "lwjgl-event-monitor");
-        eventMonitor.setDaemon(true);
-        getFramework().getLifeCycleManager().startManagedThread(eventMonitor);
-
-        if (parentFrame != null) {
-            parentFrame.addWindowListener(this);
-        }
+        impl.initialize();
     }
 
     @Override
-    public void onSurfaceActivate(OpenGLContext context, int activeLayer) {
-        super.onSurfaceActivate(context, activeLayer);
+    public void onSurfaceActivate(OpenGLContext context) {
+        super.onSurfaceActivate(context);
 
-        if (optionsNeedVerify) {
-            detectOptions();
-            optionsNeedVerify = false;
-        }
-
-        synchronized (surfaceLock) {
+        synchronized (impl) {
             if (vsyncNeedsUpdate) {
                 Display.setSwapInterval(vsync ? 1 : 0);
                 vsyncNeedsUpdate = false;
@@ -217,20 +194,40 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
 
     @Override
-    public OnscreenSurfaceOptions getOptions() {
-        return options;
+    public DisplayMode getDisplayMode() {
+        return null;
+    }
+
+    @Override
+    public int getMultiSamples() {
+        return sampleCount;
+    }
+
+    @Override
+    public int getDepthBufferBits() {
+        return depthBits;
+    }
+
+    @Override
+    public int getStencilBufferBits() {
+        return stencilBits;
+    }
+
+    @Override
+    public boolean isFullscreen() {
+        return impl.parentFrame == null;
     }
 
     @Override
     public boolean isVSyncEnabled() {
-        synchronized (surfaceLock) {
+        synchronized (impl) {
             return vsync;
         }
     }
 
     @Override
     public void setVSyncEnabled(boolean enable) {
-        synchronized (surfaceLock) {
+        synchronized (impl) {
             vsync = enable;
             vsyncNeedsUpdate = true;
         }
@@ -238,9 +235,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public String getTitle() {
-        synchronized (surfaceLock) {
-            if (parentFrame != null) {
-                return parentFrame.getTitle();
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                return impl.parentFrame.getTitle();
             } else {
                 return Display.getTitle();
             }
@@ -249,17 +246,17 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public void setTitle(final String title) {
-        if (parentFrame != null) {
+        if (impl.parentFrame != null) {
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (surfaceLock) {
-                        parentFrame.setTitle(title);
+                    synchronized (impl) {
+                        impl.parentFrame.setTitle(title);
                     }
                 }
             }, false);
         } else {
-            synchronized (surfaceLock) {
+            synchronized (impl) {
                 // Display.setTitle() does not require the display to be current.
                 Display.setTitle(title);
             }
@@ -268,9 +265,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getX() {
-        synchronized (surfaceLock) {
-            if (parentFrame != null) {
-                return parentFrame.getX();
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                return impl.parentFrame.getX();
             } else {
                 return 0; // fullscreen
             }
@@ -279,9 +276,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getY() {
-        synchronized (surfaceLock) {
-            if (parentFrame != null) {
-                return parentFrame.getY();
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                return impl.parentFrame.getY();
             } else {
                 return 0; // fullscreen
             }
@@ -293,16 +290,13 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
-        if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
-        }
 
-        if (parentFrame != null) {
+        if (impl.parentFrame != null) {
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (surfaceLock) {
-                        parentFrame.setSize(width, height);
+                    synchronized (impl) {
+                        impl.parentFrame.setSize(width, height);
                     }
                 }
             }, false);
@@ -313,16 +307,12 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public void setLocation(final int x, final int y) {
-        if (options.getFullscreenMode() != null) {
-            throw new IllegalStateException("Cannot call setWindowSize() on a fullscreen surface");
-        }
-
-        if (parentFrame != null) {
+        if (impl.parentFrame != null) {
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (surfaceLock) {
-                        parentFrame.setLocation(x, y);
+                    synchronized (impl) {
+                        impl.parentFrame.setLocation(x, y);
                     }
                 }
             }, false);
@@ -332,24 +322,24 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
     }
 
     @Override
-    public boolean isClosable() {
-        synchronized (surfaceLock) {
-            return closable;
+    public boolean isCloseable() {
+        synchronized (impl) {
+            return impl.closable;
         }
     }
 
     @Override
-    public void setClosable(boolean userClosable) {
-        synchronized (surfaceLock) {
-            closable = userClosable;
+    public void setCloseable(boolean userClosable) {
+        synchronized (impl) {
+            impl.closable = userClosable;
         }
     }
 
     @Override
     public int getWidth() {
-        synchronized (surfaceLock) {
-            if (parentFrame != null) {
-                return glCanvas.getWidth();
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                return impl.glCanvas.getWidth();
             } else {
                 return Display.getWidth();
             }
@@ -358,9 +348,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public int getHeight() {
-        synchronized (surfaceLock) {
-            if (parentFrame != null) {
-                return glCanvas.getHeight();
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                return impl.glCanvas.getHeight();
             } else {
                 return Display.getHeight();
             }
@@ -369,27 +359,27 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
 
     @Override
     public void addMouseListener(MouseListener listener) {
-        dispatcher.addMouseListener(listener);
+        impl.dispatcher.addMouseListener(listener);
     }
 
     @Override
     public void removeMouseListener(MouseListener listener) {
-        dispatcher.removeMouseListener(listener);
+        impl.dispatcher.removeMouseListener(listener);
     }
 
     @Override
     public void addKeyListener(KeyListener listener) {
-        dispatcher.addKeyListener(listener);
+        impl.dispatcher.addKeyListener(listener);
     }
 
     @Override
     public void removeKeyListener(KeyListener listener) {
-        dispatcher.removeKeyListener(listener);
+        impl.dispatcher.removeKeyListener(listener);
     }
 
     @Override
-    public OpenGLContext getContext() {
-        return context;
+    public SurfaceDestructible getSurfaceDestructible() {
+        return null;
     }
 
     @Override
@@ -403,210 +393,159 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface implement
         }
     }
 
-    @Override
-    protected void destroyImpl() {
-        dispatcher.shutdown();
-        context.destroy();
-        Display.destroy();
+    private static class LwjglStaticDisplayDestructible extends SurfaceDestructible
+            implements WindowListener {
+        // parentFrame and glCanvas are null when Display.setParent() was not used
+        private final Frame parentFrame;
+        private final Canvas glCanvas;
 
-        try {
-            Display.setParent(null);
-        } catch (LWJGLException e) {
-            // don't do anything
+        private final LwjglContext context;
+        private final MouseKeyEventDispatcher dispatcher;
+        private final LwjglInputEventAdapter adapter;
+
+        private boolean closable;
+
+        public LwjglStaticDisplayDestructible(FrameworkImpl framework, LwjglStaticDisplaySurface surface,
+                                              LwjglContext context, Frame parentFrame, Canvas glCanvas) {
+            super(framework);
+            this.parentFrame = parentFrame;
+            this.glCanvas = glCanvas;
+            this.context = context;
+            this.dispatcher = new MouseKeyEventDispatcher();
+            adapter = new LwjglInputEventAdapter(surface, dispatcher);
+
+            closable = true;
         }
 
-        if (parentFrame != null) {
-            parentFrame.removeWindowListener(this);
+        public void initialize() {
+            ThreadGroup managedGroup = framework.getLifeCycleManager().getManagedThreadGroup();
+            Thread eventMonitor = new Thread(managedGroup, new LwjglStaticDisplayDestructible.EventMonitor(),
+                                             "lwjgl-event-monitor");
+            eventMonitor.setDaemon(true);
+            framework.getLifeCycleManager().startManagedThread(eventMonitor, false);
 
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    parentFrame.setVisible(false);
-                    parentFrame.dispose();
+            if (parentFrame != null) {
+                parentFrame.addWindowListener(this);
+            }
+        }
+
+        @Override
+        public OpenGLContext getContext() {
+            return null;
+        }
+
+        @Override
+        protected void destroyImpl() {
+            dispatcher.shutdown();
+            context.destroy();
+            Display.destroy();
+
+            try {
+                Display.setParent(null);
+            } catch (LWJGLException e) {
+                // don't do anything
+            }
+
+            if (parentFrame != null) {
+                Utils.invokeOnAWTThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        parentFrame.setVisible(false);
+                        parentFrame.dispose();
+                    }
+                }, false);
+            }
+        }
+
+        @Override
+        public void windowClosing(WindowEvent e) {
+            synchronized (this) {
+                // If the window is not user closable, we perform no action.
+                // windowClosing() listeners are responsible for disposing the window
+                if (!closable) {
+                    return;
                 }
-            }, false);
-        }
-    }
-
-    @Override
-    public void windowClosing(WindowEvent e) {
-        synchronized (surfaceLock) {
-            // If the window is not user closable, we perform no action.
-            // windowClosing() listeners are responsible for disposing the window
-            if (!closable) {
-                return;
-            }
-        }
-
-        // just call destroy() and let it take care of everything
-        destroy();
-    }
-
-    @Override
-    public void windowOpened(WindowEvent e) {
-    }
-
-    @Override
-    public void windowClosed(WindowEvent e) {
-    }
-
-    @Override
-    public void windowIconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeiconified(WindowEvent e) {
-    }
-
-    @Override
-    public void windowActivated(WindowEvent e) {
-    }
-
-    @Override
-    public void windowDeactivated(WindowEvent e) {
-    }
-
-    private void detectOptions() {
-        int red, green, blue, alpha, stencil, depth;
-        int samples, sampleBuffers;
-
-        red = GL11.glGetInteger(GL11.GL_RED_BITS);
-        green = GL11.glGetInteger(GL11.GL_GREEN_BITS);
-        blue = GL11.glGetInteger(GL11.GL_BLUE_BITS);
-        alpha = GL11.glGetInteger(GL11.GL_ALPHA_BITS);
-
-        stencil = GL11.glGetInteger(GL11.GL_STENCIL_BITS);
-        depth = GL11.glGetInteger(GL11.GL_DEPTH_BITS);
-
-        samples = GL11.glGetInteger(GL13.GL_SAMPLES);
-        sampleBuffers = GL11.glGetInteger(GL13.GL_SAMPLE_BUFFERS);
-
-        PixelFormat format = PixelFormat.UNKNOWN;
-        if (red == 8 && green == 8 && blue == 8 && alpha == 8) {
-            format = PixelFormat.RGBA_32BIT;
-        } else if (red == 8 && green == 8 && blue == 8 && alpha == 0) {
-            format = PixelFormat.RGB_24BIT;
-        } else if (red == 5 && green == 6 && blue == 5) {
-            format = PixelFormat.RGB_16BIT;
-        }
-
-        DepthFormat df = DepthFormat.UNKNOWN;
-        switch (depth) {
-        case 16:
-            df = DepthFormat.DEPTH_16BIT;
-            break;
-        case 24:
-            df = DepthFormat.DEPTH_24BIT;
-            break;
-        case 32:
-            df = DepthFormat.DEPTH_32BIT;
-            break;
-        case 0:
-            df = DepthFormat.NONE;
-            break;
-        }
-
-        StencilFormat sf = StencilFormat.UNKNOWN;
-        switch (stencil) {
-        case 16:
-            sf = StencilFormat.STENCIL_16BIT;
-            break;
-        case 8:
-            sf = StencilFormat.STENCIL_8BIT;
-            break;
-        case 4:
-            sf = StencilFormat.STENCIL_4BIT;
-            break;
-        case 1:
-            sf = StencilFormat.STENCIL_1BIT;
-            break;
-        case 0:
-            sf = StencilFormat.NONE;
-            break;
-        }
-
-        MultiSampling aa = MultiSampling.NONE;
-        if (sampleBuffers != 0) {
-            switch (samples) {
-            case 8:
-                aa = MultiSampling.EIGHT_X;
-                break;
-            case 4:
-                aa = MultiSampling.FOUR_X;
-                break;
-            case 2:
-                aa = MultiSampling.TWO_X;
-                break;
-            default:
-                aa = MultiSampling.UNKNOWN;
             }
 
-            GL11.glEnable(GL13.GL_MULTISAMPLE);
-        } else {
-            GL11.glDisable(GL13.GL_MULTISAMPLE);
+            // just call destroy() and let it take care of everything
+            destroy();
         }
 
-        if (options.getFullscreenMode() != null) {
-            DisplayMode fullscreen = options.getFullscreenMode();
-            options = options.setFullscreenMode(
-                    new DisplayMode(fullscreen.getWidth(), fullscreen.getHeight(), format));
+        @Override
+        public void windowOpened(WindowEvent e) {
         }
 
-        options = options.setMultiSampling(aa).setDepthFormat(df).setStencilFormat(sf);
-    }
+        @Override
+        public void windowClosed(WindowEvent e) {
+        }
 
-    /*
+        @Override
+        public void windowIconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeiconified(WindowEvent e) {
+        }
+
+        @Override
+        public void windowActivated(WindowEvent e) {
+        }
+
+        @Override
+        public void windowDeactivated(WindowEvent e) {
+        }
+
+        /*
      * Internal class that queues tasks to the gpu thread to periodically check
      * OS state to push input events, or close the window.
      */
-    private class EventMonitor implements Runnable {
-        @Override
-        public void run() {
-            while (!isDestroyed()) {
-                try {
-                    long blockedTime = -System.nanoTime();
-                    getFramework().getContextManager().invokeOnContextThread(new InputTask(), false).get();
-                    getFramework().getContextManager().invokeOnContextThread(new CloseRequestTask(), false)
-                            .get();
-                    blockedTime += System.nanoTime();
+        private class EventMonitor implements Runnable {
+            @Override
+            public void run() {
+                while (!isDestroyed()) {
+                    try {
+                        long blockedTime = -System.nanoTime();
+                        framework.getContextManager().invokeOnContextThread(new InputTask(), false).get();
+                        framework.getContextManager().invokeOnContextThread(new CloseRequestTask(), false)
+                                 .get();
+                        blockedTime += System.nanoTime();
 
-                    if (blockedTime < 1000000) {
-                        // sleep if we haven't been waiting a full millisecond, so as
-                        // not to flood the queue
-                        Thread.sleep(1);
+                        if (blockedTime < 1000000) {
+                            // sleep if we haven't been waiting a full millisecond, so as
+                            // not to flood the queue
+                            Thread.sleep(1);
+                        }
+                    } catch (InterruptedException | CancellationException e) {
+                        // don't care
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (InterruptedException e) {
-                    // don't care
-                } catch (CancellationException e) {
-                    // don't care, this happens when we're shutting down
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
                 }
             }
         }
-    }
 
-    private class InputTask implements Callable<Void> {
-        @Override
-        public Void call() throws Exception {
-            adapter.poll();
-            return null;
+        private class InputTask implements Callable<Void> {
+            @Override
+            public Void call() throws Exception {
+                adapter.poll();
+                return null;
+            }
         }
-    }
 
-    private class CloseRequestTask implements Callable<Void> {
-        @Override
-        public Void call() throws Exception {
-            boolean closeAllowed;
-            synchronized (surfaceLock) {
-                closeAllowed = closable;
+        private class CloseRequestTask implements Callable<Void> {
+            @Override
+            public Void call() throws Exception {
+                boolean closeAllowed;
+                synchronized (LwjglStaticDisplayDestructible.this) {
+                    closeAllowed = closable;
+                }
+
+                if (closeAllowed && Display.isCloseRequested()) {
+                    destroy();
+                }
+
+                return null;
             }
-
-            if (closeAllowed && Display.isCloseRequested()) {
-                destroy();
-            }
-
-            return null;
         }
     }
 }

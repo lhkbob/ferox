@@ -53,28 +53,13 @@ public class MouseKeyEventDispatcher {
     private final CopyOnWriteArrayList<KeyListener> keyListeners;
     private final CopyOnWriteArrayList<MouseListener> mouseListeners;
 
-    private final MouseKeyEventSource source;
-
     /**
      * Create a new MouseKeyEventDispatcher.
-     *
-     * @param source The event source that produced events dispatched by this dispatcher
      */
-    public MouseKeyEventDispatcher(MouseKeyEventSource source) {
-        if (source == null) {
-            throw new NullPointerException("Source cannot be null");
-        }
-        this.source = source;
+    public MouseKeyEventDispatcher() {
         executor = Executors.newFixedThreadPool(1);
-        keyListeners = new CopyOnWriteArrayList<KeyListener>();
-        mouseListeners = new CopyOnWriteArrayList<MouseListener>();
-    }
-
-    /**
-     * @return The source of events that are dispatched by this dispatcher
-     */
-    public MouseKeyEventSource getSource() {
-        return source;
+        keyListeners = new CopyOnWriteArrayList<>();
+        mouseListeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -134,10 +119,6 @@ public class MouseKeyEventDispatcher {
      * @throws IllegalArgumentException if e's source is not the same source as the dispatcher's
      */
     public void dispatchEvent(Event e) {
-        if (e.getSource() != source) {
-            throw new IllegalArgumentException("Event's source does not match this dispatcher's source");
-        }
-
         try {
             if (e instanceof MouseEvent) {
                 executor.submit(new MouseEventTask((MouseEvent) e));

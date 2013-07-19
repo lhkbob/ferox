@@ -27,13 +27,11 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.DisplayMode.PixelFormat;
 import com.ferox.renderer.impl.*;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.Pbuffer;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,100 +107,56 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     }
 
     public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
-        PixelFormat pf;
+        int pf;
         if (request.getFullscreenMode() != null) {
-            pf = request.getFullscreenMode().getPixelFormat();
+            pf = request.getFullscreenMode().getBitDepth();
         } else {
-            pf = getDefaultDisplayMode().getPixelFormat();
+            pf = getDefaultDisplayMode().getBitDepth();
+        }
+
+        boolean depthValid = false;
+        for (int depth : getCapabilities().getAvailableDepthBufferSizes()) {
+            if (depth == request.getDepthBufferBits()) {
+                depthValid = true;
+                break;
+            }
+        }
+        if (!depthValid) {
+            throw new SurfaceCreationException(
+                    "Invalid depth buffer bit count: " + request.getDepthBufferBits());
+        }
+
+        boolean stencilValid = false;
+        for (int stencil : getCapabilities().getAvailableStencilBufferSizes()) {
+            if (stencil == request.getStencilBufferBits()) {
+                stencilValid = true;
+                break;
+            }
+        }
+        if (!stencilValid) {
+            throw new SurfaceCreationException(
+                    "Invalid stencil buffer bit count: " + request.getStencilBufferBits());
+        }
+
+        boolean samplesValid = false;
+        for (int sample : getCapabilities().getAvailableSamples()) {
+            if (sample == request.getSampleCount()) {
+                samplesValid = true;
+                break;
+            }
+        }
+        if (!samplesValid) {
+            throw new SurfaceCreationException("Invalid sample count: " + request.getSampleCount());
         }
 
         org.lwjgl.opengl.PixelFormat caps = new org.lwjgl.opengl.PixelFormat();
-
-        switch (pf) {
-        case RGB_16BIT:
-            caps = caps.withBitsPerPixel(16).withAlphaBits(0);
-            break;
-        case RGB_24BIT:
-        case UNKNOWN:
-            caps = caps.withBitsPerPixel(24).withAlphaBits(0);
-            break;
-        case RGBA_32BIT:
-            caps = caps.withBitsPerPixel(24).withAlphaBits(8);
-            break;
-        }
-
-        switch (request.getDepthFormat()) {
-        case DEPTH_16BIT:
-            caps = caps.withDepthBits(16);
-            break;
-        case DEPTH_24BIT:
-        case UNKNOWN:
-            caps = caps.withDepthBits(24);
-            break;
-        case DEPTH_32BIT:
-            caps = caps.withDepthBits(32);
-            break;
-        case NONE:
-            caps = caps.withDepthBits(0);
-            break;
-        }
-
-        switch (request.getStencilFormat()) {
-        case STENCIL_16BIT:
-            caps = caps.withStencilBits(16);
-            break;
-        case STENCIL_8BIT:
-            caps = caps.withStencilBits(8);
-            break;
-        case STENCIL_4BIT:
-            caps = caps.withStencilBits(4);
-            break;
-        case STENCIL_1BIT:
-            caps = caps.withStencilBits(1);
-            break;
-        case NONE:
-        case UNKNOWN:
-            caps = caps.withStencilBits(0);
-            break;
-        }
-
-        switch (request.getMultiSampling()) {
-        case EIGHT_X:
-            caps = caps.withSamples(8);
-            break;
-        case FOUR_X:
-            caps = caps.withSamples(4);
-            break;
-        case TWO_X:
-            caps = caps.withSamples(2);
-            break;
-        case NONE:
-        case UNKNOWN:
-            caps = caps.withSamples(0);
-            break;
-        }
-
-        return caps;
+        return caps.withBitsPerPixel(pf).withDepthBits(request.getDepthBufferBits())
+                   .withStencilBits(request.getStencilBufferBits()).withSamples(request.getSampleCount());
     }
 
     private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {
-        PixelFormat pixFormat;
-        switch (lwjglMode.getBitsPerPixel()) {
-        case 16:
-            pixFormat = PixelFormat.RGB_16BIT;
-            break;
-        case 24:
-            pixFormat = PixelFormat.RGB_24BIT;
-            break;
-        case 32:
-            pixFormat = PixelFormat.RGBA_32BIT;
-            break;
-        default:
-            pixFormat = PixelFormat.UNKNOWN;
-            break;
-        }
-
-        return new DisplayMode(lwjglMode.getWidth(), lwjglMode.getHeight(), pixFormat);
+        return new DisplayMode(lwjglMode.getWidth(), lwjglMode.getHeight(), lwjglMode.getBitsPerPixel(),
+                               lwjglMode.getFrequency());
     }
 
     @Override
@@ -241,56 +195,8 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         }
     }
 
-    /**
-     * @return The capabilities bits this factory was created with, to be passed into the constructor of all
-     *         related {@link LwjglRenderCapabilities}
-     */
-    public int getCapabilityForceBits() {
-        return capBits;
-    }
-
     @Override
     public DisplayMode getDefaultDisplayMode() {
         return defaultMode;
-    }
-
-    @Override
-    public DisplayMode[] getAvailableDisplayModes() {
-        return Arrays.copyOf(availableModes, availableModes.length);
-    }
-
-    private class LwjglRendererProvider implements RendererProvider {
-        private FixedFunctionRenderer ffp;
-        private GlslRenderer glsl;
-
-        private LwjglRendererDelegate sharedDelegate;
-
-        @Override
-        public FixedFunctionRenderer getFixedFunctionRenderer(Capabilities caps) {
-            if (ffp == null) {
-                if (caps.hasFixedFunctionRenderer()) {
-                    if (sharedDelegate == null) {
-                        sharedDelegate = new LwjglRendererDelegate();
-                    }
-                    ffp = new LwjglFixedFunctionRenderer(sharedDelegate);
-                }
-            }
-
-            return ffp;
-        }
-
-        @Override
-        public GlslRenderer getGlslRenderer(Capabilities caps) {
-            if (glsl == null) {
-                if (caps.hasGlslRenderer()) {
-                    if (sharedDelegate == null) {
-                        sharedDelegate = new LwjglRendererDelegate();
-                    }
-                    glsl = new LwjglGlslRenderer(sharedDelegate);
-                }
-            }
-
-            return glsl;
-        }
     }
 }
