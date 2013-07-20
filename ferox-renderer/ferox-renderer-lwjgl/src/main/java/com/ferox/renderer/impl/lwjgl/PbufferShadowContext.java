@@ -26,8 +26,8 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FrameworkException;
-import com.ferox.renderer.impl.RendererProvider;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.Pbuffer;
@@ -40,8 +40,8 @@ import org.lwjgl.opengl.PixelFormat;
  * @author Michael Ludwig
  */
 public class PbufferShadowContext extends LwjglContext {
-    private PbufferShadowContext(LwjglSurfaceFactory creator, Pbuffer surface, RendererProvider provider) {
-        super(creator, surface, provider);
+    private PbufferShadowContext(Capabilities caps, Pbuffer surface) {
+        super(caps, surface);
     }
 
     /**
@@ -50,15 +50,12 @@ public class PbufferShadowContext extends LwjglContext {
      *
      * @param creator   The LwjglSurfaceFactory that is creating the shadow context
      * @param shareWith The LWJGLContext to share object data with
-     * @param ffp       The FixedFunctionRenderer to use with the context
-     * @param glsl      The GlslRenderer to use with the context
      *
      * @return An PbufferShadowContext
      *
      * @throws NullPointerException if framework or profile is null
      */
-    public static PbufferShadowContext create(LwjglSurfaceFactory creator, LwjglContext shareWith,
-                                              RendererProvider provider) {
+    public static PbufferShadowContext create(LwjglSurfaceFactory creator, LwjglContext shareWith) {
         if (creator == null) {
             throw new NullPointerException(
                     "Cannot create a PbufferShadowContext with a null LwjglSurfaceFactory");
@@ -73,7 +70,7 @@ public class PbufferShadowContext extends LwjglContext {
         }
 
         try {
-            return new PbufferShadowContext(creator, pbuffer, provider);
+            return new PbufferShadowContext(creator.getCapabilities(), pbuffer);
         } catch (RuntimeException re) {
             // extra cleanup if we never finished constructing the shadow context
             pbuffer.destroy();

@@ -142,6 +142,8 @@ public class LwjglRenderCapabilities extends Capabilities {
         supportedSamplers
                 .addAll(Arrays.asList(Texture1D.class, Texture2D.class, Texture3D.class, TextureCubeMap.class,
                                       DepthMap2D.class));
+        // FIXME check for depth cube maps, 1D and 2D arrays
+        // If version > 3, add all of them, otherwise check for extensions
         supportedTargets = Collections.unmodifiableSet(supportedSamplers);
 
 

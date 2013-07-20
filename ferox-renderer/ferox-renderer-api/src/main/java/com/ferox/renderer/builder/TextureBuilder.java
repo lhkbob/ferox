@@ -11,6 +11,9 @@ import com.ferox.math.Vector4;
  *
  * @author Michael Ludwig
  */
+// FIXME make it so that receiving an image format does not invalidate the builder, and make the texture
+// builder the actual builder. This will help to simplify the internsl, and it means that you can return
+// a builder and let some aspects of it still be modified.
 public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuilder<T> {
     /**
      * Configure the anistropic filtering level used by the created texture. The value must be between 0 and

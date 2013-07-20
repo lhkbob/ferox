@@ -79,8 +79,7 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                                     Sampler.RenderTarget depthBuffer) {
         Context ctx = setActiveSurface(surface);
         if (ctx != null) {
-            ((AbstractTextureSurface) surface)
-                    .setRenderTargets(currentContext.context, colorBuffers, depthBuffer);
+            ((AbstractTextureSurface) surface).setRenderTargets(colorBuffers, depthBuffer);
         }
 
         return ctx;

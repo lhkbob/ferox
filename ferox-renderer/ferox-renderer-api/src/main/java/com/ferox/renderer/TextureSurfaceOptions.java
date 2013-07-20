@@ -141,6 +141,14 @@ public final class TextureSurfaceOptions {
     }
 
     /**
+     * @return Get the number of specified color buffers (will include null targets if there are gaps in color
+     *         buffer indices provided)
+     */
+    public int getColorBufferCount() {
+        return colorTargets.length;
+    }
+
+    /**
      * Get the default depth/stencil render target for use with the surface. If no target was specified, null
      * is returned.
      *

@@ -29,7 +29,10 @@ package com.ferox.renderer.impl;
 import com.ferox.renderer.Sampler;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.TextureSurface;
+import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.resources.TextureImpl;
+
+import java.util.EnumSet;
 
 /**
  * AbstractTextureSurface is a mostly complete implementation of TextureSurface that is also an
@@ -39,6 +42,11 @@ import com.ferox.renderer.impl.resources.TextureImpl;
  * @author Michael Ludwig
  */
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
+    private static final EnumSet<Sampler.TexelFormat> VALID_COLOR_FORMATS = EnumSet
+            .of(Sampler.TexelFormat.R, Sampler.TexelFormat.RG, Sampler.TexelFormat.RGB,
+                Sampler.TexelFormat.RGBA);
+    private static final EnumSet<Sampler.TexelFormat> VALID_DEPTH_FORMATS = EnumSet
+            .of(Sampler.TexelFormat.DEPTH, Sampler.TexelFormat.DEPTH_STENCIL);
     private final int width;
     private final int height;
 
@@ -88,8 +96,22 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         return height;
     }
 
-    public void setRenderTargets(OpenGLContext ctx, Sampler.RenderTarget[] colorTargets,
-                                 Sampler.RenderTarget depthTarget) {
+    protected void setRenderTargets(TextureSurfaceOptions options) {
+        if (options.getColorBufferCount() > colorTargets.length) {
+            throw new SurfaceCreationException("Too many color buffers specified");
+        }
+        Sampler.RenderTarget[] array = new Sampler.RenderTarget[options.getColorBufferCount()];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = options.getColorBuffer(i);
+        }
+        setRenderTargets(array, options.getDepthBuffer());
+    }
+
+    private int mipDim(int dimension, int mipmap) {
+        return Math.max(dimension >> mipmap, 1);
+    }
+
+    public void setRenderTargets(Sampler.RenderTarget[] colorTargets, Sampler.RenderTarget depthTarget) {
         // first validate new targets, before delegating to the subclass to perform the OpenGL
         // operations necessary
         if (depthRenderBuffer != null && depthTarget != null) {
@@ -101,10 +123,16 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         for (int i = 0; i < colorTargets.length; i++) {
             if (colorTargets[i] != null) {
                 TextureImpl t = (TextureImpl) colorTargets[i].getSampler();
-                if (t.getWidth() != width || t.getHeight() != height) {
+                int m = t.getBaseMipmap();
+                if (mipDim(t.getWidth(), m) != width || mipDim(t.getHeight(), m) != height) {
                     throw new IllegalArgumentException(String.format(
                             "Color buffer %d does not match surface dimensions, expected %d x %d but was %d x %d",
-                            i, width, height, t.getWidth(), t.getHeight()));
+                            i, width, height, mipDim(t.getWidth(), m), mipDim(t.getHeight(), m)));
+                }
+                if (!VALID_COLOR_FORMATS.contains(t.getFormat())) {
+                    throw new IllegalArgumentException(
+                            "Texture format is not valid for color target, was: " + t.getFormat() +
+                            ", but must be one of: " + VALID_COLOR_FORMATS);
                 }
 
                 if (colorFormat == null) {
@@ -117,8 +145,14 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             }
         }
         if (depthTarget != null) {
-            if (depthTarget.getSampler().getWidth() != width ||
-                depthTarget.getSampler().getHeight() != height) {
+            if (!VALID_DEPTH_FORMATS.contains(depthTarget.getSampler().getFormat())) {
+                throw new IllegalArgumentException("Texture format is not valid for depth target, was: " +
+                                                   depthTarget.getSampler().getFormat() +
+                                                   ", but must be one of: " + VALID_DEPTH_FORMATS);
+            }
+            int m = depthTarget.getSampler().getBaseMipmap();
+            if (mipDim(depthTarget.getSampler().getWidth(), m) != width ||
+                mipDim(depthTarget.getSampler().getHeight(), m) != height) {
                 throw new IllegalArgumentException(String.format(
                         "Depth buffer does not match surface dimensions, expected %d x %d but was %d x %d",
                         width, height, depthTarget.getSampler().getWidth(),
@@ -136,9 +170,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         }
         this.depthTarget = (TextureImpl.RenderTargetImpl) depthTarget;
 
-        // notify the implementation to re-bind textures if necessary
-        updateRenderTargets(ctx);
+        // the targets haven't been synced with OpenGL yet, that requires a call to updateRenderTargets()
+        // but this might not be the right time for that
     }
-
-    protected abstract void updateRenderTargets(OpenGLContext ctx);
 }
