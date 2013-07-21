@@ -39,22 +39,10 @@ package com.ferox.renderer;
  */
 public interface Context {
     /**
-     * @return True if {@link #getGlslRenderer()} will return a non-null renderer (ignoring which renderer was
-     *         selected first)
-     */
-    public boolean hasGlslRenderer();
-
-    /**
-     * @return True if {@link #getFixedFunctionRenderer()} will return a non-null renderer (ignoring which
-     *         renderer was selected first)
-     */
-    public boolean hasFixedFunctionRenderer();
-
-    /**
      * <p/>
-     * Return a GlslRenderer to render into the surface that is currently in use. This will return null if the
-     * Context cannot support a GlslRenderer. Tasks can only use one renderer per returned Context. The
-     * Surface that provided this context must be re-activated to get at a different renderer type.
+     * Return a GlslRenderer to render into the surface that is active.  Tasks can only use one renderer per
+     * returned Context. The Surface that provided this context must be re-activated to get at a different
+     * renderer type.
      * <p/>
      * A GlslRenderer and FixedFunctionRenderer cannot be used at the same time. If this is called after a
      * call to {@link #getFixedFunctionRenderer()} on the same context, an exception is thrown.
@@ -67,10 +55,9 @@ public interface Context {
 
     /**
      * <p/>
-     * Return a FixedFunctionRenderer to render into the surface that is currently in use. This will return
-     * null if the Context cannot support a FixedFunctionRenderer. Tasks can only use one renderer per
-     * returned Context. The Surface that provided this context must be re-activated to to get a different
-     * renderer type.
+     * Return a FixedFunctionRenderer to render into the surface that is active. Tasks can only use one
+     * renderer per returned Context. The Surface that provided this context must be re-activated to to get a
+     * different renderer type.
      * <p/>
      * A FixedFunctionRenderer and GlslRenderer cannot be used at the same time. If this is called after a
      * call to {@link #getGlslRenderer()} on the same context, an exception is thrown.

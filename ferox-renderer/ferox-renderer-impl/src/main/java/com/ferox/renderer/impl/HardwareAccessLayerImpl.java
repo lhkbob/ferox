@@ -120,11 +120,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getGlslRenderer();
-
-                if (selectedRenderer != null) {
-                    // have selected a GlslRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
-                }
             }
 
             if (selectedRenderer instanceof FixedFunctionRenderer) {
@@ -139,11 +134,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getFixedFunctionRenderer();
-
-                if (selectedRenderer != null) {
-                    // have selected a FixedFunctionRenderer to use
-                    selectedRenderer.setViewport(0, 0, surface.getWidth(), surface.getHeight());
-                }
             }
 
             if (selectedRenderer instanceof GlslRenderer) {
@@ -156,16 +146,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         @Override
         public void flush() {
             surface.flush(context);
-        }
-
-        @Override
-        public boolean hasGlslRenderer() {
-            return context.getCurrentShaderState() != null;
-        }
-
-        @Override
-        public boolean hasFixedFunctionRenderer() {
-            return context.getCurrentFixedFunctionState() != null;
         }
 
         @Override

@@ -38,7 +38,6 @@ import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
-import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
 import org.lwjgl.opengl.GL11;
@@ -62,8 +61,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     // state tracking
     private boolean alphaTestEnabled;
 
-    public LwjglFixedFunctionRenderer(LwjglRendererDelegate delegate) {
-        super(delegate);
+    public LwjglFixedFunctionRenderer(LwjglContext context, LwjglRendererDelegate delegate) {
+        super(context, delegate);
 
         initialized = false;
 
@@ -72,9 +71,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context) {
-        super.activate(surface, context);
-
+    public void activate(AbstractSurface surface) {
         if (!initialized) {
             // set initial state not actually tracked
             GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE);
@@ -82,6 +79,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
             initialized = true;
         }
+
+        super.activate(surface);
     }
 
     @Override

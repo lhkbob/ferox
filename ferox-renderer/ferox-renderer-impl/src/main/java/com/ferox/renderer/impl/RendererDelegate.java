@@ -46,10 +46,28 @@ import com.ferox.renderer.impl.resources.BufferImpl;
  * @author Michael Ludwig
  */
 public abstract class RendererDelegate {
-    protected SharedState state;
-    protected SharedState defaultState;
+    protected final SharedState state;
+    protected final SharedState defaultState;
+    protected final OpenGLContext context;
 
-    protected OpenGLContext context;
+    /**
+     * Create a new delegate that renders for the given context. The SharedState must be the same shared state
+     * instance used by all renderers for the given context (so that it is shared).
+     *
+     * @param context     The context
+     * @param sharedState The state
+     *
+     * @throws NullPointerException if arguments are null
+     */
+    public RendererDelegate(OpenGLContext context, SharedState sharedState) {
+        if (context == null || sharedState == null) {
+            throw new NullPointerException("Arguments cannot be null");
+        }
+
+        this.context = context;
+        state = sharedState;
+        defaultState = new SharedState(sharedState.textures.length);
+    }
 
     /**
      * Notify the renderer that the provided surface has been activated and will be using this Renderer. The
@@ -57,21 +75,11 @@ public abstract class RendererDelegate {
      * the surface's owning framework.
      *
      * @param surface The now active surface
-     * @param context The current context
      */
-    public void activate(AbstractSurface surface, OpenGLContext context) {
-        this.context = context;
-
-        if (defaultState == null) {
-            // init state
-            defaultState = new SharedState(surface.getFramework().getCapabilities().getMaxCombinedTextures());
-        }
-
+    public void activate(AbstractSurface surface) {
         defaultState.viewWidth = surface.getWidth();
         defaultState.viewHeight = surface.getHeight();
-
-        // get reference to current state
-        state = context.getCurrentSharedState();
+        setViewport(0, 0, surface.getWidth(), surface.getHeight());
     }
 
     public SharedState getCurrentState() {

@@ -53,8 +53,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     private static final Matrix4 IDENTITY = new Matrix4();
     private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8, .8, .8, 1);
 
-    protected FixedFunctionState state;
-    protected FixedFunctionState defaultState;
+    protected final FixedFunctionState state;
+    protected final FixedFunctionState defaultState;
 
     private boolean isModelViewDirty;
     private final Matrix4 inverseModelView; // needed for eye-plane texture coordinates
@@ -63,27 +63,18 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     /**
      * Create an AbstractFixedFunctionRenderer that will use the given RendererDelegate.
      *
+     * @param context  The context using this renderer
      * @param delegate The RendererDelegate that completes the implementations Renderer behavior
      *
      * @throws NullPointerException if delegate is null
      */
-    public AbstractFixedFunctionRenderer(RendererDelegate delegate) {
-        super(delegate);
+    public AbstractFixedFunctionRenderer(OpenGLContext context, RendererDelegate delegate) {
+        super(context, delegate);
         inverseModelView = new Matrix4();
         isModelInverseDirty = true;
-    }
 
-    @Override
-    public void activate(AbstractSurface surface, OpenGLContext context) {
-        super.activate(surface, context);
-
-        if (defaultState == null) {
-            // init state
-            defaultState = new FixedFunctionState();
-        }
-
-        // get temporary reference to context's state that we modify
-        state = context.getCurrentFixedFunctionState();
+        state = new FixedFunctionState();
+        defaultState = new FixedFunctionState();
     }
 
     @Override

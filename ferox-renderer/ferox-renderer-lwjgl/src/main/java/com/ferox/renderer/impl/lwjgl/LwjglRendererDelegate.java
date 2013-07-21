@@ -33,6 +33,7 @@ import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.RendererDelegate;
+import com.ferox.renderer.impl.SharedState;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
@@ -59,6 +60,19 @@ public class LwjglRendererDelegate extends RendererDelegate {
     private boolean cullEnabled = true;
     private int frontPolyMode = GL11.GL_FILL;
     private int backPolyMode = GL11.GL_FILL;
+
+    /**
+     * Create a new delegate that renders for the given context. The SharedState must be the same shared state
+     * instance used by all renderers for the given context (so that it is shared).
+     *
+     * @param context     The context
+     * @param sharedState The state
+     *
+     * @throws NullPointerException if arguments are null
+     */
+    public LwjglRendererDelegate(OpenGLContext context, SharedState sharedState) {
+        super(context, sharedState);
+    }
 
     @Override
     protected void glBlendColor(@Const Vector4 color) {
@@ -194,9 +208,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context) {
-        super.activate(surface, context);
-
+    public void activate(AbstractSurface surface) {
         if (!initialized) {
             // initial state configuration
             GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -205,6 +217,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
             initialized = true;
         }
+        super.activate(surface);
     }
 
     @Override

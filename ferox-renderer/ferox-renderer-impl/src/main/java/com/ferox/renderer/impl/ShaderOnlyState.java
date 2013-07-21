@@ -32,9 +32,16 @@ import com.ferox.renderer.impl.resources.BufferImpl;
 import java.util.Arrays;
 
 /**
+ * Simple class to expose the shader only state of OpenGL. Because of the extent of the available state,
+ * normal Java conventions have been sacrificed. Care must be given to coordinate state and maintain the
+ * validity of the values in the state instances when OpenGL state actually changes.
  *
+ * @author Michael Ludwig
  */
 public class ShaderOnlyState {
+    /**
+     * State per attribute.
+     */
     public static class AttributeState {
         public final int index;
 

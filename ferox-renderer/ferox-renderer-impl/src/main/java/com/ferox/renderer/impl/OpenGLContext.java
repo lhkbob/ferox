@@ -62,23 +62,60 @@ public interface OpenGLContext {
      */
     public void release();
 
+    /**
+     * @return Get the FFP renderer for this context. If the underlying OpenGL hardware no longer supports the
+     *         deprecated FFP pipeline, a shader implementation must be provided to emulate this interface
+     */
     public FixedFunctionRenderer getFixedFunctionRenderer();
 
+    /**
+     * @return Get the GLSL renderer for this context.
+     */
     public GlslRenderer getGlslRenderer();
 
-    // FIXME document returning null if not available, and use this as an indicator for renderer selection
-    // FIXME also make sure everywhere that needs it guards properly
-    public FixedFunctionState getCurrentFixedFunctionState();
-
-    public ShaderOnlyState getCurrentShaderState();
-
-    public SharedState getCurrentSharedState();
-
+    /**
+     * Bind the array vbo on this context. This will update its shared state. This is preferable to binding
+     * and tracking state elsewhere. A non-null vbo with only an inmemory buffer is recorded in the state, but
+     * will bind an actual OpenGL vbo of 0. It can be assumed the handle came from a {@link
+     * com.ferox.renderer.VertexBuffer}
+     *
+     * @param vbo The vbo to bind, or null to clear it
+     */
     public void bindArrayVBO(BufferImpl.BufferHandle vbo);
 
+    /**
+     * Bind the element vbo on this context. This will update its shared state. This is preferable to binding
+     * and tracking state elsewhere. A non-null vbo with only an inmemory buffer is recorded in the state, but
+     * will bind an actual OpenGL vbo of 0. It can be assumed the handle came from an {@link
+     * com.ferox.renderer.ElementBuffer}
+     *
+     * @param vbo The vbo to bind, or null to clear it
+     */
     public void bindElementVBO(BufferImpl.BufferHandle vbo);
 
+    /**
+     * Set the active shader on this context. If it is non-null, it is invalid to use the fixed-function
+     * renderer and state. A null shader resets to using fixed-function.
+     *
+     * @param shader The new shader to use
+     */
     public void bindShader(ShaderImpl.ShaderHandle shader);
 
+    /**
+     * Set the current texture on the given unit. Although OpenGL maintains multiple bindings, one for each
+     * target, this should only have one texture of any target bound to a single unit at a time.  The context
+     * is also responsible for tracking and switching the 'active texture unit' prior to binding the texture.
+     * <p/>
+     * Enabling a texture unit is not the responsibility of this method and only applies to fixed function
+     * rendering.
+     *
+     * @param textureUnit The texture unit to bind to
+     * @param texture     The texture handle, or null to reset the binding
+     */
     public void bindTexture(int textureUnit, TextureImpl.TextureHandle texture);
+
+    /**
+     * @return Get the shared state that provides access to the bound resources
+     */
+    public SharedState getState();
 }

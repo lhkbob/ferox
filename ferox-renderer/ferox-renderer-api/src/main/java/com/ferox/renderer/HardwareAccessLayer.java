@@ -164,6 +164,11 @@ public interface HardwareAccessLayer {
      * and avoids the cost of allocating a task or future object.
      * <p/>
      * This is the preferred method for refreshing resources when performance is critical.
+     * <p/>
+     * Refreshing a resource may affect the state of any renderer that is in use if there's a current context.
+     * This can potentially invalidate any buffer or texture configuration. It is best to only perform
+     * refreshes before or after using a renderer, but never intermingled. If necessary, be sure to update the
+     * renderer after the refresh.
      *
      * @param resource The resource to update
      *

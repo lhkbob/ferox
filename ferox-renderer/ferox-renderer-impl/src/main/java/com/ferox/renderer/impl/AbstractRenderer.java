@@ -36,13 +36,12 @@ import com.ferox.renderer.Renderer;
  * AbstractRenderer is the main super class for renderers used by AbstractFrameworks. It takes a single
  * RendererDelegate that handles the actual implementation of the Renderer interface. It is extended by both
  * {@link AbstractFixedFunctionRenderer} and {@link AbstractGlslRenderer}, which complete the implementations
- * for the respective renderer types. It is recommended that if an OpenGLContext provides both a
- * FixedFunctionRenderer and a GlslRenderer that both use the same RendererDelegate instance since that state
- * is shared by the context.
+ * for the respective renderer types. Contexts don't need to reuse the same delegate instance between their
+ * two renderers because the shared state is tracked independently.
  * <p/>
- * AbstractRenderer adds the {@link #activate(AbstractSurface, OpenGLContext)} method which is invoked by
- * AbstractSurface when it is activated. This provides a hook for renderers to perform custom initialization
- * of the OpenGL state.
+ * AbstractRenderer adds the {@link #activate(AbstractSurface)} method which is invoked by AbstractSurface
+ * when it is activated. This provides a hook for renderers to perform custom initialization of the OpenGL
+ * state.
  *
  * @author Michael Ludwig
  */
@@ -50,13 +49,17 @@ public abstract class AbstractRenderer implements Renderer {
     private static final Vector4 BLACK = new Vector4(0, 0, 0, 0);
 
     protected final RendererDelegate delegate;
+    protected final OpenGLContext context;
 
-    protected OpenGLContext context;
-
-    public AbstractRenderer(RendererDelegate delegate) {
+    public AbstractRenderer(OpenGLContext context, RendererDelegate delegate) {
         if (delegate == null) {
             throw new NullPointerException("Delegate cannot be null");
         }
+        if (delegate.context != context) {
+            throw new IllegalArgumentException("Delegate's context is not equal to renderer's context");
+        }
+
+        this.context = context;
         this.delegate = delegate;
     }
 
@@ -196,15 +199,11 @@ public abstract class AbstractRenderer implements Renderer {
     }
 
     /**
-     * Notify the renderer that the provided surface has been activated and will be using this Renderer. The
-     * given context is the context for the current thread and the ResourceManager is the resource manager of
-     * the surface's owning framework.
+     * Notify the renderer that the provided surface has been activated and will be using this Renderer.
      *
-     * @param active  The now active surface
-     * @param context The current context
+     * @param active The now active surface
      */
-    public void activate(AbstractSurface active, OpenGLContext context) {
-        delegate.activate(active, context);
-        this.context = context;
+    public void activate(AbstractSurface active) {
+        delegate.activate(active);
     }
 }

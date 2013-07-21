@@ -52,9 +52,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
     private final FBODestructible impl;
 
     public LwjglFboTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options) {
-        super(framework, options.getWidth(), options.getHeight(), options.getDepthRenderBufferFormat());
+        super(framework, options);
         impl = new FBODestructible(framework);
-        setRenderTargets(options);
     }
 
     @Override

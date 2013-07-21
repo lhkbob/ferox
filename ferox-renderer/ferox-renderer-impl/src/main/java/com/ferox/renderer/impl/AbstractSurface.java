@@ -43,10 +43,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Michael Ludwig
  */
 public abstract class AbstractSurface implements Surface {
+    /**
+     * @return The OpenGLContext tied to the surface, or null for surfaces that depend on others to provide
+     *         the context (such as FBOs)
+     */
     public OpenGLContext getContext() {
         return getSurfaceDestructible().getContext();
     }
 
+    /**
+     * @return Get the managed destructible that stores the context and handles actual destruction of the
+     *         surface
+     */
     public abstract SurfaceDestructible getSurfaceDestructible();
 
     /**
@@ -69,12 +77,12 @@ public abstract class AbstractSurface implements Surface {
     public void onSurfaceActivate(OpenGLContext context) {
         FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
         if (ffp instanceof AbstractRenderer) {
-            ((AbstractRenderer) ffp).activate(this, context);
+            ((AbstractRenderer) ffp).activate(this);
         }
 
         GlslRenderer glsl = context.getGlslRenderer();
         if (glsl instanceof AbstractRenderer) {
-            ((AbstractRenderer) glsl).activate(this, context);
+            ((AbstractRenderer) glsl).activate(this);
         }
     }
 
@@ -114,6 +122,10 @@ public abstract class AbstractSurface implements Surface {
         return getSurfaceDestructible().framework;
     }
 
+    /**
+     * The ManagedDestructible base class for use with Surfaces. Care should be taken so that the destructible
+     * has no strong references back to its associated surface.
+     */
     protected static abstract class SurfaceDestructible implements DestructibleManager.ManagedDestructible {
         private final AtomicBoolean destroyed;
         protected final FrameworkImpl framework;

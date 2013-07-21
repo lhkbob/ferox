@@ -48,10 +48,7 @@ public class LwjglPbufferTextureSurface extends AbstractTextureSurface {
 
     public LwjglPbufferTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options,
                                       LwjglContext shareWith) {
-        super(framework, options.getWidth(), options.getHeight(), options.getDepthRenderBufferFormat());
-
-        // do this first to perform validation before we construct the pbuffer
-        setRenderTargets(options);
+        super(framework, options);
 
         // Always create with a basic 32-bit color, 24-bit depth, and 8-bit stencil
         // that way both depth-stencil textures and renderbuffers are supported

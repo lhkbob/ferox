@@ -34,6 +34,14 @@ import com.ferox.renderer.impl.resources.TextureImpl;
 
 import java.util.Arrays;
 
+/**
+ * Simple class to expose the shared state of OpenGL that is used across both FFP and GLSL pipelines. Because
+ * of the extent of the available state, normal Java conventions have been sacrificed. Care must be given to
+ * coordinate state and maintain the validity of the values in the state instances when OpenGL state actually
+ * changes.
+ *
+ * @author Michael Ludwig
+ */
 public class SharedState {
     public static final Vector4 DEFAULT_BLEND_COLOR = new Vector4(0f, 0f, 0f, 0f);
 

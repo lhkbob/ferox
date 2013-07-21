@@ -55,20 +55,33 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     private final TextureImpl.RenderTargetImpl[] colorTargets;
     private TextureImpl.RenderTargetImpl depthTarget;
 
-
-    public AbstractTextureSurface(FrameworkImpl framework, int width, int height,
-                                  Sampler.TexelFormat depthRenderBuffer) {
+    /**
+     * Create a new surface with the given texture options.
+     *
+     * @param framework The framework the surface is owned by
+     * @param options   The options that configure this surface
+     */
+    public AbstractTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options) {
         int maxDimension = framework.getCapabilities().getMaxTextureSurfaceSize();
-        if (width > maxDimension || height > maxDimension) {
+        if (options.getWidth() > maxDimension || options.getHeight() > maxDimension) {
             throw new SurfaceCreationException(
                     "Cannot create texture surface of requested size: beyond max supported dimension");
         }
 
-        this.width = width;
-        this.height = height;
-        this.depthRenderBuffer = depthRenderBuffer;
+        this.width = options.getWidth();
+        this.height = options.getHeight();
+        this.depthRenderBuffer = options.getDepthRenderBufferFormat();
 
         colorTargets = new TextureImpl.RenderTargetImpl[framework.getCapabilities().getMaxColorBuffers()];
+
+        if (options.getColorBufferCount() > colorTargets.length) {
+            throw new SurfaceCreationException("Too many color buffers specified");
+        }
+        Sampler.RenderTarget[] array = new Sampler.RenderTarget[options.getColorBufferCount()];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = options.getColorBuffer(i);
+        }
+        setRenderTargets(array, options.getDepthBuffer());
     }
 
     @Override
@@ -96,21 +109,20 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         return height;
     }
 
-    protected void setRenderTargets(TextureSurfaceOptions options) {
-        if (options.getColorBufferCount() > colorTargets.length) {
-            throw new SurfaceCreationException("Too many color buffers specified");
-        }
-        Sampler.RenderTarget[] array = new Sampler.RenderTarget[options.getColorBufferCount()];
-        for (int i = 0; i < array.length; i++) {
-            array[i] = options.getColorBuffer(i);
-        }
-        setRenderTargets(array, options.getDepthBuffer());
-    }
-
     private int mipDim(int dimension, int mipmap) {
         return Math.max(dimension >> mipmap, 1);
     }
 
+    /**
+     * Update the render targets of this surface. Validation is performed to ensure that the dimensions and
+     * formats all match and all mipmap layers are valid. If colorTargets is shorter than the maximum number
+     * of color targets, then the remaining targets are bound to null.
+     *
+     * @param colorTargets The color targets
+     * @param depthTarget  The depth target
+     *
+     * @throws IllegalArgumentException if the targets are misconfigured for the surface
+     */
     public void setRenderTargets(Sampler.RenderTarget[] colorTargets, Sampler.RenderTarget depthTarget) {
         // first validate new targets, before delegating to the subclass to perform the OpenGL
         // operations necessary
@@ -169,8 +181,5 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             }
         }
         this.depthTarget = (TextureImpl.RenderTargetImpl) depthTarget;
-
-        // the targets haven't been synced with OpenGL yet, that requires a call to updateRenderTargets()
-        // but this might not be the right time for that
     }
 }

@@ -36,8 +36,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class LwjglGlslRenderer extends AbstractGlslRenderer {
-    public LwjglGlslRenderer(LwjglRendererDelegate delegate) {
-        super(delegate);
+    public LwjglGlslRenderer(LwjglContext context, LwjglRendererDelegate delegate, int numVertexAttribs) {
+        super(context, delegate, numVertexAttribs);
     }
 
     @Override

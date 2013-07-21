@@ -227,6 +227,9 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         @Override
         protected void destroyImpl(OpenGLContext context) {
+            if (context.getState().shader == this) {
+                context.bindShader(null);
+            }
             getFramework().getResourceFactory().deleteShader(context, this);
         }
     }

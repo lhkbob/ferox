@@ -348,6 +348,12 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
 
         @Override
         protected void destroyImpl(OpenGLContext context) {
+            TextureHandle[] units = context.getState().textures;
+            for (int i = 0; i < units.length; i++) {
+                if (units[i] == this) {
+                    context.bindTexture(i, null);
+                }
+            }
             getFramework().getResourceFactory().deleteTexture(context, this);
         }
     }

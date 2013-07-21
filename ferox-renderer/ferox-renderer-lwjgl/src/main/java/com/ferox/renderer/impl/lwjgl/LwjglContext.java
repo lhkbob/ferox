@@ -27,9 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.impl.FixedFunctionState;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ShaderOnlyState;
 import com.ferox.renderer.impl.SharedState;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
@@ -51,9 +49,6 @@ public class LwjglContext implements OpenGLContext {
     private final List<Runnable> cleanupTasks;
 
     private final SharedState sharedState;
-    private final FixedFunctionState fixedState; // null for GL 3+
-    private final ShaderOnlyState shaderOnlyState;
-
     private final LwjglFixedFunctionRenderer fixed;
     private final LwjglGlslRenderer glsl;
 
@@ -84,12 +79,15 @@ public class LwjglContext implements OpenGLContext {
         useEXTFramebufferObject = caps.getMajorVersion() < 3;
 
         sharedState = new SharedState(caps.getMaxCombinedTextures());
-        fixedState = (caps.getMajorVersion() < 3 ? new FixedFunctionState() : null);
-        shaderOnlyState = new ShaderOnlyState(caps.getMaxVertexAttributes());
 
-        LwjglRendererDelegate shared = new LwjglRendererDelegate();
-        fixed = (fixedState == null ? null : new LwjglFixedFunctionRenderer(shared));
-        glsl = new LwjglGlslRenderer(shared);
+        LwjglRendererDelegate shared = new LwjglRendererDelegate(this, sharedState);
+        if (caps.getMajorVersion() < 3) {
+            fixed = new LwjglFixedFunctionRenderer(this, shared);
+        } else {
+            throw new UnsupportedOperationException(
+                    "No emulation shader written yet, can't support FFP renderer");
+        }
+        glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
     }
 
     /**
@@ -111,13 +109,6 @@ public class LwjglContext implements OpenGLContext {
             throw new NullPointerException("Task cannot be null");
         }
         cleanupTasks.add(task);
-    }
-
-    /**
-     * @return The id of the currently bound framebuffer object
-     */
-    public int getFbo() {
-        return fbo;
     }
 
     /**
@@ -204,21 +195,6 @@ public class LwjglContext implements OpenGLContext {
     }
 
     @Override
-    public FixedFunctionState getCurrentFixedFunctionState() {
-        return fixedState;
-    }
-
-    @Override
-    public ShaderOnlyState getCurrentShaderState() {
-        return shaderOnlyState;
-    }
-
-    @Override
-    public SharedState getCurrentSharedState() {
-        return sharedState;
-    }
-
-    @Override
     public void bindArrayVBO(BufferImpl.BufferHandle vbo) {
         if (vbo != sharedState.arrayVBO) {
             sharedState.arrayVBO = vbo;
@@ -271,5 +247,10 @@ public class LwjglContext implements OpenGLContext {
 
             sharedState.textures[textureUnit] = texture;
         }
+    }
+
+    @Override
+    public SharedState getState() {
+        return sharedState;
     }
 }

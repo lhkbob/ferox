@@ -53,23 +53,20 @@ import java.util.Set;
  * @author Michael Ludwig
  */
 public abstract class AbstractGlslRenderer extends AbstractRenderer implements GlslRenderer {
-    protected ShaderOnlyState state;
-    protected ShaderOnlyState defaultState;
+    protected final ShaderOnlyState state;
+    protected final ShaderOnlyState defaultState;
 
-    public AbstractGlslRenderer(RendererDelegate delegate) {
-        super(delegate);
-    }
-
-    @Override
-    public void activate(AbstractSurface surface, OpenGLContext context) {
-        super.activate(surface, context);
-
-        if (defaultState == null) {
-            Capabilities caps = surface.getFramework().getCapabilities();
-            defaultState = new ShaderOnlyState(caps.getMaxVertexAttributes());
-        }
-
-        state = context.getCurrentShaderState();
+    /**
+     * Create a new glsl renderer for the given context.
+     *
+     * @param context             The context using the renderer
+     * @param delegate            The delegate completing the implementation
+     * @param numVertexAttributes The number of vertex attributes to support
+     */
+    public AbstractGlslRenderer(OpenGLContext context, RendererDelegate delegate, int numVertexAttributes) {
+        super(context, delegate);
+        state = new ShaderOnlyState(numVertexAttributes);
+        defaultState = new ShaderOnlyState(state);
     }
 
     @Override

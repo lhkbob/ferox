@@ -189,7 +189,7 @@ public class TextRenderer {
             @Override
             public Void run(HardwareAccessLayer access) {
                 Context ctx = access.setActiveSurface(surface);
-                if (ctx != null && ctx.hasFixedFunctionRenderer()) {
+                if (ctx != null) {
                     FixedFunctionRenderer ffp = ctx.getFixedFunctionRenderer();
 
                     ffp.setProjectionMatrix(projection);
