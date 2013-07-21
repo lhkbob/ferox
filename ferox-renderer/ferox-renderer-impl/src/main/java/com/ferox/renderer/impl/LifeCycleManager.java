@@ -49,7 +49,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author Michael Ludwig
  */
-public class LifeCycleManager {
+public class LifeCycleManager implements Comparable<LifeCycleManager> {
     /**
      * A LifeCycleManager has a monotonically increasing status. The status will only change in the order
      * defined in this enum, although it may skip states.
@@ -95,6 +95,11 @@ public class LifeCycleManager {
 
         status = Status.WAITING_INIT;
         lock = new ReentrantReadWriteLock();
+    }
+
+    @Override
+    public int compareTo(LifeCycleManager o) {
+        return System.identityHashCode(this) - System.identityHashCode(o);
     }
 
     /**

@@ -50,17 +50,18 @@ public class DisplayMode {
      * @param bitDepth    The color bit depth
      * @param refreshRate The refresh rate
      *
-     * @throws IllegalArgumentException if any argument is less than 1
+     * @throws IllegalArgumentException if width or height is less than 1 or bitDepth or refreshRate is less
+     *                                  than 0
      */
     public DisplayMode(int width, int height, int bitDepth, int refreshRate) {
         if (width < 1 || height < 1) {
             throw new IllegalArgumentException("Invalid dimensions: " + width + ", " + height);
         }
-        if (bitDepth < 1) {
-            throw new IllegalArgumentException("Bit depth must be at least 1: " + bitDepth);
+        if (bitDepth < 0) {
+            throw new IllegalArgumentException("Bit depth must be at least 0: " + bitDepth);
         }
-        if (refreshRate < 1) {
-            throw new IllegalArgumentException("Refresh rate must be at least 1: " + refreshRate);
+        if (refreshRate < 0) {
+            throw new IllegalArgumentException("Refresh rate must be at least 0: " + refreshRate);
         }
 
         this.width = width;
