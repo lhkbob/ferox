@@ -31,7 +31,6 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.*;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.DrawStyle;
