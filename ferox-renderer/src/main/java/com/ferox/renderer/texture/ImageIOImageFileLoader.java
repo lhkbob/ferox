@@ -24,31 +24,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.impl.jogl;
+package com.ferox.renderer.texture;
 
-public class SelfDestructTest {
-    public static void main(String[] args) throws Exception {
-        final Framework f = JoglFramework.create();
-        System.out.println("framework created");
-        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-                                                                //            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-                                                                .setUndecorated(true).setResizable(false)
-                                                                .setWidth(500).setHeight(500));
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.builder.Builder;
 
-        System.out.println("surface created");
-        Thread.sleep(5000);
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
-        String result = f.queue(new Task<String>() {
-            @Override
-            public String run(HardwareAccessLayer access) {
-                System.out.println("activating surface");
-                access.setActiveSurface(surface);
-                System.out.println("destroying framework");
-                f.destroy();
-                return "finished";
-            }
-        }).get();
+/**
+ * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this depends on the ImageIO
+ * loaders present on a given system).
+ *
+ * @author Michael Ludwig
+ */
+public class ImageIOImageFileLoader implements ImageFileLoader {
+    @Override
+    public Builder<Texture2D> readImage(Framework framework, InputStream stream) throws IOException {
+        // I'm assuming that read() will restore the stream's position
+        // if no reader is found
 
-        System.out.println(result);
+        BufferedImage b = ImageIO.read(stream);
+        if (b != null) {
+            return TextureLoader.createTexture2D(framework, b);
+        } else {
+            return null;
+        }
     }
 }

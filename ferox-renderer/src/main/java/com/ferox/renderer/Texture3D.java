@@ -24,31 +24,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.impl.jogl;
+package com.ferox.renderer;
 
-public class SelfDestructTest {
-    public static void main(String[] args) throws Exception {
-        final Framework f = JoglFramework.create();
-        System.out.println("framework created");
-        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-                                                                //            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-                                                                .setUndecorated(true).setResizable(false)
-                                                                .setWidth(500).setHeight(500));
-
-        System.out.println("surface created");
-        Thread.sleep(5000);
-
-        String result = f.queue(new Task<String>() {
-            @Override
-            public String run(HardwareAccessLayer access) {
-                System.out.println("activating surface");
-                access.setActiveSurface(surface);
-                System.out.println("destroying framework");
-                f.destroy();
-                return "finished";
-            }
-        }).get();
-
-        System.out.println(result);
-    }
+/**
+ * Texture3D is a three-dimensional color texture. It is accessed using the S, T, and R texture coordinates.
+ * Shaders can refer to a Texture3D in the GLSL code with the 'sampler3D' uniform type.
+ *
+ * @author Michael Ludwig
+ */
+public interface Texture3D extends Texture {
+    /**
+     * Get the render target that will render into the specific 2D slice of the 3D texture. The layer must be
+     * greater than 0 and less than {@code getDepth() - 1}.
+     *
+     * @param layer The depth layer to fetch
+     *
+     * @return The render target for the 2D slice of the texture
+     *
+     * @throws IndexOutOfBoundsException if layer is less than 0 or greater than the number of 2D images in
+     *                                   the texture
+     */
+    public RenderTarget getRenderTarget(int layer);
 }

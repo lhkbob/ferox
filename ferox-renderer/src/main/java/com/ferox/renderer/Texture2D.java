@@ -24,31 +24,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.impl.jogl;
+package com.ferox.renderer;
 
-public class SelfDestructTest {
-    public static void main(String[] args) throws Exception {
-        final Framework f = JoglFramework.create();
-        System.out.println("framework created");
-        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-                                                                //            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-                                                                .setUndecorated(true).setResizable(false)
-                                                                .setWidth(500).setHeight(500));
-
-        System.out.println("surface created");
-        Thread.sleep(5000);
-
-        String result = f.queue(new Task<String>() {
-            @Override
-            public String run(HardwareAccessLayer access) {
-                System.out.println("activating surface");
-                access.setActiveSurface(surface);
-                System.out.println("destroying framework");
-                f.destroy();
-                return "finished";
-            }
-        }).get();
-
-        System.out.println(result);
-    }
+/**
+ * Texture2D is a two-dimensional color texture. It is accessed using the S and T texture coordinates.  Its
+ * depth can be considered to be 1. Shaders can refer to a Texture2D in the GLSL code with the 'sampler2D'
+ * uniform type.
+ *
+ * @author Michael Ludwig
+ */
+public interface Texture2D extends Texture {
+    /**
+     * @return The single render target for this texture
+     */
+    public RenderTarget getRenderTarget();
 }

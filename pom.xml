@@ -13,6 +13,8 @@
         <module>ferox-input</module>
         <module>ferox-math</module>
         <module>ferox-renderer</module>
+        <module>ferox-renderer-lwjgl</module>
+        <module>ferox-renderer-jogl</module>
         <module>ferox-scene</module>
         <module>ferox-physics</module>
         <module>ferox-util</module>

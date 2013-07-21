@@ -24,31 +24,56 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.impl.jogl;
+package com.ferox.renderer.impl.resources;
 
-public class SelfDestructTest {
-    public static void main(String[] args) throws Exception {
-        final Framework f = JoglFramework.create();
-        System.out.println("framework created");
-        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions()
-                                                                //            .setFullscreenMode(new DisplayMode(1024, 768, PixelFormat.RGB_24BIT))
-                                                                .setUndecorated(true).setResizable(false)
-                                                                .setWidth(500).setHeight(500));
+import com.ferox.renderer.Framework;
+import com.ferox.renderer.Resource;
+import com.ferox.renderer.impl.FrameworkImpl;
+import com.ferox.renderer.impl.OpenGLContext;
 
-        System.out.println("surface created");
-        Thread.sleep(5000);
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
-        String result = f.queue(new Task<String>() {
+/**
+ *
+ */
+public abstract class AbstractResource<T extends ResourceHandle> implements Resource {
+    private final T handle;
+
+    public AbstractResource(T handle) {
+        this.handle = handle;
+    }
+
+    public T getHandle() {
+        return handle;
+    }
+
+    @Override
+    public Framework getFramework() {
+        return handle.getFramework();
+    }
+
+    @Override
+    public Future<Void> refresh() {
+        final FrameworkImpl f = handle.getFramework();
+        return f.getContextManager().invokeOnContextThread(new Callable<Void>() {
             @Override
-            public String run(HardwareAccessLayer access) {
-                System.out.println("activating surface");
-                access.setActiveSurface(surface);
-                System.out.println("destroying framework");
-                f.destroy();
-                return "finished";
+            public Void call() throws Exception {
+                OpenGLContext ctx = f.getContextManager().ensureContext();
+                f.getResourceFactory().refresh(ctx, AbstractResource.this);
+                return null;
             }
-        }).get();
+        }, false);
+    }
 
-        System.out.println(result);
+
+    @Override
+    public Future<Void> destroy() {
+        return handle.destroy();
+    }
+
+    @Override
+    public boolean isDestroyed() {
+        return handle.isDestroyed();
     }
 }
