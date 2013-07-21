@@ -27,41 +27,22 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.impl.FrameworkImpl;
-import com.ferox.renderer.impl.ResourceDriver;
+import com.ferox.renderer.impl.SurfaceFactory;
+import com.ferox.renderer.impl.resources.ResourceFactory;
 
 public class LwjglFramework extends FrameworkImpl {
-    private LwjglFramework(LwjglSurfaceFactory factory, ResourceDriver... drivers) {
-        super(factory, drivers);
+    private LwjglFramework(SurfaceFactory surfaceFactory, ResourceFactory resourceFactory) {
+        super(surfaceFactory, resourceFactory);
     }
 
     public static LwjglFramework create() {
-        return create(false, false, false, false);
-    }
-
-    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl) {
         return create(false, false);
     }
 
-    public static LwjglFramework create(boolean forceNoFfp, boolean forceNoGlsl, boolean forceNoPbuffers,
-                                        boolean forceNoFbos) {
-        int capBits = 0;
-        if (forceNoGlsl) {
-            capBits |= LwjglRenderCapabilities.FORCE_NO_GLSL;
-        }
-        if (forceNoPbuffers) {
-            capBits |= LwjglRenderCapabilities.FORCE_NO_PBUFFER;
-        }
-        if (forceNoFbos) {
-            capBits |= LwjglRenderCapabilities.FORCE_NO_FBO;
-        }
-
-        // FIXME: how to handle forceNoFfp?
-
-        LwjglSurfaceFactory factory = new LwjglSurfaceFactory(capBits);
-        LwjglFramework framework = new LwjglFramework(factory, new LwjglTextureResourceDriver(),
-                                                      new LwjglVertexBufferObjectResourceDriver(),
-                                                      new LwjglGlslShaderResourceDriver());
-
+    public static LwjglFramework create(boolean forceNoPBuffer, boolean forceNoFBO) {
+        LwjglSurfaceFactory factory = new LwjglSurfaceFactory(forceNoPBuffer, forceNoFBO);
+        LwjglResourceFactory resource = new LwjglResourceFactory();
+        LwjglFramework framework = new LwjglFramework(factory, resource);
         framework.initialize();
         return framework;
     }

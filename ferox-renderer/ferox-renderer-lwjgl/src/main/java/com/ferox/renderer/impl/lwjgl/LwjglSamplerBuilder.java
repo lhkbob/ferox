@@ -30,6 +30,7 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
     protected int generateTextureID(OpenGLContext context) {
         return GL11.glGenTextures();
     }
+    // FIXME implement glUnpack state setting
 
     public static void refreshTexture(OpenGLContext context, Sampler sampler) {
         TextureImpl t = (TextureImpl) sampler;

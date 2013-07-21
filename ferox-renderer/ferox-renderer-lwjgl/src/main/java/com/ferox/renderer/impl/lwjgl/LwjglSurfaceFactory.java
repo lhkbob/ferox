@@ -30,42 +30,35 @@ import com.ferox.renderer.*;
 import com.ferox.renderer.impl.*;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.Pbuffer;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * LwjglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It uses {@link
- * LwjglAWTSurface}, {@link LwjglFboTextureSurface}, {@link LwjglPbufferTextureSurface} for its surface
- * implementations. It uses the {@link LWJGLFixedFunctionRenderer} and {@link LwjglGlslRenderer} for its
- * renderer implementations.
+ * LwjglStaticDisplaySurface}, {@link LwjglFboTextureSurface}, {@link LwjglPbufferTextureSurface} for its
+ * surface implementations.
  *
  * @author Michael Ludwig
  */
-public class LwjglSurfaceFactory extends SurfaceFactory {
+public class LwjglSurfaceFactory implements SurfaceFactory {
     private static final int TARGET_REFRESH_RATE = 60;
 
-    private final int capBits;
-
+    private final LwjglCapabilities caps;
     private final DisplayMode defaultMode;
-    private final DisplayMode[] availableModes;
-
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
-     * Create a new LwjglSurfaceFactory that will use the given profile and capability bits. The bit mask uses
-     * the bit flags defined in {@link LwjglRenderCapabilities}.
+     * Create a new LwjglSurfaceFactory that will use the given profile and capability limitations.
      *
-     * @param profile The GLProfile
-     * @param capBits The forced capabilities
+     * @param profile        The GLProfile FIXME
+     * @param forceNoPBuffer Prevent the use of pbuffers even if they're available
+     * @param forceNoFBO     Prevent the use of fbos even if they're available
      *
      * @throws NullPointerException if profile is null
      */
-    public LwjglSurfaceFactory(int capBits) {
-        this.capBits = capBits;
-
-        convertMap = new HashMap<DisplayMode, org.lwjgl.opengl.DisplayMode>();
+    public LwjglSurfaceFactory(boolean forceNoPBuffer, boolean forceNoFBO) {
+        convertMap = new HashMap<>();
 
         try {
             org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
@@ -90,7 +83,9 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
             throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
 
-        availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
+        caps = LwjglCapabilities
+                .computeCapabilities(convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
+                                     forceNoPBuffer, forceNoFBO);
         defaultMode = convert(Display.getDesktopDisplayMode());
     }
 
@@ -106,54 +101,6 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
         return convertMap.get(mode);
     }
 
-    public org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request) {
-        int pf;
-        if (request.getFullscreenMode() != null) {
-            pf = request.getFullscreenMode().getBitDepth();
-        } else {
-            pf = getDefaultDisplayMode().getBitDepth();
-        }
-
-        boolean depthValid = false;
-        for (int depth : getCapabilities().getAvailableDepthBufferSizes()) {
-            if (depth == request.getDepthBufferBits()) {
-                depthValid = true;
-                break;
-            }
-        }
-        if (!depthValid) {
-            throw new SurfaceCreationException(
-                    "Invalid depth buffer bit count: " + request.getDepthBufferBits());
-        }
-
-        boolean stencilValid = false;
-        for (int stencil : getCapabilities().getAvailableStencilBufferSizes()) {
-            if (stencil == request.getStencilBufferBits()) {
-                stencilValid = true;
-                break;
-            }
-        }
-        if (!stencilValid) {
-            throw new SurfaceCreationException(
-                    "Invalid stencil buffer bit count: " + request.getStencilBufferBits());
-        }
-
-        boolean samplesValid = false;
-        for (int sample : getCapabilities().getAvailableSamples()) {
-            if (sample == request.getSampleCount()) {
-                samplesValid = true;
-                break;
-            }
-        }
-        if (!samplesValid) {
-            throw new SurfaceCreationException("Invalid sample count: " + request.getSampleCount());
-        }
-
-        org.lwjgl.opengl.PixelFormat caps = new org.lwjgl.opengl.PixelFormat();
-        return caps.withBitsPerPixel(pf).withDepthBits(request.getDepthBufferBits())
-                   .withStencilBits(request.getStencilBufferBits()).withSamples(request.getSampleCount());
-    }
-
     private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {
         return new DisplayMode(lwjglMode.getWidth(), lwjglMode.getHeight(), lwjglMode.getBitsPerPixel(),
                                lwjglMode.getFrequency());
@@ -162,11 +109,10 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     @Override
     public AbstractTextureSurface createTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
-        if (framework.getCapabilities().getFboSupport()) {
-            return new LwjglFboTextureSurface(framework, this, options);
-        } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new LwjglPbufferTextureSurface(framework, this, options, (LwjglContext) sharedContext,
-                                                  new LwjglRendererProvider());
+        if (framework.getCapabilities().getFBOSupport()) {
+            return new LwjglFboTextureSurface(framework, options);
+        } else if (framework.getCapabilities().getPBufferSupport()) {
+            return new LwjglPbufferTextureSurface(framework, options, (LwjglContext) sharedContext);
         } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
@@ -177,18 +123,15 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
         LwjglStaticDisplaySurface surface = new LwjglStaticDisplaySurface(framework, this, options,
-                                                                          (LwjglContext) sharedContext,
-                                                                          new LwjglRendererProvider());
+                                                                          (LwjglContext) sharedContext);
         surface.initialize();
         return surface;
     }
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & LwjglRenderCapabilities.FORCE_NO_PBUFFER) == 0 &&
-            (Pbuffer.getCapabilities() | Pbuffer.PBUFFER_SUPPORTED) != 0) {
-            return PbufferShadowContext
-                    .create(this, (LwjglContext) sharedContext, new LwjglRendererProvider());
+        if (caps.getPBufferSupport()) {
+            return PbufferShadowContext.create(this, (LwjglContext) sharedContext);
         } else {
             throw new FrameworkException(
                     "No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
@@ -198,5 +141,15 @@ public class LwjglSurfaceFactory extends SurfaceFactory {
     @Override
     public DisplayMode getDefaultDisplayMode() {
         return defaultMode;
+    }
+
+    @Override
+    public Capabilities getCapabilities() {
+        return caps;
+    }
+
+    @Override
+    public void destroy() {
+        // FIXME who destroys the primary shared surface?
     }
 }

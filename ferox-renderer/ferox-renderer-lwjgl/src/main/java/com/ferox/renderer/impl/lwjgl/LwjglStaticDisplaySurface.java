@@ -72,7 +72,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                     "Static LWJGL Display is already in use, cannot create another surface");
         }
 
-        org.lwjgl.opengl.PixelFormat format = factory.choosePixelFormat(options);
+        org.lwjgl.opengl.PixelFormat format = choosePixelFormat(options, factory);
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
 
         Canvas glCanvas = null;
@@ -172,6 +172,55 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
         vsyncNeedsUpdate = true;
 
         impl = new LwjglStaticDisplayDestructible(framework, this, context, parentFrame, glCanvas);
+    }
+
+    private static org.lwjgl.opengl.PixelFormat choosePixelFormat(OnscreenSurfaceOptions request,
+                                                                  LwjglSurfaceFactory factory) {
+        int pf;
+        if (request.getFullscreenMode() != null) {
+            pf = request.getFullscreenMode().getBitDepth();
+        } else {
+            pf = factory.getDefaultDisplayMode().getBitDepth();
+        }
+
+        boolean depthValid = false;
+        for (int depth : factory.getCapabilities().getAvailableDepthBufferSizes()) {
+            if (depth == request.getDepthBufferBits()) {
+                depthValid = true;
+                break;
+            }
+        }
+        if (!depthValid) {
+            throw new SurfaceCreationException(
+                    "Invalid depth buffer bit count: " + request.getDepthBufferBits());
+        }
+
+        boolean stencilValid = false;
+        for (int stencil : factory.getCapabilities().getAvailableStencilBufferSizes()) {
+            if (stencil == request.getStencilBufferBits()) {
+                stencilValid = true;
+                break;
+            }
+        }
+        if (!stencilValid) {
+            throw new SurfaceCreationException(
+                    "Invalid stencil buffer bit count: " + request.getStencilBufferBits());
+        }
+
+        boolean samplesValid = false;
+        for (int sample : factory.getCapabilities().getAvailableSamples()) {
+            if (sample == request.getSampleCount()) {
+                samplesValid = true;
+                break;
+            }
+        }
+        if (!samplesValid) {
+            throw new SurfaceCreationException("Invalid sample count: " + request.getSampleCount());
+        }
+
+        org.lwjgl.opengl.PixelFormat caps = new org.lwjgl.opengl.PixelFormat();
+        return caps.withBitsPerPixel(pf).withDepthBits(request.getDepthBufferBits())
+                   .withStencilBits(request.getStencilBufferBits()).withSamples(request.getSampleCount());
     }
 
     /**
