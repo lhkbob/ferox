@@ -30,7 +30,6 @@ import com.ferox.input.logic.InputManager;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.*;
 import com.ferox.renderer.Resource.Status;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
