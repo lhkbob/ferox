@@ -27,21 +27,25 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.DisplayMode.PixelFormat;
+
+import java.util.Arrays;
 
 public class SelfDestructTest {
     public static void main(String[] args) throws Exception {
         final Framework f = LwjglFramework.create();
         System.out.println("framework created");
-        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions().setFullscreenMode(
-                new DisplayMode(1024, 768, PixelFormat.RGB_24BIT)).setUndecorated(true).setResizable(false)
-                                                                                    .setWidth(500)
-                                                                                    .setHeight(500));
+        final OnscreenSurface surface = f
+                .createSurface(new OnscreenSurfaceOptions().windowed(800, 800).fixedSize().undecorated());
 
         System.out.println("surface created");
         Thread.sleep(5000);
 
-        String result = f.queue(new Task<String>() {
+        System.out.println(Arrays.toString(f.getCapabilities().getAvailableDisplayModes()));
+        System.out.println(Arrays.toString(f.getCapabilities().getAvailableDepthBufferSizes()));
+        System.out.println(Arrays.toString(f.getCapabilities().getAvailableStencilBufferSizes()));
+        System.out.println(Arrays.toString(f.getCapabilities().getAvailableSamples()));
+
+        String result = f.invoke(new Task<String>() {
             @Override
             public String run(HardwareAccessLayer access) {
                 System.out.println("activating surface");

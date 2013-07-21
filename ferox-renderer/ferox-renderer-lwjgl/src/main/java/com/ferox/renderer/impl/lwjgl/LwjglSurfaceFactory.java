@@ -82,11 +82,11 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to query available DisplayModes through LWJGL", e);
         }
+        defaultMode = convert(Display.getDesktopDisplayMode());
 
         caps = LwjglCapabilities
                 .computeCapabilities(convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
                                      forceNoPBuffer, forceNoFBO);
-        defaultMode = convert(Display.getDesktopDisplayMode());
     }
 
     /**

@@ -43,73 +43,42 @@ public class LwjglCapabilities extends Capabilities {
     private static final int[] GUESSED_STENCIL_BITS = new int[] { 0, 2, 4, 8, 16 };
     private static final int[] GUESSED_MSAA_COUNTS = new int[] { 0, 2, 4, 8 };
 
+    private boolean queried = false;
+
     public static LwjglCapabilities computeCapabilities(DisplayMode[] availableModes, boolean forceNoPBuffer,
                                                         boolean forceNoFBO) {
         LwjglCapabilities caps = new LwjglCapabilities();
         caps.availableModes = availableModes;
+        caps.pbuffersSupported =
+                !forceNoPBuffer && (Pbuffer.getCapabilities() & Pbuffer.PBUFFER_SUPPORTED) != 0;
 
         PixelFormat baseFormat = new PixelFormat().withBitsPerPixel(availableModes[0].getBitDepth());
-        try {
-            // FIXME is it better to create pbuffers and do it offscreen?
-            // shrink the size of the display so as to reduce any potential flicker
-            Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(1, 1));
-        } catch (LWJGLException e) {
-            // shouldn't happen since there's no created display yet
-            throw new RuntimeException(e);
-        }
 
         // for loop over guessed common msaa, depth, and stencil options
         List<Integer> validDepth = new ArrayList<>();
         List<Integer> validStencil = new ArrayList<>();
         List<Integer> validMSAA = new ArrayList<>();
 
-        boolean queried = false;
         for (int depth : GUESSED_DEPTH_BITS) {
-            try {
-                Display.create(baseFormat.withDepthBits(depth));
-                // if we've reached this point, we're okay
+            if (isValid(baseFormat.withDepthBits(depth), caps, forceNoFBO)) {
                 validDepth.add(depth);
-                if (!queried) {
-                    caps.queryWithContext(forceNoPBuffer, forceNoFBO);
-                    queried = true;
-                }
-                Display.destroy();
-            } catch (LWJGLException e) {
-                // do nothing
             }
         }
         for (int stencil : GUESSED_STENCIL_BITS) {
-            try {
-                Display.create(baseFormat.withStencilBits(stencil));
-                // if we've reached this point, we're okay
+            if (isValid(baseFormat.withStencilBits(stencil), caps, forceNoFBO)) {
                 validStencil.add(stencil);
-                if (!queried) {
-                    caps.queryWithContext(forceNoPBuffer, forceNoFBO);
-                    queried = true;
-                }
-                Display.destroy();
-            } catch (LWJGLException e) {
-                // do nothing
             }
         }
         for (int msaa : GUESSED_MSAA_COUNTS) {
-            try {
-                Display.create(baseFormat.withSamples(msaa));
-                // if we've reached this point, we're okay
+            if (isValid(baseFormat.withSamples(msaa), caps, forceNoFBO)) {
                 validMSAA.add(msaa);
-                if (!queried) {
-                    caps.queryWithContext(forceNoPBuffer, forceNoFBO);
-                    queried = true;
-                }
-                Display.destroy();
-            } catch (LWJGLException e) {
-                // do nothing
             }
         }
 
-        if (!queried) {
+        if (!caps.queried) {
             throw new FrameworkException("Unable to create valid context to query capabilities");
         }
+
         caps.depthBufferSizes = new int[validDepth.size()];
         for (int i = 0; i < validDepth.size(); i++) {
             caps.depthBufferSizes[i] = validDepth.get(i);
@@ -129,6 +98,37 @@ public class LwjglCapabilities extends Capabilities {
         Arrays.sort(caps.msaaSamples);
 
         return caps;
+    }
+
+    private static boolean isValid(PixelFormat format, LwjglCapabilities caps, boolean forceNoFBOs) {
+        if (caps.pbuffersSupported) {
+            try {
+                Pbuffer pbuffer = new Pbuffer(1, 1, format, null);
+                pbuffer.makeCurrent();
+                if (!caps.queried) {
+                    caps.queryWithContext(forceNoFBOs);
+                }
+                pbuffer.releaseContext();
+                pbuffer.destroy();
+                return true;
+            } catch (LWJGLException e) {
+                return false;
+            }
+        } else {
+            try {
+                Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(1, 1));
+                Display.create(format);
+                Display.makeCurrent();
+                if (!caps.queried) {
+                    caps.queryWithContext(forceNoFBOs);
+                }
+                Display.releaseContext();
+                Display.destroy();
+                return true;
+            } catch (LWJGLException e) {
+                return false;
+            }
+        }
     }
 
     private static float formatVersion(String glv) {
@@ -151,7 +151,7 @@ public class LwjglCapabilities extends Capabilities {
         return Float.parseFloat(v);
     }
 
-    private void queryWithContext(boolean forceNoPBuffer, boolean forceNoFBO) {
+    private void queryWithContext(boolean forceNoFBO) {
         ContextCapabilities caps = GLContext.getCapabilities();
 
         vendor = GL11.glGetString(GL11.GL_VENDOR) + "-" +
@@ -166,7 +166,6 @@ public class LwjglCapabilities extends Capabilities {
         glslVersion = (int) Math.floor(100 * glslVersionNum);
 
         geometryShaderSupport = caps.GL_EXT_geometry_shader4 || (majorVersion >= 3 && minorVersion >= 3);
-        pbuffersSupported = !forceNoPBuffer && (Pbuffer.getCapabilities() & Pbuffer.PBUFFER_SUPPORTED) != 0;
 
         fboSupported = !forceNoFBO && (majorVersion >= 3 || caps.GL_EXT_framebuffer_object);
         if (fboSupported) {
@@ -229,5 +228,7 @@ public class LwjglCapabilities extends Capabilities {
         } else {
             maxRenderbufferSize = maxTextureSize;
         }
+
+        queried = true;
     }
 }

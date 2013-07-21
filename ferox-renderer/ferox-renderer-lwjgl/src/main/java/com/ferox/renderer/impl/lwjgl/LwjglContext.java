@@ -179,10 +179,17 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void release() {
+        int error;
         try {
+            error = GL11.glGetError();
             context.releaseContext();
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to release context", e);
+        }
+
+        if (error != 0) {
+            throw new FrameworkException("OpenGL error flagged, checked on context release: " +
+                                         Util.translateGLErrorString(error));
         }
     }
 
@@ -215,7 +222,7 @@ public class LwjglContext implements OpenGLContext {
     public void bindArrayVBO(BufferImpl.BufferHandle vbo) {
         if (vbo != sharedState.arrayVBO) {
             sharedState.arrayVBO = vbo;
-            int bufferID = (vbo == null || vbo.inmemoryBuffer == null ? 0 : vbo.vboID);
+            int bufferID = (vbo == null || vbo.inmemoryBuffer != null ? 0 : vbo.vboID);
 
             GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, bufferID);
         }
@@ -225,7 +232,7 @@ public class LwjglContext implements OpenGLContext {
     public void bindElementVBO(BufferImpl.BufferHandle vbo) {
         if (vbo != sharedState.elementVBO) {
             sharedState.elementVBO = vbo;
-            int bufferID = (vbo == null || vbo.inmemoryBuffer == null ? 0 : vbo.vboID);
+            int bufferID = (vbo == null || vbo.inmemoryBuffer != null ? 0 : vbo.vboID);
 
             GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, bufferID);
         }
@@ -258,7 +265,9 @@ public class LwjglContext implements OpenGLContext {
                 // unbind old texture
                 GL11.glBindTexture(Utils.getGLTextureTarget(prevTex.target), 0);
             }
-            GL11.glBindTexture(Utils.getGLTextureTarget(newTarget), textureID);
+            if (newTarget != null) {
+                GL11.glBindTexture(Utils.getGLTextureTarget(newTarget), textureID);
+            }
 
             sharedState.textures[textureUnit] = texture;
         }

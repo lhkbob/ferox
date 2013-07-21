@@ -30,7 +30,6 @@ import com.ferox.input.KeyListener;
 import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
-import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
@@ -127,7 +126,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             }, true);
 
             try {
-                Display.setParent(glCanvas);
+                Display.setParent(innerCanvas);
                 Display.create(format, realShare);
             } catch (LWJGLException e) {
                 if (Display.isCreated()) {
@@ -428,18 +427,15 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
     @Override
     public SurfaceDestructible getSurfaceDestructible() {
-        return null;
+        return impl;
     }
 
     @Override
     public void flush(OpenGLContext context) {
-        try {
-            // Just swap the buffers during flush(), we'll process messages
-            // in another queued task
-            Display.swapBuffers();
-        } catch (LWJGLException e) {
-            throw new FrameworkException("Error swapping Display's buffers", e);
-        }
+        // Just swap the buffers during flush(), we'll process messages
+        // in another queued task
+        //            Display.swapBuffers();
+        Display.update(false);
     }
 
     private static class LwjglStaticDisplayDestructible extends SurfaceDestructible
@@ -480,7 +476,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
         @Override
         public OpenGLContext getContext() {
-            return null;
+            return context;
         }
 
         @Override

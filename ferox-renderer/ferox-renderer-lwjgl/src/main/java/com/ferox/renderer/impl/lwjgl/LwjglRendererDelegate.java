@@ -214,7 +214,7 @@ public class LwjglRendererDelegate extends RendererDelegate {
             throw new NullPointerException("Clear color cannot be null");
         }
         if (depth < 0f || depth > 1f) {
-            throw new IllegalArgumentException("Clear depht must be in [0, 1], not: " + depth);
+            throw new IllegalArgumentException("Clear depth must be in [0, 1], not: " + depth);
         }
 
         if (!this.clearColor.equals(color)) {
