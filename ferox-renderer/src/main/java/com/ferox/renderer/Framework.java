@@ -27,7 +27,15 @@
 package com.ferox.renderer;
 
 import com.ferox.renderer.builder.*;
+import com.ferox.renderer.impl.FrameworkImpl;
+import com.ferox.renderer.impl.ResourceFactory;
+import com.ferox.renderer.impl.SurfaceFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.concurrent.Future;
 
 /**
@@ -37,6 +45,9 @@ import java.util.concurrent.Future;
  * Context} implementations that allow actual use of Renderers and Resources. A Framework acts as an advanced
  * task execution service that queues up {@link Task tasks} to run on an internal thread that can communicate
  * with low-level graphics drivers.
+ * <p/>
+ * A Framework is created by calling {@code Framework.Factory.create();}. Generally there should be only one
+ * framework instance at a time.
  * <p/>
  * Framework implementations are thread safe so that a single Framework instance can be used from multiple
  * threads. Generally, a single Framework should active at a time. Renderers, Contexts and
@@ -68,6 +79,66 @@ import java.util.concurrent.Future;
  * @author Michael Ludwig
  */
 public interface Framework extends Destructible {
+    /**
+     * Factory class for Frameworks
+     */
+    public static class Factory {
+        private static final String FACTORY_DIR = "META-INF/ferox/renderer/";
+
+        public static Framework create() {
+            Class<? extends ResourceFactory> resourceFactory = getImplementation(ResourceFactory.class);
+            Class<? extends SurfaceFactory> surfaceFactory = getImplementation(SurfaceFactory.class);
+
+            try {
+                FrameworkImpl f = new FrameworkImpl(surfaceFactory.newInstance(),
+                                                    resourceFactory.newInstance());
+                f.initialize();
+                return f;
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new FrameworkException("Unable to create surface and resource factories via reflection",
+                                             e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> Class<? extends T> getImplementation(Class<T> superType) {
+            ClassLoader loader = Factory.class.getClassLoader();
+            try {
+                // otherwise check if we have a properties file to load
+                Enumeration<URL> urls = loader.getResources(FACTORY_DIR + superType.getCanonicalName());
+                if (urls.hasMoreElements()) {
+                    URL mapping = urls.nextElement();
+                    if (urls.hasMoreElements()) {
+                        throw new FrameworkException("Multiple mapping files for " + superType +
+                                                     ". Only one of LWJGL or JOGL backends should be in classpath.");
+                    }
+
+                    BufferedReader in = new BufferedReader(new InputStreamReader(mapping.openStream()));
+                    String line;
+                    StringBuilder className = new StringBuilder();
+                    // be somewhat permissive of whitespace (any other input most likely
+                    // will fail to load a class)
+                    while ((line = in.readLine()) != null) {
+                        className.append(line);
+                    }
+                    in.close();
+
+                    try {
+                        return (Class<? extends T>) loader.loadClass(className.toString().trim());
+                    } catch (ClassNotFoundException e) {
+                        throw new FrameworkException("Unable to load implementation for " + superType, e);
+                    }
+                } else {
+                    throw new FrameworkException("No mapping in META-INF found for " + superType +
+                                                 ". Make sure one of the LWJGL or JOGL" +
+                                                 "backends are on the classpath.");
+                }
+            } catch (IOException e) {
+                throw new FrameworkException("Error reading META-INF mapping for class: " + superType, e);
+            }
+        }
+    }
+
     /**
      * Return the DisplayMode representing the default display mode selected when the surface is no longer
      * fullscreen. This will be the original display mode selected by the user before they started the

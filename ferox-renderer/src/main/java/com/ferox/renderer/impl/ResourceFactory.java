@@ -24,11 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.impl.resources;
+package com.ferox.renderer.impl;
 
 import com.ferox.renderer.builder.*;
-import com.ferox.renderer.impl.FrameworkImpl;
-import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.resources.AbstractResource;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 /**
  *

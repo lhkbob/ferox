@@ -13,7 +13,7 @@ import com.ferox.renderer.geom.Geometry;
  */
 public class FixedFunctionTest {
     public static void main(String[] args) throws Exception {
-        final LwjglFramework framework = LwjglFramework.create();
+        final Framework framework = Framework.Factory.create();
         final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().windowed(500, 500));
         s.setTitle("Hello World");
         s.setVSyncEnabled(true);

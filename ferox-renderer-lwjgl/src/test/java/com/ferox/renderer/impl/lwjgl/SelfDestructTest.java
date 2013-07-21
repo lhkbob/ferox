@@ -32,7 +32,7 @@ import java.util.Arrays;
 
 public class SelfDestructTest {
     public static void main(String[] args) throws Exception {
-        final Framework f = LwjglFramework.create();
+        final Framework f = Framework.Factory.create();
         System.out.println("framework created");
         final OnscreenSurface surface = f
                 .createSurface(new OnscreenSurfaceOptions().windowed(800, 800).fixedSize().undecorated());

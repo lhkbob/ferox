@@ -49,15 +49,14 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
     /**
-     * Create a new LwjglSurfaceFactory that will use the given profile and capability limitations.
-     *
-     * @param profile        The GLProfile FIXME
-     * @param forceNoPBuffer Prevent the use of pbuffers even if they're available
-     * @param forceNoFBO     Prevent the use of fbos even if they're available
+     * Create a new LwjglSurfaceFactory.
      *
      * @throws NullPointerException if profile is null
      */
-    public LwjglSurfaceFactory(boolean forceNoPBuffer, boolean forceNoFBO) {
+    public LwjglSurfaceFactory() {
+        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
+        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+
         convertMap = new HashMap<>();
 
         try {

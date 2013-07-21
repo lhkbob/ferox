@@ -28,7 +28,6 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.*;
-import com.ferox.renderer.impl.resources.ResourceFactory;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.Callable;
