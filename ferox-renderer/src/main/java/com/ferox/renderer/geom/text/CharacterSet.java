@@ -28,9 +28,7 @@ package com.ferox.renderer.geom.text;
 
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.Texture2D;
-import com.ferox.renderer.builder.SingleImageBuilder;
 import com.ferox.renderer.builder.Texture2DBuilder;
-import com.ferox.renderer.builder.TextureBuilder;
 import com.ferox.renderer.geom.text.RectanglePacker.Rectangle;
 
 import java.awt.*;
@@ -282,9 +280,8 @@ public class CharacterSet {
         if (antiAlias) {
             b.interpolated();
         }
-        SingleImageBuilder<Texture2D, TextureBuilder.ARGBData> img = b.argb();
-        img.mipmap(0).fromPackedBytes(data);
-        this.characters = img.build();
+        b.argb().mipmap(0).fromPackedBytes(data);
+        this.characters = b.build();
     }
 
     /*

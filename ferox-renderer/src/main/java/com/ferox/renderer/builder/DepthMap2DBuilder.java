@@ -29,12 +29,12 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.DepthMap2D;
 
 /**
- * DepthMap2DBuilder is a concrete sampler builder for {@link DepthMap2D} resources. It uses {@link
- * SingleImageBuilder} instances to specify the actual mipmap image data and build the final DepthMap2D.
+ * DepthMap2DBuilder is a concrete sampler builder for {@link DepthMap2D} resources. It uses {@link ImageData}
+ * instances to specify the actual mipmap image data and build the final DepthMap2D.
  *
  * @author Michael Ludwig
  */
-public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
+public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder>, Builder<DepthMap2D> {
     /**
      * Configure the width of the 2D depth map at the 0th mipmap level.
      *
@@ -68,7 +68,7 @@ public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<DepthMap2D, DepthData> depth();
+    public ImageData<? extends DepthData> depth();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH_STENCIL}.
@@ -79,5 +79,5 @@ public interface DepthMap2DBuilder extends DepthMapBuilder<DepthMap2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<DepthMap2D, DepthStencilData> depthStencil();
+    public ImageData<? extends DepthStencilData> depthStencil();
 }

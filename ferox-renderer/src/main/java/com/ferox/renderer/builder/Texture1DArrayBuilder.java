@@ -30,11 +30,12 @@ import com.ferox.renderer.Texture1DArray;
 
 /**
  * Texture1DArrayBuilder is a concrete sampler builder for {@link Texture1DArray} resources. It uses {@link
- * ArrayImageBuilder} instances to specify the actual mipmap image data and build the final Texture1DArray.
+ * ArrayImageData} instances to specify the actual mipmap image data and build the final Texture1DArray.
  *
  * @author Michael Ludwig
  */
-public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuilder> {
+public interface Texture1DArrayBuilder
+        extends TextureBuilder<Texture1DArrayBuilder>, Builder<Texture1DArray> {
     /**
      * Configure the length in pixels of each 1D texture at the 0th mipmap level.
      *
@@ -68,7 +69,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> r();
+    public ArrayImageData<? extends BasicColorData> r();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}. The
@@ -79,7 +80,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> rg();
+    public ArrayImageData<? extends BasicColorData> rg();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}. The
@@ -90,7 +91,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, RGBData> rgb();
+    public ArrayImageData<? extends RGBData> rgb();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
@@ -102,7 +103,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> bgr();
+    public ArrayImageData<? extends BasicColorData> bgr();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}. The
@@ -113,7 +114,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> rgba();
+    public ArrayImageData<? extends BasicColorData> rgba();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -125,7 +126,7 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> bgra();
+    public ArrayImageData<? extends BasicColorData> bgra();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -137,5 +138,5 @@ public interface Texture1DArrayBuilder extends TextureBuilder<Texture1DArrayBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public ArrayImageBuilder<Texture1DArray, ARGBData> argb();
+    public ArrayImageData<? extends ARGBData> argb();
 }

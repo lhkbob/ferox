@@ -30,12 +30,12 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.*;
-import com.ferox.renderer.builder.ArrayImageBuilder;
-import com.ferox.renderer.builder.CubeImageBuilder;
+import com.ferox.renderer.builder.ArrayImageData;
+import com.ferox.renderer.builder.CubeImageData;
 import com.ferox.renderer.builder.DepthMapBuilder.DepthData;
 import com.ferox.renderer.builder.DepthMapBuilder.DepthStencilData;
+import com.ferox.renderer.builder.ImageData;
 import com.ferox.renderer.builder.SamplerBuilder;
-import com.ferox.renderer.builder.SingleImageBuilder;
 import com.ferox.renderer.builder.TextureBuilder.ARGBData;
 import com.ferox.renderer.builder.TextureBuilder.BasicColorData;
 import com.ferox.renderer.builder.TextureBuilder.CompressedRGBAData;
@@ -45,6 +45,7 @@ import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 
 import java.nio.ByteBuffer;
+
 
 /**
  *
@@ -470,9 +471,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
 
     protected abstract void setDepthComparison(OpenGLContext context, Renderer.Comparison comparison);
 
-    protected SingleImageBuilder<T, BasicColorData> singleR() {
+    protected ImageData<? extends BasicColorData> singleR() {
         allocateImages();
-        return new SingleImageBuilderImpl<BasicColorData>() {
+        return new ImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int level) {
                 return TextureDatas.forR(this, 0, level);
@@ -480,9 +481,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, BasicColorData> singleRG() {
+    protected ImageData<? extends BasicColorData> singleRG() {
         allocateImages();
-        return new SingleImageBuilderImpl<BasicColorData>() {
+        return new ImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int level) {
                 return TextureDatas.forRG(this, 0, level);
@@ -490,9 +491,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, CompressedRGBData> singleRGB() {
+    protected ImageData<? extends CompressedRGBData> singleRGB() {
         allocateImages();
-        return new SingleImageBuilderImpl<CompressedRGBData>() {
+        return new ImageDataImpl<CompressedRGBData>() {
             @Override
             public CompressedRGBData mipmap(int level) {
                 return TextureDatas.forRGB(this, 0, level);
@@ -500,9 +501,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, BasicColorData> singleBGR() {
+    protected ImageData<? extends BasicColorData> singleBGR() {
         allocateImages();
-        return new SingleImageBuilderImpl<BasicColorData>() {
+        return new ImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int level) {
                 return TextureDatas.forBGR(this, 0, level);
@@ -510,9 +511,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, CompressedRGBAData> singleRGBA() {
+    protected ImageData<? extends CompressedRGBAData> singleRGBA() {
         allocateImages();
-        return new SingleImageBuilderImpl<CompressedRGBAData>() {
+        return new ImageDataImpl<CompressedRGBAData>() {
             @Override
             public CompressedRGBAData mipmap(int level) {
                 return TextureDatas.forRGBA(this, 0, level);
@@ -520,9 +521,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, BasicColorData> singleBGRA() {
+    protected ImageData<? extends BasicColorData> singleBGRA() {
         allocateImages();
-        return new SingleImageBuilderImpl<BasicColorData>() {
+        return new ImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int level) {
                 return TextureDatas.forBGRA(this, 0, level);
@@ -530,9 +531,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, ARGBData> singleARGB() {
+    protected ImageData<? extends ARGBData> singleARGB() {
         allocateImages();
-        return new SingleImageBuilderImpl<ARGBData>() {
+        return new ImageDataImpl<ARGBData>() {
             @Override
             public ARGBData mipmap(int level) {
                 return TextureDatas.forARGB(this, 0, level);
@@ -540,9 +541,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, DepthData> singleDepth() {
+    protected ImageData<? extends DepthData> singleDepth() {
         allocateImages();
-        return new SingleImageBuilderImpl<DepthData>() {
+        return new ImageDataImpl<DepthData>() {
             @Override
             public DepthData mipmap(int level) {
                 return TextureDatas.forDepth(this, 0, level);
@@ -550,9 +551,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected SingleImageBuilder<T, DepthStencilData> singleDepthStencil() {
+    protected ImageData<? extends DepthStencilData> singleDepthStencil() {
         allocateImages();
-        return new SingleImageBuilderImpl<DepthStencilData>() {
+        return new ImageDataImpl<DepthStencilData>() {
             @Override
             public DepthStencilData mipmap(int level) {
                 return TextureDatas.forDepthStencil(this, 0, level);
@@ -560,9 +561,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, BasicColorData> cubeR() {
+    protected CubeImageData<? extends BasicColorData> cubeR() {
         allocateImages();
-        return new CubeImageBuilderImpl<BasicColorData>() {
+        return new CubeImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forR(this, image, level);
@@ -570,9 +571,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, BasicColorData> cubeRG() {
+    protected CubeImageData<? extends BasicColorData> cubeRG() {
         allocateImages();
-        return new CubeImageBuilderImpl<BasicColorData>() {
+        return new CubeImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forRG(this, image, level);
@@ -580,9 +581,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, CompressedRGBData> cubeRGB() {
+    protected CubeImageData<? extends CompressedRGBData> cubeRGB() {
         allocateImages();
-        return new CubeImageBuilderImpl<CompressedRGBData>() {
+        return new CubeImageDataImpl<CompressedRGBData>() {
             @Override
             public CompressedRGBData mipmap(int image, int level) {
                 return TextureDatas.forRGB(this, image, level);
@@ -590,9 +591,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, BasicColorData> cubeBGR() {
+    protected CubeImageData<? extends BasicColorData> cubeBGR() {
         allocateImages();
-        return new CubeImageBuilderImpl<BasicColorData>() {
+        return new CubeImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forBGR(this, image, level);
@@ -600,9 +601,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, CompressedRGBAData> cubeRGBA() {
+    protected CubeImageData<? extends CompressedRGBAData> cubeRGBA() {
         allocateImages();
-        return new CubeImageBuilderImpl<CompressedRGBAData>() {
+        return new CubeImageDataImpl<CompressedRGBAData>() {
             @Override
             public CompressedRGBAData mipmap(int image, int level) {
                 return TextureDatas.forRGBA(this, image, level);
@@ -610,9 +611,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, BasicColorData> cubeBGRA() {
+    protected CubeImageData<? extends BasicColorData> cubeBGRA() {
         allocateImages();
-        return new CubeImageBuilderImpl<BasicColorData>() {
+        return new CubeImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forBGRA(this, image, level);
@@ -620,9 +621,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, ARGBData> cubeARGB() {
+    protected CubeImageData<? extends ARGBData> cubeARGB() {
         allocateImages();
-        return new CubeImageBuilderImpl<ARGBData>() {
+        return new CubeImageDataImpl<ARGBData>() {
             @Override
             public ARGBData mipmap(int image, int level) {
                 return TextureDatas.forARGB(this, image, level);
@@ -630,9 +631,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, DepthData> cubeDepth() {
+    protected CubeImageData<? extends DepthData> cubeDepth() {
         allocateImages();
-        return new CubeImageBuilderImpl<DepthData>() {
+        return new CubeImageDataImpl<DepthData>() {
             @Override
             public DepthData mipmap(int image, int level) {
                 return TextureDatas.forDepth(this, image, level);
@@ -640,9 +641,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected CubeImageBuilder<T, DepthStencilData> cubeDepthStencil() {
+    protected CubeImageData<? extends DepthStencilData> cubeDepthStencil() {
         allocateImages();
-        return new CubeImageBuilderImpl<DepthStencilData>() {
+        return new CubeImageDataImpl<DepthStencilData>() {
             @Override
             public DepthStencilData mipmap(int image, int level) {
                 return TextureDatas.forDepthStencil(this, image, level);
@@ -650,9 +651,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, BasicColorData> arrayR() {
+    protected ArrayImageData<? extends BasicColorData> arrayR() {
         allocateImages();
-        return new ArrayImageBuilderImpl<BasicColorData>() {
+        return new ArrayImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forR(this, image, level);
@@ -660,9 +661,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, BasicColorData> arrayRG() {
+    protected ArrayImageData<? extends BasicColorData> arrayRG() {
         allocateImages();
-        return new ArrayImageBuilderImpl<BasicColorData>() {
+        return new ArrayImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forRG(this, image, level);
@@ -670,9 +671,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, CompressedRGBData> arrayRGB() {
+    protected ArrayImageData<? extends CompressedRGBData> arrayRGB() {
         allocateImages();
-        return new ArrayImageBuilderImpl<CompressedRGBData>() {
+        return new ArrayImageDataImpl<CompressedRGBData>() {
             @Override
             public CompressedRGBData mipmap(int image, int level) {
                 return TextureDatas.forRGB(this, image, level);
@@ -680,9 +681,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, BasicColorData> arrayBGR() {
+    protected ArrayImageData<? extends BasicColorData> arrayBGR() {
         allocateImages();
-        return new ArrayImageBuilderImpl<BasicColorData>() {
+        return new ArrayImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forBGR(this, image, level);
@@ -690,9 +691,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, CompressedRGBAData> arrayRGBA() {
+    protected ArrayImageData<? extends CompressedRGBAData> arrayRGBA() {
         allocateImages();
-        return new ArrayImageBuilderImpl<CompressedRGBAData>() {
+        return new ArrayImageDataImpl<CompressedRGBAData>() {
             @Override
             public CompressedRGBAData mipmap(int image, int level) {
                 return TextureDatas.forRGBA(this, image, level);
@@ -700,9 +701,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, BasicColorData> arrayBGRA() {
+    protected ArrayImageData<? extends BasicColorData> arrayBGRA() {
         allocateImages();
-        return new ArrayImageBuilderImpl<BasicColorData>() {
+        return new ArrayImageDataImpl<BasicColorData>() {
             @Override
             public BasicColorData mipmap(int image, int level) {
                 return TextureDatas.forBGRA(this, image, level);
@@ -710,9 +711,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         };
     }
 
-    protected ArrayImageBuilder<T, ARGBData> arrayARGB() {
+    protected ArrayImageData<? extends ARGBData> arrayARGB() {
         allocateImages();
-        return new ArrayImageBuilderImpl<ARGBData>() {
+        return new ArrayImageDataImpl<ARGBData>() {
             @Override
             public ARGBData mipmap(int image, int level) {
                 return TextureDatas.forARGB(this, image, level);
@@ -768,13 +769,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                                     detectedMaxMipmap);
     }
 
-    private abstract class SingleImageBuilderImpl<M>
-            implements SingleImageBuilder<T, M>, TextureDatas.ImageSpecifier {
-        @Override
-        public T build() {
-            return AbstractSamplerBuilder.this.build();
-        }
-
+    private abstract class ImageDataImpl<M> implements ImageData<M>, TextureDatas.ImageSpecifier {
         @Override
         public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format) {
             imageData[image][mipmap] = array;
@@ -782,13 +777,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
     }
 
-    private abstract class CubeImageBuilderImpl<M>
-            implements CubeImageBuilder<T, M>, TextureDatas.ImageSpecifier {
-        @Override
-        public T build() {
-            return AbstractSamplerBuilder.this.build();
-        }
-
+    private abstract class CubeImageDataImpl<M> implements CubeImageData<M>, TextureDatas.ImageSpecifier {
         @Override
         public M positiveX(int mipmap) {
             return mipmap(TextureImpl.POSITIVE_X, mipmap);
@@ -828,13 +817,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
     }
 
-    private abstract class ArrayImageBuilderImpl<M>
-            implements ArrayImageBuilder<T, M>, TextureDatas.ImageSpecifier {
-        @Override
-        public T build() {
-            return AbstractSamplerBuilder.this.build();
-        }
-
+    private abstract class ArrayImageDataImpl<M> implements ArrayImageData<M>, TextureDatas.ImageSpecifier {
         @Override
         public void setImageData(int image, int mipmap, Object array, TextureImpl.FullFormat format) {
             imageData[image][mipmap] = array;

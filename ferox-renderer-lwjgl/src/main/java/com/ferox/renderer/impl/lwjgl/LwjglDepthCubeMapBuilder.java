@@ -27,7 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.DepthCubeMap;
-import com.ferox.renderer.builder.CubeImageBuilder;
+import com.ferox.renderer.builder.CubeImageData;
 import com.ferox.renderer.builder.DepthCubeMapBuilder;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -47,12 +47,12 @@ public class LwjglDepthCubeMapBuilder extends LwjglSamplerBuilder<DepthCubeMap, 
     }
 
     @Override
-    public CubeImageBuilder<DepthCubeMap, DepthData> depth() {
+    public CubeImageData<? extends DepthData> depth() {
         return cubeDepth();
     }
 
     @Override
-    public CubeImageBuilder<DepthCubeMap, DepthStencilData> depthStencil() {
+    public CubeImageData<? extends DepthStencilData> depthStencil() {
         return cubeDepthStencil();
     }
 }

@@ -27,7 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Texture1DArray;
-import com.ferox.renderer.builder.ArrayImageBuilder;
+import com.ferox.renderer.builder.ArrayImageData;
 import com.ferox.renderer.builder.Texture1DArrayBuilder;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -50,39 +50,37 @@ public class LwjglTexture1DArrayBuilder extends LwjglSamplerBuilder<Texture1DArr
     }
 
     @Override
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> r() {
+    public ArrayImageData<? extends BasicColorData> r() {
         return arrayR();
     }
 
     @Override
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> rg() {
+    public ArrayImageData<? extends BasicColorData> rg() {
         return arrayRG();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public ArrayImageBuilder<Texture1DArray, RGBData> rgb() {
-        return (ArrayImageBuilder) arrayRGB();
+    public ArrayImageData<? extends RGBData> rgb() {
+        return arrayRGB();
     }
 
     @Override
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> bgr() {
+    public ArrayImageData<? extends BasicColorData> bgr() {
         return arrayBGR();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> rgba() {
-        return (ArrayImageBuilder) arrayRGBA();
+    public ArrayImageData<? extends BasicColorData> rgba() {
+        return arrayRGBA();
     }
 
     @Override
-    public ArrayImageBuilder<Texture1DArray, BasicColorData> bgra() {
+    public ArrayImageData<? extends BasicColorData> bgra() {
         return arrayBGRA();
     }
 
     @Override
-    public ArrayImageBuilder<Texture1DArray, ARGBData> argb() {
+    public ArrayImageData<? extends ARGBData> argb() {
         return arrayARGB();
     }
 }

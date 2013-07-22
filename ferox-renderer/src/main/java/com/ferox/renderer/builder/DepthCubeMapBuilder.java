@@ -30,11 +30,11 @@ import com.ferox.renderer.DepthCubeMap;
 
 /**
  * DepthCubeMapBuilder is a concrete sampler builder for {@link DepthCubeMap} resources. It uses {@link
- * CubeImageBuilder} instances to specify the actual mipmap image data and build the final DepthCubeMap.
+ * CubeImageData} instances to specify the actual mipmap image data and build the final DepthCubeMap.
  *
  * @author Michael Ludwig
  */
-public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder> {
+public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder>, Builder<DepthCubeMap> {
     /**
      * Configure the width and height of each 2D face of the depth map at the 0th mipmap level.
      *
@@ -56,7 +56,7 @@ public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<DepthCubeMap, DepthData> depth();
+    public CubeImageData<? extends DepthData> depth();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#DEPTH_STENCIL}.
@@ -67,5 +67,5 @@ public interface DepthCubeMapBuilder extends DepthMapBuilder<DepthCubeMapBuilder
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<DepthCubeMap, DepthStencilData> depthStencil();
+    public CubeImageData<? extends DepthStencilData> depthStencil();
 }

@@ -27,7 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Texture2D;
-import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.ImageData;
 import com.ferox.renderer.builder.Texture2DBuilder;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -50,37 +50,37 @@ public class LwjglTexture2DBuilder extends LwjglSamplerBuilder<Texture2D, Textur
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, BasicColorData> r() {
+    public ImageData<? extends BasicColorData> r() {
         return singleR();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, BasicColorData> rg() {
+    public ImageData<? extends BasicColorData> rg() {
         return singleRG();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, CompressedRGBData> rgb() {
+    public ImageData<? extends CompressedRGBData> rgb() {
         return singleRGB();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, BasicColorData> bgr() {
+    public ImageData<? extends BasicColorData> bgr() {
         return singleBGR();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, CompressedRGBAData> rgba() {
+    public ImageData<? extends CompressedRGBAData> rgba() {
         return singleRGBA();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, BasicColorData> bgra() {
+    public ImageData<? extends BasicColorData> bgra() {
         return singleBGRA();
     }
 
     @Override
-    public SingleImageBuilder<Texture2D, ARGBData> argb() {
+    public ImageData<? extends ARGBData> argb() {
         return singleARGB();
     }
 }

@@ -29,7 +29,7 @@ package com.ferox.renderer.texture;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.Texture2D;
 import com.ferox.renderer.builder.Builder;
-import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.ImageData;
 import com.ferox.renderer.builder.Texture2DBuilder;
 import com.ferox.renderer.builder.TextureBuilder;
 
@@ -52,7 +52,7 @@ import java.io.InputStream;
 public class TGATexture {
     private final Texture2DBuilder texBuilder;
     private final Header header;
-    private final SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> imageBuilder;
+    private final ImageData<? extends TextureBuilder.BasicColorData> imageBuilder;
 
     /**
      * <p/>
@@ -73,7 +73,7 @@ public class TGATexture {
         if (stream == null) {
             throw new IOException("Cannot read from a null stream");
         }
-        return new TGATexture(framework, stream).imageBuilder;
+        return new TGATexture(framework, stream).texBuilder;
     }
 
     /**
@@ -404,7 +404,7 @@ public class TGATexture {
      * Identifies the image type of the tga image data and loads it into a
      * byte[] array.
      */
-    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeImage(InputStream in)
+    private ImageData<? extends TextureBuilder.BasicColorData> decodeImage(InputStream in)
             throws IOException {
         switch (header.imageType) {
         case TYPE_COLORMAP:
@@ -431,15 +431,16 @@ public class TGATexture {
      * Decode the image based on the given color map, assuming that the color
      * map has bit depth of 24 or 32.
      */
-    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeColorMap24_32(
-            ColorMap cm, InputStream dIn) throws IOException {
+    private ImageData<? extends TextureBuilder.BasicColorData> decodeColorMap24_32(ColorMap cm,
+                                                                                   InputStream dIn)
+            throws IOException {
         int i; // input row index
         int y; // output row index
         int c; // column index
         int rawWidth = header.width * cm.elementByteCount; // length of expanded color row
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> img;
+        ImageData<? extends TextureBuilder.BasicColorData> img;
         if (cm.elementByteCount == 3) {
             img = texBuilder.bgr();
         } else {
@@ -483,8 +484,8 @@ public class TGATexture {
      * image respectively. (really a ARGB image, but its in LE order, but just
      * using BGRA is faster) FIXME: does this assumption work for 24 bit images?
      */
-    private SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> decodeTrueColor24_32(
-            InputStream dIn) throws IOException {
+    private ImageData<? extends TextureBuilder.BasicColorData> decodeTrueColor24_32(InputStream dIn)
+            throws IOException {
         int i; // input row index
         int y; // output row index
         int rawWidth = header.width * (header.pixelDepth >> 3);
@@ -492,7 +493,7 @@ public class TGATexture {
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height];
 
-        SingleImageBuilder<Texture2D, TextureBuilder.BasicColorData> img;
+        ImageData<? extends TextureBuilder.BasicColorData> img;
         if (header.pixelDepth == 24) {
             img = texBuilder.bgr();
         } else {

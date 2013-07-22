@@ -26,17 +26,15 @@
  */
 package com.ferox.renderer.builder;
 
-import com.ferox.renderer.Sampler;
-
 /**
- * SingleImageBuilder is the final image builder used by SamplerBuilders where the sampler type has only a
- * single image. The dimensionality of the image can be one, two, or three dimensional but there will only be
- * a single block of texel data. This is used by {@link Texture1DBuilder}, {@link Texture2DBuilder}, {@link
+ * ImageData is the image data provider used by SamplerBuilders where the sampler type has only a single
+ * image. The dimensionality of the image can be one, two, or three dimensional but there will only be a
+ * single block of texel data. This is used by {@link Texture1DBuilder}, {@link Texture2DBuilder}, {@link
  * Texture3DBuilder}, and {@link DepthMap2DBuilder}.
  *
  * @author Michael Ludwig
  */
-public interface SingleImageBuilder<T extends Sampler, M> extends Builder<T> {
+public interface ImageData<M> {
     /**
      * Get a data specification instance of type {@code M} for the given mipmap {@code level}. The returned
      * instance, depending on the exact parameter type, will expose data methods that receive primitive arrays

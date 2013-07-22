@@ -27,7 +27,10 @@
 package com.ferox.renderer.texture;
 
 import com.ferox.renderer.*;
-import com.ferox.renderer.builder.*;
+import com.ferox.renderer.builder.ArrayImageData;
+import com.ferox.renderer.builder.Builder;
+import com.ferox.renderer.builder.CubeImageData;
+import com.ferox.renderer.builder.ImageData;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -61,8 +64,7 @@ public class DDSTexture {
     // (in which case it's set to 1)
     private int width, height, depth;
 
-    private final SamplerBuilder<?> texBuilder;
-    private final Builder<? extends Sampler> imageBuilder;
+    private final Builder<? extends Sampler> texBuilder;
 
     /**
      * <p/>
@@ -87,7 +89,7 @@ public class DDSTexture {
             throw new IOException("Cannot read a texture from a null stream");
         }
 
-        return new DDSTexture(framework, stream).imageBuilder;
+        return new DDSTexture(framework, stream).texBuilder;
     }
 
     /**
@@ -157,14 +159,14 @@ public class DDSTexture {
         identifyTextureFormat();
 
         texBuilder = createSamplerBuilder(framework);
-        imageBuilder = createImageBuilder();
+        Object imageBuilder = createImageBuilder();
 
-        if (imageBuilder instanceof SingleImageBuilder) {
-            readData(in, (SingleImageBuilder<?, ?>) imageBuilder);
-        } else if (imageBuilder instanceof ArrayImageBuilder) {
-            readData(in, (ArrayImageBuilder<?, ?>) imageBuilder);
+        if (imageBuilder instanceof ImageData) {
+            readData(in, (ImageData<?>) imageBuilder);
+        } else if (imageBuilder instanceof ArrayImageData) {
+            readData(in, (ArrayImageData<?>) imageBuilder);
         } else {
-            readData(in, (CubeImageBuilder<?, ?>) imageBuilder);
+            readData(in, (CubeImageData<?>) imageBuilder);
         }
     }
 
@@ -650,7 +652,7 @@ public class DDSTexture {
         }
     }
 
-    private SamplerBuilder<?> createSamplerBuilder(Framework framework) {
+    private Builder<? extends Sampler> createSamplerBuilder(Framework framework) {
         // configure the sampler builder based on target
         if (target.equals(TextureCubeMap.class)) {
             return framework.newTextureCubeMap().side(width);
@@ -748,7 +750,7 @@ public class DDSTexture {
     }
 
     @SuppressWarnings("unchecked")
-    private Builder<? extends Sampler> createImageBuilder() {
+    private Object createImageBuilder() {
         String methodName;
         if (format != null) {
             if (format.format == Sampler.TexelFormat.COMPRESSED_RGB) {
@@ -767,8 +769,7 @@ public class DDSTexture {
         }
 
         try {
-            return (Builder<? extends Sampler>) texBuilder.getClass().getMethod(methodName)
-                                                          .invoke(texBuilder);
+            return texBuilder.getClass().getMethod(methodName).invoke(texBuilder);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Bug in format method selection", e);
         }
@@ -827,7 +828,7 @@ public class DDSTexture {
         return h;
     }
 
-    private void readData(InputStream in, SingleImageBuilder<?, ?> img) throws IOException {
+    private void readData(InputStream in, ImageData<?> img) throws IOException {
         for (int m = 0; m < mipmapCount; m++) {
             byte[] raw = new byte[getBufferSize(m)];
             readAll(in, raw);
@@ -835,7 +836,7 @@ public class DDSTexture {
         }
     }
 
-    private void readData(InputStream in, ArrayImageBuilder<?, ?> img) throws IOException {
+    private void readData(InputStream in, ArrayImageData<?> img) throws IOException {
         for (int i = 0; i < imageCount; i++) {
             for (int m = 0; m < mipmapCount; m++) {
                 byte[] raw = new byte[getBufferSize(m)];
@@ -845,7 +846,7 @@ public class DDSTexture {
         }
     }
 
-    private void readData(InputStream in, CubeImageBuilder<?, ?> img) throws IOException {
+    private void readData(InputStream in, CubeImageData<?> img) throws IOException {
         for (int m = 0; m < mipmapCount; m++) {
             byte[] raw = new byte[getBufferSize(m)];
             readAll(in, raw);

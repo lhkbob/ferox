@@ -28,7 +28,7 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.DepthMap2D;
 import com.ferox.renderer.builder.DepthMap2DBuilder;
-import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.ImageData;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
 
@@ -47,12 +47,12 @@ public class LwjglDepthMap2DBuilder extends LwjglSamplerBuilder<DepthMap2D, Dept
     }
 
     @Override
-    public SingleImageBuilder<DepthMap2D, DepthData> depth() {
+    public ImageData<? extends DepthData> depth() {
         return singleDepth();
     }
 
     @Override
-    public SingleImageBuilder<DepthMap2D, DepthStencilData> depthStencil() {
+    public ImageData<? extends DepthStencilData> depthStencil() {
         return singleDepthStencil();
     }
 }

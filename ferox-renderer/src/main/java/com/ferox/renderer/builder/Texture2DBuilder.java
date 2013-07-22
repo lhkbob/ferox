@@ -29,12 +29,12 @@ package com.ferox.renderer.builder;
 import com.ferox.renderer.Texture2D;
 
 /**
- * Texture2DBuilder is a concrete sampler builder for {@link Texture2D} resources. It uses {@link
- * SingleImageBuilder} instances to specify the actual mipmap image data and build the final Texture2D.
+ * Texture2DBuilder is a concrete sampler builder for {@link Texture2D} resources. It uses {@link ImageData}
+ * instances to specify the actual mipmap image data and build the final Texture2D.
  *
  * @author Michael Ludwig
  */
-public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
+public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder>, Builder<Texture2D> {
     /**
      * Configure the width of the 2D texture at the 0th mipmap level.
      *
@@ -68,7 +68,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, BasicColorData> r();
+    public ImageData<? extends BasicColorData> r();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}. The
@@ -79,7 +79,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, BasicColorData> rg();
+    public ImageData<? extends BasicColorData> rg();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB} or
@@ -90,7 +90,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, CompressedRGBData> rgb();
+    public ImageData<? extends CompressedRGBData> rgb();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
@@ -102,7 +102,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, BasicColorData> bgr();
+    public ImageData<? extends BasicColorData> bgr();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA} or
@@ -113,7 +113,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, CompressedRGBAData> rgba();
+    public ImageData<? extends CompressedRGBAData> rgba();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -125,7 +125,7 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, BasicColorData> bgra();
+    public ImageData<? extends BasicColorData> bgra();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -137,5 +137,5 @@ public interface Texture2DBuilder extends TextureBuilder<Texture2DBuilder> {
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public SingleImageBuilder<Texture2D, ARGBData> argb();
+    public ImageData<? extends ARGBData> argb();
 }

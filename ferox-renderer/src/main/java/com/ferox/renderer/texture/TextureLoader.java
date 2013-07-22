@@ -206,7 +206,7 @@ public class TextureLoader {
 
         Texture1DBuilder b = framework.newTexture1D();
         b.length(image.getWidth());
-        SingleImageBuilder<Texture1D, ? extends TextureBuilder.BasicColorData> i;
+        ImageData<? extends TextureBuilder.BasicColorData> i;
         if (im.format == Sampler.TexelFormat.RGBA) {
             i = b.rgba();
         } else if (im.format == Sampler.TexelFormat.RGB) {
@@ -223,7 +223,7 @@ public class TextureLoader {
             i.mipmap(0).fromUnsignedNormalized(rd);
         }
 
-        return i;
+        return b;
     }
 
     /**
@@ -257,7 +257,7 @@ public class TextureLoader {
 
         Texture2DBuilder b = framework.newTexture2D();
         b.width(image.getWidth()).height(image.getHeight());
-        SingleImageBuilder<Texture2D, ? extends TextureBuilder.BasicColorData> i;
+        ImageData<? extends TextureBuilder.BasicColorData> i;
         if (im.format == Sampler.TexelFormat.RGBA) {
             i = b.rgba();
         } else if (im.format == Sampler.TexelFormat.RGB) {
@@ -274,7 +274,7 @@ public class TextureLoader {
             i.mipmap(0).fromUnsignedNormalized(rd);
         }
 
-        return i;
+        return b;
     }
 
     /**
@@ -321,7 +321,7 @@ public class TextureLoader {
 
         TextureCubeMapBuilder b = framework.newTextureCubeMap();
         b.side(side);
-        CubeImageBuilder<TextureCubeMap, ? extends TextureBuilder.BasicColorData> i;
+        CubeImageData<? extends TextureBuilder.BasicColorData> i;
         if (im.format == Sampler.TexelFormat.RGBA) {
             i = b.rgba();
         } else if (im.format == Sampler.TexelFormat.RGB) {
@@ -337,7 +337,7 @@ public class TextureLoader {
         createCubeMapFace(image, formatted, i.negativeY(0), 4, im);
         createCubeMapFace(image, formatted, i.negativeZ(0), 5, im);
 
-        return i;
+        return b;
     }
 
     /*

@@ -26,20 +26,18 @@
  */
 package com.ferox.renderer.builder;
 
-import com.ferox.renderer.Sampler;
-
 /**
- * CubeImageBuilder is the final image builder used by SamplerBuilders where the sampler type is a cube map.
- * It supports image specification for the six faces of the cube, where each face is a mipmapped, 2D image.
- * This is used by {@link TextureCubeMapBuilder}, and {@link DepthCubeMapBuilder}.
+ * CubeImageData is the final image builder used by SamplerBuilders where the sampler type is a cube map. It
+ * supports image specification for the six faces of the cube, where each face is a mipmapped, 2D image. This
+ * is used by {@link TextureCubeMapBuilder}, and {@link DepthCubeMapBuilder}.
  *
  * @author Michael Ludwig
  */
-public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
+public interface CubeImageData<M> {
     /**
      * Get the data specification instance of type {@code M} for the positive X cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *
@@ -53,7 +51,7 @@ public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
     /**
      * Get the data specification instance of type {@code M} for the positive Y cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *
@@ -67,7 +65,7 @@ public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
     /**
      * Get the data specification instance of type {@code M} for the positive Z cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *
@@ -81,7 +79,7 @@ public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
     /**
      * Get the data specification instance of type {@code M} for the negative X cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *
@@ -95,7 +93,7 @@ public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
     /**
      * Get the data specification instance of type {@code M} for the negative Y cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *
@@ -109,7 +107,7 @@ public interface CubeImageBuilder<T extends Sampler, M> extends Builder<T> {
     /**
      * Get the data specification instance of type {@code M} for the negative Z cube face, at the given mipmap
      * {@code level}. Other than restricting the cube face that the data is associated with, this behaves
-     * identically to {@link SingleImageBuilder#mipmap(int)}.
+     * identically to {@link ImageData#mipmap(int)}.
      *
      * @param mipmap The mipmap to configure
      *

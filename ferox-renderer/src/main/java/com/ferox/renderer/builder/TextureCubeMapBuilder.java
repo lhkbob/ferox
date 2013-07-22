@@ -30,11 +30,12 @@ import com.ferox.renderer.TextureCubeMap;
 
 /**
  * TextureCubeMapBuilder is a concrete sampler builder for {@link TextureCubeMap} resources. It uses {@link
- * CubeImageBuilder} instances to specify the actual mipmap image data and build the final TextureCubeMap.
+ * CubeImageData} instances to specify the actual mipmap image data and build the final TextureCubeMap.
  *
  * @author Michael Ludwig
  */
-public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuilder> {
+public interface TextureCubeMapBuilder
+        extends TextureBuilder<TextureCubeMapBuilder>, Builder<TextureCubeMap> {
     /**
      * Configure the width and height of each 2D face of the texture at the 0th mipmap level.
      *
@@ -56,7 +57,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, BasicColorData> r();
+    public CubeImageData<? extends BasicColorData> r();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RG}. The
@@ -67,7 +68,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, BasicColorData> rg();
+    public CubeImageData<? extends BasicColorData> rg();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB} or
@@ -78,7 +79,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, CompressedRGBData> rgb();
+    public CubeImageData<? extends CompressedRGBData> rgb();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGB}.
@@ -90,7 +91,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, BasicColorData> bgr();
+    public CubeImageData<? extends BasicColorData> bgr();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA} or
@@ -101,7 +102,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, CompressedRGBAData> rgba();
+    public CubeImageData<? extends CompressedRGBAData> rgba();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -113,7 +114,7 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, BasicColorData> bgra();
+    public CubeImageData<? extends BasicColorData> bgra();
 
     /**
      * Configure the texture to use a base format of {@link com.ferox.renderer.Sampler.TexelFormat#RGBA}.
@@ -125,5 +126,5 @@ public interface TextureCubeMapBuilder extends TextureBuilder<TextureCubeMapBuil
      *
      * @throws IllegalStateException if another image builder was already returned
      */
-    public CubeImageBuilder<TextureCubeMap, ARGBData> argb();
+    public CubeImageData<? extends ARGBData> argb();
 }

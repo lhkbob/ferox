@@ -27,7 +27,7 @@
 package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Texture1D;
-import com.ferox.renderer.builder.SingleImageBuilder;
+import com.ferox.renderer.builder.ImageData;
 import com.ferox.renderer.builder.Texture1DBuilder;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -51,39 +51,37 @@ public class LwjglTexture1DBuilder extends LwjglSamplerBuilder<Texture1D, Textur
     }
 
     @Override
-    public SingleImageBuilder<Texture1D, BasicColorData> r() {
+    public ImageData<? extends BasicColorData> r() {
         return singleR();
     }
 
     @Override
-    public SingleImageBuilder<Texture1D, BasicColorData> rg() {
+    public ImageData<? extends BasicColorData> rg() {
         return singleRG();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public SingleImageBuilder<Texture1D, RGBData> rgb() {
-        return (SingleImageBuilder) singleRGB();
+    public ImageData<? extends RGBData> rgb() {
+        return singleRGB();
     }
 
     @Override
-    public SingleImageBuilder<Texture1D, BasicColorData> bgr() {
+    public ImageData<? extends BasicColorData> bgr() {
         return singleBGR();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public SingleImageBuilder<Texture1D, BasicColorData> rgba() {
-        return (SingleImageBuilder) singleRGBA();
+    public ImageData<? extends BasicColorData> rgba() {
+        return singleRGBA();
     }
 
     @Override
-    public SingleImageBuilder<Texture1D, BasicColorData> bgra() {
+    public ImageData<? extends BasicColorData> bgra() {
         return singleBGRA();
     }
 
     @Override
-    public SingleImageBuilder<Texture1D, ARGBData> argb() {
+    public ImageData<? extends ARGBData> argb() {
         return singleARGB();
     }
 }

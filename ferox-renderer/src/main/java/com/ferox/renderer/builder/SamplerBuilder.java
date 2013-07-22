@@ -43,11 +43,10 @@ import com.ferox.renderer.Sampler;
  * <pre>
  *     // First get the sampler builder and configure it to an image builder for
  *     // a 128x128 RGB texture
- *     SingleImageBuilder&lt;Texture2D, CompressedRGBData&gt; img =
- * framework.newTexture2D()
+ *     Texture2DBuilder texBuilder = framework.newTexture2D()
  *              .width(128)
- *              .height(128)
- *              .rgb();
+ *              .height(128);
+ *     ImageData&lt;? extends BasicColorData%gt; img = texBuilder.rgb();
  *
  *     // Use the image builder to set all mipmaps with appropriate dimensions
  *     // using the FLOAT data-type. All mipmaps must agree.
@@ -60,8 +59,8 @@ import com.ferox.renderer.Sampler;
  *     img.mipmap(8).from(new float[2*2*3]);
  *     img.mipmap(9).from(new float[1*1*3]);
  *
- *     // Get the final texture
- *     Texture2D tex = img.build();
+ *     // Get the final texture and configure a few more options
+ *     Texture2D tex = texBuilder.interpolated().borderColor(new Vector4(0, 0, 0, 1)).build();
  * </pre>
  *
  * @author Michael Ludwig
