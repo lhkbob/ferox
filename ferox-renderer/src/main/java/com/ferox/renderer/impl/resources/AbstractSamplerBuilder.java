@@ -87,31 +87,26 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B anisotropy(double v) {
-        verifyImageState();
         anisotropy = v;
         return builderType.cast(this);
     }
 
     public B borderColor(@Const ColorRGB color) {
-        verifyImageState();
         borderColor.set(color.redHDR(), color.greenHDR(), color.blueHDR(), 1.0);
         return builderType.cast(this);
     }
 
     public B borderColor(@Const Vector4 color) {
-        verifyImageState();
         borderColor.set(color);
         return builderType.cast(this);
     }
 
     public B interpolated() {
-        verifyImageState();
         interpolated = true;
         return builderType.cast(this);
     }
 
     public B wrap(Sampler.WrapMode wrap) {
-        verifyImageState();
         if (wrap == null) {
             throw new NullPointerException("WrapMode cannot be null");
         }
@@ -120,7 +115,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B width(int width) {
-        verifyImageState();
         if (width <= 0) {
             throw new IllegalArgumentException("Width must be at least 1: " + width);
         }
@@ -129,7 +123,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B height(int height) {
-        verifyImageState();
         if (height <= 0) {
             throw new IllegalArgumentException("Height must be at least 1: " + width);
         }
@@ -149,7 +142,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B depth(int depth) {
-        verifyImageState();
         if (depth <= 0) {
             throw new IllegalArgumentException("Depth must be at least 1: " + width);
         }
@@ -158,7 +150,6 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B imageCount(int imageCount) {
-        verifyImageState();
         if (imageCount <= 0) {
             throw new IllegalArgumentException("All samplers must have at least one image: " + imageCount);
         }
@@ -167,26 +158,16 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     public B depthComparison(Renderer.Comparison depthComparison) {
-        verifyImageState();
         this.depthComparison = depthComparison;
         return builderType.cast(this);
     }
 
     public B borderDepth(double depth) {
-        verifyImageState();
         borderColor.set(depth, 0, 0, 1);
         return builderType.cast(this);
     }
 
-    private void verifyImageState() {
-        if (imageData != null) {
-            throw new IllegalStateException("Already selected format");
-        }
-    }
-
     private void allocateImages() {
-        verifyImageState();
-
         // some additional validation is done here that cannot be changed
         // after the image builder is received
         if (width <= 0) {
@@ -281,6 +262,9 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         if (!framework.getCapabilities().getSupportedTextureTargets().contains(textureType)) {
             throw new ResourceException(
                     String.format("%s textures are not supported on current hardware", textureType));
+        }
+        if (imageFormats == null) {
+            throw new ResourceException("No texel format selected");
         }
 
         // detect and validate image format consistency

@@ -36,8 +36,7 @@ import com.ferox.renderer.Sampler;
  * <p/>
  * Instead, it should be configured with the sampler configuration, with a final call to one of the format
  * selecting methods that return an actual Builder. The returned image Builder will have methods to set which
- * mipmap, cube face, etc. to specify. Once the image Builder is chosen, the configuration methods on the
- * sampler builder cannot be invoked.
+ * mipmap, cube face, etc. to specify.
  * <p/>
  * Here is an example for a Texture2D:
  * <pre>
