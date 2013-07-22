@@ -26,38 +26,34 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.DisplayMode.PixelFormat;
+import com.ferox.renderer.*;
+import com.ferox.renderer.impl.*;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
 
 import javax.media.nativewindow.util.SurfaceSize;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * JoglSurfaceFactory is a SurfaceFactory implementation for the JOGL OpenGL wrapper. It uses {@link
- * JoglOnscreenSurface}, {@link JoglFboTextureSurface}, {@link JoglPbufferTextureSurface} for its surface
+ * JoglNEWTSurface}, {@link JoglFboTextureSurface}, {@link JoglPbufferTextureSurface} for its surface
  * implementations. It uses the {@link JoglFixedFunctionRenderer} and {@link JoglGlslRenderer} for its
  * renderer implementations.
  *
  * @author Michael Ludwig
  */
-public class JoglSurfaceFactory extends SurfaceFactory {
+public class JoglSurfaceFactory implements SurfaceFactory {
     private static final int TARGET_REFRESH_RATE = 60;
 
-    private final int capBits;
     private final GLProfile profile;
+    private final JoglCapabilities caps;
 
     private final DisplayMode defaultMode;
-    private final DisplayMode[] availableModes;
-
     private final Map<DisplayMode, ScreenMode> convertMap;
 
     // the Display and Screen used by all windows created by this factory
@@ -65,21 +61,13 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     private final Screen screen;
 
     /**
-     * Create a new JoglSurfaceFactory that will use the given profile and capability bits. The bit mask uses
-     * the bit flags defined in {@link JoglRenderCapabilities}.
-     *
-     * @param profile The GLProfile
-     * @param capBits The forced capabilities
-     *
-     * @throws NullPointerException if profile is null
+     * Create a new JoglSurfaceFactory.
      */
-    public JoglSurfaceFactory(GLProfile profile, int capBits) {
-        if (profile == null) {
-            throw new NullPointerException("GLProfile cannot be null");
-        }
+    public JoglSurfaceFactory() {
+        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
+        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
 
-        this.capBits = capBits;
-        this.profile = profile;
+        profile = GLProfile.get(GLProfile.GL2); // FIXME select from 3 as well
 
         display = NewtFactory.createDisplay(null);
         display.addReference();
@@ -87,7 +75,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         screen = NewtFactory.createScreen(display, 0);
         screen.addReference();
 
-        convertMap = new HashMap<DisplayMode, ScreenMode>();
+        convertMap = new HashMap<>();
 
         List<ScreenMode> modes = screen.getScreenModes();
         for (ScreenMode joglMode : modes) {
@@ -104,8 +92,10 @@ public class JoglSurfaceFactory extends SurfaceFactory {
             }
         }
 
-        availableModes = convertMap.keySet().toArray(new DisplayMode[convertMap.size()]);
         defaultMode = convert(screen.getOriginalScreenMode());
+        caps = JoglCapabilities
+                .computeCapabilities(profile, convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
+                                     forceNoPBuffer, forceNoFBO);
     }
 
     @Override
@@ -122,96 +112,11 @@ public class JoglSurfaceFactory extends SurfaceFactory {
         return display;
     }
 
-    public GLCapabilities chooseCapabilities(OnscreenSurfaceOptions request) {
-        GLCapabilities caps = new GLCapabilities(profile);
-
-        // update the caps fields
-        PixelFormat pf;
-        if (request.getFullscreenMode() != null) {
-            pf = request.getFullscreenMode().getPixelFormat();
-        } else {
-            pf = getDefaultDisplayMode().getPixelFormat();
-        }
-
-        switch (pf) {
-        case RGB_16BIT:
-            caps.setRedBits(5);
-            caps.setGreenBits(6);
-            caps.setBlueBits(5);
-            caps.setAlphaBits(0);
-            break;
-        case RGB_24BIT:
-        case UNKNOWN:
-            caps.setRedBits(8);
-            caps.setGreenBits(8);
-            caps.setBlueBits(8);
-            caps.setAlphaBits(0);
-            break;
-        case RGBA_32BIT:
-            caps.setRedBits(8);
-            caps.setGreenBits(8);
-            caps.setBlueBits(8);
-            caps.setAlphaBits(8);
-            break;
-        }
-
-        // FIXME On Mac, requesting any other depth than 16-bit causes a JVM crash
-        caps.setDepthBits(16);
-        //        switch (request.getDepthFormat()) {
-        //        case DEPTH_16BIT:
-        //            caps.setDepthBits(16);
-        //            break;
-        //        case DEPTH_24BIT: case UNKNOWN:
-        //            caps.setDepthBits(24);
-        //            break;
-        //        case DEPTH_32BIT:
-        //            caps.setDepthBits(32);
-        //            break;
-        //        case NONE:
-        //            caps.setDepthBits(0);
-        //            break;
-        //        }
-
-        switch (request.getStencilFormat()) {
-        case STENCIL_16BIT:
-            caps.setStencilBits(16);
-            break;
-        case STENCIL_8BIT:
-            caps.setStencilBits(8);
-            break;
-        case STENCIL_4BIT:
-            caps.setStencilBits(4);
-            break;
-        case STENCIL_1BIT:
-            caps.setStencilBits(1);
-            break;
-        case NONE:
-        case UNKNOWN:
-            caps.setStencilBits(0);
-            break;
-        }
-
-        switch (request.getMultiSampling()) {
-        case EIGHT_X:
-            caps.setNumSamples(8);
-            caps.setSampleBuffers(true);
-            break;
-        case FOUR_X:
-            caps.setNumSamples(4);
-            caps.setSampleBuffers(true);
-            break;
-        case TWO_X:
-            caps.setNumSamples(2);
-            caps.setSampleBuffers(true);
-            break;
-        case NONE:
-        case UNKNOWN:
-            caps.setNumSamples(0);
-            caps.setSampleBuffers(false);
-            break;
-        }
-
-        return caps;
+    /**
+     * @return The GLProfile selected by this factory
+     */
+    public GLProfile getGLProfile() {
+        return profile;
     }
 
     /**
@@ -228,34 +133,18 @@ public class JoglSurfaceFactory extends SurfaceFactory {
 
     private static DisplayMode convert(ScreenMode mode) {
         SurfaceSize realMode = mode.getMonitorMode().getSurfaceSize();
-        PixelFormat pixFormat;
-        switch (realMode.getBitsPerPixel()) {
-        case 16:
-            pixFormat = PixelFormat.RGB_16BIT;
-            break;
-        case 24:
-            pixFormat = PixelFormat.RGB_24BIT;
-            break;
-        case 32:
-            pixFormat = PixelFormat.RGBA_32BIT;
-            break;
-        default:
-            pixFormat = PixelFormat.UNKNOWN;
-            break;
-        }
 
         return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(),
-                               pixFormat);
+                               realMode.getBitsPerPixel(), mode.getMonitorMode().getRefreshRate());
     }
 
     @Override
     public AbstractTextureSurface createTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options,
                                                        OpenGLContext sharedContext) {
-        if (framework.getCapabilities().getFboSupport()) {
-            return new JoglFboTextureSurface(framework, this, options);
-        } else if (framework.getCapabilities().getPbufferSupport()) {
-            return new JoglPbufferTextureSurface(framework, this, options, (JoglContext) sharedContext,
-                                                 new JoglRendererProvider());
+        if (framework.getCapabilities().getFBOSupport()) {
+            return new JoglFboTextureSurface(framework, options);
+        } else if (framework.getCapabilities().getPBufferSupport()) {
+            return new JoglPbufferTextureSurface(profile, framework, options, (JoglContext) sharedContext);
         } else {
             throw new SurfaceCreationException("No render-to-texture support on current hardware");
         }
@@ -265,34 +154,16 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(FrameworkImpl framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext,
-                                   new JoglRendererProvider());
+        return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext);
     }
 
     @Override
     public OpenGLContext createOffscreenContext(OpenGLContext sharedContext) {
-        if ((capBits & JoglRenderCapabilities.FORCE_NO_PBUFFER) == 0 &&
-            GLDrawableFactory.getFactory(profile).canCreateGLPbuffer(null)) {
-            return PbufferShadowContext.create(this, (JoglContext) sharedContext, new JoglRendererProvider());
+        if (caps.getPBufferSupport()) {
+            return PbufferShadowContext.create(this, (JoglContext) sharedContext);
         } else {
-            return OnscreenShadowContext
-                    .create(this, (JoglContext) sharedContext, new JoglRendererProvider());
+            return OnscreenShadowContext.create(this, (JoglContext) sharedContext);
         }
-    }
-
-    /**
-     * @return The GLProfile selected by this factory
-     */
-    public GLProfile getGLProfile() {
-        return profile;
-    }
-
-    /**
-     * @return The capabilities bits this factory was created with, to be passed into the constructor of all
-     *         related {@link JoglRenderCapabilities}
-     */
-    public int getCapabilityForceBits() {
-        return capBits;
     }
 
     @Override
@@ -301,42 +172,7 @@ public class JoglSurfaceFactory extends SurfaceFactory {
     }
 
     @Override
-    public DisplayMode[] getAvailableDisplayModes() {
-        return Arrays.copyOf(availableModes, availableModes.length);
-    }
-
-    private class JoglRendererProvider implements RendererProvider {
-        private FixedFunctionRenderer ffp;
-        private GlslRenderer glsl;
-
-        private JoglRendererDelegate sharedDelegate;
-
-        @Override
-        public FixedFunctionRenderer getFixedFunctionRenderer(Capabilities caps) {
-            if (ffp == null) {
-                if (caps.hasFixedFunctionRenderer()) {
-                    if (sharedDelegate == null) {
-                        sharedDelegate = new JoglRendererDelegate();
-                    }
-                    ffp = new JoglFixedFunctionRenderer(sharedDelegate);
-                }
-            }
-
-            return ffp;
-        }
-
-        @Override
-        public GlslRenderer getGlslRenderer(Capabilities caps) {
-            if (glsl == null) {
-                if (caps.hasGlslRenderer()) {
-                    if (sharedDelegate == null) {
-                        sharedDelegate = new JoglRendererDelegate();
-                    }
-                    glsl = new JoglGlslRenderer(sharedDelegate);
-                }
-            }
-
-            return glsl;
-        }
+    public Capabilities getCapabilities() {
+        return caps;
     }
 }

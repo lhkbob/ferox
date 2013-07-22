@@ -26,17 +26,19 @@
  */
 package com.ferox.renderer.impl.jogl;
 
+import com.ferox.renderer.DataType;
 import com.ferox.renderer.FrameworkException;
+import com.ferox.renderer.Sampler;
 import com.ferox.renderer.TextureSurfaceOptions;
 import com.ferox.renderer.impl.AbstractTextureSurface;
+import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.impl.resources.TextureImpl;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
+import java.nio.IntBuffer;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
@@ -48,239 +50,368 @@ import java.util.WeakHashMap;
  * @author Michael Ludwig
  */
 public class JoglFboTextureSurface extends AbstractTextureSurface {
-    // one real fbo per context, vague documentation in object sharing
-    // makes it sound as though fbo's aren't shared
-    private final WeakHashMap<JoglContext, FrameBufferObject> fbos;
+    private final FBODestructible impl;
 
-    public JoglFboTextureSurface(FrameworkImpl framework, JoglSurfaceFactory creator,
-                                 TextureSurfaceOptions options) {
+    public JoglFboTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options) {
         super(framework, options);
-        fbos = new WeakHashMap<JoglContext, FrameBufferObject>();
+        impl = new FBODestructible(framework);
     }
 
     @Override
-    public OpenGLContext getContext() {
-        return null;
+    public SurfaceDestructible getSurfaceDestructible() {
+        return impl;
     }
 
     @Override
     public void flush(OpenGLContext context) {
-        // fbos are rendered into directly so we have no
-        // copying to be done (as with pbuffers), or buffer
-        // swapping to do.
-
-        // just call glFlush()
-        getGL(context).glFlush();
-    }
-
-    @Override
-    protected void destroyImpl() {
-        // Queue up tasks to every context that has an FBO lying around
-        // we can't destroy them now because they require the contexts
-        // to be current, so we'll just "flag" them for deletion.
-        for (Entry<JoglContext, FrameBufferObject> e : fbos.entrySet()) {
-            e.getKey().queueCleanupTask(new FBOCleanupTask(e.getValue(), e.getKey()));
+        // just call glFlush() and generate mipmaps
+        JoglContext jctx = (JoglContext) context;
+        jctx.getGLContext().getGL().glFlush();
+        FBODestructible.FrameBufferObject fbo = impl.fbos.get(jctx);
+        if (fbo != null) {
+            fbo.generateMipmaps(jctx);
         }
     }
 
     @Override
-    public void onSurfaceActivate(OpenGLContext context, int layer) {
-        super.onSurfaceActivate(context, layer);
+    public void setRenderTargets(Sampler.RenderTarget[] colorTargets, Sampler.RenderTarget depthTarget) {
+        super.setRenderTargets(colorTargets, depthTarget);
+        for (FBODestructible.FrameBufferObject fbo : impl.fbos.values()) {
+            fbo.stale = true;
+        }
+    }
+
+    @Override
+    public int getDepthBufferBits() {
+        TextureImpl.RenderTargetImpl depth = getDepthBuffer();
+        if (depth != null) {
+            int dstFormat = Utils
+                    .getGLDstFormat(depth.getSampler().getFullFormat(), getFramework().getCapabilities());
+            if (dstFormat == GL2GL3.GL_DEPTH24_STENCIL8 || dstFormat == GL2GL3.GL_DEPTH_COMPONENT24) {
+                return 24;
+            } else if (dstFormat == GL2GL3.GL_DEPTH_COMPONENT16) {
+                return 16;
+            } else {
+                return 32; // GL_DEPTH_COMPONENT32F
+            }
+        } else {
+            return (getDepthRenderBufferFormat() != null ? 24 : 0);
+        }
+    }
+
+    @Override
+    public int getStencilBufferBits() {
+        TextureImpl.RenderTargetImpl depth = getDepthBuffer();
+        if (depth != null) {
+            return (depth.getSampler().getFormat() == Sampler.TexelFormat.DEPTH_STENCIL ? 8 : 0);
+        } else {
+            return (getDepthRenderBufferFormat() == Sampler.TexelFormat.DEPTH_STENCIL ? 8 : 0);
+        }
+    }
+
+    @Override
+    public void onSurfaceActivate(OpenGLContext context) {
+        super.onSurfaceActivate(context);
 
         JoglContext jctx = (JoglContext) context;
-        FrameBufferObject fbo = fbos.get(jctx);
+        FBODestructible.FrameBufferObject fbo = impl.fbos.get(jctx);
         if (fbo == null) {
-            fbo = new FrameBufferObject(jctx);
-            fbos.put(jctx, fbo);
+            fbo = impl.newFBO(this, jctx);
+            impl.fbos.put(jctx, fbo);
         }
 
-        fbo.bind(jctx, layer);
+        fbo.bind(this, jctx);
     }
 
     @Override
     public void onSurfaceDeactivate(OpenGLContext context) {
         JoglContext jctx = (JoglContext) context;
-        FrameBufferObject fbo = fbos.get(jctx);
+        FBODestructible.FrameBufferObject fbo = impl.fbos.get(jctx);
         if (fbo != null) {
-            fbo.release(jctx);
+            jctx.bindFbo(0);
         }
 
         super.onSurfaceDeactivate(context);
     }
 
-    private GL2GL3 getGL(OpenGLContext context) {
-        return ((JoglContext) context).getGLContext().getGL().getGL2GL3();
-    }
+    private static class FBODestructible extends SurfaceDestructible {
+        // one real fbo per context, vague documentation in object sharing
+        // makes it sound as though fbo's aren't shared
+        private final WeakHashMap<JoglContext, FrameBufferObject> fbos;
 
-    private class FrameBufferObject {
-        private final int fboId;
-        private final int renderBufferId;
-
-        private final Target target;
-
-        private final int[] colorImageIds;
-
-        private int boundLayer;
-
-        public FrameBufferObject(JoglContext context) {
-            if (context == null) {
-                throw new FrameworkException(
-                        "FramebufferObject's can only be constructed when there's a current context");
-            }
-            if (!context.getRenderCapabilities().getFboSupport()) {
-                throw new FrameworkException("Current hardware doesn't support the creation of fbos");
-            }
-
-            GL2GL3 gl = getGL(context);
-
-            target = getTarget();
-            boundLayer = 0;
-            int width = getWidth();
-            int height = getHeight();
-
-            int[] id = new int[1];
-            gl.glGenFramebuffers(1, id, 0);
-            fboId = id[0];
-            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fboId);
-
-            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(0)
-                                                       : Utils.getGLTextureTarget(target));
-            TextureHandle depth = (TextureHandle) getDepthHandle();
-            if (depth != null) {
-                // attach the depth texture
-                attachImage(gl, glTarget, depth.texID, 0, GL.GL_DEPTH_ATTACHMENT);
-
-                renderBufferId = 0;
-            } else {
-                // make and attach the render buffer
-                gl.glGenRenderbuffers(1, id, 0);
-                renderBufferId = id[0];
-
-                gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, renderBufferId);
-                gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, width, height);
-
-                if (gl.glGetError() == GL.GL_OUT_OF_MEMORY) {
-                    gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
-                    destroy();
-                    throw new FrameworkException(
-                            "Error creating a new FBO, not enough memory for the depth RenderBuffer");
-                } else {
-                    gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
-                }
-                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER,
-                                             renderBufferId);
-            }
-
-            colorImageIds = new int[getNumColorBuffers()];
-            for (int i = 0; i < colorImageIds.length; i++) {
-                TextureHandle h = (TextureHandle) getColorHandle(i);
-                colorImageIds[i] = h.texID;
-                attachImage(gl, glTarget, h.texID, 0, GL.GL_COLOR_ATTACHMENT0 + i);
-            }
-
-            // Enable/disable the read/draw buffers to make the fbo "complete"
-            gl.glReadBuffer(GL.GL_NONE);
-            if (colorImageIds.length > 0) {
-                int[] drawBuffers = new int[colorImageIds.length];
-                for (int i = 0; i < drawBuffers.length; i++) {
-                    drawBuffers[i] = GL.GL_COLOR_ATTACHMENT0 + i;
-                }
-                gl.glDrawBuffers(drawBuffers.length, drawBuffers, 0);
-            } else {
-                gl.glDrawBuffer(GL.GL_NONE);
-            }
-
-            int complete = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
-            if (complete != GL.GL_FRAMEBUFFER_COMPLETE) {
-                String msg = "FBO failed completion test, unable to render";
-                switch (complete) {
-                case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                    msg = "Fbo attachments aren't complete";
-                    break;
-                case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                    msg = "Fbo needs at least one attachment";
-                    break;
-                case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                    msg = "Fbo draw buffers improperly enabled";
-                    break;
-                case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                    msg = "Fbo read buffer improperly enabled";
-                    break;
-                case GL.GL_FRAMEBUFFER_UNSUPPORTED:
-                    msg = "Texture/Renderbuffer combinations aren't supported on the hardware";
-                    break;
-                case 0:
-                    msg = "glCheckFramebufferStatusEXT() had an error while checking fbo status";
-                    break;
-                }
-                // clean-up and then throw an exception
-                destroy();
-                throw new FrameworkException(msg);
-            }
-
-            // restore the old binding
-            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, context.getFbo());
+        public FBODestructible(FrameworkImpl framework) {
+            super(framework);
+            fbos = new WeakHashMap<>();
         }
 
-        public void bind(JoglContext context, int layer) {
-            GL2GL3 gl = getGL(context);
-
-            // bind the fbo if needed
-            context.bindFbo(gl, fboId);
-
-            // possibly re-attach the images (in the case of cubemaps or 3d textures)
-            int glTarget = (target == Target.T_CUBEMAP ? Utils.getGLCubeFace(layer)
-                                                       : Utils.getGLTextureTarget(target));
-            if (layer != boundLayer) {
-                if (colorImageIds != null) {
-                    for (int i = 0; i < colorImageIds.length; i++) {
-                        attachImage(gl, glTarget, colorImageIds[i], layer, GL.GL_COLOR_ATTACHMENT0 + i);
-                    }
-                }
-                // we don't have to re-attach depth images -> 1 layer only
-                boundLayer = layer;
-            }
-        }
-
-        public void release(JoglContext context) {
-            context.bindFbo(getGL(context), 0);
-        }
-
-        public void destroyFBO(JoglContext context) {
-            GL2GL3 gl = getGL(context);
-            gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
-            if (renderBufferId != 0) {
-                gl.glDeleteRenderbuffers(1, new int[] { renderBufferId }, 0);
-            }
-        }
-
-        // Attach the given texture image to the currently bound fbo (on target FRAMEBUFFER)
-        private void attachImage(GL2GL3 gl, int target, int id, int layer, int attachment) {
-            switch (target) {
-            case GL2GL3.GL_TEXTURE_1D:
-                gl.glFramebufferTexture1D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
-                break;
-            case GL2ES2.GL_TEXTURE_3D:
-                gl.glFramebufferTexture3D(GL.GL_FRAMEBUFFER, attachment, target, id, 0, layer);
-                break;
-            default: // 2d or a cubemap face
-                gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, attachment, target, id, 0);
-            }
-        }
-    }
-
-    private class FBOCleanupTask implements Runnable {
-        private final FrameBufferObject fbo;
-        private final JoglContext context;
-
-        public FBOCleanupTask(FrameBufferObject fbo, JoglContext context) {
-            this.fbo = fbo;
-            this.context = context;
+        public FrameBufferObject newFBO(JoglFboTextureSurface surface, JoglContext context) {
+            return new FrameBufferObject(surface, context);
         }
 
         @Override
-        public void run() {
-            fbo.destroyFBO(context);
+        public OpenGLContext getContext() {
+            // no context for this type of surface
+            return null;
+        }
+
+        @Override
+        protected void destroyImpl() {
+            // Queue up tasks to every context that has an FBO lying around
+            // we can't destroy them now because they require the contexts
+            // to be current, so we'll just "flag" them for deletion.
+            for (Entry<JoglContext, FrameBufferObject> e : fbos.entrySet()) {
+                e.getKey().queueCleanupTask(new FBOCleanupTask(e.getValue(), e.getKey()));
+            }
+        }
+
+        private int glGenFramebuffers(GL2GL3 gl) {
+            int[] query = new int[1];
+            gl.glGenFramebuffers(1, query, 0);
+            return query[0];
+        }
+
+        private int glGenRenderbuffers(GL2GL3 gl) {
+            int[] query = new int[1];
+            gl.glGenRenderbuffers(1, query, 0);
+            return query[0];
+        }
+
+        private class FrameBufferObject {
+            private final int fboId;
+            private final int depthRenderBufferId;
+
+            private final IntBuffer drawBuffers;
+            private final TextureImpl.RenderTargetImpl[] colorBuffers;
+            private TextureImpl.RenderTargetImpl depthBuffer;
+
+            private boolean stale;
+
+            public FrameBufferObject(JoglFboTextureSurface surface, JoglContext context) {
+                GL2GL3 gl = context.getGLContext().getGL().getGL2GL3();
+
+                colorBuffers = new TextureImpl.RenderTargetImpl[surface.getFramework().getCapabilities()
+                                                                       .getMaxColorBuffers()];
+                drawBuffers = BufferUtil.newByteBuffer(DataType.INT, colorBuffers.length).asIntBuffer();
+                drawBuffers.put(0, GL2GL3.GL_COLOR_ATTACHMENT0);
+                for (int i = 1; i < colorBuffers.length; i++) {
+                    drawBuffers.put(i, GL.GL_NONE);
+                }
+
+                int width = surface.getWidth();
+                int height = surface.getHeight();
+
+                fboId = glGenFramebuffers(gl);
+                context.bindFbo(fboId);
+
+                Sampler.TexelFormat depthFormat = surface.getDepthRenderBufferFormat();
+                if (depthFormat == null) {
+                    // no depth render buffer
+                    depthRenderBufferId = 0;
+                } else {
+                    depthRenderBufferId = glGenRenderbuffers(gl);
+                    gl.glBindRenderbuffer(GL2GL3.GL_RENDERBUFFER, depthRenderBufferId);
+
+                    int type = (depthFormat == Sampler.TexelFormat.DEPTH ? GL2GL3.GL_DEPTH_COMPONENT24
+                                                                         : GL2GL3.GL_DEPTH24_STENCIL8);
+                    int attach = (depthFormat == Sampler.TexelFormat.DEPTH ? GL2GL3.GL_DEPTH_ATTACHMENT
+                                                                           : GL2GL3.GL_DEPTH_STENCIL_ATTACHMENT);
+
+                    gl.glRenderbufferStorage(GL2GL3.GL_RENDERBUFFER, type, width, height);
+                    gl.glFramebufferRenderbuffer(GL2GL3.GL_FRAMEBUFFER, attach, GL2GL3.GL_RENDERBUFFER,
+                                                 depthRenderBufferId);
+                }
+
+                stale = true;
+            }
+
+            private void generateMipmaps(JoglContext ctx) {
+                GL2GL3 gl = ctx.getGLContext().getGL().getGL2GL3();
+                for (int i = 0; i < colorBuffers.length; i++) {
+                    if (colorBuffers[i] != null) {
+                        int numMips = colorBuffers[i].getSampler().getMaxMipmap() -
+                                      colorBuffers[i].getSampler().getBaseMipmap();
+                        if (numMips > 1) {
+                            TextureImpl.TextureHandle t = colorBuffers[i].getSampler().getHandle();
+                            ctx.bindTexture(0, t);
+                            gl.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                        }
+                    }
+                }
+
+                if (depthBuffer != null) {
+                    int numMips = depthBuffer.getSampler().getMaxMipmap() -
+                                  depthBuffer.getSampler().getBaseMipmap();
+                    if (numMips > 1) {
+                        TextureImpl.TextureHandle t = depthBuffer.getSampler().getHandle();
+                        ctx.bindTexture(0, t);
+                        gl.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                    }
+                }
+            }
+
+            private void configureDrawBuffers(GL2GL3 gl) {
+                // the draw/read buffer state is per FBO so this won't change because of another FBO
+                gl.glReadBuffer(GL.GL_NONE);
+                boolean change = false;
+                for (int i = 0; i < colorBuffers.length; i++) {
+                    int attach = GL.GL_NONE;
+                    if (colorBuffers[i] != null) {
+                        attach = GL2GL3.GL_COLOR_ATTACHMENT0 + i;
+                    }
+                    if (attach != drawBuffers.get(i)) {
+                        change = true;
+                        drawBuffers.put(i, attach);
+                    }
+                }
+
+                if (change) {
+                    gl.glDrawBuffers(colorBuffers.length, drawBuffers);
+                }
+            }
+
+            private void checkFBOStatus(GL2GL3 gl) {
+                int complete = gl.glCheckFramebufferStatus(GL2GL3.GL_FRAMEBUFFER);
+                if (complete != GL2GL3.GL_FRAMEBUFFER_COMPLETE) {
+                    String msg = "FBO failed completion test, unable to render";
+                    switch (complete) {
+                    case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+                        msg = "Fbo attachments aren't complete";
+                        break;
+                    case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+                        msg = "Fbo needs at least one attachment";
+                        break;
+                    case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+                        msg = "Fbo draw buffers improperly enabled";
+                        break;
+                    case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+                        msg = "Fbo read buffer improperly enabled";
+                        break;
+                    case GL2GL3.GL_FRAMEBUFFER_UNSUPPORTED:
+                        msg = "Texture/Renderbuffer combinations aren't supported on the hardware";
+                        break;
+                    case 0:
+                        msg = "glCheckFramebufferStatusEXT() had an error while checking fbo status";
+                        break;
+                    }
+                    throw new FrameworkException(msg);
+                }
+            }
+
+            public void bind(JoglFboTextureSurface surface, JoglContext context) {
+                // bind the fbo if needed
+                context.bindFbo(fboId);
+                if (stale) {
+                    GL2GL3 gl = context.getGLContext().getGL().getGL2GL3();
+
+                    // re-attach all changed images
+                    for (int i = 0; i < colorBuffers.length; i++) {
+                        TextureImpl.RenderTargetImpl newImage = surface.getColorBuffer(i);
+                        if (newImage == null && colorBuffers[i] != null) {
+                            attachImage(gl, null, 0, 0, GL2GL3.GL_COLOR_ATTACHMENT0 + i);
+                            colorBuffers[i] = null;
+                        } else if (newImage != null) {
+                            if (colorBuffers[i] == null ||
+                                colorBuffers[i].getSampler() != newImage.getSampler() ||
+                                colorBuffers[i].image != newImage.image) {
+                                attachImage(gl, newImage.getSampler().getHandle(), newImage.image,
+                                            newImage.getSampler().getBaseMipmap(),
+                                            GL2GL3.GL_COLOR_ATTACHMENT0 + i);
+                                colorBuffers[i] = newImage;
+                            }
+                        }
+                    }
+
+                    TextureImpl.RenderTargetImpl newDepth = surface.getDepthBuffer();
+                    if (newDepth == null && depthBuffer != null) {
+                        attachImage(gl, null, 0, 0,
+                                    (depthBuffer.getSampler().getFormat() == Sampler.TexelFormat.DEPTH
+                                     ? GL2GL3.GL_DEPTH_ATTACHMENT : GL2GL3.GL_DEPTH_STENCIL_ATTACHMENT));
+                        depthBuffer = null;
+                    } else if (newDepth != null) {
+                        if (depthBuffer == null || depthBuffer.getSampler() != newDepth.getSampler() ||
+                            depthBuffer.image != newDepth.image) {
+                            if (newDepth.getSampler().getFormat() == Sampler.TexelFormat.DEPTH) {
+                                if (depthBuffer != null && depthBuffer.getSampler().getFormat() ==
+                                                           Sampler.TexelFormat.DEPTH_STENCIL) {
+                                    attachImage(gl, null, 0, 0, GL2GL3.GL_DEPTH_STENCIL_ATTACHMENT);
+                                }
+                                attachImage(gl, newDepth.getSampler().getHandle(), newDepth.image,
+                                            newDepth.getSampler().getBaseMipmap(),
+                                            GL2GL3.GL_DEPTH_ATTACHMENT);
+                            } else {
+                                if (depthBuffer != null &&
+                                    depthBuffer.getSampler().getFormat() == Sampler.TexelFormat.DEPTH) {
+                                    attachImage(gl, null, 0, 0, GL2GL3.GL_DEPTH_ATTACHMENT);
+                                }
+                                attachImage(gl, newDepth.getSampler().getHandle(), newDepth.image,
+                                            newDepth.getSampler().getBaseMipmap(),
+                                            GL2GL3.GL_DEPTH_STENCIL_ATTACHMENT);
+                            }
+                            depthBuffer = newDepth;
+                        }
+                    }
+
+                    configureDrawBuffers(gl);
+                    checkFBOStatus(gl);
+                    stale = false;
+                }
+            }
+
+            public void destroyFBO(JoglContext context) {
+                GL2GL3 gl = context.getGLContext().getGL().getGL2GL3();
+                gl.glDeleteFramebuffers(1, new int[] { fboId }, 0);
+                if (depthRenderBufferId != 0) {
+                    gl.glDeleteRenderbuffers(1, new int[] { depthRenderBufferId }, 0);
+                }
+            }
+        }
+
+        private void attachImage(GL2GL3 gl, TextureImpl.TextureHandle texture, int layer, int level,
+                                 int attachment) {
+            if (texture == null) {
+                // according to documentation, any glFramebufferTexture call with id = 0
+                // unbinds all textures at that attachment point (and textarget and level are ignored)
+                gl.glFramebufferTexture2D(GL2GL3.GL_FRAMEBUFFER, GL2GL3.GL_DEPTH_ATTACHMENT, 0, 0, 0);
+            } else {
+                switch (texture.target) {
+                case TEX_1D:
+                    gl.glFramebufferTexture1D(GL2GL3.GL_FRAMEBUFFER, attachment, GL2GL3.GL_TEXTURE_1D,
+                                              texture.texID, level);
+                    break;
+                case TEX_2D:
+                    gl.glFramebufferTexture2D(GL2GL3.GL_FRAMEBUFFER, attachment, GL2GL3.GL_TEXTURE_2D,
+                                              texture.texID, level);
+                    break;
+                case TEX_3D:
+                    gl.glFramebufferTexture3D(GL2GL3.GL_FRAMEBUFFER, attachment, GL2GL3.GL_TEXTURE_3D,
+                                              texture.texID, level, layer);
+                    break;
+                case TEX_CUBEMAP:
+                    int face = Utils.getGLCubeFace(layer);
+                    gl.glFramebufferTexture2D(GL2GL3.GL_FRAMEBUFFER, attachment, face, texture.texID, level);
+                    break;
+                case TEX_2D_ARRAY:
+                case TEX_1D_ARRAY:
+                    gl.glFramebufferTextureLayer(GL2GL3.GL_FRAMEBUFFER, attachment, texture.texID, level,
+                                                 layer);
+                    break;
+                }
+            }
+        }
+
+        private class FBOCleanupTask implements Runnable {
+            private final FrameBufferObject fbo;
+            private final JoglContext context;
+
+            public FBOCleanupTask(FrameBufferObject fbo, JoglContext context) {
+                this.fbo = fbo;
+                this.context = context;
+            }
+
+            @Override
+            public void run() {
+                fbo.destroyFBO(context);
+            }
         }
     }
 }

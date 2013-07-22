@@ -52,6 +52,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         super(handle);
         this.glslVersion = glslVersion;
 
+        // FIXME sort in appropriate order
         this.uniforms = Collections.unmodifiableList(uniforms);
         this.attributes = Collections.unmodifiableList(attributes);
         this.bufferMap = Collections.unmodifiableMap(bufferMap);

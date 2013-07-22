@@ -141,7 +141,7 @@ public class Utils {
     }
 
     /**
-     * EffectType can't be null.
+     * PolygonType can't be null.
      */
     public static int getGLPolygonConnectivity(PolygonType type) {
         switch (type) {

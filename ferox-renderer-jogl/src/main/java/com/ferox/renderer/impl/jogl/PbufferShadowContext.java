@@ -26,7 +26,7 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.impl.RendererProvider;
+import com.ferox.renderer.Capabilities;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.*;
@@ -40,8 +40,8 @@ import javax.media.opengl.*;
 public class PbufferShadowContext extends JoglContext {
     private final GLPbuffer pbuffer;
 
-    private PbufferShadowContext(JoglSurfaceFactory creator, GLPbuffer surface, RendererProvider provider) {
-        super(creator, surface.getContext(), provider);
+    private PbufferShadowContext(Capabilities caps, GLPbuffer surface) {
+        super(caps, surface.getContext());
         pbuffer = surface;
     }
 
@@ -57,15 +57,12 @@ public class PbufferShadowContext extends JoglContext {
      *
      * @param creator   The JoglSurfaceFactory that is creating the shadow context
      * @param shareWith The JoglContext to share object data with
-     * @param ffp       The FixedFunctionRenderer to use with the context
-     * @param glsl      The GlslRenderer to use with the context
      *
      * @return An PbufferShadowContext
      *
      * @throws NullPointerException if framework or profile is null
      */
-    public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith,
-                                              RendererProvider provider) {
+    public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith) {
         if (creator == null) {
             throw new NullPointerException(
                     "Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
@@ -79,7 +76,7 @@ public class PbufferShadowContext extends JoglContext {
                                                               new DefaultGLCapabilitiesChooser(), 1, 1,
                                                               realShare);
         try {
-            return new PbufferShadowContext(creator, pbuffer, provider);
+            return new PbufferShadowContext(creator.getCapabilities(), pbuffer);
         } catch (RuntimeException re) {
             // extra cleanup if we never finished constructing the shadow context
             pbuffer.destroy();

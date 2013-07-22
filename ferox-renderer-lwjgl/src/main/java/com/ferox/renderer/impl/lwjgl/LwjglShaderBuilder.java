@@ -68,7 +68,7 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
 
     @Override
     protected int createNewGeometryShader(OpenGLContext context) {
-        return EXTGeometryShader4.GL_GEOMETRY_SHADER_EXT;
+        return GL20.glCreateShader(EXTGeometryShader4.GL_GEOMETRY_SHADER_EXT);
     }
 
     @Override

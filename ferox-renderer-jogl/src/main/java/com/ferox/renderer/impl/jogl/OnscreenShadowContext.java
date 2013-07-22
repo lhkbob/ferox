@@ -26,7 +26,6 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.impl.RendererProvider;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 
@@ -46,9 +45,8 @@ import javax.media.opengl.GLDrawableFactory;
 public class OnscreenShadowContext extends JoglContext {
     private final Window frame;
 
-    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context,
-                                  RendererProvider provider) {
-        super(creator, context, provider);
+    private OnscreenShadowContext(JoglSurfaceFactory creator, Window frame, GLContext context) {
+        super(creator.getCapabilities(), context);
         this.frame = frame;
     }
 
@@ -68,15 +66,12 @@ public class OnscreenShadowContext extends JoglContext {
      *
      * @param creator   The JoglSurfaceFactory that is creating the shadow context
      * @param shareWith The JoglContext to share object data with
-     * @param ffp       The FixedFunctionRenderer to use with the context
-     * @param glsl      The GlslRenderer to use with the context
      *
      * @return An OnscreenShadowContext
      *
      * @throws NullPointerException if framework or profile is null
      */
-    public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith,
-                                               RendererProvider provider) {
+    public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith) {
         if (creator == null) {
             throw new NullPointerException(
                     "Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
@@ -93,6 +88,6 @@ public class OnscreenShadowContext extends JoglContext {
         GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
         GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
 
-        return new OnscreenShadowContext(creator, window, context, provider);
+        return new OnscreenShadowContext(creator, window, context);
     }
 }

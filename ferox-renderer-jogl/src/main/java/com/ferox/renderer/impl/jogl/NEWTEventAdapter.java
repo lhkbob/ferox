@@ -26,19 +26,19 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.input.AWTEventAdapter;
-import com.ferox.input.KeyEvent;
+import com.ferox.input.*;
 import com.ferox.input.KeyEvent.KeyCode;
-import com.ferox.input.MouseEvent;
 import com.ferox.input.MouseEvent.MouseButton;
-import com.ferox.input.MouseKeyEventDispatcher;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
 
+import java.lang.ref.WeakReference;
+
 /**
  * NEWTEventAdapter is a utility for converting events produced by the NEWT framework to the appropriate
- * events for this framework, much like the {@link AWTEventAdapter}.
+ * events for this framework, much like the {@link AWTEventAdapter}. It maintains only a weak reference to the
+ * actual source, and does not fire any events when the source has been GC'ed.
  *
  * @author Michael Ludwig
  */
@@ -46,6 +46,7 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     private Window component;
 
     private final MouseKeyEventDispatcher dispatcher;
+    private final WeakReference<MouseKeyEventSource> source;
 
     /**
      * Create a new AWTEventAdapter that will convert AWT events and dispatch them to the given
@@ -53,11 +54,12 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
      *
      * @param dispatcher The dispatcher to use
      */
-    public NEWTEventAdapter(MouseKeyEventDispatcher dispatcher) {
+    public NEWTEventAdapter(MouseKeyEventSource source, MouseKeyEventDispatcher dispatcher) {
         if (dispatcher == null) {
             throw new NullPointerException("Dispatcher cannot be null");
         }
 
+        this.source = new WeakReference<>(source);
         this.dispatcher = dispatcher;
     }
 
@@ -353,18 +355,21 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void keyPressed(com.jogamp.newt.event.KeyEvent e) {
-        // FIXME NEWT on Mac does not seem to fire of press/release events
-        // for modifier keys
-        KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, dispatcher.getSource(), getKeyCode(e),
-                                      getCharacter(e));
-        dispatcher.dispatchEvent(event);
+        // FIXME NEWT on Mac does not seem to fire press/release events for modifier keys
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            KeyEvent event = new KeyEvent(KeyEvent.Type.PRESS, src, getKeyCode(e), getCharacter(e));
+            dispatcher.dispatchEvent(event);
+        }
     }
 
     @Override
     public void keyReleased(com.jogamp.newt.event.KeyEvent e) {
-        KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, dispatcher.getSource(), getKeyCode(e),
-                                      getCharacter(e));
-        dispatcher.dispatchEvent(event);
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            KeyEvent event = new KeyEvent(KeyEvent.Type.RELEASE, src, getKeyCode(e), getCharacter(e));
+            dispatcher.dispatchEvent(event);
+        }
     }
 
     @Override
@@ -389,16 +394,21 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mousePressed(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, dispatcher.getSource(), e.getX(), getY(e), 0,
-                                          getButton(e));
-        dispatcher.dispatchEvent(event);
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            MouseEvent event = new MouseEvent(MouseEvent.Type.PRESS, src, e.getX(), getY(e), 0, getButton(e));
+            dispatcher.dispatchEvent(event);
+        }
     }
 
     @Override
     public void mouseReleased(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, dispatcher.getSource(), e.getX(), getY(e),
-                                          0, getButton(e));
-        dispatcher.dispatchEvent(event);
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            MouseEvent event = new MouseEvent(MouseEvent.Type.RELEASE, src, e.getX(), getY(e), 0,
+                                              getButton(e));
+            dispatcher.dispatchEvent(event);
+        }
     }
 
     @Override
@@ -410,15 +420,21 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
 
     @Override
     public void mouseMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, dispatcher.getSource(), e.getX(), getY(e), 0,
-                                          MouseButton.NONE);
-        dispatcher.dispatchEvent(event);
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            MouseEvent event = new MouseEvent(MouseEvent.Type.MOVE, src, e.getX(), getY(e), 0,
+                                              MouseButton.NONE);
+            dispatcher.dispatchEvent(event);
+        }
     }
 
     @Override
     public void mouseWheelMoved(com.jogamp.newt.event.MouseEvent e) {
-        MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, dispatcher.getSource(), e.getX(), getY(e),
-                                          e.getWheelRotation(), MouseButton.NONE);
-        dispatcher.dispatchEvent(event);
+        MouseKeyEventSource src = source.get();
+        if (src != null) {
+            MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, src, e.getX(), getY(e),
+                                              e.getWheelRotation(), MouseButton.NONE);
+            dispatcher.dispatchEvent(event);
+        }
     }
 }

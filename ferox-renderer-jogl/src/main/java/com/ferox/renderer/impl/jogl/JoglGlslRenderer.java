@@ -26,185 +26,198 @@
  */
 package com.ferox.renderer.impl.jogl;
 
-import com.ferox.renderer.Capabilities;
-import com.ferox.renderer.geom.VertexBufferObject.StorageMode;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ResourceManager;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle;
-import com.ferox.renderer.impl.drivers.GlslShaderHandle.Uniform;
-import com.ferox.renderer.impl.drivers.TextureHandle;
-import com.ferox.renderer.impl.drivers.VertexBufferObjectHandle;
-import com.ferox.renderer.texture.Texture.Target;
+import com.ferox.renderer.impl.resources.BufferImpl;
+import com.ferox.renderer.impl.resources.ShaderImpl;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.EnumSet;
 
 public class JoglGlslRenderer extends AbstractGlslRenderer {
-    private boolean initialized;
-    private EnumSet<Target> supportedTargets;
+    private GL2GL3 gl;
 
-    public JoglGlslRenderer(JoglRendererDelegate delegate) {
-        super(delegate);
-    }
-
-    // FIXME: must understand how to implement binding to a render target,
-    //   especially across shader versions
-    @Override
-    public void bindRenderTarget(String fragmentVariable, int target) {
-        throw new UnsupportedOperationException();
+    public JoglGlslRenderer(JoglContext context, JoglRendererDelegate delegate, int numVertexAttribs) {
+        super(context, delegate, numVertexAttribs);
     }
 
     @Override
-    public void activate(AbstractSurface surface, OpenGLContext context, ResourceManager manager) {
-        super.activate(surface, context, manager);
-
-        if (!initialized) {
-            // detect caps
-            Capabilities caps = surface.getFramework().getCapabilities();
-            supportedTargets = caps.getSupportedTextureTargets();
-
-            initialized = true;
-        }
-    }
-
-    @Override
-    protected void glUseProgram(GlslShaderHandle shader) {
-        int pid = (shader == null ? 0 : shader.programID);
-        ((JoglContext) context).bindGlslProgram(getGL(), pid);
+    public void activate(AbstractSurface surface) {
+        gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
+        super.activate(surface);
     }
 
     @Override
     protected void glAttributeValue(int attr, int rowCount, float v1, float v2, float v3, float v4) {
         switch (rowCount) {
         case 1:
-            getGL().glVertexAttrib1f(attr, v1);
+            gl.glVertexAttrib1f(attr, v1);
             break;
         case 2:
-            getGL().glVertexAttrib2f(attr, v1, v2);
+            gl.glVertexAttrib2f(attr, v1, v2);
             break;
         case 3:
-            getGL().glVertexAttrib3f(attr, v1, v2, v3);
+            gl.glVertexAttrib3f(attr, v1, v2, v3);
             break;
         case 4:
-            getGL().glVertexAttrib4f(attr, v1, v2, v3, v4);
+            gl.glVertexAttrib4f(attr, v1, v2, v3, v4);
             break;
         }
     }
 
     @Override
-    protected void glUniform(Uniform u, FloatBuffer values, int count) {
-        switch (u.uniform.getType()) {
+    protected void glAttributeValue(int attr, int rowCount, boolean unsigned, int v1, int v2, int v3,
+                                    int v4) {
+        if (unsigned) {
+            switch (rowCount) {
+            case 1:
+                gl.glVertexAttribI1ui(attr, v1);
+                break;
+            case 2:
+                gl.glVertexAttribI2ui(attr, v1, v2);
+                break;
+            case 3:
+                gl.glVertexAttribI3ui(attr, v1, v2, v3);
+                break;
+            case 4:
+                gl.glVertexAttribI4ui(attr, v1, v2, v3, v4);
+                break;
+            }
+        } else {
+            switch (rowCount) {
+            case 1:
+                gl.glVertexAttribI1i(attr, v1);
+                break;
+            case 2:
+                gl.glVertexAttribI2i(attr, v1, v2);
+                break;
+            case 3:
+                gl.glVertexAttribI3i(attr, v1, v2, v3);
+                break;
+            case 4:
+                gl.glVertexAttribI4i(attr, v1, v2, v3, v4);
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values) {
+        switch (u.getType()) {
         case FLOAT:
-            getGL().glUniform1fv(u.index, count, values);
+            gl.glUniform1fv(u.getIndex(), 1, values);
             break;
-        case FLOAT_VEC2:
-            getGL().glUniform2fv(u.index, count, values);
+        case VEC2:
+            gl.glUniform2fv(u.getIndex(), 1, values);
             break;
-        case FLOAT_VEC3:
-            getGL().glUniform3fv(u.index, count, values);
+        case VEC3:
+            gl.glUniform3fv(u.getIndex(), 1, values);
             break;
-        case FLOAT_VEC4:
-            getGL().glUniform4fv(u.index, count, values);
+        case VEC4:
+            gl.glUniform4fv(u.getIndex(), 1, values);
             break;
-        case FLOAT_MAT2:
-            getGL().glUniformMatrix2fv(u.index, count, false, values);
+        case MAT2:
+            gl.glUniformMatrix2fv(u.getIndex(), 1, false, values);
             break;
-        case FLOAT_MAT3:
-            getGL().glUniformMatrix3fv(u.index, count, false, values);
+        case MAT3:
+            gl.glUniformMatrix3fv(u.getIndex(), 1, false, values);
             break;
-        case FLOAT_MAT4:
-            getGL().glUniformMatrix4fv(u.index, count, false, values);
+        case MAT4:
+            gl.glUniformMatrix4fv(u.getIndex(), 1, false, values);
             break;
         default:
-            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
+            throw new RuntimeException("Unexpected enum value: " + u.getType());
         }
     }
 
     @Override
-    protected void glUniform(Uniform u, IntBuffer values, int count) {
-        switch (u.uniform.getType()) {
-        case BOOL:
+    protected void glUniform(ShaderImpl.UniformImpl u, IntBuffer values) {
+        switch (u.getType()) {
         case INT:
-        case SHADOW_MAP:
-        case TEXTURE_1D:
-        case TEXTURE_2D:
-        case TEXTURE_3D:
-        case TEXTURE_CUBEMAP:
-            getGL().glUniform1iv(u.index, count, values);
+        case BOOL:
+        case SAMPLER_1D:
+        case SAMPLER_2D:
+        case SAMPLER_3D:
+        case SAMPLER_CUBE:
+        case SAMPLER_1D_SHADOW:
+        case SAMPLER_2D_SHADOW:
+        case SAMPLER_CUBE_SHADOW:
+        case SAMPLER_1D_ARRAY:
+        case SAMPLER_2D_ARRAY:
+        case USAMPLER_1D:
+        case USAMPLER_2D:
+        case USAMPLER_3D:
+        case USAMPLER_CUBE:
+        case USAMPLER_1D_ARRAY:
+        case USAMPLER_2D_ARRAY:
+        case ISAMPLER_1D:
+        case ISAMPLER_2D:
+        case ISAMPLER_3D:
+        case ISAMPLER_CUBE:
+        case ISAMPLER_1D_ARRAY:
+        case ISAMPLER_2D_ARRAY:
+            gl.glUniform1iv(u.getIndex(), 1, values);
             break;
-        case INT_VEC2:
-            getGL().glUniform2iv(u.index, count, values);
+        case UINT:
+            gl.glUniform1uiv(u.getIndex(), 1, values);
             break;
-        case INT_VEC3:
-            getGL().glUniform3iv(u.index, count, values);
+        case IVEC2:
+        case BVEC2:
+            gl.glUniform2iv(u.getIndex(), 1, values);
             break;
-        case INT_VEC4:
-            getGL().glUniform4iv(u.index, count, values);
+        case IVEC3:
+        case BVEC3:
+            gl.glUniform3iv(u.getIndex(), 1, values);
+            break;
+        case IVEC4:
+        case BVEC4:
+            gl.glUniform4iv(u.getIndex(), 1, values);
+            break;
+        case UVEC2:
+            gl.glUniform2uiv(u.getIndex(), 1, values);
+            break;
+        case UVEC3:
+            gl.glUniform3uiv(u.getIndex(), 1, values);
+            break;
+        case UVEC4:
+            gl.glUniform4uiv(u.getIndex(), 1, values);
             break;
         default:
-            throw new RuntimeException("Unsupported enum value: " + u.uniform.getType());
-        }
-    }
-
-    @Override
-    protected void glBindTexture(int tex, Target target, TextureHandle handle) {
-        if (supportedTargets.contains(target)) {
-            JoglContext ctx = (JoglContext) context;
-            GL2GL3 gl = getGL();
-            ctx.setActiveTexture(gl, tex);
-            ctx.bindTexture(gl, Utils.getGLTextureTarget(target), (handle == null ? 0 : handle.texID));
+            throw new RuntimeException("Unexpected enum value: " + u.getType());
         }
     }
 
     @Override
     protected void glEnableAttribute(int attr, boolean enable) {
         if (enable) {
-            getGL().glEnableVertexAttribArray(attr);
+            gl.glEnableVertexAttribArray(attr);
         } else {
-            getGL().glDisableVertexAttribArray(attr);
+            gl.glDisableVertexAttribArray(attr);
         }
     }
 
     @Override
-    protected void glBindArrayVbo(VertexBufferObjectHandle h) {
-        JoglContext ctx = (JoglContext) context;
-        GL2GL3 gl = getGL();
+    protected void glAttributePointer(int attr, BufferImpl.BufferHandle handle, int offset, int stride,
+                                      int elementSize) {
+        int strideBytes = (elementSize + stride) * handle.type.getByteCount();
+        int vboOffset = offset * handle.type.getByteCount();
 
-        if (h != null) {
-            if (h.mode != StorageMode.IN_MEMORY) {
-                // Must bind the VBO
-                ctx.bindArrayVbo(gl, h.vboID);
+        if (handle.inmemoryBuffer != null) {
+            handle.inmemoryBuffer.clear().position(vboOffset);
+            if (!handle.type.isDecimalNumber()) {
+                gl.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), strideBytes,
+                                          handle.inmemoryBuffer);
             } else {
-                // Must unbind any old VBO, will grab the in-memory buffer during render call
-                ctx.bindArrayVbo(gl, 0);
+                // always specify the type as normalized, since any non-normalized integer type will
+                // fall into this if blcok, and the parameter is ignored for already floating-point data
+                gl.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
+                                         handle.inmemoryBuffer);
             }
         } else {
-            // Must unbind the vbo
-            ctx.bindArrayVbo(gl, 0);
+            // FIXME there's no glVertexAttribIPointer that takes a VBO offset
+            gl.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type),
+                                     handle.type.isNormalized(), strideBytes, vboOffset);
         }
-    }
-
-    @Override
-    protected void glAttributePointer(int attr, VertexBufferObjectHandle h, int offset, int stride,
-                                      int elementSize) {
-        int strideBytes = (elementSize + stride) * h.dataType.getByteCount();
-
-        if (h.mode == StorageMode.IN_MEMORY) {
-            h.inmemoryBuffer.clear().position(offset);
-            getGL().glVertexAttribPointer(attr, elementSize, GL.GL_FLOAT, false, strideBytes,
-                                          h.inmemoryBuffer);
-        } else {
-            int vboOffset = offset * h.dataType.getByteCount();
-            getGL().glVertexAttribPointer(attr, elementSize, GL.GL_FLOAT, false, strideBytes, vboOffset);
-        }
-    }
-
-    private GL2GL3 getGL() {
-        return ((JoglContext) context).getGLContext().getGL().getGL2GL3();
     }
 }

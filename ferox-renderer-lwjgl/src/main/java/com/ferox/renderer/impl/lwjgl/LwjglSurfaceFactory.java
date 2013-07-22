@@ -50,8 +50,6 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
 
     /**
      * Create a new LwjglSurfaceFactory.
-     *
-     * @throws NullPointerException if profile is null
      */
     public LwjglSurfaceFactory() {
         boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
@@ -149,6 +147,6 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
 
     @Override
     public void destroy() {
-        // FIXME who destroys the primary shared surface?
+        // do nothing, LWJGL has no other resources to clean up
     }
 }
