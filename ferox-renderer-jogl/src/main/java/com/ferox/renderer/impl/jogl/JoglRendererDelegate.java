@@ -206,6 +206,7 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     public void activate(AbstractSurface surface) {
+        gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
         if (!initialized) {
             // initial state configuration
             gl.glEnable(GL2GL3.GL_DEPTH_TEST);
@@ -215,7 +216,6 @@ public class JoglRendererDelegate extends RendererDelegate {
             initialized = true;
         }
 
-        gl = ((JoglContext) context).getGLContext().getGL().getGL2GL3();
         super.activate(surface);
     }
 

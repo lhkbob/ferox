@@ -60,12 +60,17 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         format.setDepthBits(24);
         format.setStencilBits(8);
 
+        format.setFBO(false);
+        format.setPBuffer(true);
+        format.setOnscreen(false);
+
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         try {
             GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
-            GLPbuffer pbuffer = factory
-                    .createGLPbuffer(factory.getDefaultDevice(), format, new DefaultGLCapabilitiesChooser(),
-                                     options.getWidth(), options.getHeight(), realShare);
+            GLOffscreenAutoDrawable pbuffer = factory
+                    .createOffscreenAutoDrawable(factory.getDefaultDevice(), format,
+                                                 new DefaultGLCapabilitiesChooser(), options.getWidth(),
+                                                 options.getHeight(), realShare);
             impl = new PbufferDestructible(framework, pbuffer, new JoglContext(framework.getCapabilities(),
                                                                                pbuffer.getContext()));
         } catch (GLException e) {
@@ -145,10 +150,11 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     }
 
     private static class PbufferDestructible extends SurfaceDestructible {
-        private final GLPbuffer pbuffer;
+        private final GLOffscreenAutoDrawable pbuffer;
         private final JoglContext context;
 
-        public PbufferDestructible(FrameworkImpl framework, GLPbuffer pbuffer, JoglContext context) {
+        public PbufferDestructible(FrameworkImpl framework, GLOffscreenAutoDrawable pbuffer,
+                                   JoglContext context) {
             super(framework);
             this.pbuffer = pbuffer;
             this.context = context;

@@ -35,6 +35,7 @@ import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
@@ -46,6 +47,8 @@ import javax.media.opengl.*;
 
 public class JoglNEWTSurface extends AbstractOnscreenSurface {
     private final JoglNEWTDestructible impl;
+
+    private final DisplayMode displayMode;
 
     private final int depthBits;
     private final int stencilBits;
@@ -67,10 +70,11 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         window.setVisible(true);
         window.requestFocus();
 
+        MonitorDevice monitor = null;
         if (options.getFullscreenMode() != null) {
             // make the window fullscreen
-            if (!window.getScreen()
-                       .setCurrentScreenMode(factory.getScreenMode(options.getFullscreenMode()))) {
+            monitor = factory.getMonitor();
+            if (!monitor.setCurrentMode(factory.getScreenMode(options.getFullscreenMode()))) {
                 window.destroy();
                 throw new SurfaceCreationException("Unable to change screen mode");
             }
@@ -79,6 +83,9 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
                 window.destroy();
                 throw new SurfaceCreationException("Unable to make window fullscreen");
             }
+            displayMode = options.getFullscreenMode();
+        } else {
+            displayMode = factory.getDefaultDisplayMode();
         }
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
@@ -114,8 +121,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         vsync = false;
         vsyncNeedsUpdate = true;
 
-        impl = new JoglNEWTDestructible(framework, this, drawable, context, window,
-                                        options.getFullscreenMode() != null);
+        impl = new JoglNEWTDestructible(framework, this, drawable, context, window, monitor);
     }
 
     private static GLCapabilities chooseCapabilities(OnscreenSurfaceOptions request,
@@ -193,6 +199,10 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         return caps;
     }
 
+    public void initialize() {
+        impl.initialize();
+    }
+
     @Override
     public void onSurfaceActivate(OpenGLContext context) {
         super.onSurfaceActivate(context);
@@ -208,7 +218,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
 
     @Override
     public DisplayMode getDisplayMode() {
-        return null;
+        return displayMode;
     }
 
     @Override
@@ -228,7 +238,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
 
     @Override
     public boolean isFullscreen() {
-        return impl.isFullscreen;
+        return impl.fullscreenDevice != null;
     }
 
     @Override
@@ -268,7 +278,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
     @Override
     public int getX() {
         synchronized (impl) {
-            if (impl.isFullscreen) {
+            if (impl.fullscreenDevice != null) {
                 return 0;
             } else {
                 return impl.window.getX();
@@ -279,7 +289,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
     @Override
     public int getY() {
         synchronized (impl) {
-            if (impl.isFullscreen) {
+            if (impl.fullscreenDevice != null) {
                 return 0;
             } else {
                 return impl.window.getY();
@@ -293,7 +303,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
 
-        if (!impl.isFullscreen) {
+        if (impl.fullscreenDevice == null) {
             Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
                 @Override
                 public void run() {
@@ -309,7 +319,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
 
     @Override
     public void setLocation(final int x, final int y) {
-        if (!impl.isFullscreen) {
+        if (impl.fullscreenDevice == null) {
             Utils.invokeOnContextThread(getFramework().getContextManager(), new Runnable() {
                 @Override
                 public void run() {
@@ -341,14 +351,14 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
     public int getWidth() {
         synchronized (impl) {
             // FIXME what about window insets?
-            return impl.drawable.getWidth();
+            return impl.window.getWidth();
         }
     }
 
     @Override
     public int getHeight() {
         synchronized (impl) {
-            return impl.drawable.getHeight();
+            return impl.window.getHeight();
         }
     }
 
@@ -390,17 +400,17 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         private final MouseKeyEventDispatcher dispatcher;
         private final NEWTEventAdapter adapter;
 
-        private final boolean isFullscreen;
+        private final MonitorDevice fullscreenDevice;
 
         private boolean closable;
 
         public JoglNEWTDestructible(FrameworkImpl framework, JoglNEWTSurface surface, GLDrawable drawable,
-                                    JoglContext context, Window window, boolean fullscreen) {
+                                    JoglContext context, Window window, MonitorDevice fullscreenDevice) {
             super(framework);
             this.window = window;
             this.context = context;
             this.drawable = drawable;
-            isFullscreen = fullscreen;
+            this.fullscreenDevice = fullscreenDevice;
 
             this.dispatcher = new MouseKeyEventDispatcher();
             adapter = new NEWTEventAdapter(surface, dispatcher);
@@ -424,9 +434,9 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
             dispatcher.shutdown();
             window.removeWindowListener(this);
 
-            if (isFullscreen) {
+            if (fullscreenDevice != null) {
                 // restore original screen mode
-                window.getScreen().setCurrentScreenMode(window.getScreen().getOriginalScreenMode());
+                fullscreenDevice.setCurrentMode(fullscreenDevice.getOriginalMode());
             }
 
             window.setVisible(false);

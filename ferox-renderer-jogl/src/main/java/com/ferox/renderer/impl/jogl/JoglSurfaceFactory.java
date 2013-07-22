@@ -28,10 +28,7 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.*;
 import com.ferox.renderer.impl.*;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.*;
 
 import javax.media.nativewindow.util.SurfaceSize;
 import javax.media.opengl.GLProfile;
@@ -54,11 +51,12 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     private final JoglCapabilities caps;
 
     private final DisplayMode defaultMode;
-    private final Map<DisplayMode, ScreenMode> convertMap;
+    private final Map<DisplayMode, MonitorMode> convertMap;
 
     // the Display and Screen used by all windows created by this factory
     private final Display display;
     private final Screen screen;
+    private final MonitorDevice device;
 
     /**
      * Create a new JoglSurfaceFactory.
@@ -74,16 +72,17 @@ public class JoglSurfaceFactory implements SurfaceFactory {
 
         screen = NewtFactory.createScreen(display, 0);
         screen.addReference();
+        device = screen.getMonitorDevices().get(0);
 
         convertMap = new HashMap<>();
 
-        List<ScreenMode> modes = screen.getScreenModes();
-        for (ScreenMode joglMode : modes) {
+        List<MonitorMode> modes = device.getSupportedModes();
+        for (MonitorMode joglMode : modes) {
             DisplayMode feroxMode = convert(joglMode);
             if (convertMap.containsKey(feroxMode)) {
                 // compare refresh rates and pick the one closest to target
-                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getMonitorMode().getRefreshRate()) < Math.abs(
-                        TARGET_REFRESH_RATE - convertMap.get(feroxMode).getMonitorMode().getRefreshRate())) {
+                if (Math.abs(TARGET_REFRESH_RATE - joglMode.getRefreshRate()) <
+                    Math.abs(TARGET_REFRESH_RATE - convertMap.get(feroxMode).getRefreshRate())) {
                     convertMap.put(feroxMode, joglMode);
                 }
             } else {
@@ -92,7 +91,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
             }
         }
 
-        defaultMode = convert(screen.getOriginalScreenMode());
+        defaultMode = convert(device.getOriginalMode());
         caps = JoglCapabilities
                 .computeCapabilities(profile, convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
                                      forceNoPBuffer, forceNoFBO);
@@ -102,14 +101,17 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     public void destroy() {
         screen.removeReference();
         display.removeReference();
+
+        screen.destroy();
+        display.destroy();
+    }
+
+    public MonitorDevice getMonitor() {
+        return device;
     }
 
     public Screen getScreen() {
         return screen;
-    }
-
-    public Display getDisplay() {
-        return display;
     }
 
     /**
@@ -127,15 +129,15 @@ public class JoglSurfaceFactory implements SurfaceFactory {
      *
      * @return The JOGL DisplayMode matching mode, or null
      */
-    public ScreenMode getScreenMode(DisplayMode mode) {
+    public MonitorMode getScreenMode(DisplayMode mode) {
         return convertMap.get(mode);
     }
 
-    private static DisplayMode convert(ScreenMode mode) {
-        SurfaceSize realMode = mode.getMonitorMode().getSurfaceSize();
+    private static DisplayMode convert(MonitorMode mode) {
+        SurfaceSize realMode = mode.getSurfaceSize();
 
         return new DisplayMode(realMode.getResolution().getWidth(), realMode.getResolution().getHeight(),
-                               realMode.getBitsPerPixel(), mode.getMonitorMode().getRefreshRate());
+                               realMode.getBitsPerPixel(), (int) mode.getRefreshRate());
     }
 
     @Override
@@ -154,7 +156,9 @@ public class JoglSurfaceFactory implements SurfaceFactory {
     public AbstractOnscreenSurface createOnscreenSurface(FrameworkImpl framework,
                                                          OnscreenSurfaceOptions options,
                                                          OpenGLContext sharedContext) {
-        return new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext);
+        JoglNEWTSurface s = new JoglNEWTSurface(framework, this, options, (JoglContext) sharedContext);
+        s.initialize();
+        return s;
     }
 
     @Override

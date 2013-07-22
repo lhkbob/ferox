@@ -38,9 +38,9 @@ import javax.media.opengl.*;
  * @author Michael Ludwig
  */
 public class PbufferShadowContext extends JoglContext {
-    private final GLPbuffer pbuffer;
+    private final GLOffscreenAutoDrawable pbuffer;
 
-    private PbufferShadowContext(Capabilities caps, GLPbuffer surface) {
+    private PbufferShadowContext(Capabilities caps, GLOffscreenAutoDrawable surface) {
         super(caps, surface.getContext());
         pbuffer = surface;
     }
@@ -70,11 +70,15 @@ public class PbufferShadowContext extends JoglContext {
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
+        glCaps.setPBuffer(true);
+        glCaps.setFBO(false);
+        glCaps.setOnscreen(false);
+
         AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
-        GLPbuffer pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
-                                             .createGLPbuffer(device, glCaps,
-                                                              new DefaultGLCapabilitiesChooser(), 1, 1,
-                                                              realShare);
+        GLOffscreenAutoDrawable pbuffer = GLDrawableFactory.getFactory(creator.getGLProfile())
+                                                           .createOffscreenAutoDrawable(device, glCaps,
+                                                                                        new DefaultGLCapabilitiesChooser(),
+                                                                                        1, 1, realShare);
         try {
             return new PbufferShadowContext(creator.getCapabilities(), pbuffer);
         } catch (RuntimeException re) {

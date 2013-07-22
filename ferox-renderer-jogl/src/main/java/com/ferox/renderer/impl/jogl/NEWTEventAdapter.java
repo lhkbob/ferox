@@ -373,11 +373,6 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     }
 
     @Override
-    public void keyTyped(com.jogamp.newt.event.KeyEvent e) {
-        // ignore this event
-    }
-
-    @Override
     public void mouseClicked(com.jogamp.newt.event.MouseEvent e) {
         // ignore this event
     }
@@ -432,8 +427,9 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
     public void mouseWheelMoved(com.jogamp.newt.event.MouseEvent e) {
         MouseKeyEventSource src = source.get();
         if (src != null) {
+            float vertRotation = e.getRotation()[1]; // 0 = horizontal, 1 = vertical, 2 = z
             MouseEvent event = new MouseEvent(MouseEvent.Type.SCROLL, src, e.getX(), getY(e),
-                                              e.getWheelRotation(), MouseButton.NONE);
+                                              (int) (vertRotation * e.getRotationScale()), MouseButton.NONE);
             dispatcher.dispatchEvent(event);
         }
     }

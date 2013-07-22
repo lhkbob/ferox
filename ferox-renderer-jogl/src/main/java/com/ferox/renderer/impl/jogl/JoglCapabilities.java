@@ -27,6 +27,8 @@
 package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.*;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Window;
 
 import javax.media.opengl.*;
 import java.util.Arrays;
@@ -40,6 +42,12 @@ import java.util.Set;
  * @author Michael Ludwig
  */
 public class JoglCapabilities extends Capabilities {
+    private static final int[] GUESSED_DEPTH_BITS = new int[] { 0, 16, 24, 32 };
+    private static final int[] GUESSED_STENCIL_BITS = new int[] { 0, 2, 4, 8, 16 };
+    private static final int[] GUESSED_MSAA_COUNTS = new int[] { 0, 2, 4, 8 };
+
+    private boolean queried = false;
+
     public static JoglCapabilities computeCapabilities(GLProfile profile, DisplayMode[] availableModes,
                                                        boolean forceNoPBuffer, boolean forceNoFBO) {
         GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
@@ -53,27 +61,35 @@ public class JoglCapabilities extends Capabilities {
         Set<Integer> validStencil = new HashSet<>();
         Set<Integer> validMSAA = new HashSet<>();
 
-        for (GLCapabilitiesImmutable avail : factory.getAvailableCapabilities(factory.getDefaultDevice())) {
-            validDepth.add(avail.getDepthBits());
-            validStencil.add(avail.getStencilBits());
-            if (avail.getSampleBuffers()) {
-                validMSAA.add(avail.getNumSamples());
+        for (int depth : GUESSED_DEPTH_BITS) {
+            GLCapabilities format = new GLCapabilities(profile);
+            format.setDepthBits(depth);
+            if (isValid(format, caps, factory, forceNoFBO)) {
+                validDepth.add(depth);
+            }
+        }
+        for (int stencil : GUESSED_STENCIL_BITS) {
+            GLCapabilities format = new GLCapabilities(profile);
+            format.setStencilBits(stencil);
+            if (isValid(format, caps, factory, forceNoFBO)) {
+                validStencil.add(stencil);
+            }
+        }
+        for (int msaa : GUESSED_MSAA_COUNTS) {
+            GLCapabilities format = new GLCapabilities(profile);
+            if (msaa == 0) {
+                format.setSampleBuffers(false);
             } else {
-                validMSAA.add(0);
+                format.setSampleBuffers(true);
+                format.setNumSamples(msaa);
+            }
+            if (isValid(format, caps, factory, forceNoFBO)) {
+                validMSAA.add(msaa);
             }
         }
 
-        try {
-            GLDrawable offscreen = factory
-                    .createOffscreenDrawable(factory.getDefaultDevice(), new GLCapabilities(profile),
-                                             new DefaultGLCapabilitiesChooser(), 1, 1);
-            GLContext ctx = offscreen.createContext(null);
-            ctx.makeCurrent();
-            caps.queryWithContext(ctx.getGL(), forceNoFBO);
-            ctx.release();
-            ctx.destroy();
-        } catch (GLException e) {
-            throw new FrameworkException("Unable to create valid context to query capabilities", e);
+        if (!caps.queried) {
+            throw new FrameworkException("Unable to create valid context to query capabilities");
         }
 
         int i = 0;
@@ -98,6 +114,54 @@ public class JoglCapabilities extends Capabilities {
         Arrays.sort(caps.msaaSamples);
 
         return caps;
+    }
+
+    private static boolean isValid(GLCapabilities format, JoglCapabilities caps, GLDrawableFactory factory,
+                                   boolean forceNoFBOs) {
+        if (caps.pbuffersSupported) {
+            try {
+                format.setFBO(false);
+                format.setPBuffer(true);
+                format.setOnscreen(false);
+
+                GLOffscreenAutoDrawable offscreen = factory
+                        .createOffscreenAutoDrawable(factory.getDefaultDevice(), format,
+                                                     new DefaultGLCapabilitiesChooser(), 1, 1, null);
+                offscreen.getContext().makeCurrent();
+                if (!caps.queried) {
+                    caps.queryWithContext(offscreen.getContext().getGL(), forceNoFBOs);
+                }
+                offscreen.getContext().release();
+                offscreen.destroy();
+
+                return true;
+            } catch (GLException e) {
+                return false;
+            }
+        } else {
+            try {
+                Window w = NewtFactory.createWindow(format);
+                w.setSize(1, 1);
+                w.setUndecorated(true);
+                w.setVisible(true);
+
+                GLDrawable drawable = factory.createGLDrawable(w);
+                GLContext ctx = drawable.createContext(null);
+                drawable.setRealized(true);
+
+                ctx.makeCurrent();
+                if (!caps.queried) {
+                    caps.queryWithContext(ctx.getGL(), forceNoFBOs);
+                }
+                ctx.release();
+                ctx.destroy();
+                w.destroy();
+
+                return true;
+            } catch (GLException e) {
+                return false;
+            }
+        }
     }
 
     private static float formatVersion(String glv) {
@@ -207,5 +271,7 @@ public class JoglCapabilities extends Capabilities {
         } else {
             maxRenderbufferSize = maxTextureSize;
         }
+
+        queried = true;
     }
 }
