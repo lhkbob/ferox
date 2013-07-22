@@ -57,6 +57,8 @@ import java.util.concurrent.CancellationException;
 public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     private final LwjglStaticDisplayDestructible impl;
 
+    private final DisplayMode displayMode;
+
     private final int depthBits;
     private final int stencilBits;
     private final int sampleCount;
@@ -102,6 +104,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                 }
                 throw new SurfaceCreationException("Unable to create static display", e);
             }
+            displayMode = options.getFullscreenMode();
         } else {
             // not a fullscreen window
             final Frame innerFrame = new Frame();
@@ -137,6 +140,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
             parentFrame = innerFrame;
             glCanvas = innerCanvas;
+            displayMode = factory.getDefaultDisplayMode();
         }
 
         // Detect buffer config while the context is current
@@ -243,7 +247,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
     @Override
     public DisplayMode getDisplayMode() {
-        return null;
+        return displayMode;
     }
 
     @Override

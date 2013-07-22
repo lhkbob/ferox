@@ -10,7 +10,7 @@
     </parent>
     <artifactId>ferox-renderer-lwjgl</artifactId>
     <packaging>jar</packaging>
-    <name>Ferox LWJGL Renderer Implementation</name>
+    <name>Ferox LWJGL Renderer Back-end</name>
 
     <build>
         <plugins>

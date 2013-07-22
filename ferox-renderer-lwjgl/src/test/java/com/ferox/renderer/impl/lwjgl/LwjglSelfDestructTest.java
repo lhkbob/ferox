@@ -30,7 +30,7 @@ import com.ferox.renderer.*;
 
 import java.util.Arrays;
 
-public class SelfDestructTest {
+public class LwjglSelfDestructTest {
     public static void main(String[] args) throws Exception {
         final Framework f = Framework.Factory.create();
         System.out.println("framework created");
