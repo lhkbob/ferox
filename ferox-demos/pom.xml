@@ -15,11 +15,6 @@
     <dependencies>
         <dependency>
             <groupId>com.lhkbob.ferox</groupId>
-            <artifactId>ferox-renderer-jogl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.lhkbob.ferox</groupId>
             <artifactId>ferox-renderer-lwjgl</artifactId>
             <version>${project.version}</version>
         </dependency>
