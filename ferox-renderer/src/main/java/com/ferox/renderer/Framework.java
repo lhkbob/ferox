@@ -82,8 +82,11 @@ public interface Framework extends Destructible {
     /**
      * Factory class for Frameworks
      */
-    public static class Factory {
+    public static final class Factory {
         private static final String FACTORY_DIR = "META-INF/ferox/renderer/";
+
+        private Factory() {
+        }
 
         public static Framework create() {
             Class<? extends ResourceFactory> resourceFactory = getImplementation(ResourceFactory.class);
