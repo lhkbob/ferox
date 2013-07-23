@@ -179,7 +179,7 @@ public class LinearConstraintPool {
         if (bodyA != null) {
             bodyAs[i] = bodyA.getIndex();
 
-            double imA = bodyA.getInverseMass();
+            double imA = 1.0 / bodyA.getMass();
             linearDirAs[veci] = direction.x * imA;
             linearDirAs[veci + 1] = direction.y * imA;
             linearDirAs[veci + 2] = direction.z * imA;
@@ -194,7 +194,7 @@ public class LinearConstraintPool {
         if (bodyB != null) {
             bodyBs[i] = bodyB.getIndex();
 
-            double imB = bodyB.getInverseMass();
+            double imB = 1.0 / bodyB.getMass();
             linearDirBs[veci] = direction.x * imB;
             linearDirBs[veci + 1] = direction.y * imB;
             linearDirBs[veci + 2] = direction.z * imB;
@@ -222,27 +222,23 @@ public class LinearConstraintPool {
         return i;
     }
 
-    public
     @Const
-    Vector3 getLinearImpulseA(int i, double impulse) {
+    public Vector3 getLinearImpulseA(int i, double impulse) {
         return linearA.set(linearDirAs, i * 3).scale(impulse);
     }
 
-    public
     @Const
-    Vector3 getLinearImpulseB(int i, double impulse) {
+    public Vector3 getLinearImpulseB(int i, double impulse) {
         return linearB.set(linearDirBs, i * 3).scale(impulse);
     }
 
-    public
     @Const
-    Vector3 getAngularImpulseA(int i, double impulse) {
+    public Vector3 getAngularImpulseA(int i, double impulse) {
         return angularA.set(angleDirAs, i * 3).scale(impulse);
     }
 
-    public
     @Const
-    Vector3 getAngularImpulseB(int i, double impulse) {
+    public Vector3 getAngularImpulseB(int i, double impulse) {
         return angularB.set(angleDirBs, i * 3).scale(impulse);
     }
 

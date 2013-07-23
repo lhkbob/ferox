@@ -26,32 +26,30 @@
  */
 package com.ferox.physics.collision;
 
-import com.lhkbob.entreri.Component;
-
 public class CollisionPair {
-    private Component<CollisionBody> a;
-    private Component<CollisionBody> b;
+    private CollisionBody a;
+    private CollisionBody b;
 
     public CollisionPair() {
     }
 
-    public CollisionPair(Component<CollisionBody> a, Component<CollisionBody> b) {
+    public CollisionPair(CollisionBody a, CollisionBody b) {
         set(a, b);
     }
 
-    public void set(Component<CollisionBody> a, Component<CollisionBody> b) {
-        if (a == null || b == null) {
-            throw new NullPointerException("Bodies cannot be null");
+    public void set(CollisionBody a, CollisionBody b) {
+        if (a.isFlyweight() || b.isFlyweight()) {
+            throw new IllegalArgumentException("Bodies should not be flyweight instances");
         }
         this.a = a;
         this.b = b;
     }
 
-    public Component<CollisionBody> getBodyA() {
+    public CollisionBody getBodyA() {
         return a;
     }
 
-    public Component<CollisionBody> getBodyB() {
+    public CollisionBody getBodyB() {
         return b;
     }
 
@@ -61,7 +59,7 @@ public class CollisionPair {
             return false;
         }
         CollisionPair t = (CollisionPair) o;
-        return (t.a == a && t.b == b) || (t.b == a && t.a == b);
+        return (t.a.equals(a) && t.b.equals(b)) || (t.b.equals(a) && t.a.equals(b));
     }
 
     @Override

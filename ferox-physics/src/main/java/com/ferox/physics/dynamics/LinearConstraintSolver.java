@@ -197,21 +197,21 @@ public class LinearConstraintSolver {
         if (ba >= 0) {
             deltaLinearImpulse.get(ba, linear);
             linear.add(group.getLinearImpulseA(constraint, deltaImpulse));
-            deltaLinearImpulse.set(linear, ba);
+            deltaLinearImpulse.set(ba, linear);
 
             deltaAngularImpulse.get(ba, angular);
             angular.add(group.getAngularImpulseA(constraint, deltaImpulse));
-            deltaAngularImpulse.set(angular, ba);
+            deltaAngularImpulse.set(ba, angular);
         }
 
         if (bb >= 0) {
             deltaLinearImpulse.get(bb, linear);
             linear.sub(group.getLinearImpulseB(constraint, deltaImpulse));
-            deltaLinearImpulse.set(linear, bb);
+            deltaLinearImpulse.set(bb, linear);
 
             deltaAngularImpulse.get(bb, angular);
             angular.sub(group.getAngularImpulseB(constraint, deltaImpulse));
-            deltaAngularImpulse.set(angular, bb);
+            deltaAngularImpulse.set(bb, angular);
         }
 
         group.setAppliedImpulse(constraint, totalImpulse);
@@ -226,22 +226,22 @@ public class LinearConstraintSolver {
                 if (ba >= 0) {
                     deltaLinearImpulse.get(ba, linear);
                     linear.add(group.getLinearImpulseA(i, warmstart));
-                    deltaLinearImpulse.set(linear, ba);
+                    deltaLinearImpulse.set(ba, linear);
 
                     deltaAngularImpulse.get(ba, angular);
                     angular.add(group.getAngularImpulseA(i, warmstart));
-                    deltaAngularImpulse.set(angular, ba);
+                    deltaAngularImpulse.set(ba, angular);
                 }
 
                 int bb = group.getBodyBIndex(i);
                 if (bb >= 0) {
                     deltaLinearImpulse.get(bb, linear);
                     linear.sub(group.getLinearImpulseB(i, warmstart));
-                    deltaLinearImpulse.set(linear, bb);
+                    deltaLinearImpulse.set(bb, linear);
 
                     deltaAngularImpulse.get(bb, angular);
                     angular.sub(group.getAngularImpulseB(i, warmstart));
-                    deltaAngularImpulse.set(angular, bb);
+                    deltaAngularImpulse.set(bb, angular);
                 }
 
                 group.setAppliedImpulse(i, warmstart);

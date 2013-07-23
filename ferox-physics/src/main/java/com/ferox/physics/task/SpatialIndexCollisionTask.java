@@ -34,7 +34,7 @@ import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -47,11 +47,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class SpatialIndexCollisionTask extends CollisionTask implements ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        Set<Class<? extends Component>> types = new HashSet<>();
         types.add(CollisionBody.class);
+        // notifyPotentialContact looks up RigidBody so we do have a dependency on that type
         types.add(RigidBody.class);
         COMPONENTS = Collections.unmodifiableSet(types);
     }
@@ -59,9 +60,7 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
     private final SpatialIndex<Entity> index;
 
     // cached instances that are normally local to process()
-    private CollisionBody bodyA;
-    private CollisionBody bodyB;
-
+    private CollisionBody body;
     private ComponentIterator iterator;
 
     public SpatialIndexCollisionTask(SpatialIndex<Entity> index, CollisionAlgorithmProvider algorithms) {
@@ -72,85 +71,39 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
         this.index = index;
     }
 
+    public void report(BoundsResult result) {
+        if (index instanceof BoundedSpatialIndex) {
+            ((BoundedSpatialIndex<?>) index).setExtent(result.getBounds());
+        }
+    }
+
     @Override
     public void reset(EntitySystem system) {
         super.reset(system);
 
-        if (bodyA == null) {
-            bodyA = system.createDataInstance(CollisionBody.class);
-            bodyB = system.createDataInstance(CollisionBody.class);
-
-            iterator = new ComponentIterator(system).addRequired(bodyA);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            body = iterator.addRequired(CollisionBody.class);
         }
 
         index.clear(true);
         iterator.reset();
     }
 
-    // NOTE: with regards to performance and task creation, there are 
-    // non-zero costs with iterating through the system: content is pulled
-    // from the properties into local instances and then processed (either
-    // directly with getters, or the onSet() method). This means that if
-    // multiple tasks are executed consecutively but access the same component
-    // types, we're doing additional load work.
-    //
-    // It'd be faster to merge those tasks into a single loop. Is this something
-    // I should automate, or something that I should consider when I design my
-    // tasks? I think it's too awkward to automate, although it would be cool.
-    //
-    // 
-
     @Override
     public Task process(EntitySystem system, Job job) {
         Profiler.push("detect-collisions");
 
-        // if the index is bounded, update its size so everything is processed
-        if (index instanceof BoundedSpatialIndex) {
-            // FIXME how much does computing the union hurt our performance?
-            // FIXME do we want to shrink the extent even when the original extent
-            // is large enough? How does that affect query performance?
-
-            // FIXME right now, setTransform() computes updateBounds() for CollisionBody,
-            // which isn't the best -> what if we had a task that just computed
-            // world bounds (like world bounds task in scene module) and it could
-            // report the union as well.
-
-            // Now the only issue is whether we want to duplicate this code, since
-            // both sources need the same functionality but they are definitely not
-            // sharable.  The only place would be if the math module defined the
-            // world bounds result type (we need different tasks because they
-            // process things differently anyways).
-            Profiler.push("update-index-extent");
-            AxisAlignedBox extent = new AxisAlignedBox();
-            boolean first = true;
-            while (iterator.next()) {
-                if (first) {
-                    extent.set(bodyA.getWorldBounds());
-                    first = false;
-                } else {
-                    extent.union(bodyA.getWorldBounds());
-                }
-            }
-
-            // make the extents slightly larger so floating point errors don't
-            // cause shapes on the edge to get discarded
-            extent.min.scale(1.1);
-            extent.max.scale(1.1);
-            ((BoundedSpatialIndex<Entity>) index).setExtent(extent);
-            iterator.reset();
-            Profiler.pop();
-        }
-
         // fill the index with all collision bodies
         Profiler.push("build-index");
         while (iterator.next()) {
-            index.add(bodyA.getEntity(), bodyA.getWorldBounds());
+            index.add(body.getEntity(), body.getWorldBounds());
         }
         Profiler.pop();
 
         // query for all intersections
         Profiler.push("find-intersections");
-        index.query(new CollisionCallback(bodyA, bodyB));
+        index.query(new CollisionCallback());
         Profiler.pop();
 
         Profiler.push("generate-constraints");
@@ -162,27 +115,16 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
     }
 
     private class CollisionCallback implements IntersectionCallback<Entity> {
-        private final CollisionBody bodyA;
-        private final CollisionBody bodyB;
-
-        public CollisionCallback(CollisionBody bodyA, CollisionBody bodyB) {
-            this.bodyA = bodyA;
-            this.bodyB = bodyB;
-        }
-
         @Override
         public void process(Entity a, AxisAlignedBox boundsA, Entity b, AxisAlignedBox boundsB) {
             // at this point we know the world bounds of a and b intersect, but
             // we need to test for collision against their actual shapes
-            a.get(bodyA);
-            b.get(bodyB);
-
-            notifyPotentialContact(bodyA, bodyB);
+            notifyPotentialContact(a.get(CollisionBody.class), b.get(CollisionBody.class));
         }
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 

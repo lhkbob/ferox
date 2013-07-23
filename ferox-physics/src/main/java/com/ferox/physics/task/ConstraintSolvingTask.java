@@ -32,7 +32,7 @@ import com.ferox.physics.dynamics.LinearConstraintPool;
 import com.ferox.physics.dynamics.LinearConstraintSolver;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
@@ -63,10 +63,9 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
 
     @Override
     public void reset(EntitySystem system) {
-        if (rigidBody == null) {
-            rigidBody = system.createDataInstance(RigidBody.class);
-            iterator = new ComponentIterator(system);
-            iterator.addRequired(rigidBody);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            rigidBody = iterator.addRequired(RigidBody.class);
 
             deltaLinearImpulse = system.decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
             deltaAngularImpulse = system
@@ -76,7 +75,7 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);
         }
 
-        groups = new ArrayList<LinearConstraintPool>();
+        groups = new ArrayList<>();
         iterator.reset();
     }
 
@@ -102,10 +101,11 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
 
             // 0 out delta impulse for next frame
             delta.set(0, 0, 0);
-            deltaLinearImpulse.set(delta, rigidBody.getIndex());
-            deltaAngularImpulse.set(delta, rigidBody.getIndex());
+            deltaLinearImpulse.set(rigidBody.getIndex(), delta);
+            deltaAngularImpulse.set(rigidBody.getIndex(), delta);
         }
         Profiler.pop();
+
         Profiler.pop();
 
         return null;
@@ -116,8 +116,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>>singleton(RigidBody.class);
+    public Set<Class<? extends Component>> getAccessedComponents() {
+        return Collections.<Class<? extends Component>>singleton(RigidBody.class);
     }
 
     @Override

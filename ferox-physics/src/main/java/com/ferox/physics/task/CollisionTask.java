@@ -34,7 +34,7 @@ import com.ferox.physics.dynamics.ContactManifoldPool;
 import com.ferox.physics.dynamics.LinearConstraintPool;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.ElapsedTimeResult;
 import com.lhkbob.entreri.task.Job;
@@ -93,10 +93,6 @@ public abstract class CollisionTask implements Task {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void notifyPotentialContact(CollisionBody bodyA, CollisionBody bodyB) {
-        // test collision groups and masks
-        if (!bodyA.canCollide(bodyB)) {
-            return;
-        }
         // collisions must have at least one rigid body to act on
         if (bodyA.getEntity().get(RigidBody.class) == null &&
             bodyB.getEntity().get(RigidBody.class) == null) {
@@ -122,7 +118,7 @@ public abstract class CollisionTask implements Task {
 
     private class WarmstartTask implements Task, ParallelAware {
         @Override
-        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        public Set<Class<? extends Component>> getAccessedComponents() {
             return Collections.emptySet();
         }
 

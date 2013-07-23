@@ -32,7 +32,6 @@ import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.CollisionPair;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.IntProperty;
@@ -48,14 +47,13 @@ public class TemporalSAPCollisionTask extends CollisionTask {
     private final Set<CollisionPair> overlappingPairCache;
 
     // cached local instances
-    private CollisionBody bodyA;
-    private CollisionBody bodyB;
+    private CollisionBody body;
     private ComponentIterator bodyIterator; // iterates bodyA
 
     public TemporalSAPCollisionTask(CollisionAlgorithmProvider algorithms) {
         super(algorithms);
 
-        overlappingPairCache = new HashSet<CollisionPair>();
+        overlappingPairCache = new HashSet<>();
 
         edges = new EdgeStore[3];
         for (int i = 0; i < edges.length; i++) {
@@ -75,10 +73,9 @@ public class TemporalSAPCollisionTask extends CollisionTask {
     public void reset(EntitySystem system) {
         super.reset(system);
 
-        if (bodyA == null) {
-            bodyA = system.createDataInstance(CollisionBody.class);
-            bodyB = system.createDataInstance(CollisionBody.class);
-            bodyIterator = new ComponentIterator(system).addRequired(bodyA);
+        if (bodyIterator == null) {
+            bodyIterator = system.fastIterator();
+            body = bodyIterator.addRequired(CollisionBody.class);
 
             for (int i = 0; i < edges.length; i++) {
                 edges[i].maxBodyEdges = system.decorate(CollisionBody.class, new IntProperty.Factory(-1));
@@ -101,18 +98,19 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         }
 
         while (bodyIterator.next()) {
-            AxisAlignedBox aabb = bodyA.getWorldBounds();
-            Component<CollisionBody> c = bodyA.getComponent();
+            AxisAlignedBox aabb = body.getWorldBounds();
 
-            if (edges[0].minBodyEdges.get(bodyA.getIndex()) < 0) {
+            if (edges[0].minBodyEdges.get(body.getIndex()) < 0) {
                 // add body to edge lists
-                edges[0].addEdges(c, aabb.min.x, aabb.max.x, false);
-                edges[1].addEdges(c, aabb.min.y, aabb.max.y, false);
-                edges[2].addEdges(c, aabb.min.z, aabb.max.z, true);
+                CollisionBody canonical = body.getEntity().get(CollisionBody.class);
+                edges[0].addEdges(canonical, aabb.min.x, aabb.max.x, false);
+                edges[1].addEdges(canonical, aabb.min.y, aabb.max.y, false);
+                edges[2].addEdges(canonical, aabb.min.z, aabb.max.z, true);
             } else {
-                edges[0].updateEdges(c, aabb.min.x, aabb.max.x);
-                edges[1].updateEdges(c, aabb.min.y, aabb.max.y);
-                edges[2].updateEdges(c, aabb.min.z, aabb.max.z);
+                // update doesn't need canonical reference
+                edges[0].updateEdges(body, aabb.min.x, aabb.max.x);
+                edges[1].updateEdges(body, aabb.min.y, aabb.max.y);
+                edges[2].updateEdges(body, aabb.min.z, aabb.max.z);
             }
         }
         Profiler.pop();
@@ -121,10 +119,11 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         // and performing narrow-phase collisions on the remaining
         Profiler.push("process-overlaps");
         for (CollisionPair pair : overlappingPairCache) {
-            if (bodyA.set(pair.getBodyA()) && bodyB.set(pair.getBodyB()) &&
-                bodyA.isEnabled() && bodyB.isEnabled()) {
-                // both components are still valid
-                notifyPotentialContact(bodyA, bodyB);
+            if (pair.getBodyA().isAlive() && pair.getBodyB().isAlive()) {
+                // both components are still valid check world bounds and then do further tests
+                if (pair.getBodyA().getWorldBounds().intersects(pair.getBodyB().getWorldBounds())) {
+                    notifyPotentialContact(pair.getBodyA(), pair.getBodyB());
+                }
             }
         }
         Profiler.pop();
@@ -144,7 +143,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         private final CollisionPair query; // mutable, don't put in set
 
         private int[] edges;
-        private Component<CollisionBody>[] edgeLabels;
+        private CollisionBody[] edgeLabels;
         private boolean[] edgeIsMax;
 
         private IntProperty minBodyEdges;
@@ -161,7 +160,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             query = new CollisionPair();
 
             edges = new int[2];
-            edgeLabels = new Component[2];
+            edgeLabels = new CollisionBody[2];
             edgeIsMax = new boolean[2];
 
             edgeCount = 0;
@@ -174,17 +173,11 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         public void removeDeadEdges() {
             // remove disabled component edges by shifting everything to the left
             for (int i = 1; i < 1 + edgeCount; i++) {
-                if (!edgeLabels[i].isEnabled()) {
+                if (!edgeLabels[i].isAlive()) {
                     System.arraycopy(edgeLabels, i + 1, edgeLabels, i, edgeCount - i);
                     System.arraycopy(edges, i + 1, edges, i, edgeCount - i);
-                    System.arraycopy(edgeIsMax, i + 1, edges, i, edgeCount - i);
+                    System.arraycopy(edgeIsMax, i + 1, edgeIsMax, i, edgeCount - i);
                     edgeCount--;
-
-                    if (edgeLabels[i].isLive()) {
-                        // still have component data so invalidate edge index
-                        maxBodyEdges.set(-1, edgeLabels[i].getIndex());
-                        minBodyEdges.set(-1, edgeLabels[i].getIndex());
-                    }
                 }
             }
 
@@ -198,7 +191,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             }
         }
 
-        public void addEdges(Component<CollisionBody> body, double min, double max, boolean updateOverlaps) {
+        public void addEdges(CollisionBody body, double min, double max, boolean updateOverlaps) {
             // offset by 1 for sentinel value stored in 0th index
             int minIndex = 1 + edgeCount++;
             int maxIndex = 1 + edgeCount++;
@@ -229,7 +222,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             sortMaxDown(maxIndex, updateOverlaps);
         }
 
-        public void updateEdges(Component<CollisionBody> body, double newMin, double newMax) {
+        public void updateEdges(CollisionBody body, double newMin, double newMax) {
             int minIndex = minBodyEdges.get(body.getIndex());
             int maxIndex = maxBodyEdges.get(body.getIndex());
 
@@ -295,7 +288,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                 }
 
                 // swap
-                Component<CollisionBody> sb = edgeLabels[edge];
+                CollisionBody sb = edgeLabels[edge];
                 int se = edges[edge];
                 boolean sm = edgeIsMax[edge];
 
@@ -335,7 +328,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                 }
 
                 // swap
-                Component<CollisionBody> sb = edgeLabels[edge];
+                CollisionBody sb = edgeLabels[edge];
                 int se = edges[edge];
                 boolean sm = edgeIsMax[edge];
 
@@ -375,7 +368,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                 }
 
                 // swap
-                Component<CollisionBody> sb = edgeLabels[edge];
+                CollisionBody sb = edgeLabels[edge];
                 int se = edges[edge];
                 boolean sm = edgeIsMax[edge];
 
@@ -419,7 +412,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
                 }
 
                 // swap
-                Component<CollisionBody> sb = edgeLabels[edge];
+                CollisionBody sb = edgeLabels[edge];
                 int se = edges[edge];
                 boolean sm = edgeIsMax[edge];
 

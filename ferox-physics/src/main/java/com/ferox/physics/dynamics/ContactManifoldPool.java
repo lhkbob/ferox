@@ -34,7 +34,6 @@ import com.ferox.math.bounds.Plane;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.CollisionPair;
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
@@ -103,10 +102,10 @@ public class ContactManifoldPool {
     }
 
     public ContactManifoldPool(double contactProcessingThreshold, double contactBreakingThreshold) {
-        manifolds = new HashMap<CollisionPair, Integer>();
+        manifolds = new HashMap<>();
         query = new CollisionPair();
         maxAliveContact = 0;
-        reuseQueue = new ArrayDeque<Integer>();
+        reuseQueue = new ArrayDeque<>();
 
         setCapacity(10);
         setContactProcessingThreshold(contactProcessingThreshold);
@@ -166,10 +165,9 @@ public class ContactManifoldPool {
 
     public void generateConstraints(double dt, LinearConstraintPool contactPool,
                                     LinearConstraintPool frictionPool) {
-        CollisionBody bodyA = entitySystem.createDataInstance(CollisionBody.class);
-        CollisionBody bodyB = entitySystem.createDataInstance(CollisionBody.class);
-        RigidBody rbA = entitySystem.createDataInstance(RigidBody.class);
-        RigidBody rbB = entitySystem.createDataInstance(RigidBody.class);
+        CollisionBody bodyA, bodyB;
+        RigidBody rbA, rbB;
+        boolean deadBodiesEncountered = false;
 
         // we need 4 temporary vectors to compute constraint info
         Vector3 relPosA = new Vector3();
@@ -180,13 +178,15 @@ public class ContactManifoldPool {
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
                 // load in component data
-                boolean valid = objAs[manifold].get(bodyA) && objBs[manifold].get(bodyB);
-                objAs[manifold].get(rbA);
-                objBs[manifold].get(rbB);
+                bodyA = objAs[manifold].get(CollisionBody.class);
+                bodyB = objBs[manifold].get(CollisionBody.class);
+                rbA = objAs[manifold].get(RigidBody.class);
+                rbB = objBs[manifold].get(RigidBody.class);
 
-                if (!valid) {
+                if (bodyA == null || bodyB == null) {
                     // component was removed and entity should no longer be in the manifold pool
                     removeManifold(manifold);
+                    deadBodiesEncountered = true;
                     continue;
                 }
 
@@ -222,13 +222,13 @@ public class ContactManifoldPool {
                             if (!mfFrictionComputed[index]) {
                                 // compute lateral friction direction
                                 Vector3 velA, velB;
-                                if (rbA.isEnabled()) {
+                                if (rbA.isAlive()) {
                                     velA = t1.cross(rbA.getAngularVelocity(), relPosA).add(rbA.getVelocity());
                                 } else {
                                     velA = t1.set(0, 0, 0);
                                 }
 
-                                if (rbB.isEnabled()) {
+                                if (rbB.isAlive()) {
                                     velB = t2.cross(rbB.getAngularVelocity(), relPosB).add(rbB.getVelocity());
                                 } else {
                                     velB = t2.set(0, 0, 0);
@@ -269,6 +269,17 @@ public class ContactManifoldPool {
                 }
             }
         }
+
+        if (deadBodiesEncountered) {
+            // must iterate through set values and remove manually, because the components hashes are lost
+            Iterator<CollisionPair> it = manifolds.keySet().iterator();
+            while (it.hasNext()) {
+                CollisionPair p = it.next();
+                if (!p.getBodyA().isAlive() || !p.getBodyB().isAlive()) {
+                    it.remove();
+                }
+            }
+        }
     }
 
     public void addContact(CollisionBody objA, CollisionBody objB, ClosestPair pair) {
@@ -276,20 +287,15 @@ public class ContactManifoldPool {
         addManifoldPoint(manifold, objA, objB, pair);
     }
 
-    public void removeAllContacts(Component<CollisionBody> c) {
-        Entity e = c.getEntity();
-        for (int i = 0; i < maxAliveContact; i++) {
-            if (objAs[i] == e || objBs[i] == e) {
-                // collision pair needs to be removed
-                removeManifold(i);
-            }
-        }
-    }
-
     private void removeManifold(int manifold) {
         // remove map entry
-        query.set(objAs[manifold].get(CollisionBody.class), objBs[manifold].get(CollisionBody.class));
-        manifolds.remove(query);
+        CollisionBody bodyA = objAs[manifold].get(CollisionBody.class);
+        CollisionBody bodyB = objBs[manifold].get(CollisionBody.class);
+
+        if (bodyA != null && bodyB != null) {
+            query.set(bodyA, bodyB);
+            manifolds.remove(query);
+        }
 
         // clear packed data
         objAs[manifold] = null;
@@ -315,25 +321,23 @@ public class ContactManifoldPool {
         torqueA.cross(relPosA, constraintAxis);
         torqueB.cross(relPosB, constraintAxis);
 
-        int constraint = pool
-                .addConstraint((rbA.isEnabled() ? rbA : null), (rbB.isEnabled() ? rbB : null), constraintAxis,
-                               torqueA, torqueB);
+        int constraint = pool.addConstraint(rbA, rbB, constraintAxis, torqueA, torqueB);
 
         double relativeVelocity = 0;
         double denom = 0.0;
 
-        if (rbA.isEnabled()) {
+        if (rbA != null) {
             relativeVelocity += (constraintAxis.dot(rbA.getVelocity()) +
                                  torqueA.dot(rbA.getAngularVelocity()));
             // we don't need torqueA anymore, so the multiply and cross can be in-place
-            denom += (rbA.getInverseMass() +
+            denom += (1.0 / rbA.getMass() +
                       torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
         }
-        if (rbB.isEnabled()) {
+        if (rbB != null) {
             relativeVelocity -= (constraintAxis.dot(rbB.getVelocity()) +
                                  torqueB.dot(rbB.getAngularVelocity()));
             // we don't need torqueB anymore, so the multiply and cross can be in-place
-            denom += (rbB.getInverseMass() +
+            denom += (1.0 / rbB.getMass() +
                       torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
         }
 
@@ -451,15 +455,15 @@ public class ContactManifoldPool {
     }
 
     private int getManifold(CollisionBody a, CollisionBody b) {
-        query.set(a.getComponent(), b.getComponent());
+        query.set(a, b);
         Integer existingManifold = manifolds.get(query);
         if (existingManifold != null) {
             // reuse this one
-            return existingManifold.intValue();
+            return existingManifold;
         }
 
         // otherwise we need a new index
-        int newIndex = (reuseQueue.isEmpty() ? maxAliveContact++ : reuseQueue.poll().intValue());
+        int newIndex = (reuseQueue.isEmpty() ? maxAliveContact++ : reuseQueue.poll());
         if (newIndex >= objAs.length) {
             // increase size
             setCapacity((newIndex + 1) * 2);
@@ -478,7 +482,7 @@ public class ContactManifoldPool {
         }
 
         // store index into map for fast lookup later
-        manifolds.put(new CollisionPair(a.getComponent(), b.getComponent()), newIndex);
+        manifolds.put(new CollisionPair(a, b), newIndex);
 
         return newIndex;
     }

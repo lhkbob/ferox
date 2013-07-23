@@ -96,8 +96,11 @@ public interface CollisionBody extends Component {
      * @return The world transform of the Collidable
      */
     @Const
-    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
-                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
+
+
+    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, //
+                    m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0, //
+                    m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0, //
                     m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
     public Matrix4 getTransform();
 
@@ -141,18 +144,4 @@ public interface CollisionBody extends Component {
     public AxisAlignedBox getWorldBounds();
 
     public CollisionBody setWorldBounds(@Const AxisAlignedBox bounds);
-
-    public static class Utils {
-        // FIXME this is so simple, we just might move it into a task
-        private void updateBounds() {
-            Shape shape = getShape();
-            if (shape != null) {
-                // do the if check just to be nice, if someone calls the
-                // setTransform() before setShape(), we really don't want to throw
-                // a weird exception
-                boundsCache.transform(shape.getBounds(), getTransform());
-                worldBounds.set(boundsCache, getIndex());
-            }
-        }
-    }
 }

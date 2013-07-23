@@ -29,14 +29,9 @@ package com.ferox.physics.dynamics;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
-import com.ferox.math.entreri.Matrix3Property;
-import com.ferox.math.entreri.Vector3Property;
 import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.Unmanaged;
-import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 @Requires(CollisionBody.class)
@@ -66,43 +61,53 @@ public interface RigidBody extends Component {
     public Vector3 getAngularVelocity();
 
     @Const
-    public Vector3 getTotalForce();
+    public Vector3 getForce();
 
     @Const
-    public Vector3 getTotalTorque();
+    public Vector3 getTorque();
 
-    public static class Utils {
-        public RigidBody addForce(@Const Vector3 force, @Const Vector3 relPos) {
-            totalForce.set(getTotalForce().add(force), getIndex());
-
-            if (relPos != null) {
-                totalTorque.set(getTotalTorque().add(temp.cross(relPos, force)), getIndex());
-            }
-
-            return this;
+    public static final class Utils {
+        private Utils() {
         }
 
-        public RigidBody addImpulse(@Const Vector3 impulse, @Const Vector3 relPos) {
-            velocity.set(getVelocity().addScaled(getInverseMass(), impulse), getIndex());
+        public static void addForce(RigidBody body, @Const Vector3 force, @Const Vector3 relPos) {
+            Vector3 totalForce = body.getForce();
+            totalForce.add(force);
+            body.setForce(totalForce);
 
             if (relPos != null) {
-                temp.cross(relPos, impulse);
-                temp.mul(getInertiaTensorInverse(), temp);
-
-                angularVelocity.set(getAngularVelocity().add(temp), getIndex());
+                Vector3 totalTorque = body.getTorque();
+                // use the body's total force vector as a temporary store, this is safe because we
+                // never use it again and getForce() always refills it
+                totalTorque.add(totalForce.cross(relPos, force));
+                body.setTorque(totalTorque);
             }
-
-            return this;
         }
 
-        public RigidBody clearForces() {
-            forceCache.set(0.0, 0.0, 0.0);
-            torqueCache.set(0.0, 0.0, 0.0);
+        public static void addImpulse(RigidBody body, @Const Vector3 impulse, @Const Vector3 relPos) {
+            Vector3 velocity = body.getVelocity();
+            velocity.addScaled(1.0 / body.getMass(), impulse);
+            body.setVelocity(velocity);
 
-            totalForce.set(forceCache, getIndex());
-            totalTorque.set(torqueCache, getIndex());
+            if (relPos != null) {
+                // use the same reuse trick as in addForce()
+                velocity.cross(relPos, impulse);
+                velocity.mul(body.getInertiaTensorInverse(), velocity);
 
-            return this;
+                Vector3 angular = body.getAngularVelocity();
+                angular.add(velocity);
+                body.setAngularVelocity(angular);
+            }
+        }
+
+        public static void clearForces(RigidBody body) {
+            Vector3 force = body.getForce();
+            force.set(0, 0, 0);
+            body.setForce(force);
+
+            Vector3 torque = body.getTorque();
+            torque.set(0, 0, 0);
+            body.setTorque(torque);
         }
     }
 }

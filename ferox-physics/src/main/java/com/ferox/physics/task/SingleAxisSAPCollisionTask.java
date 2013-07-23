@@ -33,7 +33,7 @@ import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -46,10 +46,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class SingleAxisSAPCollisionTask extends CollisionTask implements ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        Set<Class<? extends Component>> types = new HashSet<>();
         types.add(CollisionBody.class);
         types.add(RigidBody.class);
         COMPONENTS = Collections.unmodifiableSet(types);
@@ -58,25 +58,21 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
     private final Bag<Entity> bodies;
 
     // cached instances that are normally local to process()
-    private CollisionBody bodyA;
-    private CollisionBody bodyB;
-
+    private CollisionBody body;
     private ComponentIterator iterator;
 
     public SingleAxisSAPCollisionTask(CollisionAlgorithmProvider algorithms) {
         super(algorithms);
-        bodies = new Bag<Entity>();
+        bodies = new Bag<>();
     }
 
     @Override
     public void reset(EntitySystem system) {
         super.reset(system);
 
-        if (bodyA == null) {
-            bodyA = system.createDataInstance(CollisionBody.class);
-            bodyB = system.createDataInstance(CollisionBody.class);
-
-            iterator = new ComponentIterator(system).addRequired(bodyA);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            body = iterator.addRequired(CollisionBody.class);
         }
 
         iterator.reset();
@@ -90,19 +86,22 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
         // build up axis lists to sort
         Profiler.push("prepare-axis");
         while (iterator.next()) {
-            bodies.add(bodyA.getEntity());
+            bodies.add(body.getEntity());
         }
 
         int[] edges = new int[bodies.size() * 2];
         int[] edgeLabels = new int[bodies.size() * 2];
 
-        for (int i = 0; i < bodies.size(); i++) {
-            bodies.get(i).get(bodyA);
-            AxisAlignedBox aabb = bodyA.getWorldBounds();
+        iterator.reset();
+        int i = 0;
+        while (iterator.next()) {
+            AxisAlignedBox aabb = body.getWorldBounds();
             edges[(i << 1)] = Functions.sortableFloatToIntBits((float) aabb.min.x);
             edges[(i << 1) + 1] = Functions.sortableFloatToIntBits((float) aabb.max.x);
             edgeLabels[(i << 1)] = i;
             edgeLabels[(i << 1) + 1] = (0x80000000) | i;
+
+            i++;
         }
         Profiler.pop();
 
@@ -118,7 +117,7 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
 
         int currLabel;
         boolean isMax;
-        for (int i = 0; i < edges.length; i++) {
+        for (i = 0; i < edges.length; i++) {
             // check the next label
             isMax = edgeLabels[i] < 0;
             currLabel = (~0x80000000) & edgeLabels[i];
@@ -142,8 +141,8 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
                     openIndex = i;
                 } else {
                     // perform intersection test with open box and current box
-                    bodies.get(edgeLabels[openIndex]).get(bodyA);
-                    bodies.get(currLabel).get(bodyB);
+                    CollisionBody bodyA = bodies.get(edgeLabels[openIndex]).get(CollisionBody.class);
+                    CollisionBody bodyB = bodies.get(currLabel).get(CollisionBody.class);
 
                     if (bodyA.getWorldBounds().intersects(bodyB.getWorldBounds())) {
                         notifyPotentialContact(bodyA, bodyB);
@@ -168,7 +167,7 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 
