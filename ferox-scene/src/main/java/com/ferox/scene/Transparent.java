@@ -26,10 +26,8 @@
  */
 package com.ferox.scene;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.BooleanProperty;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
-import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 
 /**
@@ -46,22 +44,12 @@ import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
  *
  * @author Michael Ludwig
  */
-public final class Transparent extends ComponentData<Transparent> {
-    @DefaultDouble(0.5)
-    private DoubleProperty opacity;
-
-    @DefaultBoolean(false)
-    private BooleanProperty additive;
-
-    private Transparent() {
-    }
-
+public interface Transparent extends Component {
     /**
      * @return True if the transparent object emits light, such as fire might
      */
-    public boolean isAdditive() {
-        return additive.get(getIndex());
-    }
+    @DefaultBoolean(false)
+    public boolean isAdditive();
 
     /**
      * Set whether or not the transparent object emits light, and thus needs to use additive blending. An
@@ -72,11 +60,7 @@ public final class Transparent extends ComponentData<Transparent> {
      *
      * @return This component
      */
-    public Transparent setAdditive(boolean additive) {
-        this.additive.set(additive, getIndex());
-        updateVersion();
-        return this;
-    }
+    public Transparent setAdditive(boolean additive);
 
     /**
      * Return the opacity of the Entity. This is a value between 0 and 1, representing the fraction of light
@@ -85,9 +69,8 @@ public final class Transparent extends ComponentData<Transparent> {
      *
      * @return The opacity
      */
-    public double getOpacity() {
-        return opacity.get(getIndex());
-    }
+    @DefaultDouble(0.5)
+    public double getOpacity();
 
     /**
      * Set the opacity of this Transparent component. A value of 1 means the Entity is fully opaque and a
@@ -100,12 +83,5 @@ public final class Transparent extends ComponentData<Transparent> {
      *
      * @throws IllegalArgumentException if opacity is not between 0 and 1
      */
-    public Transparent setOpacity(double opacity) {
-        if (opacity < 0f || opacity > 1f) {
-            throw new IllegalArgumentException("Opacity must be in [0, 1], not: " + opacity);
-        }
-        this.opacity.set(opacity, getIndex());
-        updateVersion();
-        return this;
-    }
+    public Transparent setOpacity(double opacity);
 }

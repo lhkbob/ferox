@@ -26,29 +26,34 @@
  */
 package com.ferox.scene;
 
-import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.Texture;
+import com.lhkbob.entreri.Component;
 
 /**
+ * SpecularColorMap servers to override the specular properties on a per-pixel level. The RGB values represent
+ * the overridden specular color, which should be modulated with any specular material color provided with the
+ * lighting model. If the alpha value is present, its values are interpreted in a lighting model dependent
+ * manner, generally encoding the other configurable property of the specular model (such as shininess or
+ * roughness).
  * <p/>
- * SpecularColorMap functions like {@link SpecularColor} except that it provides per-texel specular material.
- * Black texel values will effectively disable specular highlights for those regions of the texture. Like
- * {@link EmittedColorMap}, any alpha component has no defined behavior and can be used by the renderer in
- * different ways (possibly as an exponent or shininess factor as used in a {@link BlinnPhongMaterial}).
- * <p/>
- * <p/>
- * It is not defined how the geometry of the Entity is mapped onto the texture, but will likely use texture
- * coordinates stored in the geometry. This should be configured by the rendering controller, or in other
- * component types. Any texture mapping should likely match the texture mapping used for a {@link
- * DiffuseColorMap}.
+ * The texture is accessed by texture coordinates from the entity's associated Renderable.
  *
  * @author Michael Ludwig
  */
-public final class SpecularColorMap extends TextureMap<SpecularColorMap> {
-    private SpecularColorMap() {
-    }
+public interface SpecularColorMap extends Component {
+    /**
+     * Return the non-null Texture that is used by this SpecularColorMap.
+     *
+     * @return This TextureMap's texture
+     */
+    public Texture getTexture();
 
-    @Override
-    protected void validate(Texture tex) {
-        // do nothing
-    }
+    /**
+     * Set the Texture to use with this component.
+     *
+     * @param texture The new Texture
+     *
+     * @return This component for chaining purposes
+     */
+    public SpecularColorMap setTexture(Texture texture);
 }

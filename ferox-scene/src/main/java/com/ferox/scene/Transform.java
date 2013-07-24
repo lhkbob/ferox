@@ -28,11 +28,9 @@ package com.ferox.scene;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
-import com.ferox.math.entreri.Matrix4Property;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.SharedInstance;
-import com.lhkbob.entreri.Unmanaged;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.property.SharedInstance;
 
 /**
  * <p/>
@@ -42,19 +40,7 @@ import com.lhkbob.entreri.Unmanaged;
  *
  * @author Michael Ludwig
  */
-public final class Transform extends ComponentData<Transform> {
-    // the identity matrix
-    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, m10 = 0.0, m11 = 1.0,
-                    m12 = 0.0, m13 = 0.0, m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
-                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
-    private Matrix4Property matrix;
-
-    @Unmanaged
-    private final Matrix4 cache = new Matrix4();
-
-    private Transform() {
-    }
-
+public interface Transform extends Component {
     /**
      * Copy the given transform matrix into this Transform's matrix.
      *
@@ -64,12 +50,7 @@ public final class Transform extends ComponentData<Transform> {
      *
      * @throws NullPointerException if m is null
      */
-    public Transform setMatrix(@Const Matrix4 m) {
-        // set the cache to m as well so that it is always valid
-        matrix.set(m, getIndex());
-        updateVersion();
-        return this;
-    }
+    public Transform setMatrix(@Const Matrix4 m);
 
     /**
      * Return the matrix of this Transform. The returned Matrix4 instance is reused by this Transform instance
@@ -79,8 +60,9 @@ public final class Transform extends ComponentData<Transform> {
      */
     @Const
     @SharedInstance
-    public Matrix4 getMatrix() {
-        matrix.get(getIndex(), cache);
-        return cache;
-    }
+    @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0,
+                    m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0,
+                    m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
+                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
+    public Matrix4 getMatrix();
 }

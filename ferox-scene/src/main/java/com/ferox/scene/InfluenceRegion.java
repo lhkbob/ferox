@@ -28,46 +28,17 @@ package com.ferox.scene;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
-import com.ferox.math.entreri.AxisAlignedBoxProperty;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.SharedInstance;
-import com.lhkbob.entreri.Unmanaged;
-import com.lhkbob.entreri.property.BooleanProperty;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.property.SharedInstance;
 
-// FIXME requires Transform? I don't think so...
-public final class InfluenceRegion extends ComponentData<InfluenceRegion> {
-    private AxisAlignedBoxProperty bounds;
-    private BooleanProperty negate;
-
-    @Unmanaged
-    private final AxisAlignedBox boundsCache = new AxisAlignedBox();
-
-    private InfluenceRegion() {
-    }
-
+public interface InfluenceRegion extends Component {
     @Const
     @SharedInstance
-    public AxisAlignedBox getBounds() {
-        bounds.get(getIndex(), boundsCache);
-        return boundsCache;
-    }
+    public AxisAlignedBox getBounds();
 
-    public InfluenceRegion setBounds(@Const AxisAlignedBox bounds) {
-        if (bounds == null) {
-            throw new NullPointerException("Bounds cannot be null");
-        }
-        this.bounds.set(bounds, getIndex());
-        updateVersion();
-        return this;
-    }
+    public InfluenceRegion setBounds(@Const AxisAlignedBox bounds);
 
-    public boolean isNegated() {
-        return negate.get(getIndex());
-    }
+    public boolean isNegated();
 
-    public InfluenceRegion setNegated(boolean negate) {
-        this.negate.set(negate, getIndex());
-        updateVersion();
-        return this;
-    }
+    public InfluenceRegion setNegated(boolean negate);
 }

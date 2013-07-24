@@ -26,8 +26,8 @@
  */
 package com.ferox.scene;
 
-import com.ferox.renderer.texture.Texture;
-import com.ferox.renderer.texture.TextureFormat;
+import com.ferox.renderer.DepthMap;
+import com.lhkbob.entreri.Component;
 
 /**
  * <p/>
@@ -36,22 +36,26 @@ import com.ferox.renderer.texture.TextureFormat;
  * create parallax normal mapping if combined with a {@link NormalMap}, or could be used to generate a normal
  * map on the fly.
  * <p/>
- * The textures used by DepthOffsetMap must have single-component texture formats. If the format of the depth
- * map is {@link TextureFormat#R_FLOAT}, then the depth values in the texture are taken as is. If it is any
- * other format, then the depth values are packed into the range [0, 1] and are converted to [-.5, .5] with
- * <code>d - .5</code> when used in a shader.
+ * The depth map should not have a depth comparison enabled because the shader will need direct access to the
+ * depth values. Positive depth values are assumed to extend along the normal away from the surface. If
+ * negative values are necessary, a signed data type should be used.
  *
  * @author Michael Ludwig
  */
-public final class DepthOffsetMap extends TextureMap<DepthOffsetMap> {
-    private DepthOffsetMap() {
-    }
+public interface DepthOffsetMap extends Component {
+    /**
+     * Return the non-null Texture that is used by this DepthOffsetMap.
+     *
+     * @return This TextureMap's texture
+     */
+    public DepthMap getTexture();
 
-    @Override
-    protected void validate(Texture tex) {
-        if (tex.getFormat().getComponentCount() != 1) {
-            throw new IllegalArgumentException(
-                    "Cannot specify a depth map that has more than one component: " + tex.getFormat());
-        }
-    }
+    /**
+     * Set the Texture to use with this component.
+     *
+     * @param texture The new Texture
+     *
+     * @return This component for chaining purposes
+     */
+    public DepthOffsetMap setTexture(DepthMap texture);
 }

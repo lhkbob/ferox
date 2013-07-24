@@ -26,98 +26,58 @@
  */
 package com.ferox.scene;
 
-import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.texture.Texture;
-import com.ferox.renderer.texture.TextureFormat;
-import com.ferox.resource.BufferData.DataType;
-import com.lhkbob.entreri.property.ObjectProperty;
+import com.ferox.renderer.Texture;
+import com.lhkbob.entreri.Component;
 
 /**
  * <p/>
- * The NormalMap component adds normal-mapping to the effects applied when rendering an Entity. It must be
- * combined with Components that enable lighting for it to have any effect. The normal vectors are stored in a
- * 3-component texture and the vectors can be in object or tangent space.
+ * The NormalMap component adds normal-mapping to the lighting effects applied when rendering an Entity. The
+ * normal vectors are stored in a 2 or 3-component texture and the vectors can be in object or tangent space.
  * <p/>
  * The normals within the Texture are assumed to be of unit length. If the format of the texture is {@link
- * TextureFormat#RGB_FLOAT} the x, y, and z coordinates are taken as is from the red, green, and blue
- * components of each texel. If the format is any other type, the x, y, and z coordinates are packed into the
- * range, [0, 1] and are converted to [-1, 1] with <code>2 * [x,y,z] - 1</code>.
+ * com.ferox.renderer.DataType#FLOAT} the x, y, and z coordinates are taken as is from the red, green, and
+ * blue components of each texel. If the format is an unsigned normalized type, the x, y, and z coordinates
+ * are packed into the range, [0, 1] and are converted to [-1, 1] with <code>2 * [x,y,z] - 1</code>.
  * <p/>
+ * If the texture is a 2-component texture, the two components encode the x and y coordinates.  The z
+ * coordinate must be computed on the fly by the shader.
  * <p/>
  * Tangent space normal vectors require the geometry of the Entity to provide additional vertex attributes to
- * describe the tangent space for each rendered triangle. These attributes must be provided or configured else
- * where because it is likely to depend on the controllers actually rendering the Entities.
+ * describe the tangent space for each rendered triangle.
  *
  * @author Michael Ludwig
  */
-public final class NormalMap extends TextureMap<NormalMap> {
-    private ObjectProperty<VertexAttribute> tangentVectors;
-
-    private NormalMap() {
-    }
+public interface NormalMap extends Component {
+    /**
+     * Get whether or not normals encoded in the texture are in object space. If they are not in object space,
+     * they are assumed to be in the tangent space formed by the entity's normal and tangent vector
+     * attributes.
+     *
+     * @return True if the normal map is in object space
+     */
+    public boolean isObjectSpace();
 
     /**
-     * Return whether or not the normal vectors are in object space or tangent space. See {@link
-     * #setTangents(boolean)} for details.
+     * Set whether or not normal vectors stored in the normal texture map are in object space or tangent
+     * space.
      *
-     * @return True if in object space
+     * @param inObjectSpace True if they are in object space
      */
-    public boolean isObjectSpace() {
-        return getTangents() == null;
-    }
+    public void setObjectSpace(boolean inObjectSpace);
 
     /**
-     * <p/>
-     * Return the tangent vectors that form a the basis of the tangent space for a vertex when the tangent is
-     * combined with the vertex's normal and the cross product of the normal and tangent vector (or
-     * bitangent).
-     * <p/>
-     * This will return null if {@link #isObjectSpace()} returns true.
+     * Return the non-null Texture that is used by this SpecularColorMap.
      *
-     * @return The tangent vectors if this NormalMap is in tangent space
+     * @return This TextureMap's texture
      */
-    public VertexAttribute getTangents() {
-        return tangentVectors.get(getIndex());
-    }
+    public Texture getTexture();
 
     /**
-     * <p/>
-     * Set the vertex attribute storing tangent vectors for the entity's geometry. While normal vectors are
-     * orthogonal to the surface of the geometry, tangent vectors are tangent to the surface. When combined
-     * with the normal data, the tangent, normal, and (tangent X normal) create an orthonormal basis
-     * representing the 'tangent space' of the geometry at a particular vertex.
-     * <p/>
-     * When <var>tangents</var> is non-null, it is assumed that the normal vectors encoded in the texture are
-     * in this tangent space. When <var>tangents</var> is null, it is assumed that the vectors in the texture
-     * are in object or model space.
+     * Set the Texture to use with this component.
      *
-     * @param tangents The new tangent vertex attribute to use
+     * @param texture The new Texture
      *
-     * @return The component for chaining purposes
-     *
-     * @throws IllegalArgumentException if tangents is not null and has non-float data, or an element size
-     *                                  other than 3
+     * @return This component for chaining purposes
      */
-    public NormalMap setTangents(VertexAttribute tangents) {
-        if (tangents != null) {
-            if (tangents.getVBO().getData().getDataType() != DataType.FLOAT) {
-                throw new IllegalArgumentException("Tangents must have FLOAT data");
-            }
-            if (tangents.getElementSize() != 3) {
-                throw new IllegalArgumentException(
-                        "Tangents must have an element size of 3, not: " + tangents.getElementSize());
-            }
-        }
-        tangentVectors.set(tangents, getIndex());
-        updateVersion();
-        return this;
-    }
-
-    @Override
-    protected void validate(Texture tex) {
-        if (tex.getFormat().getComponentCount() != 3) {
-            throw new IllegalArgumentException(
-                    "Normal map must use a texture format with 3 components, not: " + tex.getFormat());
-        }
-    }
+    public NormalMap setTexture(Texture texture);
 }

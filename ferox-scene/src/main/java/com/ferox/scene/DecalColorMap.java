@@ -26,24 +26,35 @@
  */
 package com.ferox.scene;
 
-import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.Texture;
+import com.lhkbob.entreri.Component;
 
 /**
  * <p/>
- * DecalColorMap is a texture map that should be modulated with the diffuse color or diffuse color map to act
- * as a decal. This means that areas where it's transparent should match the underlying diffuse color, but
- * where it's opaque it should be unaffected by the underlying color.
+ * DecalColorMap is a texture map that is modulated with the albedo of the material to act as a decal. This
+ * means that areas where the decal is transparent will match the underlying diffuse color, but where it's
+ * opaque it will wholly match the decal color.
  * <p/>
- * This is different than the modulation between a diffuse color and texture, where it is multiplicative.
+ * This modulation is similar to how the diffuse color map is modulated with the fixed albedo of any diffuse
+ * lighting model, except the diffuse color map is sole source of alpha values for transparency (from
+ * textures, {@link Transparent} still provides the base alpha value).
  *
  * @author Michael Ludwig
  */
-public class DecalColorMap extends TextureMap<DecalColorMap> {
-    private DecalColorMap() {
-    }
+public interface DecalColorMap extends Component {
+    /**
+     * Return the non-null Texture that is used by this DecalColorMap.
+     *
+     * @return This TextureMap's texture
+     */
+    public Texture getTexture();
 
-    @Override
-    protected void validate(Texture tex) {
-        // do nothing
-    }
+    /**
+     * Set the Texture to use with this component.
+     *
+     * @param texture The new Texture
+     *
+     * @return This component for chaining purposes
+     */
+    public DecalColorMap setTexture(Texture texture);
 }

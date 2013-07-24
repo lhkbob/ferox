@@ -26,6 +26,12 @@
  */
 package com.ferox.scene;
 
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Const;
+import com.ferox.math.entreri.ColorRGBProperty;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.property.SharedInstance;
+
 /**
  * AmbientLight represents a source of ambient light in a scene. Ambient lights contribute an equal amount of
  * light intensity to every rendered object, regardless of direction. AmbientLight does not define any
@@ -33,7 +39,21 @@ package com.ferox.scene;
  *
  * @author Michael Ludwig
  */
-public final class AmbientLight extends Light<AmbientLight> {
-    private AmbientLight() {
-    }
+public interface AmbientLight extends Component {
+    /**
+     * @return The color of this Light
+     */
+    @Const
+    @SharedInstance
+    @ColorRGBProperty.DefaultColor(red = 0.2, green = 0.2, blue = 0.2)
+    public ColorRGB getColor();
+
+    /**
+     * Set the color of this Light.
+     *
+     * @param color The new color
+     *
+     * @return This light for chaining purposes
+     */
+    public Light setColor(@Const ColorRGB color);
 }

@@ -28,14 +28,10 @@ package com.ferox.scene;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
-import com.ferox.math.entreri.ColorRGBProperty;
 import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.SharedInstance;
-import com.lhkbob.entreri.Unmanaged;
-import com.lhkbob.entreri.property.DoubleProperty;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.SharedInstance;
 
 /**
  * <p/>
@@ -46,7 +42,7 @@ import com.lhkbob.entreri.property.IntProperty;
  *
  * @author Michael Ludwig
  */
-public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
+public interface AtmosphericFog extends Component {
     /**
      * Falloff represents how the visibility of fog decreases as distance increases. The opacity of the fog,
      * at some distance, can be considered as a floating point number within [0, 1]. When at a distance less
@@ -73,22 +69,6 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
         EXPONENTIAL_SQUARED
     }
 
-    private static final Falloff[] VALUES = Falloff.values();
-
-    @DefaultColor(red = 0.5, green = 0.5, blue = 0.5)
-    private ColorRGBProperty color;
-
-    @DefaultDouble(10)
-    private DoubleProperty distanceToOpaque;
-
-    private IntProperty falloff;
-
-    @Unmanaged
-    private final ColorRGB colorCache = new ColorRGB();
-
-    private AtmosphericFog() {
-    }
-
     /**
      * Set the Falloff to use for this fog. See {@link #getFalloff()} and {@link Falloff} for descriptions of
      * what the Falloff accomplishes.
@@ -99,14 +79,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      *
      * @throws NullPointerException if falloff is null
      */
-    public AtmosphericFog setFalloff(Falloff falloff) {
-        if (falloff == null) {
-            throw new NullPointerException("Falloff cannot be null");
-        }
-        this.falloff.set(falloff.ordinal(), getIndex());
-        updateVersion();
-        return this;
-    }
+    public AtmosphericFog setFalloff(Falloff falloff);
 
     /**
      * Return the Falloff equation to use that determines how an object's color and the fog color are combined
@@ -115,9 +88,7 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      *
      * @return The Falloff of this fog
      */
-    public Falloff getFalloff() {
-        return VALUES[falloff.get(getIndex())];
-    }
+    public Falloff getFalloff();
 
     /**
      * Set the maximum distance that light can travel through the fog before being completely obscured. Any
@@ -127,27 +98,17 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      * @param dist The new opaque distance
      *
      * @return This AtmosphericFog for chaining purposes
-     *
-     * @throws IllegalArgumentException if dist <= 0
      */
-    public AtmosphericFog setOpaqueDistance(double dist) {
-        if (dist <= 0) {
-            throw new IllegalArgumentException("Distance must be positive, not: " + dist);
-        }
-        distanceToOpaque.set(dist, getIndex());
-        updateVersion();
-        return this;
-    }
+    public AtmosphericFog setOpaqueDistance(double dist);
 
     /**
      * Return the distance from the viewer required for an object to be completely obscured by the fog, or
      * equivalently when the fog is fully opaque and lets no light through to the viewer.
      *
-     * @return The opaque distance, this will be above 0
+     * @return The opaque distance
      */
-    public double getOpaqueDistance() {
-        return distanceToOpaque.get(getIndex());
-    }
+    @DefaultDouble(10)
+    public double getOpaqueDistance();
 
     /**
      * Copy <var>color</var> into this AtmosphericFog's color instance. The color represents the color of the
@@ -155,18 +116,9 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      *
      * @param color The new fog color
      *
-     * @return The new version, via {@link #notifyChange()}
-     *
-     * @throws NullPointerException if color is null
+     * @return This component
      */
-    public AtmosphericFog setColor(@Const ColorRGB color) {
-        if (color == null) {
-            throw new NullPointerException("Color cannot be null");
-        }
-        this.color.set(color, getIndex());
-        updateVersion();
-        return this;
-    }
+    public AtmosphericFog setColor(@Const ColorRGB color);
 
     /**
      * Return the color of this fog when the fog is fully opaque. If the fog is not opaque, the fog color is
@@ -176,8 +128,6 @@ public final class AtmosphericFog extends ComponentData<AtmosphericFog> {
      */
     @Const
     @SharedInstance
-    public ColorRGB getColor() {
-        color.get(getIndex(), colorCache);
-        return colorCache;
-    }
+    @DefaultColor(red = 0.5, green = 0.5, blue = 0.5)
+    public ColorRGB getColor();
 }

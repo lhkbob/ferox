@@ -26,15 +26,13 @@
  */
 package com.ferox.scene;
 
-import com.ferox.renderer.texture.Texture;
+import com.ferox.renderer.Texture;
+import com.lhkbob.entreri.Component;
 
 /**
  * <p/>
- * DiffuseColorMap provides diffuse material colors, much like {@link DiffuseColor}, except that it uses a
- * {@link Texture} to have per-texel coloration instead of a single color across the entire Entity. It is not
- * defined how the geometry of the Entity is mapped onto the texture, but will likely use texture coordinates
- * stored in the geometry. This should be configured by the rendering controller, or in other component
- * types.
+ * DiffuseColorMap overrides the albedo used by any diffuse lighting model on the entity on a per-pixel basis.
+ * The texture is accessed using the texture coordinates from the entity's Renderable.
  * <p/>
  * Alpha values within the texture map will be treated as per-texel opacity values, with the same definition
  * as {@link Transparent}, although they will be ignored if the Transparent component is not added to the
@@ -43,12 +41,20 @@ import com.ferox.renderer.texture.Texture;
  *
  * @author Michael Ludwig
  */
-public class DiffuseColorMap extends TextureMap<DiffuseColorMap> {
-    private DiffuseColorMap() {
-    }
+public interface DiffuseColorMap extends Component {
+    /**
+     * Return the non-null Texture that is used by this DiffuseColorMap.
+     *
+     * @return This TextureMap's texture
+     */
+    public Texture getTexture();
 
-    @Override
-    protected void validate(Texture tex) {
-        // do nothing
-    }
+    /**
+     * Set the Texture to use with this component.
+     *
+     * @param texture The new Texture
+     *
+     * @return This component for chaining purposes
+     */
+    public DiffuseColorMap setTexture(Texture texture);
 }
