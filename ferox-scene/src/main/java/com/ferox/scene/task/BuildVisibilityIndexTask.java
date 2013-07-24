@@ -26,12 +26,11 @@
  */
 package com.ferox.scene.task;
 
-import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
@@ -45,40 +44,34 @@ import java.util.Set;
 public class BuildVisibilityIndexTask implements Task, ParallelAware {
     private final SpatialIndex<Entity> index;
 
-    private AxisAlignedBox worldBounds;
-
     // could be local scope but we can save GC work
     private Renderable renderable;
     private ComponentIterator iterator;
 
-    // FIXME just create it?
     public BuildVisibilityIndexTask(SpatialIndex<Entity> index) {
         this.index = index;
     }
 
     public void report(BoundsResult result) {
-        worldBounds = result.getBounds();
+        if (index instanceof BoundedSpatialIndex) {
+            ((BoundedSpatialIndex<Entity>) index).setExtent(result.getBounds());
+        }
     }
 
     @Override
     public void reset(EntitySystem system) {
-        if (renderable == null) {
-            renderable = system.createDataInstance(Renderable.class);
-            iterator = new ComponentIterator(system).addRequired(renderable);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            renderable = iterator.addRequired(Renderable.class);
         }
 
         index.clear(true);
-        worldBounds = null;
         iterator.reset();
     }
 
     @Override
     public Task process(EntitySystem system, Job job) {
         Profiler.push("build-visibility-index");
-
-        if (index instanceof BoundedSpatialIndex) {
-            ((BoundedSpatialIndex<Entity>) index).setExtent(worldBounds);
-        }
 
         while (iterator.next()) {
             index.add(renderable.getEntity(), renderable.getWorldBounds());
@@ -92,8 +85,8 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>>singleton(Renderable.class);
+    public Set<Class<? extends Component>> getAccessedComponents() {
+        return Collections.<Class<? extends Component>>singleton(Renderable.class);
     }
 
     @Override

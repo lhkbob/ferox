@@ -30,7 +30,7 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
@@ -42,10 +42,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class UpdateWorldBoundsTask implements Task, ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        Set<Class<? extends Component>> types = new HashSet<>();
         types.add(Renderable.class);
         types.add(Transform.class);
         COMPONENTS = Collections.unmodifiableSet(types);
@@ -58,10 +58,10 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
     @Override
     public void reset(EntitySystem system) {
-        if (renderable == null) {
-            renderable = system.createDataInstance(Renderable.class);
-            transform = system.createDataInstance(Transform.class);
-            iterator = new ComponentIterator(system).addRequired(renderable).addRequired(transform);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            renderable = iterator.addRequired(Renderable.class);
+            transform = iterator.addRequired(Transform.class);
         }
 
         iterator.reset();
@@ -76,7 +76,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
         boolean first = true;
 
         while (iterator.next()) {
-            worldBounds.transform(renderable.getLocalBounds(), transform.getMatrix());
+            worldBounds.transform(renderable.getGeometry().getBounds(), transform.getMatrix());
             renderable.setWorldBounds(worldBounds);
 
             if (first) {
@@ -94,7 +94,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 
@@ -102,5 +102,4 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
     public boolean isEntitySetModified() {
         return false;
     }
-
 }

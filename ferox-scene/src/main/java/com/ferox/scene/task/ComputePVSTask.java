@@ -33,7 +33,7 @@ import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
@@ -49,7 +49,7 @@ public class ComputePVSTask implements Task, ParallelAware {
     private SpatialIndex<Entity> index;
 
     public ComputePVSTask() {
-        frustums = new Bag<FrustumResult>();
+        frustums = new Bag<>();
     }
 
     public void report(FrustumResult result) {
@@ -72,7 +72,7 @@ public class ComputePVSTask implements Task, ParallelAware {
 
         if (index != null) {
             for (FrustumResult f : frustums) {
-                VisibilityCallback query = new VisibilityCallback(system);
+                VisibilityCallback query = new VisibilityCallback();
                 index.query(f.getFrustum(), query);
 
                 // sort the PVS by entity id before reporting it so that
@@ -88,36 +88,21 @@ public class ComputePVSTask implements Task, ParallelAware {
     }
 
     private static class VisibilityCallback implements QueryCallback<Entity> {
-        private final Renderable renderable;
-
         private final Bag<Entity> pvs;
 
-        /**
-         * Create a new VisibilityCallback that set each discovered Entity with a Transform's visibility to
-         * true for the given entity, <var>camera</var>.
-         *
-         * @param camera The Entity that will be flagged as visible
-         *
-         * @throws NullPointerException if camera is null
-         */
-        public VisibilityCallback(EntitySystem system) {
-            renderable = system.createDataInstance(Renderable.class);
-            pvs = new Bag<Entity>();
+        public VisibilityCallback() {
+            pvs = new Bag<>();
         }
 
         @Override
         public void process(Entity r, @Const AxisAlignedBox bounds) {
-            // using ComponentData to query existence is faster
-            // than pulling in the actual Component
-            if (r.get(renderable)) {
-                pvs.add(r);
-            }
+            pvs.add(r);
         }
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
-        return Collections.<Class<? extends ComponentData<?>>>singleton(Renderable.class);
+    public Set<Class<? extends Component>> getAccessedComponents() {
+        return Collections.<Class<? extends Component>>singleton(Renderable.class);
     }
 
     @Override

@@ -32,7 +32,7 @@ import com.ferox.math.bounds.Frustum;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
@@ -51,10 +51,10 @@ import java.util.Set;
  * @author Michael Ludwig
  */
 public class ComputeCameraFrustumTask implements Task, ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
+        Set<Class<? extends Component>> types = new HashSet<Class<? extends Component>>();
         types.add(Camera.class);
         types.add(Transform.class);
         COMPONENTS = Collections.unmodifiableSet(types);
@@ -67,10 +67,10 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
 
     @Override
     public void reset(EntitySystem system) {
-        if (camera == null) {
-            camera = system.createDataInstance(Camera.class);
-            transform = system.createDataInstance(Transform.class);
-            iterator = new ComponentIterator(system).addRequired(camera).addRequired(transform);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            camera = iterator.addRequired(Camera.class);
+            transform = iterator.addRequired(Transform.class);
         }
 
         iterator.reset();
@@ -89,7 +89,7 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
             f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02, m.m12, m.m22),
                              new Vector3(m.m01, m.m11, m.m21));
 
-            job.report(new FrustumResult(camera.getComponent(), f));
+            job.report(new FrustumResult(camera.getEntity().get(Camera.class), f));
         }
 
         Profiler.pop();
@@ -97,7 +97,7 @@ public class ComputeCameraFrustumTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 

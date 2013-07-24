@@ -31,19 +31,22 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.task.Result;
 
 public class FrustumResult extends Result {
-    private final Component<?> frustumSource;
+    private final Component frustumSource;
     private final Frustum frustum;
 
-    public FrustumResult(Component<?> source, Frustum view) {
+    public FrustumResult(Component source, Frustum view) {
         if (source == null || view == null) {
             throw new NullPointerException("Component and Frustum cannot be null");
+        }
+        if (source.isFlyweight()) {
+            throw new IllegalArgumentException("Component must be canonical");
         }
 
         frustumSource = source;
         frustum = view;
     }
 
-    public Component<?> getSource() {
+    public Component getSource() {
         return frustumSource;
     }
 

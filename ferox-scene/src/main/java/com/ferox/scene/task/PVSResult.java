@@ -33,18 +33,25 @@ import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.task.Result;
 
 public class PVSResult extends Result {
-    private final Component<?> source;
+    private final Component source;
     private final Frustum frustum;
 
     private final Bag<Entity> pvs;
 
-    public PVSResult(Component<?> source, Frustum frustum, Bag<Entity> pvs) {
+    public PVSResult(Component source, Frustum frustum, Bag<Entity> pvs) {
+        if (source == null || frustum == null) {
+            throw new NullPointerException("Component and Frustum cannot be null");
+        }
+        if (source.isFlyweight()) {
+            throw new IllegalArgumentException("Component must be canonical");
+        }
+
         this.source = source;
         this.frustum = frustum;
         this.pvs = pvs;
     }
 
-    public Component<?> getSource() {
+    public Component getSource() {
         return source;
     }
 
