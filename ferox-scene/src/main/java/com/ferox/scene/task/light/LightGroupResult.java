@@ -27,7 +27,6 @@
 package com.ferox.scene.task.light;
 
 import com.ferox.scene.Light;
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Result;
 
@@ -36,9 +35,9 @@ import java.util.Set;
 
 public class LightGroupResult extends Result {
     private final IntProperty groupAssignment;
-    private final List<Set<Component<? extends Light<?>>>> groups;
+    private final List<Set<Light>> groups;
 
-    public LightGroupResult(List<Set<Component<? extends Light<?>>>> groups, IntProperty assignment) {
+    public LightGroupResult(List<Set<Light>> groups, IntProperty assignment) {
         if (assignment == null) {
             throw new NullPointerException("Property cannot be null");
         }
@@ -53,7 +52,7 @@ public class LightGroupResult extends Result {
         return groupAssignment;
     }
 
-    public Set<Component<? extends Light<?>>> getGroup(int group) {
+    public Set<Light> getGroup(int group) {
         return groups.get(group);
     }
 

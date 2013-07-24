@@ -29,12 +29,61 @@ package com.ferox.scene.task.light;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
-import com.ferox.scene.Light;
+import com.ferox.math.Vector3;
+import com.ferox.math.bounds.Frustum;
 
-public interface LightInfluence {
-    public static interface Factory<T extends Light<T>> {
-        public LightInfluence create(T light, @Const Matrix4 lightTransform);
+public class LightInfluence {
+    private final Frustum lightFrustum;
+    private final double falloffSquared;
+    private final Vector3 lightPosition;
+
+    private final Vector3 objectPos; // cached local instance
+
+    public LightInfluence(double falloff, double cutoffAngle, @Const Matrix4 lightTransform) {
+        if (falloff >= 0) {
+            falloffSquared = falloff * falloff;
+        } else {
+            falloffSquared = -1;
+        }
+        lightPosition = new Vector3(lightTransform.m03, lightTransform.m13, lightTransform.m23);
+
+        if (cutoffAngle >= 0 && cutoffAngle <= 90) {
+            // spotlight
+            double zfar = (falloff < 0 ? Double.MAX_VALUE : falloff);
+            lightFrustum = new Frustum(60.0, 1.0, 0.1, 1.0);
+            lightFrustum.setPerspective(cutoffAngle, 1.0, 0.00001, zfar);
+            lightFrustum.setOrientation(lightTransform);
+        } else {
+            lightFrustum = null;
+        }
+
+        objectPos = new Vector3();
     }
 
-    public boolean influences(@Const AxisAlignedBox entityBounds);
+    public boolean influences(@Const AxisAlignedBox bounds) {
+        if (lightFrustum != null) {
+            // spot light
+            if (lightFrustum.intersects(bounds, null) == Frustum.FrustumIntersection.OUTSIDE) {
+                return false;
+            }
+        }
+
+        if (falloffSquared >= 0) {
+            objectPos.add(bounds.min, bounds.max).scale(0.5); // center of aabb
+            // updated to direction vector from light to center
+            objectPos.sub(lightPosition);
+            // compute near extent in place
+            objectPos.nearExtent(bounds, objectPos);
+
+            // make sure the bounds intersects with the bounding sphere centered
+            // on the light with a radius equal to the falloff distance
+
+            // distance between lightPos and objectPos is distance of light
+            // to closest point on the entity bounds
+            return objectPos.distanceSquared(lightPosition) <= falloffSquared;
+        } else {
+            // if no falloff and we've passed the optional frustum check then we always influence the entity
+            return true;
+        }
+    }
 }

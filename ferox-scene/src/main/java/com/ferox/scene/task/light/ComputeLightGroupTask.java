@@ -50,44 +50,32 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class ComputeLightGroupTask implements Task, ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
-        types.add(Influences.class);
+        Set<Class<? extends Component>> types = new HashSet<>();
         types.add(InfluenceRegion.class);
-        types.add(AmbientLight.class);
-        types.add(DirectionLight.class);
-        types.add(SpotLight.class);
-        types.add(PointLight.class);
+        types.add(Light.class);
         types.add(Renderable.class);
         types.add(Transform.class);
         COMPONENTS = Collections.unmodifiableSet(types);
     }
-
-    // read-only so threadsafe
-    private static final Matrix4 DEFAULT_MAT = new Matrix4().setIdentity();
-    private static final AxisAlignedBox DEFAULT_AABB = new AxisAlignedBox();
 
     private final BoundedSpatialIndex<LightSource> lightIndex;
     private IntProperty assignments;
 
     // results
     private final List<Bag<Entity>> allVisibleSets;
-    private AxisAlignedBox worldBounds;
 
     // shared local variables for GC performance
+    private ComponentIterator iterator;
     private Transform transform;
-    private Influences influenceSet;
     private InfluenceRegion influenceRegion;
-    private AmbientLight ambient;
-    private DirectionLight direction;
-    private SpotLight spot;
-    private PointLight point;
+    private Light light;
 
     public ComputeLightGroupTask() {
-        this.lightIndex = new QuadTree<LightSource>(new AxisAlignedBox(), 2);
-        allVisibleSets = new ArrayList<Bag<Entity>>();
+        this.lightIndex = new QuadTree<>(new AxisAlignedBox(), 2);
+        allVisibleSets = new ArrayList<>();
     }
 
     @Override
@@ -95,43 +83,40 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         if (assignments == null) {
             assignments = system.decorate(Renderable.class, new IntProperty.Factory(-1));
 
-            transform = system.createDataInstance(Transform.class);
-            influenceSet = system.createDataInstance(Influences.class);
-            influenceRegion = system.createDataInstance(InfluenceRegion.class);
-            ambient = system.createDataInstance(AmbientLight.class);
-            direction = system.createDataInstance(DirectionLight.class);
-            spot = system.createDataInstance(SpotLight.class);
-            point = system.createDataInstance(PointLight.class);
+            iterator = system.fastIterator();
+            light = iterator.addRequired(Light.class);
+            transform = iterator.addRequired(Transform.class);
+            influenceRegion = iterator.addOptional(InfluenceRegion.class);
         }
 
         allVisibleSets.clear();
-        worldBounds = null;
         lightIndex.clear(true);
+        iterator.reset();
         Arrays.fill(assignments.getIndexedData(), -1);
     }
 
-    private <T extends Light<T>> void convertToLightSources(T light, EntitySystem system,
-                                                            LightInfluence.Factory<T> factory,
-                                                            List<LightSource> globalLights,
-                                                            List<LightSource> allLights) {
-        ComponentIterator dlt = new ComponentIterator(system).addRequired(light).addOptional(transform)
-                                                             .addOptional(influenceSet)
-                                                             .addOptional(influenceRegion);
-        while (dlt.next()) {
+    private void convertToLightSources(List<LightSource> globalLights, List<LightSource> allLights) {
+        while (iterator.next()) {
             // we don't take advantage of some light types requiring a transform,
             // because we process ambient lights with this same code
-            Matrix4 t = (transform.isEnabled() ? transform.getMatrix() : DEFAULT_MAT);
+            Matrix4 t = transform.getMatrix();
             AxisAlignedBox bounds = null;
             boolean invertBounds = false;
 
-            if (influenceRegion.isEnabled()) {
+            double falloff = light.getFalloffDistance();
+            if (influenceRegion.isAlive()) {
                 bounds = new AxisAlignedBox().transform(influenceRegion.getBounds(), t);
                 invertBounds = influenceRegion.isNegated();
+            } else if (falloff >= 0) {
+                // compute bounds from the falloff distance to limit query size
+                bounds = new AxisAlignedBox();
+                bounds.min.set(t.m03 - falloff, t.m13 - falloff, t.m23 - falloff);
+                bounds.max.set(t.m03 + falloff, t.m13 + falloff, t.m23 + falloff);
             }
 
-            LightSource l = new LightSource(allLights.size(), light.getComponent(), factory.create(light, t),
-                                            (influenceSet.isEnabled() ? influenceSet.getInfluencedSet()
-                                                                      : null), bounds, invertBounds);
+            LightSource l = new LightSource(allLights.size(), light,
+                                            new LightInfluence(falloff, light.getCutoffAngle(), t), bounds,
+                                            invertBounds);
 
             if (bounds != null && !invertBounds) {
                 // this light is not a globally influencing light so add it to the index
@@ -148,7 +133,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         }
     }
 
-    private void queryGlobalLights(Entity e, LightCallback callback, List<LightSource> globalLights) {
+    private void queryGlobalLights(LightCallback callback, List<LightSource> globalLights) {
         // accumulate globally influencing lights into bit set
         int numGlobalLights = globalLights.size();
         for (int i = 0; i < numGlobalLights; i++) {
@@ -169,11 +154,6 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 }
             }
 
-            // check influence set of light
-            if (light.validEntities != null && !light.validEntities.contains(e)) {
-                continue;
-            }
-
             // final check
             if (light.influence.influences(callback.entityBounds)) {
                 // passed the last check, so the entity is influence by the ith light
@@ -191,24 +171,17 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     public Task process(EntitySystem system, Job job) {
         Profiler.push("compute-light-groups");
 
-        lightIndex.setExtent(worldBounds);
-
         // collect all lights
         Profiler.push("collect-lights");
-        List<LightSource> allLights = new ArrayList<LightSource>();
-        List<LightSource> globalLights = new ArrayList<LightSource>();
-        convertToLightSources(direction, system, GlobalLightInfluence.<DirectionLight>factory(), globalLights,
-                              allLights);
-        convertToLightSources(ambient, system, GlobalLightInfluence.<AmbientLight>factory(), globalLights,
-                              allLights);
-        convertToLightSources(spot, system, SpotLightInfluence.factory(), globalLights, allLights);
-        convertToLightSources(point, system, PointLightInfluence.factory(), globalLights, allLights);
+        List<LightSource> allLights = new ArrayList<>();
+        List<LightSource> globalLights = new ArrayList<>();
+        convertToLightSources(globalLights, allLights);
         Profiler.pop();
 
         int groupId = 0;
-        Map<BitSet, Integer> groups = new HashMap<BitSet, Integer>();
+        Map<BitSet, Integer> groups = new HashMap<>();
 
-        LightCallback callback = new LightCallback(system, allLights.size());
+        LightCallback callback = new LightCallback(allLights.size());
 
         // process every visible entity
         Profiler.push("assign-lights");
@@ -218,17 +191,14 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 callback.set(entity);
 
                 // check if we've already processed this entity in another pvs
-                if (assignments.get(callback.renderable.getIndex()) >= 0) {
+                if (assignments.get(callback.renderableIndex) >= 0) {
                     continue;
                 }
 
-                queryGlobalLights(entity, callback, globalLights);
-                // FIXME must look into performance cost of this part of the callback,
-                // some small evidence suggests that just the re-working to use
-                // fewer component fetches is significantly faster, I'm not sure why
+                queryGlobalLights(callback, globalLights);
                 lightIndex.query(callback.entityBounds, callback);
 
-                // light influence bit set is complete for the entity
+                // light influence bit set is completed for the entity
                 Integer lightGroup = groups.get(callback.lights);
                 if (lightGroup == null) {
                     // new group encountered
@@ -237,15 +207,14 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 }
 
                 // assign group to entity
-                assignments.set(lightGroup.intValue(), callback.renderable.getIndex());
+                assignments.set(lightGroup, callback.renderableIndex);
             }
         }
         Profiler.pop();
 
         // convert computed groups into LightGroupResult
         Profiler.push("report");
-        List<Set<Component<? extends Light<?>>>> finalGroups = new ArrayList<Set<Component<? extends Light<?>>>>(
-                groups.size());
+        List<Set<Light>> finalGroups = new ArrayList<>(groups.size());
         for (int i = 0; i < groups.size(); i++) {
             // must fill with nulls up to the full size so that the random
             // sets below don't cause index oob exceptions
@@ -254,7 +223,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
 
         for (Entry<BitSet, Integer> group : groups.entrySet()) {
             BitSet groupAsBitSet = group.getKey();
-            Set<Component<? extends Light<?>>> lightsInGroup = new HashSet<Component<? extends Light<?>>>();
+            Set<Light> lightsInGroup = new HashSet<>();
             for (int i = groupAsBitSet.nextSetBit(0); i >= 0; i = groupAsBitSet.nextSetBit(i + 1)) {
                 lightsInGroup.add(allLights.get(i).source);
             }
@@ -279,27 +248,25 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     }
 
     public void report(BoundsResult bounds) {
-        worldBounds = bounds.getBounds();
+        lightIndex.setExtent(bounds.getBounds());
     }
 
     private static class LightCallback implements QueryCallback<LightSource> {
         final BitSet lights;
-        final Renderable renderable;
-        AxisAlignedBox entityBounds;
+        final AxisAlignedBox entityBounds;
 
-        public LightCallback(EntitySystem system, int numLights) {
+        int renderableIndex;
+
+        public LightCallback(int numLights) {
             lights = new BitSet(numLights);
-            renderable = system.createDataInstance(Renderable.class);
-            entityBounds = DEFAULT_AABB;
+            entityBounds = new AxisAlignedBox();
         }
 
         public void set(Entity e) {
-            if (e.get(renderable)) {
-                entityBounds = renderable.getWorldBounds();
-            } else {
-                entityBounds = DEFAULT_AABB;
-            }
+            Renderable r = e.get(Renderable.class);
+            entityBounds.set(r.getWorldBounds());
             lights.clear();
+            renderableIndex = r.getIndex();
         }
 
         @Override
@@ -313,29 +280,25 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
 
     private static class LightSource {
         final int id;
-        final Component<? extends Light<?>> source;
+        final Light source;
         final LightInfluence influence;
-
-        // non-null only if Influences is present
-        final Set<Entity> validEntities;
 
         // non-null only if InfluenceRegion is present
         final AxisAlignedBox bounds;
         final boolean invertBounds;
 
-        public LightSource(int id, Component<? extends Light<?>> source, LightInfluence influence,
-                           Set<Entity> validEntities, AxisAlignedBox bounds, boolean invertBounds) {
+        public LightSource(int id, Light source, LightInfluence influence, AxisAlignedBox bounds,
+                           boolean invertBounds) {
             this.id = id;
-            this.source = source;
+            this.source = source.getEntity().get(Light.class); // get canonical instance
             this.influence = influence;
-            this.validEntities = validEntities;
             this.bounds = bounds;
             this.invertBounds = invertBounds;
         }
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 

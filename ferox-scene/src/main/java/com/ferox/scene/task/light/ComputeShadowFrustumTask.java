@@ -32,13 +32,12 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.scene.Camera;
-import com.ferox.scene.DirectionLight;
-import com.ferox.scene.SpotLight;
+import com.ferox.scene.Light;
 import com.ferox.scene.Transform;
 import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.FrustumResult;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
@@ -50,12 +49,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ComputeShadowFrustumTask implements Task, ParallelAware {
-    private static final Set<Class<? extends ComponentData<?>>> COMPONENTS;
+    private static final Set<Class<? extends Component>> COMPONENTS;
 
     static {
-        Set<Class<? extends ComponentData<?>>> types = new HashSet<Class<? extends ComponentData<?>>>();
-        types.add(DirectionLight.class);
-        types.add(SpotLight.class);
+        Set<Class<? extends Component>> types = new HashSet<>();
+        types.add(Light.class);
         types.add(Transform.class);
         COMPONENTS = Collections.unmodifiableSet(types);
     }
@@ -64,12 +62,10 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     private FrustumResult camera;
 
     // cached local variables
-    private DirectionLight directionLight;
-    private SpotLight spotLight;
+    private Light light;
     private Transform transform;
 
-    private ComponentIterator directionIterator;
-    private ComponentIterator spotIterator;
+    private ComponentIterator iterator;
 
     public void report(BoundsResult r) {
         sceneBounds = r.getBounds();
@@ -78,7 +74,7 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     public void report(FrustumResult fr) {
         if (fr.getSource().getType().equals(Camera.class)) {
             // keep the frustum that has the biggest volume, but most
-            // likely there will only be one camera ever
+            // likely there will only be one camera at any given time
             if (camera == null || frustumVolume(camera.getFrustum()) < frustumVolume(fr.getFrustum())) {
                 camera = fr;
             }
@@ -94,20 +90,15 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
 
     @Override
     public void reset(EntitySystem system) {
-        if (directionLight == null) {
-            directionLight = system.createDataInstance(DirectionLight.class);
-            spotLight = system.createDataInstance(SpotLight.class);
-            transform = system.createDataInstance(Transform.class);
-
-            directionIterator = new ComponentIterator(system).addRequired(directionLight)
-                                                             .addRequired(transform);
-            spotIterator = new ComponentIterator(system).addRequired(spotLight).addRequired(transform);
+        if (iterator == null) {
+            iterator = system.fastIterator();
+            light = iterator.addRequired(Light.class);
+            transform = iterator.addRequired(Transform.class);
         }
 
         sceneBounds = null;
         camera = null;
-        directionIterator.reset();
-        spotIterator.reset();
+        iterator.reset();
     }
 
     @Override
@@ -121,23 +112,21 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
 
         Profiler.push("compute-shadow-frustum");
 
-        // Process DirectionLights
-        while (directionIterator.next()) {
-            if (directionLight.isShadowCaster()) {
-                Profiler.push("direction-light");
-                Frustum smFrustum = computeFrustum(directionLight, transform);
-                job.report(new FrustumResult(directionLight.getComponent(), smFrustum));
-                Profiler.pop();
-            }
-        }
+        while (iterator.next()) {
+            if (light.isShadowCaster()) {
+                Frustum smFrustum = null;
+                if (Double.isNaN(light.getCutoffAngle())) {
+                    // direction light
+                    smFrustum = computeDirectionLightFrustum(light, transform);
+                } else if (light.getCutoffAngle() >= 0 && light.getCutoffAngle() <= 90) {
+                    // spot light
+                    smFrustum = computeSpotLightFrustum(light, transform);
+                }
 
-        // Process SpotLights
-        while (spotIterator.next()) {
-            if (spotLight.isShadowCaster()) {
-                Profiler.push("spot-light");
-                Frustum smFrustum = computeFrustum(spotLight, transform);
-                job.report(new FrustumResult(spotLight.getComponent(), smFrustum));
-                Profiler.pop();
+                if (smFrustum != null) {
+                    // make sure to get the canonical light component
+                    job.report(new FrustumResult(light.getEntity().get(Light.class), smFrustum));
+                }
             }
         }
 
@@ -146,7 +135,7 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         return null;
     }
 
-    private Frustum computeFrustum(DirectionLight light, Transform t) {
+    private Frustum computeDirectionLightFrustum(Light light, Transform t) {
         // Implement basic frustum improvement techniques from:
         // http://msdn.microsoft.com/en-us/library/windows/desktop/ee416324(v=vs.85).aspx
         Frustum v = camera.getFrustum();
@@ -280,7 +269,7 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         return extent;
     }
 
-    private Frustum computeFrustum(SpotLight light, Transform t) {
+    private Frustum computeSpotLightFrustum(Light light, Transform t) {
         // clamp near and far planes to the falloff distance if possible, 
         // otherwise select a depth range that likely will not cause any problems
         double near = (light.getFalloffDistance() > 0 ? Math.min(.1 * light.getFalloffDistance(), .1) : .1);
@@ -291,7 +280,7 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+    public Set<Class<? extends Component>> getAccessedComponents() {
         return COMPONENTS;
     }
 
