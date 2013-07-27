@@ -39,6 +39,9 @@ public class LwjglDepthCubeMapBuilder extends LwjglSamplerBuilder<DepthCubeMap, 
         implements DepthCubeMapBuilder {
     public LwjglDepthCubeMapBuilder(FrameworkImpl framework) {
         super(DepthCubeMapBuilder.class, DepthCubeMap.class, TextureImpl.Target.TEX_CUBEMAP, framework);
+        // preconfigure abstract builder for this type of texture
+        depth(1);
+        imageCount(6);
     }
 
     @Override

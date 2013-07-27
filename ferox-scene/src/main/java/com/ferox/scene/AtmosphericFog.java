@@ -30,6 +30,7 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Within;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.SharedInstance;
 
@@ -99,7 +100,7 @@ public interface AtmosphericFog extends Component {
      *
      * @return This AtmosphericFog for chaining purposes
      */
-    public AtmosphericFog setOpaqueDistance(double dist);
+    public AtmosphericFog setOpaqueDistance(@Within(min = 0.0) double dist);
 
     /**
      * Return the distance from the viewer required for an object to be completely obscured by the fog, or

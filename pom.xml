@@ -47,7 +47,7 @@
     </scm>
 
     <properties>
-        <entreri.version>1.7.0</entreri.version>
+        <entreri.version>1.7.1-SNAPSHOT</entreri.version>
     </properties>
 
     <profiles>

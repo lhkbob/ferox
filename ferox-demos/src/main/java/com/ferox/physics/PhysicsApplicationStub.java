@@ -38,11 +38,10 @@ import com.ferox.math.bounds.QuadTree;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.physics.task.ConstraintSolvingTask;
-import com.ferox.physics.task.ForcesTask;
-import com.ferox.physics.task.MotionTask;
-import com.ferox.physics.task.TemporalSAPCollisionTask;
+import com.ferox.physics.task.IntegrationTask;
+import com.ferox.physics.task.SpatialIndexCollisionTask;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
-import com.ferox.renderer.impl.lwjgl.LwjglFramework;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Transform;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
@@ -97,8 +96,8 @@ public class PhysicsApplicationStub extends ApplicationStub {
     private Job renderJob;
 
     public PhysicsApplicationStub() {
-        super(LwjglFramework.create());
-        system = new EntitySystem();
+        super(Framework.Factory.create());
+        system = EntitySystem.Factory.create();
     }
 
     @Override
@@ -192,22 +191,19 @@ public class PhysicsApplicationStub extends ApplicationStub {
         pos.y = zoom * Math.sin(phi);
         pos.z = r * Math.sin(theta);
 
-        camera.get(Transform.class).getData()
-              .setMatrix(new Matrix4().lookAt(new Vector3(), pos, new Vector3(0, 1, 0)));
+        camera.get(Transform.class).setMatrix(new Matrix4().lookAt(new Vector3(), pos, new Vector3(0, 1, 0)));
     }
 
     @Override
     protected void init(OnscreenSurface surface) {
         // physics handling
-        physicsJob = system.getScheduler().createJob("physics", Timers.fixedDelta(1 / 60.0), new ForcesTask(),
-                                                     //                                      new SpatialIndexCollisionController(new QuadTree<Entity>(worldBounds,
-                                                     //                                                                                               6),
-                                                     //                                                                          new DefaultCollisionAlgorithmProvider()),
-                                                     //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
-                                                     new TemporalSAPCollisionTask(
-                                                             new DefaultCollisionAlgorithmProvider()),
-                                                     new ConstraintSolvingTask(), new MotionTask(),
-                                                     new TransformController());
+        physicsJob = system.getScheduler()
+                           .createJob("physics", Timers.fixedDelta(1 / 60.0), new IntegrationTask(),
+                                      new SpatialIndexCollisionTask(new QuadTree<Entity>(worldBounds, 6),
+                                                                    new DefaultCollisionAlgorithmProvider()),
+                                      //                                      new SingleAxisSAPCollisionController(new DefaultCollisionAlgorithmProvider()),
+                                      //                                      new TemporalSAPCollisionTask(new DefaultCollisionAlgorithmProvider()),
+                                      new ConstraintSolvingTask(), new TransformController());
 
         // rendering
         renderJob = system.getScheduler()
@@ -225,7 +221,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
         zoom = (MAX_ZOOM + MIN_ZOOM) / 2.0;
 
         camera = system.addEntity();
-        camera.add(Camera.class).getData().setSurface(surface).setZDistances(1.0, BOUNDS);
+        camera.add(Camera.class).setSurface(surface).setZDistances(1.0, BOUNDS);
         updateCameraOrientation();
     }
 
@@ -241,12 +237,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
     private static class TransformController implements Task {
         @Override
         public Task process(EntitySystem system, Job job) {
-            CollisionBody cb = system.createDataInstance(CollisionBody.class);
-            Transform t = system.createDataInstance(Transform.class);
-
-            ComponentIterator it = new ComponentIterator(system);
-            it.addRequired(cb);
-            it.addRequired(t);
+            ComponentIterator it = system.fastIterator();
+            CollisionBody cb = it.addRequired(CollisionBody.class);
+            Transform t = it.addRequired(Transform.class);
 
             while (it.next()) {
                 t.setMatrix(cb.getTransform());

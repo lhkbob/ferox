@@ -222,13 +222,13 @@ public class ContactManifoldPool {
                             if (!mfFrictionComputed[index]) {
                                 // compute lateral friction direction
                                 Vector3 velA, velB;
-                                if (rbA.isAlive()) {
+                                if (rbA != null) {
                                     velA = t1.cross(rbA.getAngularVelocity(), relPosA).add(rbA.getVelocity());
                                 } else {
                                     velA = t1.set(0, 0, 0);
                                 }
 
-                                if (rbB.isAlive()) {
+                                if (rbB != null) {
                                     velB = t2.cross(rbB.getAngularVelocity(), relPosB).add(rbB.getVelocity());
                                 } else {
                                     velB = t2.set(0, 0, 0);

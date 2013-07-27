@@ -3,6 +3,7 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Within;
 import com.lhkbob.entreri.property.SharedInstance;
 
 /**
@@ -33,7 +34,7 @@ public interface BlinnPhongSpecularModel extends Component {
      *
      * @return This component
      */
-    public BlinnPhongSpecularModel setShininess(double exponent);
+    public BlinnPhongSpecularModel setShininess(@Within(min = 0, max = 128) double exponent);
 
     /**
      * Get the specular material color of the entity. This color is modulated with the light's emitted color

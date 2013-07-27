@@ -28,14 +28,12 @@ package com.ferox.scene.task.ffp;
 
 import com.ferox.math.Matrix4;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.renderer.DepthMap2D;
 import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.FixedFunctionRenderer.TexCoord;
 import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.renderer.texture.Texture;
 import com.ferox.scene.Light;
-import com.lhkbob.entreri.Component;
 
 public class ShadowMapState implements State {
     private static final Matrix4 bias = new Matrix4()
@@ -63,7 +61,7 @@ public class ShadowMapState implements State {
         shadowEffects.pushBlending(r); // this also sets the depth-mask/test appropriately
 
         // now apply shadow passes
-        for (Component<? extends Light<?>> light : shadowMap.getShadowCastingLights()) {
+        for (Light light : shadowMap.getShadowCastingLights()) {
             renderShadowPass(light, currentNode, shadowEffects, access);
         }
 
@@ -76,10 +74,10 @@ public class ShadowMapState implements State {
         r.setTexture(shadowMapUnit, null);
     }
 
-    private void renderShadowPass(Component<? extends Light<?>> shadowCaster, StateNode node,
-                                  AppliedEffects effects, HardwareAccessLayer access) {
+    private void renderShadowPass(Light shadowCaster, StateNode node, AppliedEffects effects,
+                                  HardwareAccessLayer access) {
         Frustum smFrustum = shadowMap.getShadowMapFrustum(shadowCaster);
-        Texture shadowTexture = shadowMap.getShadowMap(shadowCaster, access);
+        DepthMap2D shadowTexture = shadowMap.getShadowMap(shadowCaster, access);
 
         // must get renderer after the shadow map because that will change
         // and restore the active surface (invalidating any previous renderer)
@@ -91,11 +89,7 @@ public class ShadowMapState implements State {
 
         Matrix4 texM = new Matrix4();
         texM.mul(bias, smFrustum.getProjectionMatrix()).mul(smFrustum.getViewMatrix());
-
-        r.setTextureEyePlane(shadowMapUnit, TexCoord.S, texM.getRow(0));
-        r.setTextureEyePlane(shadowMapUnit, TexCoord.T, texM.getRow(1));
-        r.setTextureEyePlane(shadowMapUnit, TexCoord.R, texM.getRow(2));
-        r.setTextureEyePlane(shadowMapUnit, TexCoord.Q, texM.getRow(3));
+        r.setTextureEyePlanes(shadowMapUnit, texM);
 
         // depth bias and blending have already been configured, since
         // they won't change from pass to pass

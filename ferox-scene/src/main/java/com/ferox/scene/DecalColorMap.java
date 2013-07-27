@@ -28,6 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Texture;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
 
 /**
  * <p/>
@@ -56,5 +57,5 @@ public interface DecalColorMap extends Component {
      *
      * @return This component for chaining purposes
      */
-    public DecalColorMap setTexture(Texture texture);
+    public DecalColorMap setTexture(@NotNull Texture texture);
 }

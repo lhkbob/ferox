@@ -39,6 +39,9 @@ public class JoglDepthCubeMapBuilder extends JoglSamplerBuilder<DepthCubeMap, De
         implements DepthCubeMapBuilder {
     public JoglDepthCubeMapBuilder(FrameworkImpl framework) {
         super(DepthCubeMapBuilder.class, DepthCubeMap.class, TextureImpl.Target.TEX_CUBEMAP, framework);
+        // preconfigure abstract builder for this type of texture
+        depth(1);
+        imageCount(6);
     }
 
     @Override

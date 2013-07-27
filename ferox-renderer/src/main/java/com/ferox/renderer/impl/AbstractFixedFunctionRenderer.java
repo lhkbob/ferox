@@ -973,10 +973,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
-        setTextureEyePlane(tex, TexCoord.S, planes.getCol(0));
-        setTextureEyePlane(tex, TexCoord.T, planes.getCol(1));
-        setTextureEyePlane(tex, TexCoord.R, planes.getCol(2));
-        setTextureEyePlane(tex, TexCoord.Q, planes.getCol(3));
+        setTextureEyePlane(tex, TexCoord.S, planes.getRow(0));
+        setTextureEyePlane(tex, TexCoord.T, planes.getRow(1));
+        setTextureEyePlane(tex, TexCoord.R, planes.getRow(2));
+        setTextureEyePlane(tex, TexCoord.Q, planes.getRow(3));
     }
 
     /**
@@ -1028,10 +1028,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setTextureObjectPlanes(int tex, @Const Matrix4 planes) {
-        setTextureObjectPlane(tex, TexCoord.S, planes.getCol(0));
-        setTextureObjectPlane(tex, TexCoord.T, planes.getCol(1));
-        setTextureObjectPlane(tex, TexCoord.R, planes.getCol(2));
-        setTextureObjectPlane(tex, TexCoord.Q, planes.getCol(3));
+        setTextureObjectPlane(tex, TexCoord.S, planes.getRow(0));
+        setTextureObjectPlane(tex, TexCoord.T, planes.getRow(1));
+        setTextureObjectPlane(tex, TexCoord.R, planes.getRow(2));
+        setTextureObjectPlane(tex, TexCoord.Q, planes.getRow(3));
     }
 
     /**

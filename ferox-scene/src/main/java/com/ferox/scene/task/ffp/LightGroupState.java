@@ -26,13 +26,15 @@
  */
 package com.ferox.scene.task.ffp;
 
-import com.ferox.math.*;
+import com.ferox.math.ColorRGB;
+import com.ferox.math.Matrix4;
+import com.ferox.math.Vector3;
+import com.ferox.math.Vector4;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.BlendFactor;
-import com.ferox.scene.*;
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Entity;
+import com.ferox.scene.Light;
+import com.ferox.scene.Transform;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,83 +43,39 @@ import java.util.Set;
 public class LightGroupState implements State {
     private static final Vector4 BLACK = new Vector4(0.0, 0.0, 0.0, 1.0);
 
-    private final Set<Component<? extends Light<?>>> shadowCastingLights;
+    private final Vector4 ambientColor;
+    private final Set<Light> shadowCastingLights;
     private final LightBatch[] batches;
 
-    public LightGroupState(Set<Component<? extends Light<?>>> lightGroup,
-                           Set<Component<? extends Light<?>>> shadowCastingLights, int maxLights,
-                           DirectionLight dl, SpotLight sl, PointLight pl, AmbientLight al, Transform t) {
+    public LightGroupState(Set<Light> lightGroup, Set<Light> shadowCastingLights, ColorRGB ambientColor,
+                           int maxLights) {
         this.shadowCastingLights = shadowCastingLights;
+        this.ambientColor = convertColor(ambientColor);
 
-        List<LightBatch> states = new ArrayList<LightBatch>();
-        List<Component<?>> unassignedAmbientLights = new ArrayList<Component<?>>();
+        List<LightBatch> states = new ArrayList<>();
 
         LightBatch currentState = new LightBatch(maxLights); // always have one state, even if empty
         states.add(currentState);
 
         int index = 0;
-        for (Component<? extends Light<?>> light : lightGroup) {
-            Entity e = light.getEntity();
-            GLLight gl = null;
+        for (Light light : lightGroup) {
+            Transform t = light.getEntity().get(Transform.class);
+            GLLight gl = new GLLight();
 
-            if (light.getType().equals(DirectionLight.class) && e.get(dl)) {
-                gl = new GLLight();
-                e.get(t);
-                gl.setDirectionLight(light, dl.getColor(), t.getMatrix());
-            } else if (light.getType().equals(SpotLight.class) && e.get(sl)) {
-                gl = new GLLight();
-                e.get(t);
-                gl.setSpotLight(light, sl.getColor(), sl.getCutoffAngle(), sl.getFalloffDistance(),
-                                t.getMatrix());
-            } else if (light.getType().equals(PointLight.class) && e.get(pl)) {
-                gl = new GLLight();
-                e.get(t);
-                gl.setPointLight(light, pl.getColor(), pl.getFalloffDistance(), t.getMatrix());
-            } else if (light.getType().equals(AmbientLight.class)) {
-                if (currentState.ambientColor == null) {
-                    // merge ambient light with this state group
-                    e.get(al);
-                    currentState.setAmbientLight(al.getColor());
-                } else {
-                    // store the ambient light for later
-                    unassignedAmbientLights.add(light);
-                }
+            double cutoff = light.getCutoffAngle();
+            if (Double.isNaN(cutoff)) {
+                gl.setDirectionLight(light, t.getMatrix());
+            } else {
+                gl.setSpotOrPointLight(light, t.getMatrix());
             }
 
-            if (gl != null) {
-                // have a light to store in the current state
-                if (index >= maxLights) {
-                    // must move on to a new state
-                    currentState = new LightBatch(maxLights);
-                    states.add(currentState);
-                    index = 0;
-                }
-                currentState.setLight(index++, gl);
+            if (index >= maxLights) {
+                // must move on to a new batch
+                currentState = new LightBatch(maxLights);
+                states.add(currentState);
+                index = 0;
             }
-        }
-
-        // process any ambient lights that need to go into a state group
-        if (!unassignedAmbientLights.isEmpty()) {
-            for (int j = 0; j < states.size() && !unassignedAmbientLights.isEmpty(); j++) {
-                if (states.get(j).ambientColor == null) {
-                    // this state can take an ambient light color
-                    Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
-                    if (light.getEntity().get(al)) {
-                        states.get(j).setAmbientLight(al.getColor());
-                    }
-                }
-            }
-
-            // if there are still ambient lights, we need one state for
-            // each ambient light without any other configuration
-            while (!unassignedAmbientLights.isEmpty()) {
-                Component<?> light = unassignedAmbientLights.remove(unassignedAmbientLights.size() - 1);
-                if (light.getEntity().get(al)) {
-                    LightBatch state = new LightBatch(0);
-                    state.setAmbientLight(al.getColor());
-                    states.add(state);
-                }
-            }
+            currentState.setLight(index++, gl);
         }
 
         batches = states.toArray(new LightBatch[states.size()]);
@@ -154,17 +112,10 @@ public class LightGroupState implements State {
     }
 
     private class LightBatch {
-        private Vector4 ambientColor;
-
         private final GLLight[] lights;
 
         public LightBatch(int maxLights) {
-            ambientColor = null;
             lights = new GLLight[maxLights];
-        }
-
-        public void setAmbientLight(@Const ColorRGB color) {
-            ambientColor = convertColor(color);
         }
 
         public void setLight(int light, GLLight glLight) {
@@ -176,7 +127,7 @@ public class LightGroupState implements State {
             FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
             int numLights = 0;
 
-            if (!effects.isShadowBeingRendered() && ambientColor != null) {
+            if (!effects.isShadowBeingRendered() && batch == 0) {
                 // use the defined ambient color during the main render stage,
                 // but not when we're being accumulated for the shadow stage
                 r.setGlobalAmbientLight(ambientColor);
@@ -249,33 +200,21 @@ public class LightGroupState implements State {
         double cutoffAngle;
         double falloff;
 
-        Component<? extends Light<?>> source;
+        Light source;
 
-        public void setDirectionLight(Component<? extends Light<?>> light, ColorRGB color,
-                                      Matrix4 transform) {
+        public void setDirectionLight(Light light, Matrix4 transform) {
             position = new Vector4(-transform.m02, -transform.m12, -transform.m22, 0.0);
-            this.color = convertColor(color);
+            this.color = convertColor(light.getColor());
             spotlightDirection = null;
             source = light;
         }
 
-        public void setSpotLight(Component<? extends Light<?>> light, ColorRGB color, double cutoffAngle,
-                                 double falloff, Matrix4 transform) {
+        public void setSpotOrPointLight(Light light, Matrix4 transform) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
-            this.color = convertColor(color);
+            this.color = convertColor(light.getColor());
             spotlightDirection = new Vector3(transform.m02, transform.m12, transform.m22);
-            this.cutoffAngle = cutoffAngle;
-            this.falloff = falloff;
-            source = light;
-        }
-
-        public void setPointLight(Component<? extends Light<?>> light, ColorRGB color, double falloff,
-                                  Matrix4 transform) {
-            position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
-            this.color = convertColor(color);
-            spotlightDirection = new Vector3(0.0, 0.0, 1.0); // any non-null direction is fine
-            this.cutoffAngle = 180.0;
-            this.falloff = falloff;
+            this.cutoffAngle = light.getCutoffAngle();
+            this.falloff = light.getFalloffDistance();
             source = light;
         }
     }

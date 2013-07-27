@@ -27,31 +27,24 @@
 package com.ferox.scene.task.ffp;
 
 import com.ferox.math.Const;
-import com.ferox.math.Functions;
 import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
+import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Renderer.PolygonType;
 import com.ferox.renderer.VertexAttribute;
-import com.ferox.renderer.geom.TopologyUtil;
-import com.ferox.renderer.geom.VertexBufferObject;
-import com.ferox.resource.BufferData;
-import com.ferox.resource.UnsignedDataView;
-import com.ferox.util.ItemView;
-import com.ferox.util.QuickSort;
 
 import java.util.Arrays;
 
 public class IndexBufferState {
-    private VertexBufferObject indices;
+    private ElementBuffer indices;
     private int indexOffset;
     private int indexCount;
     private PolygonType polyType;
 
     private final Matrix4 modelMatrix = new Matrix4();
 
-    public void set(PolygonType polyType, VertexBufferObject indices, int offset, int count) {
+    public void set(PolygonType polyType, ElementBuffer indices, int offset, int count) {
         this.polyType = polyType;
         this.indices = indices;
         indexOffset = offset;
@@ -62,9 +55,9 @@ public class IndexBufferState {
         return new OpaqueRenderState();
     }
 
-    public RenderState newTransparentRenderState(VertexAttribute vertices,
-                                                 VertexBufferObject sharedIndexBuffer) {
-        return new TransparentRenderState(sharedIndexBuffer, vertices);
+    public RenderState newTransparentRenderState(VertexAttribute vertices, ElementBuffer sharedIndexBuffer) {
+        return new OpaqueRenderState();
+        //        return new TransparentRenderState(sharedIndexBuffer, vertices);
     }
 
     @Override
@@ -136,11 +129,15 @@ public class IndexBufferState {
         }
     }
 
+    // FIXME this is problematic for one major reason: we can't get at the source indices or vertices data arrays
+    // to actually compute this sorting or perform the inflation
+    // FIXME is it acceptable to just render transparent hulls on the back then the front?
+    /*
     private class TransparentRenderState extends AbstractRenderState {
-        private final VertexBufferObject sortedIndicesShared;
+        private final ElementBuffer sortedIndicesShared;
         private final VertexAttribute vertices;
 
-        public TransparentRenderState(VertexBufferObject sortedIndicesShared, VertexAttribute vertices) {
+        public TransparentRenderState(ElementBuffer sortedIndicesShared, VertexAttribute vertices) {
             this.sortedIndicesShared = sortedIndicesShared;
             this.vertices = vertices;
         }
@@ -274,4 +271,5 @@ public class IndexBufferState {
             return polyType.getPolygonCount(count);
         }
     }
+    */
 }

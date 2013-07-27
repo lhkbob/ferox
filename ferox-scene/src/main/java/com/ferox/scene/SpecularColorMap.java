@@ -28,6 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Texture;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
 
 /**
  * SpecularColorMap servers to override the specular properties on a per-pixel level. The RGB values represent
@@ -55,5 +56,5 @@ public interface SpecularColorMap extends Component {
      *
      * @return This component for chaining purposes
      */
-    public SpecularColorMap setTexture(Texture texture);
+    public SpecularColorMap setTexture(@NotNull Texture texture);
 }

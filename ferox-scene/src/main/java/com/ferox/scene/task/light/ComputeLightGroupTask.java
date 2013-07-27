@@ -186,14 +186,16 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         // process every visible entity
         Profiler.push("assign-lights");
         for (Bag<Entity> pvs : allVisibleSets) {
-            for (Entity entity : pvs) {
-                // reset callback for this entity
-                callback.set(entity);
-
+            ComponentIterator lightIT = system.fastIterator(pvs);
+            Renderable r = lightIT.addRequired(Renderable.class);
+            while (lightIT.next()) {
                 // check if we've already processed this entity in another pvs
-                if (assignments.get(callback.renderableIndex) >= 0) {
+                if (assignments.get(r.getIndex()) >= 0) {
                     continue;
                 }
+
+                // reset callback for this entity
+                callback.set(r);
 
                 queryGlobalLights(callback, globalLights);
                 lightIndex.query(callback.entityBounds, callback);
@@ -207,7 +209,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 }
 
                 // assign group to entity
-                assignments.set(lightGroup, callback.renderableIndex);
+                assignments.set(lightGroup, r.getIndex());
             }
         }
         Profiler.pop();
@@ -255,18 +257,14 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         final BitSet lights;
         final AxisAlignedBox entityBounds;
 
-        int renderableIndex;
-
         public LightCallback(int numLights) {
             lights = new BitSet(numLights);
             entityBounds = new AxisAlignedBox();
         }
 
-        public void set(Entity e) {
-            Renderable r = e.get(Renderable.class);
+        public void set(Renderable r) {
             entityBounds.set(r.getWorldBounds());
             lights.clear();
-            renderableIndex = r.getIndex();
         }
 
         @Override

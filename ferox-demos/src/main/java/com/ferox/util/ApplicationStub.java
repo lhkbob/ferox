@@ -47,7 +47,7 @@ public abstract class ApplicationStub {
     private boolean showProfiling;
 
     public ApplicationStub(Framework framework) {
-        this(framework, new OnscreenSurfaceOptions().setWidth(800).setHeight(600).setResizable(false));
+        this(framework, new OnscreenSurfaceOptions().windowed(800, 800).fixedSize());
     }
 
     public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts) {
@@ -66,7 +66,7 @@ public abstract class ApplicationStub {
         io.attach(surface);
 
         Runtime r = Runtime.getRuntime();
-        CharacterSet charSet = new CharacterSet(true, false);
+        CharacterSet charSet = new CharacterSet(framework, true, false);
         TextRenderer fps = null;
         TextRenderer profile = null;
 

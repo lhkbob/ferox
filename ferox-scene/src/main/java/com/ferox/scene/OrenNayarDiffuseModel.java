@@ -51,5 +51,5 @@ public interface OrenNayarDiffuseModel extends Component {
      *
      * @return This component
      */
-    public LambertianDiffuseModel setColor(@Const ColorRGB color);
+    public OrenNayarDiffuseModel setColor(@Const ColorRGB color);
 }

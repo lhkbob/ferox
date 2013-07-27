@@ -28,6 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Texture;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
 
 /**
  * <p/>
@@ -56,5 +57,5 @@ public interface DiffuseColorMap extends Component {
      *
      * @return This component for chaining purposes
      */
-    public DiffuseColorMap setTexture(Texture texture);
+    public DiffuseColorMap setTexture(@NotNull Texture texture);
 }

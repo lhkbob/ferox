@@ -26,20 +26,17 @@
  */
 package com.ferox.scene.task.ffp;
 
-import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.texture.Texture.Filter;
-import com.ferox.renderer.texture.Texture.Target;
-import com.ferox.renderer.texture.Texture.WrapMode;
+import com.ferox.renderer.builder.DepthMap2DBuilder;
+import com.ferox.renderer.geom.Geometry;
 import com.ferox.scene.Light;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
 import com.ferox.scene.Transparent;
 import com.ferox.scene.task.PVSResult;
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
@@ -47,35 +44,32 @@ import java.util.*;
 
 public class ShadowMapCache {
     private final TextureSurface shadowMap;
+    private final DepthMap2D depthData;
 
-    private Map<Component<? extends Light<?>>, ShadowMapScene> shadowScenes;
-    private Set<Component<? extends Light<?>>> shadowLights;
+    private Map<Light, ShadowMapScene> shadowScenes;
+    private Set<Light> shadowLights;
 
     public ShadowMapCache(Framework framework, int width, int height) {
+        DepthMap2DBuilder db = framework.newDepthMap2D();
+        db.width(width).height(height).interpolated().borderDepth(1.0).wrap(Sampler.WrapMode.CLAMP_TO_BORDER)
+          .depthComparison(Comparison.LEQUAL).depth().mipmap(0).fromUnsignedNormalized((int[]) null);
+        depthData = db.build();
         shadowMap = framework.createSurface(
-                new TextureSurfaceOptions().setWidth(width).setHeight(height).setDepth(1)
-                                           .setTarget(Target.T_2D).setUseDepthTexture(true)
-                                           .setColorBufferFormats());
-        shadowScenes = new HashMap<Component<? extends Light<?>>, ShadowMapScene>();
+                new TextureSurfaceOptions().size(width, height).depthBuffer(depthData.getRenderTarget()));
 
-        Texture sm = shadowMap.getDepthBuffer();
-        sm.setFilter(Filter.LINEAR);
-        sm.setWrapMode(WrapMode.CLAMP_TO_BORDER);
-        sm.setBorderColor(new Vector4(1, 1, 1, 1));
-        sm.setDepthCompareEnabled(true);
-        sm.setDepthComparison(Comparison.LEQUAL);
+        shadowScenes = new HashMap<>();
     }
 
     public void reset() {
-        shadowScenes = new HashMap<Component<? extends Light<?>>, ShadowMapScene>();
+        shadowScenes = new HashMap<>();
         shadowLights = Collections.unmodifiableSet(shadowScenes.keySet());
     }
 
-    public Set<Component<? extends Light<?>>> getShadowCastingLights() {
+    public Set<Light> getShadowCastingLights() {
         return shadowLights;
     }
 
-    public Frustum getShadowMapFrustum(Component<? extends Light<?>> light) {
+    public Frustum getShadowMapFrustum(Light light) {
         ShadowMapScene scene = shadowScenes.get(light);
         if (scene == null) {
             throw new IllegalArgumentException("Light was not cached previously");
@@ -83,18 +77,13 @@ public class ShadowMapCache {
         return scene.frustum;
     }
 
-    public Texture getShadowMap() {
-        return shadowMap.getDepthBuffer();
-    }
-
-    public Texture getShadowMap(Component<? extends Light<?>> shadowLight, HardwareAccessLayer access) {
+    public DepthMap2D getShadowMap(Light shadowLight, HardwareAccessLayer access) {
         ShadowMapScene scene = shadowScenes.get(shadowLight);
         if (scene == null) {
             throw new IllegalArgumentException("Light was not cached previously");
         }
 
         Surface origSurface = access.getCurrentContext().getSurface();
-        int origLayer = access.getCurrentContext().getSurfaceLayer(); // in case of texture-surface
         ContextState<FixedFunctionRenderer> origState = access.getCurrentContext().getFixedFunctionRenderer()
                                                               .getCurrentState();
 
@@ -110,17 +99,13 @@ public class ShadowMapCache {
         scene.scene.visit(new AppliedEffects(), access);
 
         // restore original surface and state
-        if (origSurface instanceof TextureSurface) {
-            access.setActiveSurface((TextureSurface) origSurface, origLayer);
-        } else {
-            access.setActiveSurface(origSurface);
-        }
+        access.setActiveSurface(origSurface);
 
         // FIXME race condition on shutdown exists if the orig surface is
         // destroyed while rendering to the shadow map, if the map is on a pbuffer
         access.getCurrentContext().getFixedFunctionRenderer().setCurrentState(origState);
 
-        return shadowMap.getDepthBuffer();
+        return depthData;
     }
 
     @SuppressWarnings("unchecked")
@@ -131,8 +116,6 @@ public class ShadowMapCache {
         }
 
         EntitySystem system = pvs.getSource().getEntitySystem();
-        Renderable renderable = system.createDataInstance(Renderable.class);
-        Transform transform = system.createDataInstance(Transform.class);
 
         GeometryState geom = new GeometryState();
         IndexBufferState render = new IndexBufferState();
@@ -140,11 +123,11 @@ public class ShadowMapCache {
         // build up required states and tree simultaneously
         StateNode root = new StateNode(new CameraState(pvs.getFrustum()));
 
-        List<GeometryState> geomLookup = new ArrayList<GeometryState>();
-        List<IndexBufferState> renderLookup = new ArrayList<IndexBufferState>();
+        List<GeometryState> geomLookup = new ArrayList<>();
+        List<IndexBufferState> renderLookup = new ArrayList<>();
 
-        Map<GeometryState, Integer> geomState = new HashMap<GeometryState, Integer>();
-        Map<IndexBufferState, Integer> renderState = new HashMap<IndexBufferState, Integer>();
+        Map<GeometryState, Integer> geomState = new HashMap<>();
+        Map<IndexBufferState, Integer> renderState = new HashMap<>();
         for (Entity e : pvs.getPotentiallyVisibleSet()) {
             // skip transparent entities, as its somewhat physically plausible that
             // they'd cast fainter shadows, and with the quality of FFP shadow mapping,
@@ -154,14 +137,15 @@ public class ShadowMapCache {
                 continue;
             }
 
-            e.get(renderable);
-            e.get(transform);
+            Renderable renderable = e.get(Renderable.class);
+            Geometry geometry = renderable.getGeometry();
+            Transform transform = e.get(Transform.class);
 
             // don't need normals, and use front style for back faces and disable
             // front faces so we only render those in the back
-            geom.set(renderable.getVertices(), null, DrawStyle.NONE, renderable.getFrontDrawStyle());
-            render.set(renderable.getPolygonType(), renderable.getIndices(), renderable.getIndexOffset(),
-                       renderable.getIndexCount());
+            geom.set(geometry.getVertices(), null, DrawStyle.NONE, renderable.getFrontDrawStyle());
+            render.set(geometry.getPolygonType(), geometry.getIndices(), geometry.getIndexOffset(),
+                       geometry.getIndexCount());
 
             Integer geomStateIndex = geomState.get(geom);
             if (geomStateIndex == null) {
@@ -195,7 +179,7 @@ public class ShadowMapCache {
             ((RenderState) renderNode.getState()).add(transform.getMatrix());
         }
 
-        Component<? extends Light<?>> source = (Component<? extends Light<?>>) pvs.getSource();
+        Light source = (Light) pvs.getSource();
         shadowScenes.put(source, new ShadowMapScene(pvs.getFrustum(), root));
     }
 

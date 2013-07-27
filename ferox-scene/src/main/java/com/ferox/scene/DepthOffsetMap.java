@@ -28,6 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.DepthMap;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
 
 /**
  * <p/>
@@ -57,5 +58,5 @@ public interface DepthOffsetMap extends Component {
      *
      * @return This component for chaining purposes
      */
-    public DepthOffsetMap setTexture(DepthMap texture);
+    public DepthOffsetMap setTexture(@NotNull DepthMap texture);
 }

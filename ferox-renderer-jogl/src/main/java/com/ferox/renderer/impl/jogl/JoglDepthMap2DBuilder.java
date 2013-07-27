@@ -39,6 +39,9 @@ public class JoglDepthMap2DBuilder extends JoglSamplerBuilder<DepthMap2D, DepthM
         implements DepthMap2DBuilder {
     public JoglDepthMap2DBuilder(FrameworkImpl framework) {
         super(DepthMap2DBuilder.class, DepthMap2D.class, TextureImpl.Target.TEX_2D, framework);
+        // preconfigure abstract builder for this type of texture
+        depth(1);
+        imageCount(1);
     }
 
     @Override

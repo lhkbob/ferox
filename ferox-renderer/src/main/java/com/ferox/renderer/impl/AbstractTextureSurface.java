@@ -81,7 +81,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         for (int i = 0; i < array.length; i++) {
             array[i] = options.getColorBuffer(i);
         }
-        setRenderTargets(array, options.getDepthBuffer());
+        setRenderTargetsInternal(array, options.getDepthBuffer());
     }
 
     @Override
@@ -124,6 +124,11 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
      * @throws IllegalArgumentException if the targets are misconfigured for the surface
      */
     public void setRenderTargets(Sampler.RenderTarget[] colorTargets, Sampler.RenderTarget depthTarget) {
+        setRenderTargetsInternal(colorTargets, depthTarget);
+    }
+
+    private void setRenderTargetsInternal(Sampler.RenderTarget[] colorTargets,
+                                          Sampler.RenderTarget depthTarget) {
         // first validate new targets, before delegating to the subclass to perform the OpenGL
         // operations necessary
         if (depthRenderBuffer != null && depthTarget != null) {

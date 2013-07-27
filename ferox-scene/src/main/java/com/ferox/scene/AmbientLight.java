@@ -55,5 +55,5 @@ public interface AmbientLight extends Component {
      *
      * @return This light for chaining purposes
      */
-    public Light setColor(@Const ColorRGB color);
+    public AmbientLight setColor(@Const ColorRGB color);
 }

@@ -31,6 +31,7 @@ import com.ferox.math.Const;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.geom.Geometry;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.Named;
 import com.lhkbob.entreri.property.SharedInstance;
@@ -85,7 +86,7 @@ public interface Renderable extends Component {
      *
      * @return This component
      */
-    public Renderable setGeometry(Geometry g);
+    public Renderable setGeometry(@NotNull Geometry g);
 
     /**
      * Return the world bounds of this Renderable. The returned AxisAlignedBox instance is reused by this

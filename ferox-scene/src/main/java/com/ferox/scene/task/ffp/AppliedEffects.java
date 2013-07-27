@@ -33,12 +33,11 @@ import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
 import com.ferox.scene.Light;
-import com.lhkbob.entreri.Component;
 
 public class AppliedEffects {
     // Non-null when actively rendering a shadow map, the general set of
     // shadow-casting lights is not the responsibility of AppliedEffects
-    private final Component<? extends Light<?>> shadowLight;
+    private final Light shadowLight;
 
     // BlendFunction will always be ADD
     private final BlendFactor destBlend;
@@ -54,7 +53,7 @@ public class AppliedEffects {
     }
 
     private AppliedEffects(@Const Matrix4 view, BlendFactor sourceBlend, BlendFactor destBlend,
-                           Component<? extends Light<?>> shadowLight) {
+                           Light shadowLight) {
         this.sourceBlend = sourceBlend;
         this.destBlend = destBlend;
         this.shadowLight = shadowLight;
@@ -79,7 +78,7 @@ public class AppliedEffects {
         return new AppliedEffects(viewMatrix, source, dest, shadowLight);
     }
 
-    public AppliedEffects applyShadowMapping(Component<? extends Light<?>> light) {
+    public AppliedEffects applyShadowMapping(Light light) {
         return new AppliedEffects(viewMatrix, sourceBlend, destBlend, light);
     }
 
@@ -108,7 +107,7 @@ public class AppliedEffects {
         return destBlend;
     }
 
-    public Component<? extends Light<?>> getShadowMappingLight() {
+    public Light getShadowMappingLight() {
         return shadowLight;
     }
 }

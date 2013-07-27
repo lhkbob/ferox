@@ -40,7 +40,7 @@ public class StateCache<T> {
     public StateCache(Class<T> type) {
         states = (T[]) Array.newInstance(type, 0);
         usage = new int[0];
-        lookup = new HashMap<T, Integer>();
+        lookup = new HashMap<>();
     }
 
     public int getStateIndex(T newState, int oldIndex) {
@@ -84,6 +84,6 @@ public class StateCache<T> {
     public void reset() {
         states = (T[]) Array.newInstance(states.getClass().getComponentType(), 0);
         usage = new int[0];
-        lookup = new HashMap<T, Integer>();
+        lookup = new HashMap<>();
     }
 }

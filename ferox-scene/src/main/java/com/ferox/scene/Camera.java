@@ -29,6 +29,8 @@ package com.ferox.scene;
 import com.ferox.renderer.Surface;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Requires;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.Within;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.Named;
 
@@ -59,7 +61,7 @@ public interface Camera extends Component {
      *
      * @throws IllegalArgumentException if fov is less than 0 or greater than 180
      */
-    public Camera setFieldOfView(double fov);
+    public Camera setFieldOfView(@Within(min = 0, max = 180) double fov);
 
     /**
      * @return The distance to the near z plane of the camera
@@ -75,7 +77,9 @@ public interface Camera extends Component {
      *
      * @return This Camera for chaining purposes
      */
-    public Camera setZDistances(@Named("nearZDistance") double znear, @Named("farZDistance") double zfar);
+    @Validate(value = "$1 < $2", errorMsg = "znear must be less than zfar")
+    public Camera setZDistances(@Named("nearZDistance") @Within(min = Double.MIN_VALUE) double znear,
+                                @Named("farZDistance") @Within(min = Double.MIN_VALUE) double zfar);
 
     /**
      * @return The distance to the far z plane of the camera
