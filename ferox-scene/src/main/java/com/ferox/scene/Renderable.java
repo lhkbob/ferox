@@ -31,6 +31,7 @@ import com.ferox.math.Const;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.geom.Geometry;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NoAutoVersion;
 import com.lhkbob.entreri.NotNull;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.Named;
@@ -96,6 +97,7 @@ public interface Renderable extends Component {
      */
     @Const
     @SharedInstance
+    @NoAutoVersion
     public AxisAlignedBox getWorldBounds();
 
     /**

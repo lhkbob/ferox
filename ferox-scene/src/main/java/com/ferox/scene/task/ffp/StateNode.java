@@ -55,7 +55,7 @@ public class StateNode {
         if (children == null) {
             children = new StateNode[2 * (index + 1)];
         } else if (children.length <= index) {
-            children = Arrays.copyOf(children, 2 * index);
+            children = Arrays.copyOf(children, 2 * (index + 1));
         }
 
         children[index] = child;

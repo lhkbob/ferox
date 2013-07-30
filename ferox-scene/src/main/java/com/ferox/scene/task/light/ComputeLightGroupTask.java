@@ -37,10 +37,7 @@ import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.ComponentIterator;
-import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.EntitySystem;
+import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.ParallelAware;
@@ -72,6 +69,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     private Transform transform;
     private InfluenceRegion influenceRegion;
     private Light light;
+
+    private CollectionIterator pvsIterator;
+    private Renderable pvsRenderable;
 
     public ComputeLightGroupTask() {
         this.lightIndex = new QuadTree<>(new AxisAlignedBox(), 2);
@@ -186,16 +186,16 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         // process every visible entity
         Profiler.push("assign-lights");
         for (Bag<Entity> pvs : allVisibleSets) {
-            ComponentIterator lightIT = system.fastIterator(pvs);
-            Renderable r = lightIT.addRequired(Renderable.class);
-            while (lightIT.next()) {
+            ComponentIterator pvsIterator = system.fastIterator(pvs);
+            Renderable pvsRenderable = pvsIterator.addRequired(Renderable.class);
+            while (pvsIterator.next()) {
                 // check if we've already processed this entity in another pvs
-                if (assignments.get(r.getIndex()) >= 0) {
+                if (assignments.get(pvsRenderable.getIndex()) >= 0) {
                     continue;
                 }
 
                 // reset callback for this entity
-                callback.set(r);
+                callback.set(pvsRenderable);
 
                 queryGlobalLights(callback, globalLights);
                 lightIndex.query(callback.entityBounds, callback);
@@ -209,7 +209,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
                 }
 
                 // assign group to entity
-                assignments.set(lightGroup, r.getIndex());
+                assignments.set(pvsRenderable.getIndex(), lightGroup);
             }
         }
         Profiler.pop();

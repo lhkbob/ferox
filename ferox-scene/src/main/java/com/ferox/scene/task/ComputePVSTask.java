@@ -32,6 +32,7 @@ import com.ferox.math.bounds.QueryCallback;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.scene.Renderable;
 import com.ferox.util.Bag;
+import com.ferox.util.HashFunction;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
@@ -78,7 +79,12 @@ public class ComputePVSTask implements Task, ParallelAware {
                 // sort the PVS by entity id before reporting it so that
                 // iteration over the bag has more optimal cache behavior when
                 // accessing entity properties
-                query.pvs.sort();
+                query.pvs.sort(new HashFunction<Entity>() {
+                    @Override
+                    public int hashCode(Entity value) {
+                        return value.getId();
+                    }
+                });
                 job.report(new PVSResult(f.getSource(), f.getFrustum(), query.pvs));
             }
         }

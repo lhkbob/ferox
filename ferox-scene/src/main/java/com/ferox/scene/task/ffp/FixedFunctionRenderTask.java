@@ -159,6 +159,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         lightPVS = new ArrayList<>();
     }
 
+
     private ComponentIterator getIterator(EntitySystem system, Bag<Entity> pvs) {
         ComponentIterator it = system.fastIterator(pvs);
         renderable = it.addRequired(Renderable.class);
@@ -222,7 +223,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                     currentFrame.atoms.set(renderable.getIndex(), atom);
                 }
 
-                syncEntityState(renderable.getEntity(), atom, currentFrame);
+                syncEntityState(atom, currentFrame);
             }
         }
         Profiler.pop();
@@ -414,7 +415,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
 
             // first node is either the proper light group, or the unlit node
-            StateNode firstNode = (atom.blinnPhongVersion >= 0 ? smNode
+            StateNode firstNode = (atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0 ? smNode
                     .getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
             addOpaqueAtom(transform, atom, firstNode, frame);
         }
@@ -456,8 +457,11 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 while (it.next()) {
                     RenderAtom atom = (RenderAtom) frame.atoms.get(renderable.getIndex());
 
-                    boolean litUpdate = (nodeIsLit ? atom.blinnPhongVersion < 0
-                                                   : atom.blinnPhongVersion >= 0);
+                    // FIXME track lit state of atom better, especially once we get more color models in
+                    boolean litUpdate = (nodeIsLit ? atom.diffuseColorVersion < 0 &&
+                                                     atom.specularColorVersion < 0
+                                                   : atom.diffuseColorVersion >= 0 ||
+                                                     atom.specularColorVersion >= 0);
                     boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
                     if (lastNode == null || litUpdate || blendUpdate) {
                         StateNode blendNode = new StateNode(
@@ -465,7 +469,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                                 1);
                         transparentRoot.addChild(blendNode);
 
-                        if (atom.blinnPhongVersion >= 0) {
+                        if (atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0) {
                             StateNode lit = new StateNode(LightingState.LIT, 1);
                             blendNode.addChild(lit);
                             StateNode sm = new StateNode(
@@ -480,7 +484,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                             lastNode = unlit;
                         }
 
-                        nodeIsLit = atom.blinnPhongVersion >= 0;
+                        nodeIsLit = atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0;
                         nodeIsAdditive = atom.additiveBlending;
                     }
 
@@ -584,7 +588,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         ((RenderState) renderNode.getState()).add(transform.getMatrix());
     }
 
-    private void syncEntityState(Entity e, RenderAtom atom, Frame frame) {
+    private void syncEntityState(RenderAtom atom, Frame frame) {
         // sync render state and draw state
         int newRenderableVersion = renderable.getVersion();
         if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0 ||
@@ -752,7 +756,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int diffuseTextureVersion = -1;
         int emittedTextureVersion = -1;
         int decalTextureVersion = -1;
-        int blinnPhongVersion = -1;
         int transparentVersion = -1;
 
         boolean additiveBlending = false;
