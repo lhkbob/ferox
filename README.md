@@ -49,10 +49,9 @@ modules are as follows:
 * `ferox-physics` - A rigid-body physics simulator integrated with the Entreri
   component framework. This is a from-scratch port of Bullet to Java, and is not
   related to JBullet.
-* `ferox-renderer-api` - Simplified and type safe interface to OpenGL, and
+* `ferox-renderer` - Type-safe and thread-safe interface to OpenGL, and object-oriented
   resource support for textures, vertex buffers, and shaders. It is forward
-  compatible for OpenGL 3.0 and 4.0 (although not implemented yet).
-* `ferox-renderer-impl` - Abstract implementation of the renderer API.
+  compatible for OpenGL 3.0 and 4.0.
 * `ferox-renderer-jogl` - Implementation of renderer API using the
   JOGL 2.0 OpenGL wrapper.
 * `ferox-renderer-lwjgl` - Implementation of renderer API using the
@@ -62,5 +61,5 @@ modules are as follows:
   physics engine to easily add physics simulations to 3D scenes.
 * `ferox-util` - A collection of utilities ranging from java.util.collections
   extensions to profiling and runtime monitoring tools.
-* `ferox-test` - Test applications for the other modules.
+* `ferox-demos` - Test applications for the other modules.
   
