@@ -37,7 +37,7 @@ import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
 import com.ferox.scene.Transparent;
 import com.ferox.scene.task.PVSResult;
-import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 
 import java.util.*;
@@ -126,20 +126,23 @@ public class ShadowMapCache {
         List<GeometryState> geomLookup = new ArrayList<>();
         List<IndexBufferState> renderLookup = new ArrayList<>();
 
+        ComponentIterator it = system.fastIterator(pvs.getPotentiallyVisibleSet());
+        Renderable renderable = it.addRequired(Renderable.class);
+        Transform transform = it.addRequired(Transform.class);
+        Transparent transparent = it.addOptional(Transparent.class);
+
         Map<GeometryState, Integer> geomState = new HashMap<>();
         Map<IndexBufferState, Integer> renderState = new HashMap<>();
-        for (Entity e : pvs.getPotentiallyVisibleSet()) {
+        while (it.next()) {
             // skip transparent entities, as its somewhat physically plausible that
             // they'd cast fainter shadows, and with the quality of FFP shadow mapping,
             // being able to see the shadows the cast immediately underneath them is
             // very bad looking
-            if (e.get(Transparent.class) != null) {
+            if (transparent.isAlive()) {
                 continue;
             }
 
-            Renderable renderable = e.get(Renderable.class);
             Geometry geometry = renderable.getGeometry();
-            Transform transform = e.get(Transform.class);
 
             // don't need normals, and use front style for back faces and disable
             // front faces so we only render those in the back
