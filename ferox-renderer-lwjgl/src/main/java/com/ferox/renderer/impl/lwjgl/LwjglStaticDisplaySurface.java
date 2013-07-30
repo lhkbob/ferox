@@ -108,7 +108,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
         } else {
             // not a fullscreen window
             final Frame innerFrame = new Frame();
-            final Canvas innerCanvas = new PaintDisabledCanvas();
+            final Canvas innerCanvas = new Canvas(); //new PaintDisabledCanvas();
 
             Utils.invokeOnAWTThread(new Runnable() {
                 @Override
@@ -121,6 +121,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                     innerFrame.add(innerCanvas);
 
                     innerFrame.setVisible(true);
+                    innerFrame.pack();
                     innerCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
 
                     innerFrame.setIgnoreRepaint(true);
@@ -157,6 +158,10 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             sampleCount = 0;
             GL11.glDisable(GL13.GL_MULTISAMPLE);
         }
+
+        GL11.glClearColor(0f, 0f, 0f, 1f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        Display.update(false);
 
         try {
             // By default, create() makes the surface current on the calling thread,

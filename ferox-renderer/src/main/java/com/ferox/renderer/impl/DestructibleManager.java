@@ -175,12 +175,13 @@ public class DestructibleManager {
             // changing anymore either
             Iterator<ManagedDestructible> it = managedInstances.keySet().iterator();
             while (it.hasNext()) {
-                // unlike above, we want to block on destroy to ensure that everything is cleaned up
-                // before we let this thread die. Otherwise we have race conditions where the lifecycle
-                // manager thinks it can terminate the context thread before all the surfaces have actually
-                // been removed.
                 Future<Void> block = it.next().destroy();
+                it.remove();
                 try {
+                    // unlike above, we want to block on destroy to ensure that everything is cleaned up
+                    // before we let this thread die. Otherwise we have race conditions where the lifecycle
+                    // manager thinks it can terminate the context thread before all the surfaces have actually
+                    // been removed.
                     block.get();
                 } catch (ExecutionException e) {
                     // this shouldn't happen unless there are bugs, so fail now
@@ -188,7 +189,6 @@ public class DestructibleManager {
                 } catch (InterruptedException e) {
                     // ignore
                 }
-                it.remove();
             }
         }
     }
