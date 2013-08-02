@@ -189,8 +189,8 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
         linkProgram(ctx, handle.programID);
 
         // query linked program state
-        detectedUniforms = getUniforms(ctx, handle.programID);
-        detectedAttributes = getAttributes(ctx, handle.programID);
+        detectedUniforms = getUniforms(ctx, handle);
+        detectedAttributes = getAttributes(ctx, handle);
 
         detectedBufferMapping = new HashMap<>();
         for (String variable : mappedBuffers.keySet()) {
@@ -228,9 +228,11 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
     protected abstract void linkProgram(OpenGLContext context, int programID);
 
-    protected abstract List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context, int programID);
+    protected abstract List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context,
+                                                                ShaderImpl.ShaderHandle handle);
 
-    protected abstract List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context, int programID);
+    protected abstract List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context,
+                                                                    ShaderImpl.ShaderHandle handle);
 
     protected abstract void bindFragmentLocation(OpenGLContext context, int programID, String variable,
                                                  int buffer);

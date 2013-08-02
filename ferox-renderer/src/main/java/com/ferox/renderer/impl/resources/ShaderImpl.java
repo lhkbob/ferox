@@ -110,6 +110,8 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
     }
 
     public static class UniformImpl implements Uniform {
+        public final ShaderHandle owner;
+
         private final VariableType type;
         private final String name;
         private final int index;
@@ -124,7 +126,8 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         public boolean initialized;
 
-        public UniformImpl(VariableType type, int length, String name, int index) {
+        public UniformImpl(ShaderHandle owner, VariableType type, int length, String name, int index) {
+            this.owner = owner;
             this.type = type;
             this.length = length;
             this.name = name;
@@ -149,6 +152,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         }
 
         public UniformImpl(UniformImpl u) {
+            owner = u.owner;
             type = u.type;
             name = u.name;
             index = u.index;
@@ -201,11 +205,14 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
     }
 
     public static class AttributeImpl implements Attribute {
+        public final ShaderHandle owner;
+
         private final VariableType type;
         private final String name;
         private final int index;
 
-        public AttributeImpl(VariableType type, String name, int index) {
+        public AttributeImpl(ShaderHandle owner, VariableType type, String name, int index) {
+            this.owner = owner;
             this.type = type;
             this.name = name;
             this.index = index;

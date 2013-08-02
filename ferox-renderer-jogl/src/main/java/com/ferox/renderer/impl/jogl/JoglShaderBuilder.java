@@ -127,9 +127,11 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
     }
 
     @Override
-    protected List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context, int programID) {
+    protected List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context,
+                                                       ShaderImpl.ShaderHandle handle) {
         List<ShaderImpl.UniformImpl> uniforms = new ArrayList<>();
 
+        int programID = handle.programID;
         int[] query = new int[1];
         getGL(context).glGetProgramiv(programID, GL2GL3.GL_ACTIVE_UNIFORMS, query, 0);
         int numUniforms = query[0];
@@ -151,8 +153,8 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             // get uniform location
             int location = getGL(context).glGetUniformLocation(programID, uniformName);
 
-            ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(Utils.getVariableType(type[0]), len[0],
-                                                                  uniformName, location);
+            ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type[0]),
+                                                                  len[0], uniformName, location);
             uniforms.add(u);
         }
 
@@ -160,9 +162,11 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
     }
 
     @Override
-    protected List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context, int programID) {
+    protected List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context,
+                                                           ShaderImpl.ShaderHandle handle) {
         List<ShaderImpl.AttributeImpl> attributes = new ArrayList<>();
 
+        int programID = handle.programID;
         int[] query = new int[1];
         getGL(context).glGetProgramiv(programID, GL2GL3.GL_ACTIVE_ATTRIBUTES, query, 0);
         int numAttrs = query[0];
@@ -182,7 +186,7 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             String attrName = new String(name, 0, nameLen[0]);
 
             int index = getGL(context).glGetAttribLocation(programID, attrName);
-            ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(Utils.getVariableType(type[0]),
+            ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(handle, Utils.getVariableType(type[0]),
                                                                       attrName, index);
             attributes.add(a);
         }

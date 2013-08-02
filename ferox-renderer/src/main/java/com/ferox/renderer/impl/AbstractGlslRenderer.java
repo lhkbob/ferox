@@ -71,6 +71,18 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         defaultState = new ShaderOnlyState(state);
     }
 
+    private void validate(ShaderImpl.UniformImpl u) {
+        if (u.owner != delegate.state.shader) {
+            throw new IllegalArgumentException("Uniform does not belong to the current shader");
+        }
+    }
+
+    private void validate(ShaderImpl.AttributeImpl a) {
+        if (a.owner != delegate.state.shader) {
+            throw new IllegalArgumentException("Attribute does not belong to the current shader");
+        }
+    }
+
     @Override
     public ContextState<GlslRenderer> getCurrentState() {
         return new ShaderState(new SharedState(delegate.state), new ShaderOnlyState(state));
@@ -234,6 +246,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             throw new IllegalArgumentException("GLSL attribute with a type of " + attribute.getType() +
                                                " cannot use " + (column + 1) + " columns");
         }
+        validate((ShaderImpl.AttributeImpl) attribute);
 
         ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() + column];
         if (attr != null) {
@@ -348,6 +361,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr.getType() != Shader.VariableType.FLOAT) {
             throw new IllegalArgumentException("Attribute must have a type of FLOAT");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
+
         bindAttribute(state.attributes[attr.getIndex()], 1, (float) val, 0f, 0f, 0f);
     }
 
@@ -359,6 +374,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr.getType() != Shader.VariableType.VEC2) {
             throw new IllegalArgumentException("Attribute must have a type of VEC2");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
+
         bindAttribute(state.attributes[attr.getIndex()], 2, (float) v1, (float) v2, 0f, 0f);
     }
 
@@ -370,6 +387,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr.getType() != Shader.VariableType.VEC3) {
             throw new IllegalArgumentException("Attribute must have a type of VEC3");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
+
         bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.x, (float) v.y, (float) v.z, 0f);
     }
 
@@ -383,6 +402,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
 
         if (attr.getType() == Shader.VariableType.VEC4) {
             bindAttribute(state.attributes[attr.getIndex()], 4, (float) m00, (float) m01, (float) m10,
@@ -403,6 +423,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr.getType() != Shader.VariableType.MAT3) {
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
 
         bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.m00, (float) v.m01, (float) v.m02, 0f);
         bindAttribute(state.attributes[attr.getIndex() + 1], 3, (float) v.m10, (float) v.m11, (float) v.m12,
@@ -419,6 +440,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (attr.getType() != Shader.VariableType.MAT3) {
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
+        validate((ShaderImpl.AttributeImpl) attr);
 
         bindAttribute(state.attributes[attr.getIndex()], 4, (float) v.m00, (float) v.m01, (float) v.m02,
                       (float) v.m03);
@@ -435,6 +457,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
+        validate((ShaderImpl.AttributeImpl) var);
 
         if (var.getType() == Shader.VariableType.UINT) {
             bindAttribute(state.attributes[var.getIndex()], 1, true, val, 0, 0, 0);
@@ -450,6 +473,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
+        validate((ShaderImpl.AttributeImpl) var);
 
         if (var.getType() == Shader.VariableType.UVEC2) {
             bindAttribute(state.attributes[var.getIndex()], 2, true, v1, v2, 0, 0);
@@ -465,6 +489,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
+        validate((ShaderImpl.AttributeImpl) var);
 
         if (var.getType() == Shader.VariableType.UVEC3) {
             bindAttribute(state.attributes[var.getIndex()], 3, true, v1, v2, v3, 0);
@@ -480,6 +505,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
+        validate((ShaderImpl.AttributeImpl) var);
 
         if (var.getType() == Shader.VariableType.UVEC4) {
             bindAttribute(state.attributes[var.getIndex()], 4, true, v1, v2, v3, v4);
@@ -500,6 +526,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.floatValues.get(0) != val) {
             u.initialized = true;
             u.floatValues.put(0, (float) val);
@@ -517,6 +545,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.floatValues.get(0) != v1 || u.floatValues.get(1) != v2) {
             u.initialized = true;
             u.floatValues.put(0, (float) v1);
@@ -535,6 +565,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.floatValues.get(0) != v1 || u.floatValues.get(1) != v1 ||
             u.floatValues.get(2) != v2 || u.floatValues.get(3) != v3) {
             u.initialized = true;
@@ -556,6 +588,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         val.get(u.floatValues, 0, false);
         u.initialized = true;
         glUniform(u, u.floatValues);
@@ -571,6 +605,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         val.get(u.floatValues, 0, false);
         u.initialized = true;
         glUniform(u, u.floatValues);
@@ -590,6 +626,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.floatValues.get(0) != x || u.floatValues.get(1) != y ||
             u.floatValues.get(2) != z) {
             u.initialized = true;
@@ -631,6 +669,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.intValues.get(0) != val) {
             u.initialized = true;
             u.intValues.put(0, val);
@@ -650,6 +690,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2) {
             u.initialized = true;
             u.intValues.put(0, v1);
@@ -670,6 +712,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2 ||
             u.intValues.get(2) != v3) {
             u.initialized = true;
@@ -692,6 +736,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2 ||
             u.intValues.get(2) != v3 || u.intValues.get(3) != v4) {
             u.initialized = true;
@@ -947,6 +993,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
+        validate(u);
+
         int textureUnit = u.intValues.get(0);
         if (texture != null) {
             TextureImpl.TextureHandle handle = ((TextureImpl) texture).getHandle();
