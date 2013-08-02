@@ -117,8 +117,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                     innerFrame.setUndecorated(options.isUndecorated());
                     innerFrame.setBounds(options.getX(), options.getY(), options.getWidth(),
                                          options.getHeight());
-
                     innerFrame.add(innerCanvas);
+
+                    innerCanvas.setSize(options.getWidth(), options.getHeight());
 
                     innerFrame.setVisible(true);
                     innerFrame.pack();

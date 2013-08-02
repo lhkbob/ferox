@@ -60,7 +60,7 @@ public class FixedFunctionState {
      * types of color. For light colors, the EMISSIVE enum is unused, since it's only available for material
      * colors.
      */
-    public static enum LightColor {
+    public static enum ColorPurpose {
         AMBIENT,
         DIFFUSE,
         SPECULAR,
@@ -120,6 +120,7 @@ public class FixedFunctionState {
         public double quadAtt;
 
         public double spotAngle;
+        public double spotExponent;
 
         public boolean enabled;
 
@@ -137,6 +138,7 @@ public class FixedFunctionState {
             quadAtt = 0;
 
             spotAngle = 180;
+            spotExponent = 0.0;
             enabled = false;
         }
 
@@ -150,6 +152,7 @@ public class FixedFunctionState {
             linAtt = state.linAtt;
             quadAtt = state.quadAtt;
             spotAngle = state.spotAngle;
+            spotExponent = state.spotExponent;
             enabled = state.enabled;
         }
     }

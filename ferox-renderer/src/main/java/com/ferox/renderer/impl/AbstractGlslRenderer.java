@@ -34,7 +34,9 @@ import com.ferox.renderer.impl.resources.TextureImpl;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,15 +79,16 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void setCurrentState(ContextState<GlslRenderer> state) {
         ShaderState s = (ShaderState) state;
-        setCurrentState(s.shaderState, s.sharedState);
+        setCurrentState(s.shaderState, s.sharedState, s.uniformState);
     }
 
     @Override
     public void reset() {
-        setCurrentState(defaultState, delegate.defaultState);
+        setCurrentState(defaultState, delegate.defaultState, null);
     }
 
-    private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState) {
+    private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState,
+                                 List<ShaderImpl.UniformImpl> uniformState) {
         // this will bind the expected shader and the textures, so that will be in a consistent state
         // with respect to sampler uniforms pointing to the correct texture unit
         delegate.setCurrentState(sharedState);
@@ -93,7 +96,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         // set all attributes
         for (int i = 0; i < shaderState.attributes.length; i++) {
             ShaderOnlyState.AttributeState a = shaderState.attributes[i];
-            if (a.vbo != null) {
+            if (a.vbo != null && !a.vbo.isDestroyed()) {
                 // configure a pointer, we assume it properly matches the attribute type
                 bindAttributeHandle(state.attributes[i], a.vbo, a.offset, a.stride, a.elementSize);
             } else {
@@ -109,6 +112,61 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 }
             }
         }
+
+        if (delegate.state.shader != null && uniformState != null) {
+            // set all uniform values, which can be assumed to have been initialized already
+            for (ShaderImpl.UniformImpl u : uniformState) {
+                ShaderImpl.UniformImpl real = getTrueUniform(u);
+
+                if (u.getType().getPrimitiveType() == DataType.FLOAT) {
+                    if (!real.floatValues.equals(u.floatValues)) {
+                        real.floatValues.reset();
+                        real.floatValues.put(u.floatValues).reset();
+                        glUniform(real, real.floatValues);
+                    }
+                } else if (u.getType().getPrimitiveType() == DataType.INT ||
+                           u.getType().getPrimitiveType() == DataType.UNSIGNED_INT) {
+                    if (!real.intValues.equals(u.intValues)) {
+                        real.intValues.reset();
+                        real.intValues.put(u.intValues).reset();
+                        glUniform(real, real.intValues);
+                    }
+                } else {
+                    // texture type, so their intValues should be the same and we just have to check texture handle
+                    int unit = real.intValues.get(0);
+                    if (delegate.state.textures[unit] != u.texture) {
+                        real.texture = u.texture;
+                        context.bindTexture(unit, u.texture);
+                    }
+
+                    // special clean up if the texture was deleted
+                    if (delegate.state.textures[unit] == null) {
+                        real.texture = null;
+                    }
+                }
+            }
+        }
+    }
+
+    private ShaderImpl.UniformImpl getTrueUniform(ShaderImpl.UniformImpl cloned) {
+        int low = 0;
+        int high = delegate.state.shader.uniforms.size() - 1;
+        int key = cloned.getIndex();
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            int midVal = delegate.state.shader.uniforms.get(mid).getIndex();
+
+            if (midVal < key) {
+                low = mid + 1;
+            } else if (midVal > key) {
+                high = mid - 1;
+            } else {
+                return delegate.state.shader.uniforms.get(mid); // key found
+            }
+        }
+
+        throw new RuntimeException("Missing uniform, shouldn't happen!");
     }
 
     @Override
@@ -132,6 +190,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                         // mark unit as reserved and bind the last assigned sampler
                         reservedUnits.add(ui.intValues.get(0));
                         context.bindTexture(ui.intValues.get(0), ui.texture);
+
+                        // special clean up if the texture was deleted
+                        if (delegate.state.textures[ui.intValues.get(0)] == null) {
+                            ui.texture = null;
+                        }
                     } else {
                         needsInit.add(ui);
                     }
@@ -940,9 +1003,20 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         private final ShaderOnlyState shaderState;
         private final SharedState sharedState;
 
+        private final List<ShaderImpl.UniformImpl> uniformState;
+
         public ShaderState(SharedState shared, ShaderOnlyState shader) {
             shaderState = shader;
             sharedState = shared;
+
+            uniformState = new ArrayList<>();
+            if (sharedState.shader != null) {
+                for (ShaderImpl.UniformImpl u : sharedState.shader.uniforms) {
+                    if (u.initialized) {
+                        uniformState.add(new ShaderImpl.UniformImpl(u));
+                    }
+                }
+            }
         }
     }
 }

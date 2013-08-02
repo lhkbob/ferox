@@ -148,6 +148,27 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             initialized = false;
         }
 
+        public UniformImpl(UniformImpl u) {
+            type = u.type;
+            name = u.name;
+            index = u.index;
+            length = u.length;
+
+            texture = u.texture;
+            initialized = u.initialized;
+
+            if (u.floatValues != null) {
+                floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, u.floatValues.capacity())
+                                        .asFloatBuffer();
+                floatValues.put(u.floatValues).reset();
+                intValues = null;
+            } else {
+                intValues = BufferUtil.newByteBuffer(DataType.INT, u.intValues.capacity()).asIntBuffer();
+                intValues.put(u.intValues).reset();
+                floatValues = null;
+            }
+        }
+
         @Override
         public VariableType getType() {
             return type;
@@ -216,6 +237,11 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         public final int vertexShaderID;
         public final int fragmentShaderID;
         public final int geometryShaderID;
+
+        // considered final and immutable, these hold the same lists as reported by the shader
+        // once they've been detected
+        public List<UniformImpl> uniforms;
+        public List<AttributeImpl> attributes;
 
         public ShaderHandle(FrameworkImpl framework, int programID, int vertexShaderID, int fragmentShaderID,
                             int geometryShaderID) {

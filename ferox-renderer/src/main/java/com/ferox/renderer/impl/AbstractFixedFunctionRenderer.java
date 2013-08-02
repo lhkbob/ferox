@@ -114,8 +114,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         setGlobalAmbientLight(f.globalAmbient);
         setLightingEnabled(f.lightingEnabled);
-        setSmoothedLightingEnabled(f.lightingSmoothed);
-        setTwoSidedLightingEnabled(f.lightingTwoSided);
 
         setMaterial(f.matAmbient, f.matDiffuse, f.matSpecular, f.matEmissive);
         setMaterialShininess(f.matShininess);
@@ -130,13 +128,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         setProjectionMatrix(f.projection);
 
         // set the modelview to the identity matrix, since the subsequent state
-        // is modified by the current modelview, but we store the post-transform
+        // is modified by the current modelview, but we store them post-transform
         setModelViewMatrix(IDENTITY);
         for (int i = 0; i < f.lights.length; i++) {
             LightState fl = f.lights[i];
             setLightEnabled(i, fl.enabled);
             setLightPosition(i, fl.position);
-            setSpotlight(i, fl.spotlightDirection, fl.spotAngle);
+            setSpotlight(i, fl.spotlightDirection, fl.spotAngle, fl.spotExponent);
             setLightColor(i, fl.ambient, fl.diffuse, fl.specular);
             setLightAttenuation(i, fl.constAtt, fl.linAtt, fl.quadAtt);
         }
@@ -204,6 +202,27 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
         // set shared state
         delegate.setCurrentState(shared);
+
+        // clean up additional resource state that might have been destroyed
+        if (state.vertexBinding.vbo != null && state.vertexBinding.vbo.isDestroyed()) {
+            setVertices(null);
+        }
+        if (state.normalBinding.vbo != null && state.normalBinding.vbo.isDestroyed()) {
+            setNormals(null);
+        }
+        if (state.colorBinding.vbo != null && state.colorBinding.vbo.isDestroyed()) {
+            setColors(null);
+        }
+        for (int i = 0; i < state.texCoordBindings.length; i++) {
+            if (state.texCoordBindings[i].vbo != null && state.texCoordBindings[i].vbo.isDestroyed()) {
+                setTextureCoordinates(i, null);
+            }
+        }
+        for (int i = 0; i < state.textures.length; i++) {
+            if (shared.textures[i] != null && delegate.state.textures[i] == null) {
+                glEnableTexture(shared.textures[i].target, false);
+            }
+        }
     }
 
     @Override
@@ -388,15 +407,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         LightState l = state.lights[light];
         if (!l.ambient.equals(amb)) {
             clamp(amb, 0, Float.MAX_VALUE, l.ambient);
-            glLightColor(light, LightColor.AMBIENT, l.ambient);
+            glLightColor(light, ColorPurpose.AMBIENT, l.ambient);
         }
         if (!l.diffuse.equals(diff)) {
             clamp(diff, 0, Float.MAX_VALUE, l.diffuse);
-            glLightColor(light, LightColor.DIFFUSE, l.diffuse);
+            glLightColor(light, ColorPurpose.DIFFUSE, l.diffuse);
         }
         if (!l.specular.equals(spec)) {
             clamp(spec, 0, Float.MAX_VALUE, l.specular);
-            glLightColor(light, LightColor.SPECULAR, l.specular);
+            glLightColor(light, ColorPurpose.SPECULAR, l.specular);
         }
     }
 
@@ -404,7 +423,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      * Invoke OpenGL calls to set the light color for the given light. The color has already been clamped
      * correctly.
      */
-    protected abstract void glLightColor(int light, LightColor lc, @Const Vector4 color);
+    protected abstract void glLightColor(int light, ColorPurpose lc, @Const Vector4 color);
 
     @Override
     public void setLightEnabled(int light, boolean enable) {
@@ -441,18 +460,26 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected abstract void glLightPosition(int light, @Const Vector4 pos);
 
     @Override
-    public void setSpotlight(int light, @Const Vector3 dir, double angle) {
+    public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
         if (dir == null) {
             throw new NullPointerException("Spotlight direction can't be null");
         }
-        if ((angle < 0f || angle > 90f) && angle != 180f) {
+        if ((angle < 0.0 || angle > 90.0) && angle != 180.0) {
             throw new IllegalArgumentException("Spotlight angle must be in [0, 90] or be 180, not: " + angle);
+        }
+        if (exponent < 0.0 || angle > 128.0) {
+            throw new IllegalArgumentException("Spotlight exponent must be in [0, 128], not: " + exponent);
         }
 
         LightState l = state.lights[light];
         if (l.spotAngle != angle) {
             l.spotAngle = angle;
             glLightAngle(light, angle);
+        }
+
+        if (l.spotExponent != exponent) {
+            l.spotExponent = exponent;
+            glLightExponent(light, exponent);
         }
 
         // compute eye-space spotlight direction
@@ -470,6 +497,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      * Invoke OpenGL calls to set a light's spotlight angle
      */
     protected abstract void glLightAngle(int light, double angle);
+
+    /**
+     * Invoke OpenGL calls to set a light's spotlight exponent
+     */
+    protected abstract void glLightExponent(int light, double exponent);
 
     @Override
     public void setLightAttenuation(int light, double constant, double linear, double quadratic) {
@@ -509,32 +541,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      * Invoke OpenGL calls to enable lighting
      */
     protected abstract void glEnableLighting(boolean enable);
-
-    @Override
-    public void setSmoothedLightingEnabled(boolean smoothed) {
-        if (state.lightingSmoothed != smoothed) {
-            state.lightingSmoothed = smoothed;
-            glEnableSmoothShading(smoothed);
-        }
-    }
-
-    @Override
-    public void setTwoSidedLightingEnabled(boolean enable) {
-        if (state.lightingTwoSided != enable) {
-            state.lightingTwoSided = enable;
-            glEnableTwoSidedLighting(enable);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to set smooth shading
-     */
-    protected abstract void glEnableSmoothShading(boolean enable);
-
-    /**
-     * Invoke OpenGL calls to set two-sided lighting
-     */
-    protected abstract void glEnableTwoSidedLighting(boolean enable);
 
     @Override
     public void setLineAntiAliasingEnabled(boolean enable) {
@@ -581,7 +587,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
         if (!state.matDiffuse.equals(diff)) {
             clamp(diff, 0, 1, state.matDiffuse);
-            glMaterialColor(LightColor.DIFFUSE, state.matDiffuse);
+            glMaterialColor(ColorPurpose.DIFFUSE, state.matDiffuse);
         }
     }
 
@@ -592,7 +598,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
         if (!state.matAmbient.equals(amb)) {
             clamp(amb, 0, 1, state.matAmbient);
-            glMaterialColor(LightColor.AMBIENT, state.matAmbient);
+            glMaterialColor(ColorPurpose.AMBIENT, state.matAmbient);
         }
     }
 
@@ -603,7 +609,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
         if (!state.matSpecular.equals(spec)) {
             clamp(spec, 0, 1, state.matSpecular);
-            glMaterialColor(LightColor.SPECULAR, state.matSpecular);
+            glMaterialColor(ColorPurpose.SPECULAR, state.matSpecular);
         }
     }
 
@@ -614,15 +620,15 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
         if (!state.matEmissive.equals(emm)) {
             clamp(emm, 0, 1, state.matEmissive);
-            glMaterialColor(LightColor.EMISSIVE, state.matEmissive);
+            glMaterialColor(ColorPurpose.EMISSIVE, state.matEmissive);
         }
     }
 
     /**
-     * Invoke OpenGL calls to set the material color for the LightColor. The color has already been clamped
+     * Invoke OpenGL calls to set the material color for the ColorPurpose. The color has already been clamped
      * correctly.
      */
-    protected abstract void glMaterialColor(LightColor component, @Const Vector4 color);
+    protected abstract void glMaterialColor(ColorPurpose component, @Const Vector4 color);
 
     @Override
     public void setMaterialShininess(double shininess) {
@@ -1107,7 +1113,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (colors == null) {
             setAttribute(state.colorBinding, null, 0, 0, 0);
             // per-vertex coloring is disabled, so make sure we have a predictable diffuse color
-            glMaterialColor(LightColor.DIFFUSE, DEFAULT_MAT_D_COLOR);
+            glMaterialColor(ColorPurpose.DIFFUSE, DEFAULT_MAT_D_COLOR);
             state.matDiffuse.set(DEFAULT_MAT_D_COLOR);
         } else {
             if (colors.getElementSize() != 3 && colors.getElementSize() != 4) {

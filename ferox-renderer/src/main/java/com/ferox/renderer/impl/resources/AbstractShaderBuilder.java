@@ -208,6 +208,8 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
     @Override
     protected Shader wrap(ShaderImpl.ShaderHandle handle) {
+        handle.uniforms = detectedUniforms;
+        handle.attributes = detectedAttributes;
         return new ShaderImpl(handle, detectedShaderVersion, detectedUniforms, detectedAttributes,
                               detectedBufferMapping);
     }

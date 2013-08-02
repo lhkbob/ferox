@@ -114,6 +114,22 @@ public abstract class RendererDelegate {
         for (int i = 0; i < state.textures.length; i++) {
             context.bindTexture(i, state.textures[i]);
         }
+
+        // clean out resource bindings that marked destroyed
+        if (state.shader != null && state.shader.isDestroyed()) {
+            context.bindShader(null);
+        }
+        if (state.arrayVBO != null && state.arrayVBO.isDestroyed()) {
+            context.bindArrayVBO(null);
+        }
+        if (state.elementVBO != null && state.elementVBO.isDestroyed()) {
+            context.bindElementVBO(null);
+        }
+        for (int i = 0; i < state.textures.length; i++) {
+            if (state.textures[i] != null && state.textures[i].isDestroyed()) {
+                context.bindTexture(i, null);
+            }
+        }
     }
 
     /**

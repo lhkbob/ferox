@@ -81,7 +81,7 @@ public class LwjglContext implements OpenGLContext {
         // if functions related to this are called, we assume FBOs are supported somehow
         useEXTFramebufferObject = caps.getMajorVersion() < 3;
 
-        sharedState = new SharedState(caps.getMaxCombinedTextures());
+        sharedState = new SharedState(caps.getMaxFragmentShaderTextures());
 
         LwjglRendererDelegate shared = new LwjglRendererDelegate(this, sharedState);
         if (caps.getMajorVersion() < 3) {
@@ -199,6 +199,10 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindArrayVBO(BufferImpl.BufferHandle vbo) {
+        if (vbo.isDestroyed()) {
+            vbo = null;
+        }
+
         if (vbo != sharedState.arrayVBO) {
             sharedState.arrayVBO = vbo;
             int bufferID = (vbo == null || vbo.inmemoryBuffer != null ? 0 : vbo.vboID);
@@ -209,6 +213,10 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindElementVBO(BufferImpl.BufferHandle vbo) {
+        if (vbo.isDestroyed()) {
+            vbo = null;
+        }
+
         if (vbo != sharedState.elementVBO) {
             sharedState.elementVBO = vbo;
             int bufferID = (vbo == null || vbo.inmemoryBuffer != null ? 0 : vbo.vboID);
@@ -219,6 +227,10 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindShader(ShaderImpl.ShaderHandle shader) {
+        if (shader.isDestroyed()) {
+            shader = null;
+        }
+
         if (shader != sharedState.shader) {
             sharedState.shader = shader;
             int shaderID = (shader == null ? 0 : shader.programID);
@@ -228,6 +240,10 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindTexture(int textureUnit, TextureImpl.TextureHandle texture) {
+        if (texture.isDestroyed()) {
+            texture = null;
+        }
+
         TextureImpl.TextureHandle prevTex = sharedState.textures[textureUnit];
 
         if (texture != prevTex) {

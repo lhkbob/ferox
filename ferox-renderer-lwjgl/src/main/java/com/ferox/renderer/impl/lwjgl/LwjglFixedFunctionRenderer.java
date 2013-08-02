@@ -34,13 +34,14 @@ import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.BufferUtil;
+import com.ferox.renderer.impl.FixedFunctionState.ColorPurpose;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
-import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GL13;
 
 import java.nio.FloatBuffer;
@@ -76,6 +77,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             // set initial state not actually tracked
             GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE);
             GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+
+            // for the lighting model, we use local viewer and separate specular color, smooth shading, and
+            // two sided lighting
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_LOCAL_VIEWER, GL11.GL_TRUE);
+            GL11.glLightModeli(GL12.GL_LIGHT_MODEL_COLOR_CONTROL, GL12.GL_SEPARATE_SPECULAR_COLOR);
+            GL11.glShadeModel(GL11.GL_SMOOTH);
 
             initialized = true;
         }
@@ -116,9 +124,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 alphaTestEnabled = true;
                 glEnable(GL11.GL_ALPHA_TEST, true);
             }
-
-            GL11.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
         }
+        GL11.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
     }
 
     @Override
@@ -165,7 +172,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
+    protected void glLightColor(int light, ColorPurpose lc, @Const Vector4 color) {
         color.get(transferBuffer, 0);
         int c = getGLLight(lc);
         GL11.glLight(GL11.GL_LIGHT0 + light, c, transferBuffer);
@@ -194,6 +201,11 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
+    protected void glLightExponent(int light, double exponent) {
+        GL11.glLightf(GL11.GL_LIGHT0 + light, GL11.GL_SPOT_EXPONENT, (float) exponent);
+    }
+
+    @Override
     protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GL11.GL_LIGHT0;
         GL11.glLightf(light, GL11.GL_CONSTANT_ATTENUATION, (float) constant);
@@ -207,16 +219,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glEnableSmoothShading(boolean enable) {
-        GL11.glShadeModel(enable ? GL11.GL_SMOOTH : GL11.GL_FLAT);
-    }
-
-    @Override
-    protected void glEnableTwoSidedLighting(boolean enable) {
-        GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL11.GL_TRUE : GL11.GL_FALSE);
-    }
-
-    @Override
     protected void glEnableLineAntiAliasing(boolean enable) {
         glEnable(GL11.GL_LINE_SMOOTH, enable);
     }
@@ -227,9 +229,9 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glMaterialColor(LightColor component, @Const Vector4 color) {
+    protected void glMaterialColor(ColorPurpose component, @Const Vector4 color) {
         int c = getGLLight(component);
-        if (component == LightColor.DIFFUSE) {
+        if (component == ColorPurpose.DIFFUSE) {
             GL11.glColor4d(color.x, color.y, color.z, color.w);
         } else {
             color.get(transferBuffer, 0);
@@ -455,7 +457,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
     }
 
-    private int getGLLight(LightColor c) {
+    private int getGLLight(ColorPurpose c) {
         switch (c) {
         case AMBIENT:
             return GL11.GL_AMBIENT;

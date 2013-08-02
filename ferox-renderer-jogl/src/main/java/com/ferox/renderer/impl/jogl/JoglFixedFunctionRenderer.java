@@ -34,8 +34,9 @@ import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.BufferUtil;
+import com.ferox.renderer.impl.FixedFunctionState;
+import com.ferox.renderer.impl.FixedFunctionState.ColorPurpose;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
-import com.ferox.renderer.impl.FixedFunctionState.LightColor;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
 import com.ferox.renderer.impl.FixedFunctionState.VertexTarget;
 import com.ferox.renderer.impl.resources.BufferImpl;
@@ -80,6 +81,13 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE);
             gl.glEnable(GL2.GL_COLOR_MATERIAL);
 
+            // for the lighting model, we use local viewer and separate specular color, smooth shading, and
+            // two sided lighting
+            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
+            gl.glLightModeli(GL2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE);
+            gl.glLightModeli(GL2.GL_LIGHT_MODEL_COLOR_CONTROL, GL2.GL_SEPARATE_SPECULAR_COLOR);
+            gl.glShadeModel(GL2.GL_SMOOTH);
+
             initialized = true;
         }
 
@@ -119,9 +127,8 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
                 alphaTestEnabled = true;
                 glEnable(GL2.GL_ALPHA_TEST, true);
             }
-
-            gl.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
         }
+        gl.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
     }
 
     @Override
@@ -168,7 +175,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glLightColor(int light, LightColor lc, @Const Vector4 color) {
+    protected void glLightColor(int light, FixedFunctionState.ColorPurpose lc, @Const Vector4 color) {
         color.get(transferBuffer, 0);
         int c = getGLLight(lc);
         gl.glLightfv(GL2.GL_LIGHT0 + light, c, transferBuffer);
@@ -197,6 +204,11 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
+    protected void glLightExponent(int light, double exponent) {
+        gl.glLightf(GL2.GL_LIGHT0 + light, GL2.GL_SPOT_EXPONENT, (float) exponent);
+    }
+
+    @Override
     protected void glLightAttenuation(int light, double constant, double linear, double quadratic) {
         light += GL2.GL_LIGHT0;
         gl.glLightf(light, GL2.GL_CONSTANT_ATTENUATION, (float) constant);
@@ -210,16 +222,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glEnableSmoothShading(boolean enable) {
-        gl.glShadeModel(enable ? GL2.GL_SMOOTH : GL2.GL_FLAT);
-    }
-
-    @Override
-    protected void glEnableTwoSidedLighting(boolean enable) {
-        gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, enable ? GL2.GL_TRUE : GL2.GL_FALSE);
-    }
-
-    @Override
     protected void glEnableLineAntiAliasing(boolean enable) {
         glEnable(GL2.GL_LINE_SMOOTH, enable);
     }
@@ -230,9 +232,9 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glMaterialColor(LightColor component, @Const Vector4 color) {
+    protected void glMaterialColor(ColorPurpose component, @Const Vector4 color) {
         int c = getGLLight(component);
-        if (component == LightColor.DIFFUSE) {
+        if (component == FixedFunctionState.ColorPurpose.DIFFUSE) {
             gl.glColor4d(color.x, color.y, color.z, color.w);
         } else {
             color.get(transferBuffer, 0);
@@ -458,7 +460,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
     }
 
-    private int getGLLight(LightColor c) {
+    private int getGLLight(ColorPurpose c) {
         switch (c) {
         case AMBIENT:
             return GL2.GL_AMBIENT;

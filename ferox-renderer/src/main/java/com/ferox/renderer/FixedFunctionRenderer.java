@@ -39,7 +39,8 @@ import com.ferox.math.Vector4;
  * it's more robust to completely separate fixed and programmable pipelines.
  * <p/>
  * For the purposes of lighting, the renderer supports 8 simultaneous lights. For the purposes of texturing,
- * the renderer supports 4 simultaneous textures.
+ * the renderer supports 4 simultaneous textures. Lighting is computed using the Blinn-Phong model adopted by
+ * OpenGL and will use two-sided lighting, separate specular colors, and smooth shading.
  *
  * @author Michael Ludwig
  */
@@ -458,29 +459,6 @@ public interface FixedFunctionRenderer extends Renderer {
 
     /**
      * <p/>
-     * Configure the lighting model to use Gauroud shading or non-interpolated vertex colors. When smoothed is
-     * true, Gauroud shading is used to simuluate per-pixel lighting. When <var>smoothed</var> is false,
-     * vertex colors are not interpolated and rendered geometry will appear faceted.
-     * <p/>
-     * Smooth shading is enabled by default.
-     *
-     * @param smoothed True if polygons are smoothly shaded
-     */
-    public void setSmoothedLightingEnabled(boolean smoothed);
-
-    /**
-     * <p/>
-     * Set whether or not back-facing polygons should have their lighting calculations performed separately,
-     * or if they should just use the same computed color as their paired front-facing polygons.
-     * <p/>
-     * Two sided lighting is disabled by default.
-     *
-     * @param enable True if front and back faces use separate lighting calculations
-     */
-    public void setTwoSidedLightingEnabled(boolean enable);
-
-    /**
-     * <p/>
      * Set whether or not the given light is enabled. If it's set to true then it will be used to compute
      * lighting when the overall lighting system has been enabled.
      * <p/>
@@ -559,17 +537,20 @@ public interface FixedFunctionRenderer extends Renderer {
      * values for the angle are in the range [0, 90] and 180. 180 is a special value that causes the light to
      * act as a spherical point light. In this case, the spotlight direction has no effect on the lighting.
      * <p/>
-     * Every light starts with a spotlight direction of (0, 0, -1) and a cutoff angle of 180.
+     * Every light starts with a spotlight direction of (0, 0, -1) and a cutoff angle of 180, and an exponent
+     * of 0.
      *
-     * @param light The given light to configure
-     * @param dir   The direction that spotlights shine
-     * @param angle The cutoff angle for the light from the spotlight
+     * @param light    The given light to configure
+     * @param dir      The direction that spotlights shine
+     * @param angle    The cutoff angle for the light from the spotlight
+     * @param exponent The sharpness with which the spotlight cutoff occurs, or 0 for a harsh boundary
      *
      * @throws NullPointerException      if dir is null
-     * @throws IllegalArgumentException  if angle is not in [0, 90] or equal to 180
+     * @throws IllegalArgumentException  if angle is not in [0, 90] or equal to 180, or if exponent is not in
+     *                                   [0, 128]
      * @throws IndexOutOfBoundsException if light is greater than or equal to 8, or if light is less than 0
      */
-    public void setSpotlight(int light, @Const Vector3 dir, double angle);
+    public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent);
 
     /**
      * <p/>
