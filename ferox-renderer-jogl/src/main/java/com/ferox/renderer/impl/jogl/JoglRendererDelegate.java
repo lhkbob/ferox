@@ -46,16 +46,6 @@ public class JoglRendererDelegate extends RendererDelegate {
     // capabilities
     private boolean initialized;
 
-    // state tracking for buffer clearing
-    private final Vector4 clearColor = new Vector4(0f, 0f, 0f, 0f);
-    private double clearDepth = 1;
-    private int clearStencil = 0;
-
-    // state tracking for draw styles
-    private boolean cullEnabled = true;
-    private int frontPolyMode = GL2GL3.GL_FILL;
-    private int backPolyMode = GL2GL3.GL_FILL;
-
     private GL2GL3 gl;
 
     /**
@@ -121,32 +111,18 @@ public class JoglRendererDelegate extends RendererDelegate {
 
         if (cullFace == 0) {
             // to show both sides, must disable culling
-            if (cullEnabled) {
-                cullEnabled = false;
-                glEnable(GL2GL3.GL_CULL_FACE, false);
-            }
+            glEnable(GL2GL3.GL_CULL_FACE, false);
         } else {
-            if (!cullEnabled) {
-                cullEnabled = true;
-                glEnable(GL2GL3.GL_CULL_FACE, true);
-            }
+            glEnable(GL2GL3.GL_CULL_FACE, true);
             gl.glCullFace(cullFace);
         }
 
         if (front != DrawStyle.NONE) {
-            int frontMode = Utils.getGLPolygonMode(front);
-            if (frontPolyMode != frontMode) {
-                frontPolyMode = frontMode;
-                gl.glPolygonMode(GL2GL3.GL_FRONT, frontMode);
-            }
+            gl.glPolygonMode(GL2GL3.GL_FRONT, Utils.getGLPolygonMode(front));
         }
 
         if (back != DrawStyle.NONE) {
-            int backMode = Utils.getGLPolygonMode(back);
-            if (backPolyMode != backMode) {
-                backPolyMode = backMode;
-                gl.glPolygonMode(GL2GL3.GL_BACK, backMode);
-            }
+            gl.glPolygonMode(GL2GL3.GL_BACK, Utils.getGLPolygonMode(back));
         }
     }
 
@@ -229,18 +205,9 @@ public class JoglRendererDelegate extends RendererDelegate {
             throw new IllegalArgumentException("Clear depth must be in [0, 1], not: " + depth);
         }
 
-        if (!this.clearColor.equals(color)) {
-            this.clearColor.set(color);
-            gl.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
-        }
-        if (this.clearDepth != depth) {
-            this.clearDepth = depth;
-            gl.glClearDepth(depth);
-        }
-        if (this.clearStencil != stencil) {
-            this.clearStencil = stencil;
-            gl.glClearStencil(stencil);
-        }
+        gl.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+        gl.glClearDepth(depth);
+        gl.glClearStencil(stencil);
 
         int clearBits = 0;
         if (clearColor) {

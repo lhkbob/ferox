@@ -61,6 +61,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     // state tracking
     private boolean alphaTestEnabled;
+    private boolean twosidedLighting;
 
     private GL2 gl;
 
@@ -71,6 +72,7 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
         transferBuffer = BufferUtil.newByteBuffer(DataType.FLOAT, 16).asFloatBuffer();
         alphaTestEnabled = false;
+        twosidedLighting = false;
     }
 
     @Override
@@ -83,7 +85,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
             // for the lighting model, we use local viewer and separate specular color, smooth shading, and
             // two sided lighting
-            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
             gl.glLightModeli(GL2.GL_LIGHT_MODEL_LOCAL_VIEWER, GL.GL_TRUE);
             gl.glLightModeli(GL2.GL_LIGHT_MODEL_COLOR_CONTROL, GL2.GL_SEPARATE_SPECULAR_COLOR);
             gl.glShadeModel(GL2.GL_SMOOTH);
@@ -92,6 +93,19 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
 
         super.activate(surface);
+    }
+
+    @Override
+    public void setDrawStyle(DrawStyle front, DrawStyle back) {
+        super.setDrawStyle(front, back);
+
+        if (back != DrawStyle.NONE && !twosidedLighting) {
+            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
+            twosidedLighting = true;
+        } else if (back == DrawStyle.NONE && twosidedLighting) {
+            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_FALSE);
+            twosidedLighting = false;
+        }
     }
 
     @Override

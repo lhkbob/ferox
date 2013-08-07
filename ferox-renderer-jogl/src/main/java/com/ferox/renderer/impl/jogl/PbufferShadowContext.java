@@ -70,7 +70,7 @@ public class PbufferShadowContext extends JoglContext {
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
-        glCaps.setPBuffer(true);
+        glCaps.setPBuffer(false);
         glCaps.setFBO(false);
         glCaps.setOnscreen(false);
 
@@ -79,6 +79,11 @@ public class PbufferShadowContext extends JoglContext {
                                                            .createOffscreenAutoDrawable(device, glCaps,
                                                                                         new DefaultGLCapabilitiesChooser(),
                                                                                         1, 1, realShare);
+
+        // cycle context status
+        pbuffer.getContext().makeCurrent();
+        pbuffer.getContext().release();
+
         try {
             return new PbufferShadowContext(creator.getCapabilities(), pbuffer);
         } catch (RuntimeException re) {

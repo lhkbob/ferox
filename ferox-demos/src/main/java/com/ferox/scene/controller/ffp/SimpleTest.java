@@ -34,6 +34,7 @@ import com.ferox.math.bounds.QuadTree;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Sphere;
@@ -106,8 +107,10 @@ public class SimpleTest {
             int polycount = b.getPolygonType().getPolygonCount(b.getIndexCount() - b.getIndexOffset());
 
             Entity e = system.addEntity();
-            e.add(Renderable.class).setGeometry(b);
+            e.add(Renderable.class).setGeometry(b)
+             .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
             e.add(LambertianDiffuseModel.class).setColor(c);
+            e.add(BlinnPhongSpecularModel.class).setColor(new ColorRGB(1, 1, 1)).setShininess(5);
             e.add(Transform.class).setMatrix(new Matrix4()
                                                      .set(1, 0, 0, Math.random() * BOUNDS - BOUNDS / 2, 0, 1,
                                                           0, Math.random() * BOUNDS - BOUNDS / 2, 0, 0, 1,

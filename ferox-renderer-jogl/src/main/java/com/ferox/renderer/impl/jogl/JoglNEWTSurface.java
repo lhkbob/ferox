@@ -67,6 +67,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         window.setDefaultCloseOperation(
                 WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
         window.setTitle("");
+        window.setPosition(options.getX(), options.getY());
         window.setVisible(true);
         window.requestFocus();
 
@@ -93,17 +94,15 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         JoglContext context = new JoglContext(factory.getCapabilities(), drawable.createContext(realShare));
         drawable.setRealized(true);
 
+        // OpenGL 3.0 deprecated DEPTH_BITS and STENCIL_BITS so just trust that the surface was created
+        stencilBits = options.getStencilBufferBits();
+        depthBits = options.getDepthBufferBits();
+
         // Detect buffer config while the context is current
         context.makeCurrent();
+
         GL gl = context.getGLContext().getGL();
-
         int[] query = new int[1];
-        gl.glGetIntegerv(GL.GL_STENCIL_BITS, query, 0);
-        stencilBits = query[0];
-
-        gl.glGetIntegerv(GL.GL_DEPTH_BITS, query, 0);
-        depthBits = query[0];
-
         gl.glGetIntegerv(GL2GL3.GL_SAMPLES, query, 0);
         int samples = query[0];
         gl.glGetIntegerv(GL2GL3.GL_SAMPLE_BUFFERS, query, 0);

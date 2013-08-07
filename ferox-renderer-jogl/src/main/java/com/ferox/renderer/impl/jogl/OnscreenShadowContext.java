@@ -87,6 +87,11 @@ public class OnscreenShadowContext extends JoglContext {
 
         GLDrawable drawable = GLDrawableFactory.getFactory(creator.getGLProfile()).createGLDrawable(window);
         GLContext context = drawable.createContext(shareWith == null ? null : shareWith.getGLContext());
+        drawable.setRealized(true);
+
+        // cycle context status
+        context.makeCurrent();
+        context.release();
 
         return new OnscreenShadowContext(creator, window, context);
     }

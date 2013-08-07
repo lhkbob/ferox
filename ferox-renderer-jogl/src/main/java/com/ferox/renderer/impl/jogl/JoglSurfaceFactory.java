@@ -62,10 +62,13 @@ public class JoglSurfaceFactory implements SurfaceFactory {
      * Create a new JoglSurfaceFactory.
      */
     public JoglSurfaceFactory() {
-        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
-        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
-
-        profile = GLProfile.get(GLProfile.GL2); // FIXME select from 3 as well
+        if (GLProfile.isAvailable(GLProfile.GL4)) {
+            profile = GLProfile.get(GLProfile.GL4);
+        } else if (GLProfile.isAvailable(GLProfile.GL3)) {
+            profile = GLProfile.get(GLProfile.GL3);
+        } else {
+            profile = GLProfile.get(GLProfile.GL2);
+        }
 
         display = NewtFactory.createDisplay(null);
         display.addReference();
@@ -92,18 +95,14 @@ public class JoglSurfaceFactory implements SurfaceFactory {
         }
 
         defaultMode = convert(device.getOriginalMode());
-        caps = JoglCapabilities
-                .computeCapabilities(profile, convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
-                                     forceNoPBuffer, forceNoFBO);
+        caps = JoglCapabilities.computeCapabilities(profile, convertMap.keySet().toArray(
+                new DisplayMode[convertMap.size()]));
     }
 
     @Override
     public void destroy() {
         screen.removeReference();
         display.removeReference();
-
-        screen.destroy();
-        display.destroy();
     }
 
     public MonitorDevice getMonitor() {
