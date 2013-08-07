@@ -44,6 +44,10 @@ import javax.media.opengl.GL2GL3;
  */
 public class JoglRendererDelegate extends RendererDelegate {
     // capabilities
+    private boolean useGL3StyleFallback;
+    private DrawStyle actualFront;
+    private DrawStyle actualBack;
+
     private boolean initialized;
 
     private GL2GL3 gl;
@@ -100,29 +104,42 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glDrawStyle(DrawStyle front, DrawStyle back) {
-        int cullFace = 0;
-        if (front == DrawStyle.NONE && back == DrawStyle.NONE) {
-            cullFace = GL2GL3.GL_FRONT_AND_BACK;
-        } else if (front == DrawStyle.NONE) {
-            cullFace = GL2GL3.GL_FRONT;
-        } else if (back == DrawStyle.NONE) {
-            cullFace = GL2GL3.GL_BACK;
-        }
-
-        if (cullFace == 0) {
-            // to show both sides, must disable culling
-            glEnable(GL2GL3.GL_CULL_FACE, false);
+        if (useGL3StyleFallback && front != DrawStyle.NONE && back != DrawStyle.NONE && front != back) {
+            // OpenGL 3 got rid of separate front and back draw styles, so we emulate it
+            // by storing the requested front and back style and performing two draw calls
+            actualFront = front;
+            actualBack = back;
+            return;
         } else {
-            glEnable(GL2GL3.GL_CULL_FACE, true);
-            gl.glCullFace(cullFace);
+            // clear cached styles so that we can go back to regular single-pass rendering
+            actualFront = null;
+            actualBack = null;
         }
 
-        if (front != DrawStyle.NONE) {
-            gl.glPolygonMode(GL2GL3.GL_FRONT, Utils.getGLPolygonMode(front));
+        glEnable(GL2GL3.GL_CULL_FACE, front == DrawStyle.NONE || back == DrawStyle.NONE);
+        if (front == DrawStyle.NONE && back == DrawStyle.NONE) {
+            gl.glCullFace(GL2GL3.GL_FRONT_AND_BACK);
+        } else if (front == DrawStyle.NONE) {
+            gl.glCullFace(GL2GL3.GL_FRONT);
+        } else if (back == DrawStyle.NONE) {
+            gl.glCullFace(GL2GL3.GL_BACK);
         }
 
-        if (back != DrawStyle.NONE) {
-            gl.glPolygonMode(GL2GL3.GL_BACK, Utils.getGLPolygonMode(back));
+        if (useGL3StyleFallback) {
+            // can only use FRONT_AND_BACK so select whichever view is not NONE
+            // (which is correct because the other view must be the same or is NONE)
+            if (front != DrawStyle.NONE) {
+                gl.glPolygonMode(GL2GL3.GL_FRONT_AND_BACK, Utils.getGLPolygonMode(front));
+            } else if (back != DrawStyle.NONE) {
+                gl.glPolygonMode(GL2GL3.GL_FRONT_AND_BACK, Utils.getGLPolygonMode(back));
+            }
+        } else {
+            if (front != DrawStyle.NONE) {
+                gl.glPolygonMode(GL2GL3.GL_FRONT, Utils.getGLPolygonMode(front));
+            }
+            if (back != DrawStyle.NONE) {
+                gl.glPolygonMode(GL2GL3.GL_BACK, Utils.getGLPolygonMode(back));
+            }
         }
     }
 
@@ -189,6 +206,7 @@ public class JoglRendererDelegate extends RendererDelegate {
             gl.glEnable(GL2GL3.GL_CULL_FACE);
             gl.glEnable(GL2GL3.GL_SCISSOR_TEST);
 
+            useGL3StyleFallback = surface.getFramework().getCapabilities().getMajorVersion() >= 3;
             initialized = true;
         }
 
@@ -227,6 +245,47 @@ public class JoglRendererDelegate extends RendererDelegate {
 
     @Override
     protected void glDrawElements(PolygonType type, BufferImpl.BufferHandle h, int offset, int count) {
+        if (useGL3StyleFallback && actualFront != null) {
+            // render twice but we need to hold onto the actual faces because glDrawStyle updates them
+            DrawStyle front = actualFront;
+            DrawStyle back = actualBack;
+
+            glDrawStyle(DrawStyle.NONE, back);
+            glDrawElementsReal(type, h, offset, count);
+            glDrawStyle(front, DrawStyle.NONE);
+            glDrawElementsReal(type, h, offset, count);
+
+            // restore back to what the high-level state considers us to be in
+            actualFront = front;
+            actualBack = back;
+        } else {
+            // can render with a single pass
+            glDrawElementsReal(type, h, offset, count);
+        }
+    }
+
+    @Override
+    protected void glDrawArrays(PolygonType type, int first, int count) {
+        if (useGL3StyleFallback && actualFront != null) {
+            // render twice but we need to hold onto the actual faces because glDrawStyle updates them
+            DrawStyle front = actualFront;
+            DrawStyle back = actualBack;
+
+            glDrawStyle(DrawStyle.NONE, back);
+            glDrawArraysReal(type, first, count);
+            glDrawStyle(front, DrawStyle.NONE);
+            glDrawArraysReal(type, first, count);
+
+            // restore back to what the high-level state considers us to be in
+            actualFront = front;
+            actualBack = back;
+        } else {
+            // can render with a single pass
+            glDrawArraysReal(type, first, count);
+        }
+    }
+
+    private void glDrawElementsReal(PolygonType type, BufferImpl.BufferHandle h, int offset, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         int glDataType = Utils.getGLType(h.type);
 
@@ -238,8 +297,7 @@ public class JoglRendererDelegate extends RendererDelegate {
         }
     }
 
-    @Override
-    protected void glDrawArrays(PolygonType type, int first, int count) {
+    private void glDrawArraysReal(PolygonType type, int first, int count) {
         int glPolyType = Utils.getGLPolygonConnectivity(type);
         gl.glDrawArrays(glPolyType, first, count);
     }
