@@ -51,16 +51,6 @@ public class LwjglRendererDelegate extends RendererDelegate {
     // capabilities
     private boolean initialized;
 
-    // state tracking for buffer clearing
-    private final Vector4 clearColor = new Vector4(0f, 0f, 0f, 0f);
-    private double clearDepth = 1;
-    private int clearStencil = 0;
-
-    // state tracking for draw styles
-    private boolean cullEnabled = true;
-    private int frontPolyMode = GL11.GL_FILL;
-    private int backPolyMode = GL11.GL_FILL;
-
     /**
      * Create a new delegate that renders for the given context. The SharedState must be the same shared state
      * instance used by all renderers for the given context (so that it is shared).
@@ -124,32 +114,18 @@ public class LwjglRendererDelegate extends RendererDelegate {
 
         if (cullFace == 0) {
             // to show both sides, must disable culling
-            if (cullEnabled) {
-                cullEnabled = false;
-                glEnable(GL11.GL_CULL_FACE, false);
-            }
+            glEnable(GL11.GL_CULL_FACE, false);
         } else {
-            if (!cullEnabled) {
-                cullEnabled = true;
-                glEnable(GL11.GL_CULL_FACE, true);
-            }
+            glEnable(GL11.GL_CULL_FACE, true);
             GL11.glCullFace(cullFace);
         }
 
         if (front != DrawStyle.NONE) {
-            int frontMode = Utils.getGLPolygonMode(front);
-            if (frontPolyMode != frontMode) {
-                frontPolyMode = frontMode;
-                GL11.glPolygonMode(GL11.GL_FRONT, frontMode);
-            }
+            GL11.glPolygonMode(GL11.GL_FRONT, Utils.getGLPolygonMode(front));
         }
 
         if (back != DrawStyle.NONE) {
-            int backMode = Utils.getGLPolygonMode(back);
-            if (backPolyMode != backMode) {
-                backPolyMode = backMode;
-                GL11.glPolygonMode(GL11.GL_BACK, backMode);
-            }
+            GL11.glPolygonMode(GL11.GL_BACK, Utils.getGLPolygonMode(back));
         }
     }
 
@@ -230,18 +206,9 @@ public class LwjglRendererDelegate extends RendererDelegate {
             throw new IllegalArgumentException("Clear depth must be in [0, 1], not: " + depth);
         }
 
-        if (!this.clearColor.equals(color)) {
-            this.clearColor.set(color);
-            GL11.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
-        }
-        if (this.clearDepth != depth) {
-            this.clearDepth = depth;
-            GL11.glClearDepth(depth);
-        }
-        if (this.clearStencil != stencil) {
-            this.clearStencil = stencil;
-            GL11.glClearStencil(stencil);
-        }
+        GL11.glClearColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
+        GL11.glClearDepth(depth);
+        GL11.glClearStencil(stencil);
 
         int clearBits = 0;
         if (clearColor) {

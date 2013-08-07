@@ -45,7 +45,7 @@ import com.ferox.renderer.Renderer;
  *
  * @author Michael Ludwig
  */
-public abstract class AbstractRenderer implements Renderer {
+public abstract class AbstractRenderer implements Renderer, Activateable {
     private static final Vector4 BLACK = new Vector4(0, 0, 0, 0);
 
     protected final RendererDelegate delegate;
@@ -198,11 +198,7 @@ public abstract class AbstractRenderer implements Renderer {
         return delegate.render(polyType, first, count);
     }
 
-    /**
-     * Notify the renderer that the provided surface has been activated and will be using this Renderer.
-     *
-     * @param active The now active surface
-     */
+    @Override
     public void activate(AbstractSurface active) {
         delegate.activate(active);
     }

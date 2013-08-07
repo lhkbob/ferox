@@ -291,7 +291,6 @@ public class ContextManager {
         public ContextThread(ThreadGroup group, String name) {
             super(group, name);
             tasks = new LinkedBlockingDeque<>(10);
-            setDaemon(true);
         }
 
         public OpenGLContext ensureContext() {

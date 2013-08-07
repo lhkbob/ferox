@@ -165,10 +165,9 @@ public interface HardwareAccessLayer {
      * <p/>
      * This is the preferred method for refreshing resources when performance is critical.
      * <p/>
-     * Refreshing a resource may affect the state of any renderer that is in use if there's a current context.
-     * This can potentially invalidate any buffer or texture configuration. It is best to only perform
-     * refreshes before or after using a renderer, but never intermingled. If necessary, be sure to update the
-     * renderer after the refresh.
+     * Refreshing a resource may affect the state of any renderer that is in use. This can potentially
+     * invalidate any buffer or texture configuration. It is best to only perform refreshes before or after
+     * using a renderer, but never intermingled.
      *
      * @param resource The resource to update
      *
@@ -185,6 +184,9 @@ public interface HardwareAccessLayer {
      * <p/>
      * This is the preferred method for destroying resources when performance and exact control over timing is
      * necessary. Like {@link #refresh(Resource)} it avoids the cost of allocating and queuing a task.
+     * Destroying a resource may affect the state of any renderer that it in use. This can potentially
+     * invalidate any buffer or texture configuration. It is best to only perform destructive actions before
+     * after using the renderr, but never intermingled..
      *
      * @param resource The resource to destroy
      *

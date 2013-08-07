@@ -45,8 +45,15 @@ public class LwjglCapabilities extends Capabilities {
 
     private boolean queried = false;
 
-    public static LwjglCapabilities computeCapabilities(DisplayMode[] availableModes, boolean forceNoPBuffer,
-                                                        boolean forceNoFBO) {
+    public static LwjglCapabilities computeCapabilities(ContextAttribs attribs,
+                                                        DisplayMode[] availableModes) {
+        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
+        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+
+        // Technically on Mac 10.7+ pbuffers are deprecated but LWJGL does not support sharing contexts
+        // between AWTGLCanvas and Display. That means there's no real alternative. Also, unlike JOGL
+        // LWJGL seems to create valid enough contexts to get away with not forcing pbuffers to false
+
         LwjglCapabilities caps = new LwjglCapabilities();
         caps.availableModes = availableModes;
         caps.pbuffersSupported =
@@ -60,17 +67,17 @@ public class LwjglCapabilities extends Capabilities {
         List<Integer> validMSAA = new ArrayList<>();
 
         for (int depth : GUESSED_DEPTH_BITS) {
-            if (isValid(baseFormat.withDepthBits(depth), caps, forceNoFBO)) {
+            if (isValid(attribs, baseFormat.withDepthBits(depth), caps, forceNoFBO)) {
                 validDepth.add(depth);
             }
         }
         for (int stencil : GUESSED_STENCIL_BITS) {
-            if (isValid(baseFormat.withStencilBits(stencil), caps, forceNoFBO)) {
+            if (isValid(attribs, baseFormat.withStencilBits(stencil), caps, forceNoFBO)) {
                 validStencil.add(stencil);
             }
         }
         for (int msaa : GUESSED_MSAA_COUNTS) {
-            if (isValid(baseFormat.withSamples(msaa), caps, forceNoFBO)) {
+            if (isValid(attribs, baseFormat.withSamples(msaa), caps, forceNoFBO)) {
                 validMSAA.add(msaa);
             }
         }
@@ -100,10 +107,11 @@ public class LwjglCapabilities extends Capabilities {
         return caps;
     }
 
-    private static boolean isValid(PixelFormat format, LwjglCapabilities caps, boolean forceNoFBOs) {
+    private static boolean isValid(ContextAttribs attribs, PixelFormat format, LwjglCapabilities caps,
+                                   boolean forceNoFBOs) {
         if (caps.pbuffersSupported) {
             try {
-                Pbuffer pbuffer = new Pbuffer(1, 1, format, null);
+                Pbuffer pbuffer = new Pbuffer(1, 1, format, null, null, attribs);
                 pbuffer.makeCurrent();
                 if (!caps.queried) {
                     caps.queryWithContext(forceNoFBOs);
@@ -117,7 +125,7 @@ public class LwjglCapabilities extends Capabilities {
         } else {
             try {
                 Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(1, 1));
-                Display.create(format);
+                Display.create(format, attribs);
                 Display.makeCurrent();
                 if (!caps.queried) {
                     caps.queryWithContext(forceNoFBOs);

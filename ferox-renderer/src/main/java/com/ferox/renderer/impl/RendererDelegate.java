@@ -31,6 +31,7 @@ import com.ferox.math.Vector4;
 import com.ferox.renderer.ElementBuffer;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.Renderer.*;
+import com.ferox.renderer.ResourceException;
 import com.ferox.renderer.impl.resources.BufferImpl;
 
 /**
@@ -108,14 +109,15 @@ public abstract class RendererDelegate {
         setStencilTestEnabled(state.stencilEnabled);
 
         setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
-        setIndicesHandle(state.elementVBO);
 
+        // note that these bypass the destroyed check that throws an exception from the public interface
+        setIndicesHandle(state.elementVBO);
         context.bindShader(state.shader);
         for (int i = 0; i < state.textures.length; i++) {
             context.bindTexture(i, state.textures[i]);
         }
 
-        // clean out resource bindings that marked destroyed
+        // so we have to clean out resource bindings that marked destroyed
         if (state.shader != null && state.shader.isDestroyed()) {
             context.bindShader(null);
         }
@@ -446,6 +448,9 @@ public abstract class RendererDelegate {
         if (indices == null) {
             setIndicesHandle(null);
         } else {
+            if (indices.isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
             setIndicesHandle(((BufferImpl) indices).getHandle());
         }
     }

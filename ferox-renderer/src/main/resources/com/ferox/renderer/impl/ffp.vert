@@ -42,8 +42,6 @@ void main() {
 
         for (int i = 0; i < 8; i++) {
             if (uEnableLight[i]) {
-                vec3 lightContrib = uMatAmbient * uLightAmbient[i];
-
                 vec3 vp;
                 float attenuation = 1.0;
                 float spot = 0.0;
@@ -53,16 +51,16 @@ void main() {
                     // don't need to compute attenuation or spot
                 } else {
                     // POINT OR SPOT LIGHT
-                    vp = uLightPos[i].xyz - eyePos;
+                    vp = uLightPos[i].xyz - eyePos.xyz;
                     float d = length(vp);
                     vp = vp / d;
 
                     attenuation = 1.0 / (uLightAttenuation[i].x + uLightAttenuation[i].y * d + uLightAttenuation[i].z * d * d);
                     float sdi = max(dot(-vp, uSpotlightDirection[i]), 0.0);
-                    if (uSpotlightDirection[i].w == 180.0) {
+                    if (uSpotlightCutoff[i] == 180.0) {
                         spot = 1.0;
                     } else if (sdi >= cos(radians(uSpotlightCutoff[i]))) {
-                        spot = exp(sdi, uSpotlightExponent[i]);
+                        spot = pow(sdi, uSpotlightExponent[i]);
                     }
                 }
 
@@ -70,7 +68,7 @@ void main() {
                 primaryColor = primaryColor + attenuation * spot * (uMatAmbient * uLightAmbient[i] + di * aDiffuse * uLightDiffuse[i]);
                 if (di > 0) {
                     vec3 h = normalize(vp - eyeNorm);
-                    float si = exp(max(dot(eyeNorm, h), 0.0), uMatShininess);
+                    float si = pow(max(dot(eyeNorm, h), 0.0), uMatShininess);
                     secondaryColor = secondaryColor + attenuation * spot * si * uMatSpecular * uLightSpecular[i];
                 }
             }

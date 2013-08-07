@@ -40,6 +40,11 @@ import com.ferox.math.Vector4;
  * <p/>
  * There are two sub-implementations of Renderer that provide access to the old fixed-function pipeline in
  * OpenGL, and a shader based Renderer that is compatible with shaders in the old and new versions of OpenGL.
+ * <p/>
+ * Common behavior shared by all renderers is that exceptions will be thrown when destroyed resources are
+ * provided to them.  However, if state is restored with a call such as {@link
+ * GlslRenderer#setCurrentState(ContextState)}, resources that were destroyed in the meantime will be silently
+ * ignored.
  *
  * @author Michael Ludwig
  * @see FixedFunctionRenderer

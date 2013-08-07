@@ -240,6 +240,7 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
     protected abstract int getFragmentLocation(OpenGLContext context, int programID, String variable);
 
     private int extractShaderVersion(String code) {
+        // FIXME bad pattern matcher
         Matcher m = VERSION.matcher(code);
         if (m.matches()) {
             return Integer.parseInt(m.group(1));

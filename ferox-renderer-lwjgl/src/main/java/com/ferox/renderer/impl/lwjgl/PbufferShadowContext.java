@@ -64,7 +64,7 @@ public class PbufferShadowContext extends LwjglContext {
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
         Pbuffer pbuffer;
         try {
-            pbuffer = new Pbuffer(1, 1, new PixelFormat(), realShare);
+            pbuffer = new Pbuffer(1, 1, new PixelFormat(), null, realShare, creator.getContextAttribs());
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to create Pbuffer", e);
         }

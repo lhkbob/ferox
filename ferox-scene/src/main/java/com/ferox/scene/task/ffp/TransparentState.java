@@ -49,8 +49,6 @@ public class TransparentState implements State {
         AppliedEffects newEffects = effects.applyBlending(src, dst);
 
         newEffects.pushBlending(access.getCurrentContext().getFixedFunctionRenderer());
-        access.getCurrentContext().getFixedFunctionRenderer()
-              .setTwoSidedLightingEnabled(newEffects.isBlendingEnabled());
         currentNode.visitChildren(newEffects, access);
     }
 }

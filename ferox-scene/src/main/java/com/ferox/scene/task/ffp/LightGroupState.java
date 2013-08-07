@@ -158,7 +158,7 @@ public class LightGroupState implements State {
 
                         if (light.spotlightDirection != null) {
                             // configure additional spotlight parameters
-                            r.setSpotlight(i, light.spotlightDirection, light.cutoffAngle);
+                            r.setSpotlight(i, light.spotlightDirection, light.cutoffAngle, 0);
                             if (light.falloff >= 0) {
                                 // the constant 15 was chosen through experimentation, basically
                                 // a value that makes lights seem bright enough but still

@@ -106,6 +106,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         delegate.setCurrentState(sharedState);
 
         // set all attributes
+        // note that the attribute and uniform sampler configuration bypasses the destruction checks
+        // performed by the public interface
         for (int i = 0; i < shaderState.attributes.length; i++) {
             ShaderOnlyState.AttributeState a = shaderState.attributes[i];
             if (a.vbo != null && !a.vbo.isDestroyed()) {
@@ -186,48 +188,55 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (shader == null) {
             context.bindShader(null);
         } else {
-            context.bindShader(((ShaderImpl) shader).getHandle());
-
-            // perform maintenance on bound texture state to make it line up with
-            // what the texture uniforms are expecting
-            int unit = 0;
-            Set<Integer> reservedUnits = new HashSet<>();
-            Set<ShaderImpl.UniformImpl> needsInit = new HashSet<>();
-
-            for (Shader.Uniform u : shader.getUniforms()) {
-                if (u.getType().getPrimitiveType() == null) {
-                    // sampler types have a null primitive type
-                    ShaderImpl.UniformImpl ui = (ShaderImpl.UniformImpl) u;
-                    if (ui.initialized) {
-                        // mark unit as reserved and bind the last assigned sampler
-                        reservedUnits.add(ui.intValues.get(0));
-                        context.bindTexture(ui.intValues.get(0), ui.texture);
-
-                        // special clean up if the texture was deleted
-                        if (delegate.state.textures[ui.intValues.get(0)] == null) {
-                            ui.texture = null;
-                        }
-                    } else {
-                        needsInit.add(ui);
-                    }
-                }
+            if (shader.isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
             }
 
-            // complete initialization now that reservedUnits holds all used texture units
-            for (ShaderImpl.UniformImpl u : needsInit) {
-                // search for an unreserved unit
-                while (reservedUnits.contains(unit)) {
-                    unit++;
+            ShaderImpl.ShaderHandle handle = ((ShaderImpl) shader).getHandle();
+            if (handle != delegate.state.shader) {
+                context.bindShader(handle);
+
+                // perform maintenance on bound texture state to make it line up with
+                // what the texture uniforms are expecting
+                int unit = 0;
+                Set<Integer> reservedUnits = new HashSet<>();
+                Set<ShaderImpl.UniformImpl> needsInit = new HashSet<>();
+
+                for (Shader.Uniform u : shader.getUniforms()) {
+                    if (u.getType().getPrimitiveType() == null) {
+                        // sampler types have a null primitive type
+                        ShaderImpl.UniformImpl ui = (ShaderImpl.UniformImpl) u;
+                        if (ui.initialized) {
+                            // mark unit as reserved and bind the last assigned sampler
+                            reservedUnits.add(ui.intValues.get(0));
+                            context.bindTexture(ui.intValues.get(0), ui.texture);
+
+                            // special clean up if the texture was deleted
+                            if (delegate.state.textures[ui.intValues.get(0)] == null) {
+                                ui.texture = null;
+                            }
+                        } else {
+                            needsInit.add(ui);
+                        }
+                    }
                 }
 
-                // mark it as reserved and configure the uniform
-                reservedUnits.add(unit);
-                u.intValues.put(0, unit);
-                u.initialized = true;
-                glUniform(u, u.intValues);
+                // complete initialization now that reservedUnits holds all used texture units
+                for (ShaderImpl.UniformImpl u : needsInit) {
+                    // search for an unreserved unit
+                    while (reservedUnits.contains(unit)) {
+                        unit++;
+                    }
 
-                // bind a null texture
-                context.bindTexture(unit, null);
+                    // mark it as reserved and configure the uniform
+                    reservedUnits.add(unit);
+                    u.intValues.put(0, unit);
+                    u.initialized = true;
+                    glUniform(u, u.intValues);
+
+                    // bind a null texture
+                    context.bindTexture(unit, null);
+                }
             }
         }
     }
@@ -250,6 +259,10 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
         ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() + column];
         if (attr != null) {
+            if (attr.getVBO().isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
+
             // validate buffer type consistent with attribute type
             switch (attribute.getType().getPrimitiveType()) {
             case FLOAT:
@@ -997,6 +1010,10 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
         int textureUnit = u.intValues.get(0);
         if (texture != null) {
+            if (texture.isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
+
             TextureImpl.TextureHandle handle = ((TextureImpl) texture).getHandle();
             validateSamplerType(var.getType(), texture);
 

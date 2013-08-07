@@ -169,6 +169,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             setTextureTransform(i, tf.textureMatrix);
         }
 
+        // set true modelview matrix
+        setModelViewMatrix(f.modelView);
+
+        // note these bypass the destroyed check performed by the public interface
         if (f.vertexBinding.vbo == null) {
             setAttribute(state.vertexBinding, null, 0, 0, 0);
         } else {
@@ -196,9 +200,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
                 setAttribute(state.texCoordBindings[i], fv.vbo, fv.offset, fv.stride, fv.elementSize);
             }
         }
-
-        // set true modelview matrix
-        setModelViewMatrix(f.modelView);
 
         // set shared state
         delegate.setCurrentState(shared);
@@ -467,7 +468,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if ((angle < 0.0 || angle > 90.0) && angle != 180.0) {
             throw new IllegalArgumentException("Spotlight angle must be in [0, 90] or be 180, not: " + angle);
         }
-        if (exponent < 0.0 || angle > 128.0) {
+        if (exponent < 0.0 || exponent > 128.0) {
             throw new IllegalArgumentException("Spotlight exponent must be in [0, 128], not: " + exponent);
         }
 
@@ -698,6 +699,10 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             enableTexture(tex, null);
             context.bindTexture(tex, null);
         } else {
+            if (image.isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
+
             TextureImpl.TextureHandle newImage = ((TextureImpl) image).getHandle();
             enableTexture(tex, newImage);
             context.bindTexture(tex, newImage);
@@ -1075,6 +1080,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (vertices == null) {
             setAttribute(state.vertexBinding, null, 0, 0, 0);
         } else {
+            if (vertices.getVBO().isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
             if (vertices.getElementSize() == 1) {
                 throw new IllegalArgumentException("Vertices element size cannot be 1");
             }
@@ -1095,6 +1103,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (normals == null) {
             setAttribute(state.normalBinding, null, 0, 0, 0);
         } else {
+            if (normals.getVBO().isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
             if (normals.getElementSize() != 3) {
                 throw new IllegalArgumentException("Normals element size must be 3");
             }
@@ -1116,6 +1127,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             glMaterialColor(ColorPurpose.DIFFUSE, DEFAULT_MAT_D_COLOR);
             state.matDiffuse.set(DEFAULT_MAT_D_COLOR);
         } else {
+            if (colors.getVBO().isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
             if (colors.getElementSize() != 3 && colors.getElementSize() != 4) {
                 throw new IllegalArgumentException("Colors element size must be 3 or 4");
             }
@@ -1134,6 +1148,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         if (texCoords == null) {
             setAttribute(state.texCoordBindings[tex], null, 0, 0, 0);
         } else {
+            if (texCoords.getVBO().isDestroyed()) {
+                throw new ResourceException("Cannot use a destroyed resource");
+            }
             if (texCoords.getVBO().getDataType().isNormalized()) {
                 throw new IllegalArgumentException("Texture coordinates do not accept normalized types");
             }

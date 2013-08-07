@@ -5,18 +5,26 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.renderer.*;
+import com.ferox.renderer.builder.ShaderBuilder;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  *
  */
-public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer {
+public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activateable {
+    private static final String VERTEX_SHADER = "ffp.vert";
+    private static final String FRAGMENT_SHADER = "ffp.frag";
+
     private final GlslRenderer glsl;
 
-    private FixedFunctionState.MatrixMode matrixMode;
     private final Vector3 cachedFogConfig = new Vector3();
     private final Vector3 cachedAttenuations = new Vector3();
 
     // lazily allocated during the first activate()
+    private Shader shader;
     private ContextState<GlslRenderer> defaultState;
 
     /*
@@ -61,168 +69,142 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
     private Shader.Attribute normals;
     private Shader.Attribute colors;
 
-    public ShaderBackedFixedFunctionRenderer(GlslRenderer shaderRenderer) {
+    public ShaderFixedFunctionEmulator(GlslRenderer shaderRenderer) {
         glsl = shaderRenderer;
-        defaultState = null;
+        shader = null;
     }
 
     @Override
     public void setStencilUpdate(StencilUpdate stencilFail, StencilUpdate depthFail,
                                  StencilUpdate depthPass) {
-        initializeMaybe();
         glsl.setStencilUpdate(stencilFail, depthFail, depthPass);
     }
 
     @Override
     public void setStencilUpdateFront(StencilUpdate stencilFail, StencilUpdate depthFail,
                                       StencilUpdate depthPass) {
-        initializeMaybe();
         glsl.setStencilUpdateFront(stencilFail, depthFail, depthPass);
     }
 
     @Override
     public void setStencilUpdateBack(StencilUpdate stencilFail, StencilUpdate depthFail,
                                      StencilUpdate depthPass) {
-        initializeMaybe();
         glsl.setStencilUpdateBack(stencilFail, depthFail, depthPass);
     }
 
     @Override
     public void setStencilTest(Comparison test, int refValue, int testMask) {
-        initializeMaybe();
         glsl.setStencilTest(test, refValue, testMask);
     }
 
     @Override
     public void setStencilTestFront(Comparison test, int refValue, int testMask) {
-        initializeMaybe();
         glsl.setStencilTestFront(test, refValue, testMask);
     }
 
     @Override
     public void setStencilTestBack(Comparison test, int refValue, int testMask) {
-        initializeMaybe();
         glsl.setStencilTestBack(test, refValue, testMask);
     }
 
     @Override
     public void setStencilTestEnabled(boolean enable) {
-        initializeMaybe();
         glsl.setStencilTestEnabled(enable);
     }
 
     @Override
     public void setStencilWriteMask(int mask) {
-        initializeMaybe();
         glsl.setStencilWriteMask(mask);
     }
 
     @Override
     public void setStencilWriteMask(int front, int back) {
-        initializeMaybe();
         glsl.setStencilWriteMask(front, back);
     }
 
     @Override
     public void setDepthTest(Comparison test) {
-        initializeMaybe();
         glsl.setDepthTest(test);
     }
 
     @Override
     public void setDepthWriteMask(boolean mask) {
-        initializeMaybe();
         glsl.setDepthWriteMask(mask);
     }
 
     @Override
     public void setDepthOffsets(double factor, double units) {
-        initializeMaybe();
         glsl.setDepthOffsets(factor, units);
     }
 
     @Override
     public void setDepthOffsetsEnabled(boolean enable) {
-        initializeMaybe();
         glsl.setDepthOffsetsEnabled(enable);
     }
 
     @Override
     public void setDrawStyle(DrawStyle style) {
-        initializeMaybe();
         glsl.setDrawStyle(style);
     }
 
     @Override
     public void setDrawStyle(DrawStyle front, DrawStyle back) {
-        initializeMaybe();
         glsl.setDrawStyle(front, back);
     }
 
     @Override
     public void setColorWriteMask(boolean red, boolean green, boolean blue, boolean alpha) {
-        initializeMaybe();
         glsl.setColorWriteMask(red, green, blue, alpha);
     }
 
     @Override
     public void setBlendingEnabled(boolean enable) {
-        initializeMaybe();
         glsl.setBlendingEnabled(enable);
     }
 
     @Override
     public void setBlendColor(@Const Vector4 color) {
-        initializeMaybe();
         glsl.setBlendColor(color);
     }
 
     @Override
     public void setBlendMode(BlendFunction function, BlendFactor src, BlendFactor dst) {
-        initializeMaybe();
         glsl.setBlendMode(function, src, dst);
     }
 
     @Override
     public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
-        initializeMaybe();
         glsl.setBlendModeRgb(function, src, dst);
     }
 
     @Override
     public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst) {
-        initializeMaybe();
         glsl.setBlendModeAlpha(function, src, dst);
     }
 
     @Override
     public void setIndices(ElementBuffer indices) {
-        initializeMaybe();
         glsl.setIndices(indices);
     }
 
     @Override
     public int render(PolygonType polyType, int offset, int count) {
-        initializeMaybe();
         return glsl.render(polyType, offset, count);
     }
 
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil) {
-        initializeMaybe();
         glsl.clear(clearColor, clearDepth, clearStencil);
     }
 
     @Override
     public void clear(boolean clearColor, boolean clearDepth, boolean clearStencil, @Const Vector4 color,
                       double depth, int stencil) {
-        initializeMaybe();
         glsl.clear(clearColor, clearDepth, clearStencil, color, depth, stencil);
     }
 
     @Override
     public void setViewport(int x, int y, int width, int height) {
-        initializeMaybe();
         glsl.setViewport(x, y, width, height);
     }
 
@@ -244,26 +226,22 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setFogEnabled(boolean enable) {
-        initializeMaybe();
         glsl.setUniform(enableFog, enable);
     }
 
     @Override
     public void setFogColor(@Const Vector4 color) {
-        initializeMaybe();
         glsl.setUniform(fogColor, color);
     }
 
     @Override
     public void setFogLinear(double start, double end) {
-        initializeMaybe();
         cachedFogConfig.set(start, end, 0.0);
         glsl.setUniform(fogConfig, cachedFogConfig);
     }
 
     @Override
     public void setFogExponential(double density, boolean squared) {
-        initializeMaybe();
         cachedFogConfig.set(density, 0.0, squared ? -1.0 : 1.0);
         glsl.setUniform(fogConfig, cachedFogConfig);
     }
@@ -290,7 +268,6 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setAlphaTest(Comparison test, double refValue) {
-        initializeMaybe();
         glsl.setUniform(enableAlphaTest, test != Comparison.ALWAYS);
         glsl.setUniform(alphaTest, test.ordinal());
         glsl.setUniform(alphaRefValue, refValue);
@@ -298,25 +275,21 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setLightingEnabled(boolean enable) {
-        initializeMaybe();
         glsl.setUniform(enableLighting, enable);
     }
 
     @Override
     public void setGlobalAmbientLight(@Const Vector4 ambient) {
-        initializeMaybe();
         glsl.setUniform(globalAmbient, ambient);
     }
 
     @Override
     public void setLightEnabled(int light, boolean enable) {
-        initializeMaybe();
         glsl.setUniform(enableSingleLight[light], enable);
     }
 
     @Override
     public void setLightPosition(int light, @Const Vector4 pos) {
-        initializeMaybe();
         // FIXME validate w
         // FIXME transform into eye space
         glsl.setUniform(lightPosition[light], pos);
@@ -324,7 +297,6 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec) {
-        initializeMaybe();
         glsl.setUniform(ambientLightColors[light], amb);
         glsl.setUniform(diffuseLightColors[light], diff);
         glsl.setUniform(specularLightColors[light], spec);
@@ -332,7 +304,6 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
-        initializeMaybe();
         // FIXME prenormalize the direction
         // FIXME transform into eye space
         glsl.setUniform(spotlightDirections[light], dir);
@@ -342,7 +313,6 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setLightAttenuation(int light, double constant, double linear, double quadratic) {
-        initializeMaybe();
         cachedAttenuations.set(constant, linear, quadratic);
         glsl.setUniform(lightAttenuations[light], cachedAttenuations);
     }
@@ -358,31 +328,26 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setMaterialDiffuse(@Const Vector4 diff) {
-        initializeMaybe();
         glsl.bindAttribute(colors, diff);
     }
 
     @Override
     public void setMaterialAmbient(@Const Vector4 amb) {
-        initializeMaybe();
         glsl.setUniform(ambientMaterial, amb);
     }
 
     @Override
     public void setMaterialSpecular(@Const Vector4 spec) {
-        initializeMaybe();
         glsl.setUniform(specularMaterial, spec);
     }
 
     @Override
     public void setMaterialEmissive(@Const Vector4 emm) {
-        initializeMaybe();
         glsl.setUniform(emittedMaterial, emm);
     }
 
     @Override
     public void setMaterialShininess(double shininess) {
-        initializeMaybe();
         glsl.setUniform(this.shininess, shininess);
     }
 
@@ -436,32 +401,27 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
 
     @Override
     public void setProjectionMatrix(@Const Matrix4 projection) {
-        initializeMaybe();
         glsl.setUniform(projectionMatrix, projection);
     }
 
     @Override
     public void setModelViewMatrix(@Const Matrix4 modelView) {
-        initializeMaybe();
         glsl.setUniform(modelviewMatrix, modelView);
         // FIXME store modelview so that we can compute eye space params for lights and eye planes
     }
 
     @Override
     public void setVertices(VertexAttribute vertices) {
-        initializeMaybe();
         glsl.bindAttribute(this.vertices, vertices);
     }
 
     @Override
     public void setNormals(VertexAttribute normals) {
-        initializeMaybe();
         glsl.bindAttribute(this.normals, normals);
     }
 
     @Override
     public void setColors(VertexAttribute colors) {
-        initializeMaybe();
         glsl.bindAttribute(this.colors, colors);
     }
 
@@ -469,8 +429,90 @@ public class ShaderBackedFixedFunctionRenderer implements FixedFunctionRenderer 
     public void setTextureCoordinates(int tex, VertexAttribute texCoords) {
     }
 
-    private void initializeMaybe() {
+    @Override
+    public void activate(AbstractSurface surface) {
+        if (glsl instanceof Activateable) {
+            ((Activateable) glsl).activate(surface);
+        }
 
+        if (shader == null) {
+            ShaderBuilder shaderBuilder = surface.getFramework().newShader();
+
+            try (BufferedReader vertIn = new BufferedReader(
+                    new InputStreamReader(getClass().getResourceAsStream(VERTEX_SHADER)))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = vertIn.readLine()) != null) {
+                    sb.append(line).append('\n');
+                }
+                shaderBuilder.withVertexShader(sb.toString());
+            } catch (IOException e) {
+                throw new FrameworkException("Unable to load vertex shader for FFP emulation", e);
+            }
+
+            try (BufferedReader fragIn = new BufferedReader(
+                    new InputStreamReader(getClass().getResourceAsStream(FRAGMENT_SHADER)))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = fragIn.readLine()) != null) {
+                    sb.append(line).append('\n');
+                }
+                shaderBuilder.withFragmentShader(sb.toString());
+            } catch (IOException e) {
+                throw new FrameworkException("Unable to load fragment shader for FFP emulation", e);
+            }
+
+            shaderBuilder.bindColorBuffer("fColor", 0);
+
+            shader = shaderBuilder.build();
+
+            // get references to every uniform available
+            alphaRefValue = shader.getUniform("uAlphaRefValue");
+            alphaTest = shader.getUniform("uAlphaComparison");
+            enableAlphaTest = shader.getUniform("uEnableAlphaTest");
+
+            enableFog = shader.getUniform("uEnableFog");
+            fogConfig = shader.getUniform("uFogConfig");
+            fogColor = shader.getUniform("uFogColor");
+
+            modelviewMatrix = shader.getUniform("uModelview");
+            projectionMatrix = shader.getUniform("uProjection");
+            enableLighting = shader.getUniform("uEnableLighting");
+            globalAmbient = shader.getUniform("uGlobalLight");
+
+            ambientMaterial = shader.getUniform("uMatAmbient");
+            specularMaterial = shader.getUniform("uMatSpecular");
+            emittedMaterial = shader.getUniform("uMatEmissive");
+            shininess = shader.getUniform("uMatShininess");
+
+            vertices = shader.getAttribute("aVertex");
+            normals = shader.getAttribute("aNormal");
+            colors = shader.getAttribute("aDiffuse");
+
+            enableSingleLight = new Shader.Uniform[8];
+            lightPosition = new Shader.Uniform[8];
+            diffuseLightColors = new Shader.Uniform[8];
+            specularLightColors = new Shader.Uniform[8];
+            ambientLightColors = new Shader.Uniform[8];
+            spotlightDirections = new Shader.Uniform[8];
+            spotlightCutoffs = new Shader.Uniform[8];
+            spotlightExponents = new Shader.Uniform[8];
+            lightAttenuations = new Shader.Uniform[8];
+            for (int i = 0; i < 8; i++) {
+                enableSingleLight[i] = shader.getUniform("uEnableLight[" + i + "]");
+                lightPosition[i] = shader.getUniform("uLightPos[" + i + "]");
+                diffuseLightColors[i] = shader.getUniform("uLightDiffuse[" + i + "]");
+                specularLightColors[i] = shader.getUniform("uLightSpecular[" + i + "]");
+                ambientLightColors[i] = shader.getUniform("uLightAmbient[" + i + "]");
+                spotlightDirections[i] = shader.getUniform("uSpotlightDirection[" + i + "]");
+                spotlightExponents[i] = shader.getUniform("uSpotlightExponent[" + i + "]");
+                spotlightCutoffs[i] = shader.getUniform("uSpotlightCutoff[" + i + "]");
+                lightAttenuations[i] = shader.getUniform("uLightAttenuation[" + i + "]");
+            }
+
+            // FIXME assign default values to every uniform
+            defaultState = glsl.getCurrentState();
+        }
     }
 
     private static class WrappedState implements ContextState<FixedFunctionRenderer> {

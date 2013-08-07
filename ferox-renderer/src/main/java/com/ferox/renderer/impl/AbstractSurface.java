@@ -27,8 +27,6 @@
 package com.ferox.renderer.impl;
 
 import com.ferox.renderer.Context;
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.Surface;
 
 import java.util.concurrent.Callable;
@@ -69,42 +67,21 @@ public abstract class AbstractSurface implements Surface {
      * onSurfaceActivate() is a listener method that is invoked by ContextManager when a surface is activated.
      * The provided context is the current context on the calling thread and will not be null.
      * <p/>
-     * This method can be overridden by subclasses to perform more actions. The current implementation
-     * activates any renderers the context provides.
+     * This method can be overridden by subclasses to perform more actions.
      *
      * @param context The current context
      */
     public void onSurfaceActivate(OpenGLContext context) {
-        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
-        if (ffp instanceof AbstractRenderer) {
-            ((AbstractRenderer) ffp).activate(this);
-        }
-
-        GlslRenderer glsl = context.getGlslRenderer();
-        if (glsl instanceof AbstractRenderer) {
-            ((AbstractRenderer) glsl).activate(this);
-        }
     }
 
     /**
      * onSurfaceDeactivate() is a listener method that is invoked by ContextManager when a surface is
      * deactivated. The provided context is the current context on the calling thread and will not be null.
-     * This method can be overridden by subclasses to perform more actions. The current implementation resets
-     * any renderers the context has.
+     * This method can be overridden by subclasses to perform more actions.
      *
      * @param context The current context
      */
     public void onSurfaceDeactivate(OpenGLContext context) {
-        // Reset the renderers so that the next task sees a clean slate
-        FixedFunctionRenderer ffp = context.getFixedFunctionRenderer();
-        if (ffp != null) {
-            ffp.reset();
-        }
-
-        GlslRenderer glsl = context.getGlslRenderer();
-        if (glsl != null) {
-            glsl.reset();
-        }
     }
 
     @Override

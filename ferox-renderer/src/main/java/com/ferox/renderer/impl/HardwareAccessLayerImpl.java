@@ -120,6 +120,10 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getGlslRenderer();
+                if (selectedRenderer instanceof Activateable) {
+                    ((Activateable) selectedRenderer).activate(surface);
+                }
+                selectedRenderer.reset();
             }
 
             if (selectedRenderer instanceof FixedFunctionRenderer) {
@@ -134,6 +138,10 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
             if (selectedRenderer == null) {
                 // need to select a renderer
                 selectedRenderer = context.getFixedFunctionRenderer();
+                if (selectedRenderer instanceof Activateable) {
+                    ((Activateable) selectedRenderer).activate(surface);
+                }
+                selectedRenderer.reset();
             }
 
             if (selectedRenderer instanceof GlslRenderer) {

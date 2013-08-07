@@ -29,6 +29,8 @@ package com.ferox.renderer.impl.lwjgl;
 import com.ferox.renderer.*;
 import com.ferox.renderer.impl.*;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.LWJGLUtil;
+import org.lwjgl.opengl.ContextAttribs;
 import org.lwjgl.opengl.Display;
 
 import java.util.HashMap;
@@ -48,15 +50,22 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
     private final DisplayMode defaultMode;
     private final Map<DisplayMode, org.lwjgl.opengl.DisplayMode> convertMap;
 
+    private final ContextAttribs attribs;
+
     /**
      * Create a new LwjglSurfaceFactory.
      */
     public LwjglSurfaceFactory() {
-        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
-        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+        if (LWJGLUtil.getPlatform() == LWJGLUtil.PLATFORM_MACOSX &&
+            LWJGLUtil.isMacOSXEqualsOrBetterThan(10, 7)) {
+            // for mac we need to explicitly select this context profile to get 3+
+            attribs = new ContextAttribs(3, 2).withProfileCore(true);
+        } else {
+            // for everyone else, it should just automatically select the highest opengl version
+            attribs = null;
+        }
 
         convertMap = new HashMap<>();
-
         try {
             org.lwjgl.opengl.DisplayMode[] modes = Display.getAvailableDisplayModes();
             for (org.lwjgl.opengl.DisplayMode lwjglMode : modes) {
@@ -81,9 +90,8 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         }
         defaultMode = convert(Display.getDesktopDisplayMode());
 
-        caps = LwjglCapabilities
-                .computeCapabilities(convertMap.keySet().toArray(new DisplayMode[convertMap.size()]),
-                                     forceNoPBuffer, forceNoFBO);
+        caps = LwjglCapabilities.computeCapabilities(attribs, convertMap.keySet().toArray(
+                new DisplayMode[convertMap.size()]));
     }
 
     /**
@@ -96,6 +104,14 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
      */
     public org.lwjgl.opengl.DisplayMode getLWJGLDisplayMode(DisplayMode mode) {
         return convertMap.get(mode);
+    }
+
+    /**
+     * @return Get the selected ContextAttribs that must be specified when creating any context or surface
+     *         used by this factory.
+     */
+    public ContextAttribs getContextAttribs() {
+        return attribs;
     }
 
     private static DisplayMode convert(org.lwjgl.opengl.DisplayMode lwjglMode) {

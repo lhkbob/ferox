@@ -97,7 +97,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(options.getFullscreenMode());
             try {
                 Display.setDisplayModeAndFullscreen(lwjglMode);
-                Display.create(format, realShare);
+                Display.create(format, realShare, factory.getContextAttribs());
             } catch (LWJGLException e) {
                 if (Display.isCreated()) {
                     Display.destroy();
@@ -132,7 +132,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
             try {
                 Display.setParent(innerCanvas);
-                Display.create(format, realShare);
+                Display.create(format, realShare, factory.getContextAttribs());
             } catch (LWJGLException e) {
                 if (Display.isCreated()) {
                     Display.destroy();
@@ -145,10 +145,11 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             displayMode = factory.getDefaultDisplayMode();
         }
 
-        // Detect buffer config while the context is current
-        stencilBits = GL11.glGetInteger(GL11.GL_STENCIL_BITS);
-        depthBits = GL11.glGetInteger(GL11.GL_DEPTH_BITS);
+        // OpenGL3.0 gets rid of STENCIL_BITS and DEPTH_BITS queries
+        stencilBits = options.getStencilBufferBits();
+        depthBits = options.getDepthBufferBits();
 
+        // Detect buffer config while the context is current
         int samples = GL11.glGetInteger(GL13.GL_SAMPLES);
         int sampleBuffers = GL11.glGetInteger(GL13.GL_SAMPLE_BUFFERS);
 

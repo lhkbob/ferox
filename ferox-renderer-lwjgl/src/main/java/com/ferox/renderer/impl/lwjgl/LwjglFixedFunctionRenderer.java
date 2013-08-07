@@ -61,6 +61,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     // state tracking
     private boolean alphaTestEnabled;
+    private boolean twosidedLighting;
 
     public LwjglFixedFunctionRenderer(LwjglContext context, LwjglRendererDelegate delegate) {
         super(context, delegate);
@@ -69,6 +70,7 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
         transferBuffer = BufferUtil.newByteBuffer(DataType.FLOAT, 16).asFloatBuffer();
         alphaTestEnabled = false;
+        twosidedLighting = false;
     }
 
     @Override
@@ -80,7 +82,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
             // for the lighting model, we use local viewer and separate specular color, smooth shading, and
             // two sided lighting
-            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
             GL11.glLightModeli(GL11.GL_LIGHT_MODEL_LOCAL_VIEWER, GL11.GL_TRUE);
             GL11.glLightModeli(GL12.GL_LIGHT_MODEL_COLOR_CONTROL, GL12.GL_SEPARATE_SPECULAR_COLOR);
             GL11.glShadeModel(GL11.GL_SMOOTH);
@@ -89,6 +90,19 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
 
         super.activate(surface);
+    }
+
+    @Override
+    public void setDrawStyle(DrawStyle front, DrawStyle back) {
+        super.setDrawStyle(front, back);
+
+        if (back != DrawStyle.NONE && !twosidedLighting) {
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
+            twosidedLighting = true;
+        } else if (back == DrawStyle.NONE && twosidedLighting) {
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_FALSE);
+            twosidedLighting = false;
+        }
     }
 
     @Override

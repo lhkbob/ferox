@@ -30,6 +30,7 @@ import com.ferox.renderer.*;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.*;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,12 +49,21 @@ public class JoglCapabilities extends Capabilities {
 
     private boolean queried = false;
 
-    public static JoglCapabilities computeCapabilities(GLProfile profile, DisplayMode[] availableModes,
-                                                       boolean forceNoPBuffer, boolean forceNoFBO) {
+    public static JoglCapabilities computeCapabilities(GLProfile profile, DisplayMode[] availableModes) {
+        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
+        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+
+        if (NativeWindowFactory.getNativeWindowType(true).equals(NativeWindowFactory.TYPE_MACOSX) &&
+            profile.isGL3()) {
+            // newer versions of Mac OS X have deprecated pbuffers, making them unreliable
+            forceNoPBuffer = true;
+        }
+
         GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
 
         JoglCapabilities caps = new JoglCapabilities();
         caps.availableModes = availableModes;
+
         caps.pbuffersSupported = !forceNoPBuffer && factory.canCreateGLPbuffer(factory.getDefaultDevice());
 
         // for loop over guessed common msaa, depth, and stencil options
@@ -118,10 +128,13 @@ public class JoglCapabilities extends Capabilities {
 
     private static boolean isValid(GLCapabilities format, JoglCapabilities caps, GLDrawableFactory factory,
                                    boolean forceNoFBOs) {
-        if (caps.pbuffersSupported) {
+        boolean canUseFBO = factory.canCreateFBO(factory.getDefaultDevice(), format.getGLProfile());
+        if (caps.pbuffersSupported || canUseFBO) {
             try {
-                format.setFBO(false);
-                format.setPBuffer(true);
+                // if pbuffers are available use them for proper offscreen, since it looks like the FBO
+                // fallback creates a 1x1 window, but is faster than the explicit creation we do below
+                format.setFBO(!caps.pbuffersSupported);
+                format.setPBuffer(caps.pbuffersSupported);
                 format.setOnscreen(false);
 
                 GLOffscreenAutoDrawable offscreen = factory
@@ -136,6 +149,7 @@ public class JoglCapabilities extends Capabilities {
 
                 return true;
             } catch (GLException e) {
+                e.printStackTrace();
                 return false;
             }
         } else {
@@ -159,6 +173,7 @@ public class JoglCapabilities extends Capabilities {
 
                 return true;
             } catch (GLException e) {
+                e.printStackTrace();
                 return false;
             }
         }
@@ -196,7 +211,6 @@ public class JoglCapabilities extends Capabilities {
         float glslVersionNum = formatVersion(gl.glGetString(GL2.GL_SHADING_LANGUAGE_VERSION));
         glslVersion = (int) Math.floor(100 * glslVersionNum);
 
-        // FIXME do extensions start with GL_ or go straight into EXT_ or ARB_?
         geometryShaderSupport = gl.isExtensionAvailable("GL_EXT_geometry_shader4") ||
                                 (majorVersion >= 3 && minorVersion >= 3);
 
@@ -236,7 +250,7 @@ public class JoglCapabilities extends Capabilities {
         supportsMultipleOnscreenSurfaces = false;
 
         if (gl.isExtensionAvailable("GL_EXT_texture_filter_anisotropic")) {
-            gl.glGetIntegerv(GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, query, 0);
+            gl.glGetIntegerv(GL.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, query, 0);
             maxAnisoLevel = query[0];
         } else {
             maxAnisoLevel = 0;

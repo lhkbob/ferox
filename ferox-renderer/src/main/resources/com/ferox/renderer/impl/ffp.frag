@@ -48,37 +48,37 @@ void main() {
 
     // alpha test
     if (uEnableAlphaTest) {
-        if (uAlphaComparison == 0) {
+        if (uAlphaComparison == 0u) {
             // EQUAL
             if (uAlphaRefValue != color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 1) {
+        } else if (uAlphaComparison == 1u) {
             // GREATER
             if (uAlphaRefValue <= color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 2) {
+        } else if (uAlphaComparison == 2u) {
             // LESS
             if (uAlphaRefValue >= color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 3) {
+        } else if (uAlphaComparison == 3u) {
             // GEQUAL
             if (uAlphaRefValue < color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 4) {
+        } else if (uAlphaComparison == 4u) {
             // LEQUAL
             if (uAlphaRefValue > color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 5) {
+        } else if (uAlphaComparison == 5u) {
             // NOT_EQUAL
             if (uAlphaRefValue == color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 6) {
+        } else if (uAlphaComparison == 6u) {
             // NEVER
             discard;
         }

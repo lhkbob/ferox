@@ -31,6 +31,7 @@ import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.GlslRenderer;
 import com.ferox.renderer.impl.OpenGLContext;
+import com.ferox.renderer.impl.ShaderFixedFunctionEmulator;
 import com.ferox.renderer.impl.SharedState;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
@@ -52,7 +53,7 @@ public class LwjglContext implements OpenGLContext {
     private final List<Runnable> cleanupTasks;
 
     private final SharedState sharedState;
-    private final LwjglFixedFunctionRenderer fixed;
+    private final FixedFunctionRenderer fixed;
     private final LwjglGlslRenderer glsl;
 
     private int fbo;
@@ -84,13 +85,13 @@ public class LwjglContext implements OpenGLContext {
         sharedState = new SharedState(caps.getMaxFragmentShaderTextures());
 
         LwjglRendererDelegate shared = new LwjglRendererDelegate(this, sharedState);
+        glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
+
         if (caps.getMajorVersion() < 3) {
             fixed = new LwjglFixedFunctionRenderer(this, shared);
         } else {
-            throw new UnsupportedOperationException(
-                    "No emulation shader written yet, can't support FFP renderer");
+            fixed = new ShaderFixedFunctionEmulator(glsl);
         }
-        glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
     }
 
     /**
@@ -199,7 +200,7 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindArrayVBO(BufferImpl.BufferHandle vbo) {
-        if (vbo.isDestroyed()) {
+        if (vbo != null && vbo.isDestroyed()) {
             vbo = null;
         }
 
@@ -213,7 +214,7 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindElementVBO(BufferImpl.BufferHandle vbo) {
-        if (vbo.isDestroyed()) {
+        if (vbo != null && vbo.isDestroyed()) {
             vbo = null;
         }
 
@@ -227,7 +228,7 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindShader(ShaderImpl.ShaderHandle shader) {
-        if (shader.isDestroyed()) {
+        if (shader != null && shader.isDestroyed()) {
             shader = null;
         }
 
@@ -240,7 +241,7 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void bindTexture(int textureUnit, TextureImpl.TextureHandle texture) {
-        if (texture.isDestroyed()) {
+        if (texture != null && texture.isDestroyed()) {
             texture = null;
         }
 

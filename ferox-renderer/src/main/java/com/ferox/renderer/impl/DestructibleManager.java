@@ -28,8 +28,8 @@ package com.ferox.renderer.impl;
 
 import com.ferox.renderer.Destructible;
 
+import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -65,7 +65,7 @@ public class DestructibleManager {
     }
 
     private final ReferenceQueue<Destructible> monitors;
-    private final ConcurrentHashMap<ManagedDestructible, Boolean> managedInstances;
+    private final ConcurrentHashMap<ManagedDestructible, DestructibleReference> managedInstances;
 
     private LifeCycleManager lifecycle;
 
@@ -122,7 +122,6 @@ public class DestructibleManager {
         // start a low priority managed thread
         Thread destroyer = new Thread(lifecycle.getManagedThreadGroup(), new WeakReferenceMonitor(),
                                       "destructible-gc-thread");
-        destroyer.setDaemon(true);
         lifecycle.startManagedThread(destroyer, false);
     }
 
@@ -144,8 +143,8 @@ public class DestructibleManager {
         lifecycle.getLock().lock();
         try {
             if (!lifecycle.isStopped()) {
-                managedInstances.put(realInstance, true);
-                new DestructibleReference(exposed, realInstance, monitors);
+                managedInstances
+                        .put(realInstance, new DestructibleReference(exposed, realInstance, monitors));
             }
         } finally {
             lifecycle.getLock().unlock();
@@ -193,7 +192,7 @@ public class DestructibleManager {
         }
     }
 
-    private class DestructibleReference extends WeakReference<Destructible> {
+    private class DestructibleReference extends PhantomReference<Destructible> {
         final ManagedDestructible destructible;
 
         public DestructibleReference(Destructible exposedInstance, ManagedDestructible realInstance,
