@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package lwjgl;
+package com.ferox.renderer.impl.jogl;
 
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
