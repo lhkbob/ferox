@@ -268,8 +268,22 @@ public class ContextManager {
     public OpenGLContext ensureContext() {
         Thread current = Thread.currentThread();
         if (current == thread) {
-            // Delegate to the thread implementation
-            return thread.ensureContext();
+            if (thread.currentContext != null) {
+                return thread.currentContext;
+            }
+            thread.ensureContext(sharedContext);
+            return sharedContext;
+        } else {
+            // Should never happen, these methods should be restricted to the ContextThreads
+            throw new IllegalThreadStateException("ensureContext() cannot be called on this Thread");
+        }
+    }
+
+    public void ensureContext(OpenGLContext context) {
+        Thread current = Thread.currentThread();
+        if (current == thread) {
+            // delegate to thread implementation
+            thread.ensureContext(context);
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
             throw new IllegalThreadStateException("ensureContext() cannot be called on this Thread");
@@ -293,21 +307,15 @@ public class ContextManager {
             tasks = new LinkedBlockingDeque<>(10);
         }
 
-        public OpenGLContext ensureContext() {
-            if (currentContext == null) {
-                // There is no surface to piggy-back off of, so we we use the shared context
-                if (sharedContext == null) {
-                    // bad initialization code, a task got queued before the shared
-                    // context was created (should not happen)
-                    throw new IllegalStateException("Shared context has not been created yet");
-                }
+        public void ensureContext(OpenGLContext context) {
+            if (context != currentContext) {
+                // Release and unlock the current context
+                releaseContext();
 
-                sharedContext.makeCurrent();
-
-                currentContext = sharedContext;
-            } // else there's a current context from somewhere, just go with it
-
-            return currentContext;
+                // Now make new context current
+                context.makeCurrent();
+                currentContext = context;
+            }
         }
 
         public OpenGLContext setActiveSurface(AbstractSurface surface) {
@@ -325,17 +333,10 @@ public class ContextManager {
                 // Now check to see if the underlying context needs to change
                 OpenGLContext newContext = surface.getContext();
                 if (newContext != null) {
-                    if (newContext != currentContext) {
-                        // New surface needs its own context, so release and unlock the current context
-                        releaseContext();
-
-                        // Now make its context current
-                        newContext.makeCurrent();
-                        currentContext = newContext;
-                    }
-                } else {
+                    ensureContext(newContext);
+                } else if (currentContext == null) {
                     // Make sure we have a context for this surface, since it doesn't have its own
-                    ensureContext();
+                    ensureContext(sharedContext);
                 }
 
                 activeSurface = surface;

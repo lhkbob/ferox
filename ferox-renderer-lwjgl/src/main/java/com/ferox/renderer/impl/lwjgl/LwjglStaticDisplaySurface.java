@@ -561,8 +561,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                 while (!isDestroyed()) {
                     try {
                         long blockedTime = -System.nanoTime();
-                        framework.getContextManager().invokeOnContextThread(new InputTask(), false).get();
-                        framework.getContextManager().invokeOnContextThread(new CloseRequestTask(), false)
+                        framework.getContextManager().invokeOnContextThread(new MaintenanceTask(), false)
                                  .get();
                         blockedTime += System.nanoTime();
 
@@ -580,17 +579,12 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             }
         }
 
-        private class InputTask implements Callable<Void> {
+        private class MaintenanceTask implements Callable<Void> {
             @Override
             public Void call() throws Exception {
+                framework.getContextManager().ensureContext(context);
                 adapter.poll();
-                return null;
-            }
-        }
 
-        private class CloseRequestTask implements Callable<Void> {
-            @Override
-            public Void call() throws Exception {
                 boolean closeAllowed;
                 synchronized (LwjglStaticDisplayDestructible.this) {
                     closeAllowed = closable;

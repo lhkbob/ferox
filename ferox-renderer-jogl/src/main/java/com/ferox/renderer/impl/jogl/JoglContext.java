@@ -162,16 +162,6 @@ public class JoglContext implements OpenGLContext {
 
     @Override
     public void release() {
-        // JOGL did something tricky underneath us, so at least release that context, since release()
-        // is meant to guarantee no context is bound
-        GLContext actual = GLContext.getCurrent();
-        if (actual != context) {
-            if (actual != null) {
-                GLContext.getCurrent().release();
-            }
-            return;
-        }
-
         int error;
         try {
             error = context.getGL().glGetError();

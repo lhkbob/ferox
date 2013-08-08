@@ -307,12 +307,12 @@ public class FrameworkImpl implements Framework {
                 fullscreenSurface = null;
             }
 
+            impl.contextManager.forceRelease();
             AbstractOnscreenSurface created = impl.surfaceFactory
                                                   .createOnscreenSurface(FrameworkImpl.this, options,
                                                                          impl.contextManager
                                                                              .getSharedContext());
             impl.destructibleManager.manage(created, created.getSurfaceDestructible());
-            impl.contextManager.setActiveSurface(created);
 
             if (created.isFullscreen()) {
                 fullscreenSurface = new WeakReference<OnscreenSurface>(created);
@@ -333,12 +333,12 @@ public class FrameworkImpl implements Framework {
 
         @Override
         public TextureSurface call() throws Exception {
+            impl.contextManager.forceRelease();
             AbstractTextureSurface created = impl.surfaceFactory
                                                  .createTextureSurface(FrameworkImpl.this, options,
                                                                        impl.contextManager
                                                                            .getSharedContext());
             impl.destructibleManager.manage(created, created.getSurfaceDestructible());
-            impl.contextManager.setActiveSurface(created);
             return created;
         }
     }
