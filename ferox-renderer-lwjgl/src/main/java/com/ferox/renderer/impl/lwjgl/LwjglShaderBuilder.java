@@ -130,12 +130,14 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         IntBuffer type = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         for (int i = 0; i < numUniforms; i++) {
             // read uniform properties
+            name.clear();
             GL20.glGetActiveUniform(programID, i, nameLen, len, type, name);
             byte[] bs = new byte[nameLen.get(0)];
             name.get(bs, 0, bs.length).position(0);
-            String uniformName = new String(bs);
-            int location = GL20.glGetUniformLocation(programID, uniformName);
+            // strip off [0] at the end of an array name
+            String uniformName = new String(bs, 0, len.get(0) > 1 ? bs.length - 3 : bs.length);
 
+            int location = GL20.glGetUniformLocation(programID, uniformName);
             ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type.get(0)),
                                                                   len.get(0), uniformName, location);
             uniforms.add(u);
@@ -152,13 +154,16 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         int programID = handle.programID;
         int numAttrs = GL20.glGetProgrami(programID, GL20.GL_ACTIVE_ATTRIBUTES);
         int maxAttributeNameLength = GL20.glGetProgrami(programID, GL20.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH);
+
         ByteBuffer name = BufferUtil.newByteBuffer(DataType.BYTE, maxAttributeNameLength);
 
         IntBuffer nameLen = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         IntBuffer len = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         IntBuffer type = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
+
         for (int i = 0; i < numAttrs; i++) {
             // read uniform properties
+            name.clear();
             GL20.glGetActiveAttrib(programID, i, nameLen, len, type, name);
             byte[] bs = new byte[nameLen.get(0)];
             name.get(bs, 0, bs.length);
@@ -167,7 +172,7 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
             int index = GL20.glGetAttribLocation(programID, attrName);
             ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(handle,
                                                                       Utils.getVariableType(type.get(0)),
-                                                                      attrName, index);
+                                                                      attrName, len.get(0), index);
             attributes.add(a);
         }
 

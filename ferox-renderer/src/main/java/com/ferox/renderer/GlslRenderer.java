@@ -573,4 +573,69 @@ public interface GlslRenderer extends Renderer {
      * @throws NullPointerException     if var is null
      */
     public void setUniform(Shader.Uniform var, @Const ColorRGB color, boolean isHDR);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, VertexAttribute attr);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, int column, VertexAttribute attr);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, double val);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, double v1, double v2);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector3 v);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector4 v);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, double m00, double m01, double m10,
+                                   double m11);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix3 v);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix4 v);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, int val);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3);
+
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4);
+
+    public void setUniformArray(Shader.Uniform var, int index, double val);
+
+    public void setUniformArray(Shader.Uniform var, int index, double v1, double v2);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const Vector3 v);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const Vector4 v);
+
+    public void setUniformArray(Shader.Uniform var, int index, double m00, double m01, double m10,
+                                double m11);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const Matrix3 val);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const Matrix4 val);
+
+    public void setUniformArray(Shader.Uniform var, int index, int val);
+
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2);
+
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3);
+
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3, int v4);
+
+    public void setUniformArray(Shader.Uniform var, int index, boolean val);
+
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2);
+
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3);
+
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3,
+                                boolean v4);
+
+    public void setUniformArray(Shader.Uniform var, int index, Sampler texture);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color);
+
+    public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color, boolean isHDR);
 }

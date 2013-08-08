@@ -140,82 +140,83 @@ public interface Shader extends Resource {
     }
 
     /**
-     * Attribute represents a bindable vertex attribute declared in the vertex shader of the compiled program.
-     * If the attribute type is a matrix type, it encapsulates N underlying attributes where each low-level
-     * attribute maps to a column of the matrix.
+     * Abstract access to variable information exposed by GLSL shaders through OpenGL. The variables will be
+     * either uniforms or attributes to the vertex shader. Array access and declarations may not be supported
+     * depending on the GLSL version.
      */
-    public static interface Attribute {
+    public static interface Variable {
         /**
-         * @return The attribute's type
-         */
-        public VariableType getType();
-
-        /**
-         * @return The attribute's name as declared in the shader source
-         */
-        public String getName();
-
-        /**
-         * @return The compiled index of the attribute within the program
-         */
-        public int getIndex();
-
-        /**
-         * @return True if the attribute name starts with 'gl_' and is one of the special or reserved GLSL
-         *         attribute variables
-         */
-        public boolean isReserved();
-    }
-
-    public static interface Uniform {
-        /**
-         * Get the value type of this uniform. If getLength() > 1, then this is the component type of the
-         * array for the uniform.
+         * Get the value type of this variable. If getLength() > 1, then this is the component type of the
+         * array.
          *
-         * @return The type of this uniform
+         * @return The type of this variable
          */
         public VariableType getType();
 
         /**
-         * Return the number of primitives of getType() used by this uniform. If it's > 1, then the uniform
+         * Return the number of primitives of getType() used by this variable. If it's > 1, then the variable
          * represents an array.
          *
-         * @return Size of the uniform, in units of getType()
+         * @return Size of the variable, in units of getType()
          */
         public int getLength();
 
         /**
-         * Return the name of the uniform as declared in the glsl code of the uniform's owner.
+         * Return the name of the variable as declared in the glsl code of the uniform's owner. See {@link
+         * #getUniform(String)} for specifics on how names are formatted for complex variables.
          *
-         * @return The name of the uniform
+         * @return The name of the variable
          */
         public String getName();
 
         /**
-         * @return The compiled index of the uniform within the program
+         * @return The compiled index of the variable within the program
          */
         public int getIndex();
 
         /**
-         * @return True if the uniform variable starts with 'gl_' and represents one of the special uniforms
-         *         declared in the (older) GLSL specs
+         * @return True if the variable starts with 'gl_' and represents one of the special variables declared
+         *         in the (older) GLSL specs
          */
         public boolean isReserved();
-
-        /**
-         * @return True if the uniform is an array
-         */
-        public boolean isArray();
     }
 
     /**
+     * Variable type representing uniforms in a shader.
+     */
+    public static interface Uniform extends Variable {
+    }
+
+    public static interface Attribute extends Variable {
+    }
+
+    /**
+     * Get the detected uniforms from the linked shader. These are the uniforms reported by OpenGL. Unused
+     * uniforms that have been compiled away will not be included. The returned list will have expanded out
+     * all struct members into individual uniform objects.
+     *
      * @return All uniforms used in the shader, ordered by their compiled index
      */
     public List<? extends Uniform> getUniforms();
 
     /**
      * Get the uniform object for the variable with the given {@code name}. This will return null if there is
-     * no matching uniform.
+     * no matching uniform. The variable name must be the full name of the uniform excluding any last array
+     * access. This is because intermediate struct and array accesses are hard-coded and expanded into uniform
+     * slots by OpenGL. As an example, the following uniform declaration:
+     * <pre>
+     *     struct MyType {
+     *         vec3 innerArray[2];
+     *         vec4 var;
+     *     }
+     *     uniform MyType outerArray[3];
+     * </pre>
+     * would produce the following uniform names (assuming the outer array indices were all used): <ul>
+     * <li>outerArray[0].innerArray (with a reported length of 2)</li> <li>outerArray[0].var</li>
+     * <li>outerArray[1].innerArray (ditto)</li> <li>outerArray[1].var</li> </ul>
+     * <p/>
+     * Uniforms of built-in types and arrays of built-in types can be accessed using their declared variable
+     * name.
      *
      * @param name The uniform variable name
      *
@@ -230,7 +231,8 @@ public interface Shader extends Resource {
 
     /**
      * Get the attribute object for the variable with the given {@code name}. This will return null if there
-     * is no matching attribute.
+     * is no matching attribute. As with uniform names, the attribute name should not include any array
+     * index.
      *
      * @param name The attribute variable name
      *

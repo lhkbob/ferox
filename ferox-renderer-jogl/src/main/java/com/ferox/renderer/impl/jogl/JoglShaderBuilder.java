@@ -148,11 +148,11 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             getGL(context)
                     .glGetActiveUniform(programID, i, maxUniformNameLength, nameLen, 0, len, 0, type, 0, name,
                                         0);
-            String uniformName = new String(name, 0, nameLen[0]);
+            // strip off [0] at the end of an array name
+            String uniformName = new String(name, 0, len[0] > 1 ? nameLen[0] - 3 : nameLen[0]);
 
             // get uniform location
             int location = getGL(context).glGetUniformLocation(programID, uniformName);
-
             ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type[0]),
                                                                   len[0], uniformName, location);
             uniforms.add(u);
@@ -187,7 +187,7 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
 
             int index = getGL(context).glGetAttribLocation(programID, attrName);
             ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(handle, Utils.getVariableType(type[0]),
-                                                                      attrName, index);
+                                                                      attrName, len[0], index);
             attributes.add(a);
         }
 

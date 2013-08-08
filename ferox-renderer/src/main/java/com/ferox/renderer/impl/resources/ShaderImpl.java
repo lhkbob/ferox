@@ -199,8 +199,12 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         }
 
         @Override
-        public boolean isArray() {
-            return length > 1;
+        public String toString() {
+            if (length > 1) {
+                return String.format("uniform %s[%d] %s at %d", type, length, name, index);
+            } else {
+                return String.format("uniform %s %s at %d", type, name, index);
+            }
         }
     }
 
@@ -210,12 +214,19 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         private final VariableType type;
         private final String name;
         private final int index;
+        private final int length;
 
-        public AttributeImpl(ShaderHandle owner, VariableType type, String name, int index) {
+        public AttributeImpl(ShaderHandle owner, VariableType type, String name, int length, int index) {
             this.owner = owner;
             this.type = type;
             this.name = name;
             this.index = index;
+            this.length = length;
+        }
+
+        @Override
+        public int getLength() {
+            return length;
         }
 
         @Override
@@ -236,6 +247,15 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         @Override
         public boolean isReserved() {
             return name.startsWith("gl_");
+        }
+
+        @Override
+        public String toString() {
+            if (length > 1) {
+                return String.format("attribute %s[%d] %s at %d", type, length, name, index);
+            } else {
+                return String.format("attribute %s %s at %d", type, name, index);
+            }
         }
     }
 
