@@ -489,6 +489,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             normals = shader.getAttribute("aNormal");
             colors = shader.getAttribute("aDiffuse");
 
+            System.out.println(vertices);
+            System.out.println(normals);
+            System.out.println(colors);
+
             enableSingleLight = new Shader.Uniform[8];
             lightPosition = new Shader.Uniform[8];
             diffuseLightColors = new Shader.Uniform[8];

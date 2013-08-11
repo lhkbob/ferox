@@ -78,9 +78,9 @@ public abstract class RendererDelegate {
      * @param surface The now active surface
      */
     public void activate(AbstractSurface surface) {
-        defaultState.viewWidth = surface.getWidth();
-        defaultState.viewHeight = surface.getHeight();
-        setViewport(0, 0, surface.getWidth(), surface.getHeight());
+        state.viewWidth = surface.getWidth();
+        state.viewHeight = surface.getHeight();
+        glViewport(0, 0, surface.getWidth(), surface.getHeight());
     }
 
     public SharedState getCurrentState() {
@@ -108,7 +108,9 @@ public abstract class RendererDelegate {
         setStencilUpdateBack(state.stencilFailBack, state.depthFailBack, state.depthPassBack);
         setStencilTestEnabled(state.stencilEnabled);
 
-        setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
+        if (state.viewWidth >= 0 && state.viewHeight >= 0) {
+            setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
+        }
 
         // note that these bypass the destroyed check that throws an exception from the public interface
         setIndicesHandle(state.elementVBO);

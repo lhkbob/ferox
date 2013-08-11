@@ -48,7 +48,7 @@ public interface Shader extends Resource {
         FLOAT(1, 1, DataType.FLOAT),
         INT(1, 1, DataType.INT),
         UINT(1, 1, DataType.UNSIGNED_INT),
-        BOOL(1, -1, DataType.UNSIGNED_INT),
+        BOOL(1, 1, DataType.UNSIGNED_INT),
 
         MAT2(2, 2, DataType.FLOAT),
         MAT3(3, 3, DataType.FLOAT),
@@ -62,34 +62,34 @@ public interface Shader extends Resource {
         IVEC4(4, 1, DataType.INT),
         UVEC2(2, 1, DataType.UNSIGNED_INT),
         UVEC3(3, 1, DataType.UNSIGNED_INT),
-        UVEC4(4, -1, DataType.UNSIGNED_INT),
-        BVEC2(2, -1, DataType.UNSIGNED_INT),
-        BVEC3(3, -1, DataType.UNSIGNED_INT),
-        BVEC4(4, -1, DataType.UNSIGNED_INT),
+        UVEC4(4, 1, DataType.UNSIGNED_INT),
+        BVEC2(2, 1, DataType.UNSIGNED_INT),
+        BVEC3(3, 1, DataType.UNSIGNED_INT),
+        BVEC4(4, 1, DataType.UNSIGNED_INT),
 
-        SAMPLER_1D(1, -1, null),
-        SAMPLER_2D(1, -1, null),
-        SAMPLER_3D(1, -1, null),
-        SAMPLER_CUBE(1, -1, null),
-        SAMPLER_1D_SHADOW(1, -1, null),
-        SAMPLER_2D_SHADOW(1, -1, null),
-        SAMPLER_CUBE_SHADOW(1, -1, null),
-        SAMPLER_1D_ARRAY(1, -1, null),
-        SAMPLER_2D_ARRAY(1, -1, null),
+        SAMPLER_1D(1, 1, null),
+        SAMPLER_2D(1, 1, null),
+        SAMPLER_3D(1, 1, null),
+        SAMPLER_CUBE(1, 1, null),
+        SAMPLER_1D_SHADOW(1, 1, null),
+        SAMPLER_2D_SHADOW(1, 1, null),
+        SAMPLER_CUBE_SHADOW(1, 1, null),
+        SAMPLER_1D_ARRAY(1, 1, null),
+        SAMPLER_2D_ARRAY(1, 1, null),
 
-        USAMPLER_1D(1, -1, null),
-        USAMPLER_2D(1, -1, null),
-        USAMPLER_3D(1, -1, null),
-        USAMPLER_CUBE(1, -1, null),
-        USAMPLER_1D_ARRAY(1, -1, null),
-        USAMPLER_2D_ARRAY(1, -1, null),
+        USAMPLER_1D(1, 1, null),
+        USAMPLER_2D(1, 1, null),
+        USAMPLER_3D(1, 1, null),
+        USAMPLER_CUBE(1, 1, null),
+        USAMPLER_1D_ARRAY(1, 1, null),
+        USAMPLER_2D_ARRAY(1, 1, null),
 
-        ISAMPLER_1D(1, -1, null),
-        ISAMPLER_2D(1, -1, null),
-        ISAMPLER_3D(1, -1, null),
-        ISAMPLER_CUBE(1, -1, null),
-        ISAMPLER_1D_ARRAY(1, -1, null),
-        ISAMPLER_2D_ARRAY(1, -1, null);
+        ISAMPLER_1D(1, 1, null),
+        ISAMPLER_2D(1, 1, null),
+        ISAMPLER_3D(1, 1, null),
+        ISAMPLER_CUBE(1, 1, null),
+        ISAMPLER_1D_ARRAY(1, 1, null),
+        ISAMPLER_2D_ARRAY(1, 1, null);
 
         private final int row;
         private final int col;
@@ -123,9 +123,9 @@ public interface Shader extends Resource {
         }
 
         /**
-         * @return Get the number of vertex attributes required to hold the complete data. Each column of a
-         *         matrix gets its own vertex attribute. Returns -1 if the type is only available as a
-         *         uniform
+         * @return Get the number of columns required to hold the complete data. Each column of a matrix gets
+         *         its own vertex attribute when used for shader attribute inputs. Uniforms only use one
+         *         uniform index regardless of the number of columns.
          */
         public int getColumnCount() {
             return col;

@@ -34,6 +34,7 @@ import com.ferox.renderer.impl.OpenGLContext;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         // for samplers, the intValues holds a unique pre-assigned texture unit
         // reserved for any sampler assigned to the uniform
-        public TextureImpl.TextureHandle texture;
+        public final TextureImpl.TextureHandle[] textures;
 
         public boolean initialized;
 
@@ -134,20 +135,22 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             this.index = index;
 
             int bufferSize = type.getPrimitiveCount() * length;
-            if (type == VariableType.FLOAT || type == VariableType.VEC2 ||
-                type == VariableType.VEC3 || type == VariableType.VEC4 ||
-                type == VariableType.MAT2 || type == VariableType.MAT3 ||
-                type == VariableType.MAT4) {
-                // only floating point types
+            if (type.getPrimitiveType() == DataType.FLOAT) {
                 floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, bufferSize).asFloatBuffer();
                 intValues = null;
             } else {
-                // all other types are stored as ints
+                // all other variable types are stored as ints
                 floatValues = null;
                 intValues = BufferUtil.newByteBuffer(DataType.INT, bufferSize).asIntBuffer();
             }
 
-            texture = null;
+            if (type.getPrimitiveType() == null) {
+                // sampler type
+                textures = new TextureImpl.TextureHandle[length];
+            } else {
+                textures = null;
+            }
+
             initialized = false;
         }
 
@@ -158,7 +161,11 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             index = u.index;
             length = u.length;
 
-            texture = u.texture;
+            if (u.textures == null) {
+                textures = null;
+            } else {
+                textures = Arrays.copyOf(u.textures, u.textures.length);
+            }
             initialized = u.initialized;
 
             if (u.floatValues != null) {

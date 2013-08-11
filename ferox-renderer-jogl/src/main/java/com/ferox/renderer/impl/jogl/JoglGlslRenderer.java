@@ -26,10 +26,10 @@
  */
 package com.ferox.renderer.impl.jogl;
 
+import com.ferox.renderer.Shader;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.resources.BufferImpl;
-import com.ferox.renderer.impl.resources.ShaderImpl;
 
 import javax.media.opengl.GL2GL3;
 import java.nio.FloatBuffer;
@@ -103,37 +103,37 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values) {
-        switch (u.getType()) {
+    protected void glUniform(int index, Shader.VariableType type, FloatBuffer values) {
+        switch (type) {
         case FLOAT:
-            gl.glUniform1fv(u.getIndex(), 1, values);
+            gl.glUniform1fv(index, 1, values);
             break;
         case VEC2:
-            gl.glUniform2fv(u.getIndex(), 1, values);
+            gl.glUniform2fv(index, 1, values);
             break;
         case VEC3:
-            gl.glUniform3fv(u.getIndex(), 1, values);
+            gl.glUniform3fv(index, 1, values);
             break;
         case VEC4:
-            gl.glUniform4fv(u.getIndex(), 1, values);
+            gl.glUniform4fv(index, 1, values);
             break;
         case MAT2:
-            gl.glUniformMatrix2fv(u.getIndex(), 1, false, values);
+            gl.glUniformMatrix2fv(index, 1, false, values);
             break;
         case MAT3:
-            gl.glUniformMatrix3fv(u.getIndex(), 1, false, values);
+            gl.glUniformMatrix3fv(index, 1, false, values);
             break;
         case MAT4:
-            gl.glUniformMatrix4fv(u.getIndex(), 1, false, values);
+            gl.glUniformMatrix4fv(index, 1, false, values);
             break;
         default:
-            throw new RuntimeException("Unexpected enum value: " + u.getType());
+            throw new RuntimeException("Unexpected enum value: " + type);
         }
     }
 
     @Override
-    protected void glUniform(ShaderImpl.UniformImpl u, IntBuffer values) {
-        switch (u.getType()) {
+    protected void glUniform(int index, Shader.VariableType type, IntBuffer values) {
+        switch (type) {
         case INT:
         case BOOL:
         case SAMPLER_1D:
@@ -157,34 +157,34 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
         case ISAMPLER_CUBE:
         case ISAMPLER_1D_ARRAY:
         case ISAMPLER_2D_ARRAY:
-            gl.glUniform1iv(u.getIndex(), 1, values);
+            gl.glUniform1iv(index, 1, values);
             break;
         case UINT:
-            gl.glUniform1uiv(u.getIndex(), 1, values);
+            gl.glUniform1uiv(index, 1, values);
             break;
         case IVEC2:
         case BVEC2:
-            gl.glUniform2iv(u.getIndex(), 1, values);
+            gl.glUniform2iv(index, 1, values);
             break;
         case IVEC3:
         case BVEC3:
-            gl.glUniform3iv(u.getIndex(), 1, values);
+            gl.glUniform3iv(index, 1, values);
             break;
         case IVEC4:
         case BVEC4:
-            gl.glUniform4iv(u.getIndex(), 1, values);
+            gl.glUniform4iv(index, 1, values);
             break;
         case UVEC2:
-            gl.glUniform2uiv(u.getIndex(), 1, values);
+            gl.glUniform2uiv(index, 1, values);
             break;
         case UVEC3:
-            gl.glUniform3uiv(u.getIndex(), 1, values);
+            gl.glUniform3uiv(index, 1, values);
             break;
         case UVEC4:
-            gl.glUniform4uiv(u.getIndex(), 1, values);
+            gl.glUniform4uiv(index, 1, values);
             break;
         default:
-            throw new RuntimeException("Unexpected enum value: " + u.getType());
+            throw new RuntimeException("Unexpected enum value: " + type);
         }
     }
 
@@ -209,15 +209,18 @@ public class JoglGlslRenderer extends AbstractGlslRenderer {
                 gl.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), strideBytes,
                                           handle.inmemoryBuffer);
             } else {
-                // always specify the type as normalized, since any non-normalized integer type will
-                // fall into this if blcok, and the parameter is ignored for already floating-point data
+                // always specify the type as normalized, since any non-normalized integer type will never
+                // fall into this if block, and the parameter is ignored for already floating-point data
                 gl.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
                                          handle.inmemoryBuffer);
             }
         } else {
-            // FIXME there's no glVertexAttribIPointer that takes a VBO offset
-            gl.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type),
-                                     handle.type.isNormalized(), strideBytes, vboOffset);
+            if (!handle.type.isDecimalNumber()) {
+                gl.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), stride, vboOffset);
+            } else {
+                gl.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
+                                         vboOffset);
+            }
         }
     }
 }

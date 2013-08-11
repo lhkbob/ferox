@@ -26,9 +26,9 @@
  */
 package com.ferox.renderer.impl.lwjgl;
 
+import com.ferox.renderer.Shader;
 import com.ferox.renderer.impl.AbstractGlslRenderer;
 import com.ferox.renderer.impl.resources.BufferImpl;
-import com.ferox.renderer.impl.resources.ShaderImpl;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
@@ -95,37 +95,37 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
     }
 
     @Override
-    protected void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values) {
-        switch (u.getType()) {
+    protected void glUniform(int index, Shader.VariableType type, FloatBuffer values) {
+        switch (type) {
         case FLOAT:
-            GL20.glUniform1(u.getIndex(), values);
+            GL20.glUniform1(index, values);
             break;
         case VEC2:
-            GL20.glUniform2(u.getIndex(), values);
+            GL20.glUniform2(index, values);
             break;
         case VEC3:
-            GL20.glUniform3(u.getIndex(), values);
+            GL20.glUniform3(index, values);
             break;
         case VEC4:
-            GL20.glUniform4(u.getIndex(), values);
+            GL20.glUniform4(index, values);
             break;
         case MAT2:
-            GL20.glUniformMatrix2(u.getIndex(), false, values);
+            GL20.glUniformMatrix2(index, false, values);
             break;
         case MAT3:
-            GL20.glUniformMatrix3(u.getIndex(), false, values);
+            GL20.glUniformMatrix3(index, false, values);
             break;
         case MAT4:
-            GL20.glUniformMatrix4(u.getIndex(), false, values);
+            GL20.glUniformMatrix4(index, false, values);
             break;
         default:
-            throw new RuntimeException("Unexpected enum value: " + u.getType());
+            throw new RuntimeException("Unexpected enum value: " + type);
         }
     }
 
     @Override
-    protected void glUniform(ShaderImpl.UniformImpl u, IntBuffer values) {
-        switch (u.getType()) {
+    protected void glUniform(int index, Shader.VariableType type, IntBuffer values) {
+        switch (type) {
         case INT:
         case BOOL:
         case SAMPLER_1D:
@@ -149,34 +149,34 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
         case ISAMPLER_CUBE:
         case ISAMPLER_1D_ARRAY:
         case ISAMPLER_2D_ARRAY:
-            GL20.glUniform1(u.getIndex(), values);
+            GL20.glUniform1(index, values);
             break;
         case UINT:
-            GL30.glUniform1u(u.getIndex(), values);
+            GL30.glUniform1u(index, values);
             break;
         case IVEC2:
         case BVEC2:
-            GL20.glUniform2(u.getIndex(), values);
+            GL20.glUniform2(index, values);
             break;
         case IVEC3:
         case BVEC3:
-            GL20.glUniform3(u.getIndex(), values);
+            GL20.glUniform3(index, values);
             break;
         case IVEC4:
         case BVEC4:
-            GL20.glUniform4(u.getIndex(), values);
+            GL20.glUniform4(index, values);
             break;
         case UVEC2:
-            GL30.glUniform2u(u.getIndex(), values);
+            GL30.glUniform2u(index, values);
             break;
         case UVEC3:
-            GL30.glUniform3u(u.getIndex(), values);
+            GL30.glUniform3u(index, values);
             break;
         case UVEC4:
-            GL30.glUniform4u(u.getIndex(), values);
+            GL30.glUniform4u(index, values);
             break;
         default:
-            throw new RuntimeException("Unexpected enum value: " + u.getType());
+            throw new RuntimeException("Unexpected enum value: " + type);
         }
     }
 
@@ -201,8 +201,8 @@ public class LwjglGlslRenderer extends AbstractGlslRenderer {
                 GL30.glVertexAttribIPointer(attr, elementSize, Utils.getGLType(handle.type), strideBytes,
                                             handle.inmemoryBuffer);
             } else {
-                // always specify the type as normalized, since any non-normalized integer type will
-                // fall into this if blcok, and the parameter is ignored for already floating-point data
+                // always specify the type as normalized, since any non-normalized integer type will never
+                // fall into this if block, and the parameter is ignored for already floating-point data
                 GL20.glVertexAttribPointer(attr, elementSize, Utils.getGLType(handle.type), true, strideBytes,
                                            handle.inmemoryBuffer);
             }

@@ -71,15 +71,21 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         defaultState = new ShaderOnlyState(state);
     }
 
-    private void validate(ShaderImpl.UniformImpl u) {
+    private void validate(ShaderImpl.UniformImpl u, int index) {
         if (u.owner != delegate.state.shader) {
             throw new IllegalArgumentException("Uniform does not belong to the current shader");
         }
+        if (u.getLength() <= index) {
+            throw new IndexOutOfBoundsException("Index is outside of usable uniform length");
+        }
     }
 
-    private void validate(ShaderImpl.AttributeImpl a) {
+    private void validate(ShaderImpl.AttributeImpl a, int index) {
         if (a.owner != delegate.state.shader) {
             throw new IllegalArgumentException("Attribute does not belong to the current shader");
+        }
+        if (a.getLength() <= index) {
+            throw new IndexOutOfBoundsException("Index is outside of usable attribute length");
         }
     }
 
@@ -97,6 +103,10 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     @Override
     public void reset() {
         setCurrentState(defaultState, delegate.defaultState, null);
+    }
+
+    private static void prepBuffer(java.nio.Buffer data, int index, Shader.VariableType type) {
+        data.limit((index + 1) * type.getPrimitiveCount()).position(index * type.getPrimitiveCount()).mark();
     }
 
     private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState,
@@ -132,30 +142,34 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             for (ShaderImpl.UniformImpl u : uniformState) {
                 ShaderImpl.UniformImpl real = getTrueUniform(u);
 
-                if (u.getType().getPrimitiveType() == DataType.FLOAT) {
-                    if (!real.floatValues.equals(u.floatValues)) {
-                        real.floatValues.reset();
-                        real.floatValues.put(u.floatValues).reset();
-                        glUniform(real, real.floatValues);
-                    }
-                } else if (u.getType().getPrimitiveType() == DataType.INT ||
-                           u.getType().getPrimitiveType() == DataType.UNSIGNED_INT) {
-                    if (!real.intValues.equals(u.intValues)) {
-                        real.intValues.reset();
-                        real.intValues.put(u.intValues).reset();
-                        glUniform(real, real.intValues);
-                    }
-                } else {
-                    // texture type, so their intValues should be the same and we just have to check texture handle
-                    int unit = real.intValues.get(0);
-                    if (delegate.state.textures[unit] != u.texture) {
-                        real.texture = u.texture;
-                        context.bindTexture(unit, u.texture);
-                    }
+                for (int i = 0; i < real.getLength(); i++) {
+                    if (u.getType().getPrimitiveType() == DataType.FLOAT) {
+                        if (!real.floatValues.equals(u.floatValues)) {
+                            prepBuffer(real.floatValues, i, u.getType());
+                            prepBuffer(u.floatValues, i, u.getType());
+                            real.floatValues.put(u.floatValues).reset();
+                            glUniform(real.getIndex() + i, real.getType(), real.floatValues);
+                        }
+                    } else if (u.getType().getPrimitiveType() == DataType.INT ||
+                               u.getType().getPrimitiveType() == DataType.UNSIGNED_INT) {
+                        if (!real.intValues.equals(u.intValues)) {
+                            prepBuffer(real.intValues, i, u.getType());
+                            prepBuffer(u.intValues, i, u.getType());
+                            real.intValues.put(u.intValues).reset();
+                            glUniform(real.getIndex() + i, real.getType(), real.intValues);
+                        }
+                    } else {
+                        // texture type, so their intValues should be the same and we just have to check texture handle
+                        int unit = real.intValues.get(i);
+                        if (delegate.state.textures[unit] != u.textures[i]) {
+                            real.textures[i] = u.textures[i];
+                            context.bindTexture(unit, u.textures[i]);
+                        }
 
-                    // special clean up if the texture was deleted
-                    if (delegate.state.textures[unit] == null) {
-                        real.texture = null;
+                        // special clean up if the texture was deleted
+                        if (delegate.state.textures[unit] == null) {
+                            real.textures[i] = null;
+                        }
                     }
                 }
             }
@@ -198,7 +212,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                 // perform maintenance on bound texture state to make it line up with
                 // what the texture uniforms are expecting
-                int unit = 0;
+                int unit;
                 Set<Integer> reservedUnits = new HashSet<>();
                 Set<ShaderImpl.UniformImpl> needsInit = new HashSet<>();
 
@@ -207,13 +221,16 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                         // sampler types have a null primitive type
                         ShaderImpl.UniformImpl ui = (ShaderImpl.UniformImpl) u;
                         if (ui.initialized) {
-                            // mark unit as reserved and bind the last assigned sampler
-                            reservedUnits.add(ui.intValues.get(0));
-                            context.bindTexture(ui.intValues.get(0), ui.texture);
+                            // mark units as reserved and bind the last assigned sampler
+                            for (int i = 0; i < ui.textures.length; i++) {
+                                unit = ui.intValues.get(i);
+                                reservedUnits.add(unit);
+                                context.bindTexture(unit, ui.textures[i]);
 
-                            // special clean up if the texture was deleted
-                            if (delegate.state.textures[ui.intValues.get(0)] == null) {
-                                ui.texture = null;
+                                // special clean up if the texture was deleted
+                                if (delegate.state.textures[unit] == null) {
+                                    ui.textures[i] = null;
+                                }
                             }
                         } else {
                             needsInit.add(ui);
@@ -222,32 +239,102 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                 }
 
                 // complete initialization now that reservedUnits holds all used texture units
+                unit = 0;
                 for (ShaderImpl.UniformImpl u : needsInit) {
-                    // search for an unreserved unit
-                    while (reservedUnits.contains(unit)) {
-                        unit++;
+                    for (int i = 0; i < u.textures.length; i++) {
+                        // search for an unreserved unit
+                        while (reservedUnits.contains(unit)) {
+                            unit++;
+                        }
+
+                        // mark it as reserved and configure the uniform
+                        reservedUnits.add(unit);
+                        u.intValues.put(i, unit);
+                        prepBuffer(u.intValues, i, u.getType());
+                        glUniform(u.getIndex() + i, u.getType(), u.intValues);
+
+                        // bind a null texture
+                        context.bindTexture(unit, null);
                     }
 
-                    // mark it as reserved and configure the uniform
-                    reservedUnits.add(unit);
-                    u.intValues.put(0, unit);
                     u.initialized = true;
-                    glUniform(u, u.intValues);
-
-                    // bind a null texture
-                    context.bindTexture(unit, null);
                 }
             }
         }
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attribute, VertexAttribute attr) {
-        bindAttribute(attribute, 0, attr);
+    public void bindAttribute(Shader.Attribute var, VertexAttribute attr) {
+        bindAttributeArray(var, 0, attr);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attribute, int column, VertexAttribute attr) {
+    public void bindAttribute(Shader.Attribute var, int column, VertexAttribute attr) {
+        bindAttributeArray(var, 0, column, attr);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, double val) {
+        bindAttributeArray(var, 0, val);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, double v1, double v2) {
+        bindAttributeArray(var, 0, v1, v2);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, @Const Vector3 v) {
+        bindAttributeArray(var, 0, v);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, @Const Vector4 v) {
+        bindAttributeArray(var, 0, v);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11) {
+        bindAttributeArray(var, 0, m00, m01, m10, m11);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, @Const Matrix3 v) {
+        bindAttributeArray(var, 0, v);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, @Const Matrix4 v) {
+        bindAttributeArray(var, 0, v);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, int val) {
+        bindAttributeArray(var, 0, val);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, int v1, int v2) {
+        bindAttributeArray(var, 0, v1, v2);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3) {
+        bindAttributeArray(var, 0, v1, v2, v3);
+    }
+
+    @Override
+    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
+        bindAttributeArray(var, 0, v1, v2, v3, v4);
+    }
+
+    @Override
+    public void bindAttributeArray(Shader.Attribute attribute, int index, VertexAttribute attr) {
+        bindAttributeArray(attribute, index, 0, attr);
+    }
+
+    @Override
+    public void bindAttributeArray(Shader.Attribute attribute, int index, int column, VertexAttribute attr) {
         if (attribute == null) {
             throw new NullPointerException("Attribute can't be null");
         }
@@ -255,9 +342,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             throw new IllegalArgumentException("GLSL attribute with a type of " + attribute.getType() +
                                                " cannot use " + (column + 1) + " columns");
         }
-        validate((ShaderImpl.AttributeImpl) attribute);
+        validate((ShaderImpl.AttributeImpl) attribute, index);
 
-        ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() + column];
+        ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() +
+                                                            index * attribute.getType().getColumnCount() +
+                                                            column];
         if (attr != null) {
             if (attr.getVBO().isDestroyed()) {
                 throw new ResourceException("Cannot use a destroyed resource");
@@ -367,163 +456,178 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, double val) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, double val) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
         if (attr.getType() != Shader.VariableType.FLOAT) {
             throw new IllegalArgumentException("Attribute must have a type of FLOAT");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex()], 1, (float) val, 0f, 0f, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 1,
+                      (float) val, 0f, 0f, 0f);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, double v1, double v2) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, double v1, double v2) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
         if (attr.getType() != Shader.VariableType.VEC2) {
             throw new IllegalArgumentException("Attribute must have a type of VEC2");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex()], 2, (float) v1, (float) v2, 0f, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 2,
+                      (float) v1, (float) v2, 0f, 0f);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, @Const Vector3 v) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Vector3 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
         if (attr.getType() != Shader.VariableType.VEC3) {
             throw new IllegalArgumentException("Attribute must have a type of VEC3");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.x, (float) v.y, (float) v.z, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 3,
+                      (float) v.x, (float) v.y, (float) v.z, 0f);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, @Const Vector4 v) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Vector4 v) {
         bindAttribute(attr, v.x, v.y, v.z, v.w);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, double m00, double m01, double m10, double m11) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, double m00, double m01, double m10,
+                                   double m11) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
         if (attr.getType() == Shader.VariableType.VEC4) {
-            bindAttribute(state.attributes[attr.getIndex()], 4, (float) m00, (float) m01, (float) m10,
-                          (float) m11);
+            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 4,
+                          (float) m00, (float) m01, (float) m10, (float) m11);
         } else if (attr.getType() == Shader.VariableType.MAT2) {
-            bindAttribute(state.attributes[attr.getIndex()], 2, (float) m00, (float) m01, 0f, 0f);
-            bindAttribute(state.attributes[attr.getIndex() + 1], 2, (float) m10, (float) m11, 0f, 0f);
+            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 2,
+                          (float) m00, (float) m01, 0f, 0f);
+            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 2,
+                          (float) m10, (float) m11, 0f, 0f);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of VEC4 or MAT2");
         }
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, @Const Matrix3 v) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Matrix3 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
         if (attr.getType() != Shader.VariableType.MAT3) {
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex()], 3, (float) v.m00, (float) v.m01, (float) v.m02, 0f);
-        bindAttribute(state.attributes[attr.getIndex() + 1], 3, (float) v.m10, (float) v.m11, (float) v.m12,
-                      0f);
-        bindAttribute(state.attributes[attr.getIndex() + 2], 3, (float) v.m20, (float) v.m21, (float) v.m22,
-                      0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 3,
+                      (float) v.m00, (float) v.m01, (float) v.m02, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 3,
+                      (float) v.m10, (float) v.m11, (float) v.m12, 0f);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 2], 3,
+                      (float) v.m20, (float) v.m21, (float) v.m22, 0f);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute attr, @Const Matrix4 v) {
+    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Matrix4 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
         if (attr.getType() != Shader.VariableType.MAT3) {
             throw new IllegalArgumentException("Attribute must have a type of MAT3");
         }
-        validate((ShaderImpl.AttributeImpl) attr);
+        validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex()], 4, (float) v.m00, (float) v.m01, (float) v.m02,
-                      (float) v.m03);
-        bindAttribute(state.attributes[attr.getIndex() + 1], 4, (float) v.m10, (float) v.m11, (float) v.m12,
-                      (float) v.m13);
-        bindAttribute(state.attributes[attr.getIndex() + 2], 4, (float) v.m20, (float) v.m21, (float) v.m22,
-                      (float) v.m23);
-        bindAttribute(state.attributes[attr.getIndex() + 3], 4, (float) v.m30, (float) v.m31, (float) v.m32,
-                      (float) v.m33);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 4,
+                      (float) v.m00, (float) v.m01, (float) v.m02, (float) v.m03);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 4,
+                      (float) v.m10, (float) v.m11, (float) v.m12, (float) v.m13);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 2], 4,
+                      (float) v.m20, (float) v.m21, (float) v.m22, (float) v.m23);
+        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 3], 4,
+                      (float) v.m30, (float) v.m31, (float) v.m32, (float) v.m33);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int val) {
+    public void bindAttributeArray(Shader.Attribute var, int index, int val) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
-        validate((ShaderImpl.AttributeImpl) var);
+        validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UINT) {
-            bindAttribute(state.attributes[var.getIndex()], 1, true, val, 0, 0, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 1, true,
+                          val, 0, 0, 0);
         } else if (var.getType() == Shader.VariableType.INT) {
-            bindAttribute(state.attributes[var.getIndex()], 1, false, val, 0, 0, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 1, false,
+                          val, 0, 0, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of INT or UINT");
         }
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2) {
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
-        validate((ShaderImpl.AttributeImpl) var);
+        validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC2) {
-            bindAttribute(state.attributes[var.getIndex()], 2, true, v1, v2, 0, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 2, true,
+                          v1, v2, 0, 0);
         } else if (var.getType() == Shader.VariableType.IVEC2) {
-            bindAttribute(state.attributes[var.getIndex()], 2, false, v1, v2, 0, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 2, false,
+                          v1, v2, 0, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC2 or UVEC2");
         }
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3) {
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
-        validate((ShaderImpl.AttributeImpl) var);
+        validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC3) {
-            bindAttribute(state.attributes[var.getIndex()], 3, true, v1, v2, v3, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 3, true,
+                          v1, v2, v3, 0);
         } else if (var.getType() == Shader.VariableType.IVEC3) {
-            bindAttribute(state.attributes[var.getIndex()], 3, false, v1, v2, v3, 0);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 3, false,
+                          v1, v2, v3, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC3 or UVEC3");
         }
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
+    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
-        validate((ShaderImpl.AttributeImpl) var);
+        validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC4) {
-            bindAttribute(state.attributes[var.getIndex()], 4, true, v1, v2, v3, v4);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 4, true,
+                          v1, v2, v3, v4);
         } else if (var.getType() == Shader.VariableType.IVEC4) {
-            bindAttribute(state.attributes[var.getIndex()], 4, false, v1, v2, v3, v4);
+            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 4, false,
+                          v1, v2, v3, v4);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC4 or UVEC4");
         }
@@ -531,6 +635,96 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
     @Override
     public void setUniform(Shader.Uniform var, double val) {
+        setUniformArray(var, 0, val);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, double v1, double v2) {
+        setUniformArray(var, 0, v1, v2);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const Vector3 v) {
+        setUniformArray(var, 0, v);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const Vector4 v) {
+        setUniformArray(var, 0, v);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, double m00, double m01, double m10, double m11) {
+        setUniformArray(var, 0, m00, m01, m10, m11);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const Matrix3 val) {
+        setUniformArray(var, 0, val);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const Matrix4 val) {
+        setUniformArray(var, 0, val);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, int val) {
+        setUniformArray(var, 0, val);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, int v1, int v2) {
+        setUniformArray(var, 0, v1, v2);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, int v1, int v2, int v3) {
+        setUniformArray(var, 0, v1, v2, v3);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, int v1, int v2, int v3, int v4) {
+        setUniformArray(var, 0, v1, v2, v3, v4);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, boolean val) {
+        setUniformArray(var, 0, val);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, boolean v1, boolean v2) {
+        setUniformArray(var, 0, v1, v2);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3) {
+        setUniformArray(var, 0, v1, v2, v3);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3, boolean v4) {
+        setUniformArray(var, 0, v1, v2, v3, v4);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, Sampler texture) {
+        setUniformArray(var, 0, texture);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const ColorRGB color) {
+        setUniformArray(var, 0, color);
+    }
+
+    @Override
+    public void setUniform(Shader.Uniform var, @Const ColorRGB color, boolean isHDR) {
+        setUniformArray(var, 0, color, isHDR);
+    }
+
+    @Override
+    public void setUniformArray(Shader.Uniform var, int index, double val) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -539,17 +733,19 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.floatValues.get(0) != val) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.floatValues.get(offset) != val) {
             u.initialized = true;
-            u.floatValues.put(0, (float) val);
-            glUniform(u, u.floatValues);
+            u.floatValues.put(offset, (float) val);
+            prepBuffer(u.floatValues, index, u.getType());
+            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, double v1, double v2) {
+    public void setUniformArray(Shader.Uniform var, int index, double v1, double v2) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -558,18 +754,20 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.floatValues.get(0) != v1 || u.floatValues.get(1) != v2) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.floatValues.get(offset) != v1 || u.floatValues.get(offset + 1) != v2) {
             u.initialized = true;
-            u.floatValues.put(0, (float) v1);
-            u.floatValues.put(1, (float) v2);
-            glUniform(u, u.floatValues);
+            u.floatValues.put(offset, (float) v1);
+            u.floatValues.put(offset + 1, (float) v2);
+            prepBuffer(u.floatValues, index, u.getType());
+            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, double v1, double v2, double v3, double v4) {
+    public void setUniformArray(Shader.Uniform var, int index, double v1, double v2, double v3, double v4) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -578,21 +776,23 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.floatValues.get(0) != v1 || u.floatValues.get(1) != v1 ||
-            u.floatValues.get(2) != v2 || u.floatValues.get(3) != v3) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.floatValues.get(offset) != v1 || u.floatValues.get(offset + 1) != v1 ||
+            u.floatValues.get(offset + 2) != v2 || u.floatValues.get(offset + 3) != v3) {
             u.initialized = true;
-            u.floatValues.put(0, (float) v1);
-            u.floatValues.put(1, (float) v2);
-            u.floatValues.put(2, (float) v3);
-            u.floatValues.put(3, (float) v4);
-            glUniform(u, u.floatValues);
+            u.floatValues.put(offset, (float) v1);
+            u.floatValues.put(offset + 1, (float) v2);
+            u.floatValues.put(offset + 2, (float) v3);
+            u.floatValues.put(offset + 3, (float) v4);
+            prepBuffer(u.floatValues, index, u.getType());
+            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const Matrix3 val) {
+    public void setUniformArray(Shader.Uniform var, int index, @Const Matrix3 val) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -601,15 +801,18 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        val.get(u.floatValues, 0, false);
+        int offset = index * u.getType().getPrimitiveCount();
+        val.get(u.floatValues, offset, false);
+        prepBuffer(u.floatValues, index, u.getType());
+
         u.initialized = true;
-        glUniform(u, u.floatValues);
+        glUniform(u.getIndex() + index, u.getType(), u.floatValues);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const Matrix4 val) {
+    public void setUniformArray(Shader.Uniform var, int index, @Const Matrix4 val) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -618,19 +821,22 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        val.get(u.floatValues, 0, false);
+        int offset = index * u.getType().getPrimitiveCount();
+        val.get(u.floatValues, offset, false);
+        prepBuffer(u.floatValues, index, u.getType());
+
         u.initialized = true;
-        glUniform(u, u.floatValues);
+        glUniform(u.getIndex() + index, u.getType(), u.floatValues);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const Vector3 v) {
-        setUniform(var, v.x, v.y, v.z);
+    public void setUniformArray(Shader.Uniform var, int index, @Const Vector3 v) {
+        setUniformArray(var, index, v.x, v.y, v.z);
     }
 
-    private void setUniform(Shader.Uniform var, double x, double y, double z) {
+    private void setUniformArray(Shader.Uniform var, int index, double x, double y, double z) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -639,39 +845,42 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.floatValues.get(0) != x || u.floatValues.get(1) != y ||
-            u.floatValues.get(2) != z) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.floatValues.get(offset) != x || u.floatValues.get(offset + 1) != y ||
+            u.floatValues.get(offset + 2) != z) {
             u.initialized = true;
-            u.floatValues.put(0, (float) x);
-            u.floatValues.put(1, (float) y);
-            u.floatValues.put(2, (float) z);
-            glUniform(u, u.floatValues);
+            u.floatValues.put(offset, (float) x);
+            u.floatValues.put(offset + 1, (float) y);
+            u.floatValues.put(offset + 2, (float) z);
+            prepBuffer(u.floatValues, index, u.getType());
+
+            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const Vector4 v) {
-        setUniform(var, v.x, v.y, v.z, v.w);
+    public void setUniformArray(Shader.Uniform var, int index, @Const Vector4 v) {
+        setUniformArray(var, index, v.x, v.y, v.z, v.w);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const ColorRGB color) {
-        setUniform(var, color, false);
+    public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color) {
+        setUniformArray(var, index, color, false);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, @Const ColorRGB color, boolean isHDR) {
+    public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color, boolean isHDR) {
         if (isHDR) {
-            setUniform(var, color.redHDR(), color.greenHDR(), color.blueHDR());
+            setUniformArray(var, index, color.redHDR(), color.greenHDR(), color.blueHDR());
         } else {
-            setUniform(var, color.red(), color.green(), color.blue());
+            setUniformArray(var, index, color.red(), color.green(), color.blue());
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, int val) {
+    public void setUniformArray(Shader.Uniform var, int index, int val) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -682,17 +891,20 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.intValues.get(0) != val) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.intValues.get(offset) != val) {
             u.initialized = true;
-            u.intValues.put(0, val);
-            glUniform(u, u.intValues);
+            u.intValues.put(offset, val);
+            prepBuffer(u.intValues, index, u.getType());
+
+            glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, int v1, int v2) {
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -703,18 +915,21 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2) {
             u.initialized = true;
-            u.intValues.put(0, v1);
-            u.intValues.put(1, v2);
-            glUniform(u, u.intValues);
+            u.intValues.put(offset, v1);
+            u.intValues.put(offset + 1, v2);
+            prepBuffer(u.intValues, index, u.getType());
+
+            glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, int v1, int v2, int v3) {
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -725,20 +940,23 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2 ||
-            u.intValues.get(2) != v3) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2 ||
+            u.intValues.get(offset + 2) != v3) {
             u.initialized = true;
             u.intValues.put(0, v1);
             u.intValues.put(1, v2);
             u.intValues.put(2, v3);
-            glUniform(u, u.intValues);
+            prepBuffer(u.intValues, index, u.getType());
+
+            glUniform(u.getIndex(), u.getType(), u.intValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, int v1, int v2, int v3, int v4) {
+    public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3, int v4) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -749,36 +967,40 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        if (!u.initialized || u.intValues.get(0) != v1 || u.intValues.get(1) != v2 ||
-            u.intValues.get(2) != v3 || u.intValues.get(3) != v4) {
+        int offset = index * u.getType().getPrimitiveCount();
+        if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2 ||
+            u.intValues.get(offset + 2) != v3 || u.intValues.get(offset + 3) != v4) {
             u.initialized = true;
-            u.intValues.put(0, v1);
-            u.intValues.put(1, v2);
-            u.intValues.put(2, v3);
-            u.intValues.put(3, v4);
-            glUniform(u, u.intValues);
+            u.intValues.put(offset, v1);
+            u.intValues.put(offset + 1, v2);
+            u.intValues.put(offset + 2, v3);
+            u.intValues.put(offset + 3, v4);
+            prepBuffer(u.intValues, index, u.getType());
+
+            glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, boolean val) {
+    public void setUniformArray(Shader.Uniform var, int index, boolean val) {
         setUniform(var, val ? 1 : 0);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, boolean v1, boolean v2) {
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2) {
         setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3) {
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3) {
         setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0);
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, boolean v1, boolean v2, boolean v3, boolean v4) {
+    public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3,
+                                boolean v4) {
         setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0, v4 ? 1 : 0);
     }
 
@@ -997,7 +1219,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void setUniform(Shader.Uniform var, Sampler texture) {
+    public void setUniformArray(Shader.Uniform var, int index, Sampler texture) {
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
@@ -1006,9 +1228,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
 
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
-        validate(u);
+        validate(u, index);
 
-        int textureUnit = u.intValues.get(0);
+        int textureUnit = u.intValues.get(index);
         if (texture != null) {
             if (texture.isDestroyed()) {
                 throw new ResourceException("Cannot use a destroyed resource");
@@ -1017,29 +1239,29 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             TextureImpl.TextureHandle handle = ((TextureImpl) texture).getHandle();
             validateSamplerType(var.getType(), texture);
 
-            if (handle != u.texture) {
+            if (handle != u.textures[index]) {
                 context.bindTexture(textureUnit, handle);
-                u.texture = handle;
+                u.textures[index] = handle;
             }
         } else {
-            if (u.texture != null) {
+            if (u.textures[index] != null) {
                 context.bindTexture(textureUnit, null);
-                u.texture = null;
+                u.textures[index] = null;
             }
         }
     }
 
     /**
      * Set the given uniform's values. The uniform could have any of the INT_ types, the BOOL type or any of
-     * the texture sampler types, and could possibly be an array.
+     * the texture sampler type. The buffer will be set to have the correct position and size to read values.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, IntBuffer values);
+    protected abstract void glUniform(int uniform, Shader.VariableType type, IntBuffer values);
 
     /**
      * Set the given uniform's values. The uniform could have any of the FLOAT_ types and could possibly be an
-     * array. The buffer will have been rewound already.
+     * array. The buffer will be set to have the correct position and size to read values.
      */
-    protected abstract void glUniform(ShaderImpl.UniformImpl u, FloatBuffer values);
+    protected abstract void glUniform(int uniform, Shader.VariableType type, FloatBuffer values);
 
     /**
      * Enable the given generic vertex attribute to read in data from an attribute pointer as last assigned by
