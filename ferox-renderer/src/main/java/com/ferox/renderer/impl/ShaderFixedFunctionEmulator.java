@@ -36,15 +36,15 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private Shader.Uniform enableLighting; // bool
 
     private Shader.Uniform globalAmbient; // vec4
-    private Shader.Uniform[] enableSingleLight; // bool[8]
-    private Shader.Uniform[] lightPosition; // vec4[8]
-    private Shader.Uniform[] ambientLightColors; // vec4[8]
-    private Shader.Uniform[] diffuseLightColors; // vec4[8]
-    private Shader.Uniform[] specularLightColors; // vec4[8]
-    private Shader.Uniform[] spotlightDirections; // vec3[8]
-    private Shader.Uniform[] spotlightCutoffs; // float[8]
-    private Shader.Uniform[] spotlightExponents; // float[8]
-    private Shader.Uniform[] lightAttenuations; // vec3[8]
+    private Shader.Uniform enableSingleLight; // bool[8]
+    private Shader.Uniform lightPosition; // vec4[8]
+    private Shader.Uniform ambientLightColors; // vec4[8]
+    private Shader.Uniform diffuseLightColors; // vec4[8]
+    private Shader.Uniform specularLightColors; // vec4[8]
+    private Shader.Uniform spotlightDirections; // vec3[8]
+    private Shader.Uniform spotlightCutoffs; // float[8]
+    private Shader.Uniform spotlightExponents; // float[8]
+    private Shader.Uniform lightAttenuations; // vec3[8]
 
     private Shader.Uniform ambientMaterial; // vec4
     private Shader.Uniform specularMaterial; // vec4
@@ -246,6 +246,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(fogConfig, cachedFogConfig);
     }
 
+    // FIXME move these up to Renderer?
     @Override
     public void setPointAntiAliasingEnabled(boolean enable) {
     }
@@ -285,36 +286,36 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setLightEnabled(int light, boolean enable) {
-        glsl.setUniform(enableSingleLight[light], enable);
+        glsl.setUniformArray(enableSingleLight, light, enable);
     }
 
     @Override
     public void setLightPosition(int light, @Const Vector4 pos) {
         // FIXME validate w
         // FIXME transform into eye space
-        glsl.setUniform(lightPosition[light], pos);
+        glsl.setUniformArray(lightPosition, light, pos);
     }
 
     @Override
     public void setLightColor(int light, @Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec) {
-        glsl.setUniform(ambientLightColors[light], amb);
-        glsl.setUniform(diffuseLightColors[light], diff);
-        glsl.setUniform(specularLightColors[light], spec);
+        glsl.setUniformArray(ambientLightColors, light, amb);
+        glsl.setUniformArray(diffuseLightColors, light, diff);
+        glsl.setUniformArray(specularLightColors, light, spec);
     }
 
     @Override
     public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
         // FIXME prenormalize the direction
         // FIXME transform into eye space
-        glsl.setUniform(spotlightDirections[light], dir);
-        glsl.setUniform(spotlightCutoffs[light], angle);
-        glsl.setUniform(spotlightExponents[light], exponent);
+        glsl.setUniformArray(spotlightDirections, light, dir);
+        glsl.setUniformArray(spotlightCutoffs, light, angle);
+        glsl.setUniformArray(spotlightExponents, light, exponent);
     }
 
     @Override
     public void setLightAttenuation(int light, double constant, double linear, double quadratic) {
         cachedAttenuations.set(constant, linear, quadratic);
-        glsl.setUniform(lightAttenuations[light], cachedAttenuations);
+        glsl.setUniformArray(lightAttenuations, light, cachedAttenuations);
     }
 
     @Override
@@ -410,6 +411,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         // FIXME store modelview so that we can compute eye space params for lights and eye planes
     }
 
+    // FIXME validate element size and or type? type should be handled, but element size is more flexible
+    // in glsl renderer compared to ffp spec
     @Override
     public void setVertices(VertexAttribute vertices) {
         glsl.bindAttribute(this.vertices, vertices);
@@ -463,60 +466,103 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             }
 
             shaderBuilder.bindColorBuffer("fColor", 0);
-
             shader = shaderBuilder.build();
 
-            // get references to every uniform available
-            alphaRefValue = shader.getUniform("uAlphaRefValue");
-            alphaTest = shader.getUniform("uAlphaComparison");
-            enableAlphaTest = shader.getUniform("uEnableAlphaTest");
-
-            enableFog = shader.getUniform("uEnableFog");
-            fogConfig = shader.getUniform("uFogConfig");
-            fogColor = shader.getUniform("uFogColor");
-
-            modelviewMatrix = shader.getUniform("uModelview");
-            projectionMatrix = shader.getUniform("uProjection");
-            enableLighting = shader.getUniform("uEnableLighting");
-            globalAmbient = shader.getUniform("uGlobalLight");
-
-            ambientMaterial = shader.getUniform("uMatAmbient");
-            specularMaterial = shader.getUniform("uMatSpecular");
-            emittedMaterial = shader.getUniform("uMatEmissive");
-            shininess = shader.getUniform("uMatShininess");
-
-            vertices = shader.getAttribute("aVertex");
-            normals = shader.getAttribute("aNormal");
-            colors = shader.getAttribute("aDiffuse");
-
-            System.out.println(vertices);
-            System.out.println(normals);
-            System.out.println(colors);
-
-            enableSingleLight = new Shader.Uniform[8];
-            lightPosition = new Shader.Uniform[8];
-            diffuseLightColors = new Shader.Uniform[8];
-            specularLightColors = new Shader.Uniform[8];
-            ambientLightColors = new Shader.Uniform[8];
-            spotlightDirections = new Shader.Uniform[8];
-            spotlightCutoffs = new Shader.Uniform[8];
-            spotlightExponents = new Shader.Uniform[8];
-            lightAttenuations = new Shader.Uniform[8];
-            for (int i = 0; i < 8; i++) {
-                enableSingleLight[i] = shader.getUniform("uEnableLight[" + i + "]");
-                lightPosition[i] = shader.getUniform("uLightPos[" + i + "]");
-                diffuseLightColors[i] = shader.getUniform("uLightDiffuse[" + i + "]");
-                specularLightColors[i] = shader.getUniform("uLightSpecular[" + i + "]");
-                ambientLightColors[i] = shader.getUniform("uLightAmbient[" + i + "]");
-                spotlightDirections[i] = shader.getUniform("uSpotlightDirection[" + i + "]");
-                spotlightExponents[i] = shader.getUniform("uSpotlightExponent[" + i + "]");
-                spotlightCutoffs[i] = shader.getUniform("uSpotlightCutoff[" + i + "]");
-                lightAttenuations[i] = shader.getUniform("uLightAttenuation[" + i + "]");
-            }
-
-            // FIXME assign default values to every uniform
-            defaultState = glsl.getCurrentState();
+            // get references to every uniform available and
+            // issue defaults to the uniforms so that we can snapshot that state as the default
+            loadVariables();
+            loadDefaultState();
         }
+    }
+
+    private void loadVariables() {
+        alphaRefValue = shader.getUniform("uAlphaRefValue");
+        alphaTest = shader.getUniform("uAlphaComparison");
+        enableAlphaTest = shader.getUniform("uEnableAlphaTest");
+
+        enableFog = shader.getUniform("uEnableFog");
+        fogConfig = shader.getUniform("uFogConfig");
+        fogColor = shader.getUniform("uFogColor");
+
+        modelviewMatrix = shader.getUniform("uModelview");
+        projectionMatrix = shader.getUniform("uProjection");
+        enableLighting = shader.getUniform("uEnableLighting");
+        globalAmbient = shader.getUniform("uGlobalLight");
+
+        ambientMaterial = shader.getUniform("uMatAmbient");
+        specularMaterial = shader.getUniform("uMatSpecular");
+        emittedMaterial = shader.getUniform("uMatEmissive");
+        shininess = shader.getUniform("uMatShininess");
+
+        enableSingleLight = shader.getUniform("uEnableLight");
+        lightPosition = shader.getUniform("uLightPos");
+        diffuseLightColors = shader.getUniform("uLightDiffuse");
+        specularLightColors = shader.getUniform("uLightSpecular");
+        ambientLightColors = shader.getUniform("uLightAmbient");
+        spotlightDirections = shader.getUniform("uSpotlightDirection");
+        spotlightExponents = shader.getUniform("uSpotlightExponent");
+        spotlightCutoffs = shader.getUniform("uSpotlightCutoff");
+        lightAttenuations = shader.getUniform("uLightAttenuation");
+
+        vertices = shader.getAttribute("aVertex");
+        normals = shader.getAttribute("aNormal");
+        colors = shader.getAttribute("aDiffuse");
+    }
+
+    private void loadDefaultState() {
+        glsl.setShader(shader);
+        FixedFunctionState defaults = new FixedFunctionState();
+
+        // alpha test uniforms
+        glsl.setUniform(alphaRefValue, defaults.alphaRefValue);
+        glsl.setUniform(alphaTest, defaults.alphaTest.ordinal());
+        glsl.setUniform(enableAlphaTest, defaults.alphaTest != Comparison.ALWAYS);
+
+        // fog uniforms
+        glsl.setUniform(fogColor, defaults.fogColor);
+        glsl.setUniform(enableFog, defaults.fogEnabled);
+
+        if (defaults.fogMode == FixedFunctionState.FogMode.EXP) {
+            cachedFogConfig.set(defaults.fogDensity, 0.0, 1.0);
+        } else if (defaults.fogMode == FixedFunctionState.FogMode.EXP_SQUARED) {
+            cachedFogConfig.set(defaults.fogDensity, 0.0, -1.0);
+        } else {
+            cachedFogConfig.set(defaults.fogStart, defaults.fogEnd, 0.0);
+        }
+        glsl.setUniform(fogConfig, cachedFogConfig);
+
+        // transform uniforms
+        glsl.setUniform(modelviewMatrix, defaults.modelView);
+        glsl.setUniform(projectionMatrix, defaults.projection);
+
+        // lighting
+        glsl.setUniform(enableLighting, defaults.lightingEnabled);
+        glsl.setUniform(globalAmbient, defaults.globalAmbient);
+        for (int i = 0; i < 8; i++) {
+            glsl.setUniformArray(enableSingleLight, i, defaults.lights[i].enabled);
+            glsl.setUniformArray(lightPosition, i, defaults.lights[i].position);
+            glsl.setUniformArray(diffuseLightColors, i, defaults.lights[i].diffuse);
+            glsl.setUniformArray(specularLightColors, i, defaults.lights[i].specular);
+            glsl.setUniformArray(ambientLightColors, i, defaults.lights[i].ambient);
+            glsl.setUniformArray(spotlightDirections, i, defaults.lights[i].spotlightDirection);
+            glsl.setUniformArray(spotlightCutoffs, i, defaults.lights[i].spotAngle);
+            glsl.setUniformArray(spotlightExponents, i, defaults.lights[i].spotExponent);
+            cachedAttenuations
+                    .set(defaults.lights[i].constAtt, defaults.lights[i].linAtt, defaults.lights[i].quadAtt);
+            glsl.setUniformArray(lightAttenuations, i, cachedAttenuations);
+        }
+
+        // material
+        glsl.setUniform(ambientMaterial, defaults.matAmbient);
+        glsl.setUniform(specularMaterial, defaults.matSpecular);
+        glsl.setUniform(emittedMaterial, defaults.matEmissive);
+        glsl.setUniform(shininess, defaults.matShininess);
+
+        glsl.bindAttribute(colors, defaults.matDiffuse);
+        glsl.bindAttribute(vertices, new Vector4());
+        glsl.bindAttribute(normals, new Vector3());
+
+        defaultState = glsl.getCurrentState();
     }
 
     private static class WrappedState implements ContextState<FixedFunctionRenderer> {

@@ -334,21 +334,6 @@ public interface Renderer {
             }
         },
         /**
-         * Every four vertices form a quadrilateral (ideally should be planar and convex to be rasterized
-         * properly).
-         */
-        QUADS {
-            @Override
-            public int getPolygonCount(int count) {
-                return count >> 2;
-            }
-
-            @Override
-            public int getPolygonSize() {
-                return 4;
-            }
-        },
-        /**
          * The first three vertices form a triangle, and then every subsequent vertex forms a triangle with
          * the previous two vertices.
          */

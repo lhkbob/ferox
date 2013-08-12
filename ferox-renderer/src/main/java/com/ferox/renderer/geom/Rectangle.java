@@ -111,6 +111,18 @@ public final class Rectangle {
             float[] va = new float[32];
             int i = 0;
 
+            // upper-left
+            va[i++] = (float) (xAxis.x * left + yAxis.x * top);
+            va[i++] = (float) (xAxis.y * left + yAxis.y * top);
+            va[i++] = (float) (xAxis.z * left + yAxis.z * top);
+
+            va[i++] = (float) normal.x;
+            va[i++] = (float) normal.y;
+            va[i++] = (float) normal.z;
+
+            va[i++] = 0f;
+            va[i++] = 1f;
+
             // lower-left
             va[i++] = (float) (xAxis.x * left + yAxis.x * bottom);
             va[i++] = (float) (xAxis.y * left + yAxis.y * bottom);
@@ -147,18 +159,6 @@ public final class Rectangle {
             va[i++] = 1f;
             va[i++] = 1f;
 
-            // upper-left
-            va[i++] = (float) (xAxis.x * left + yAxis.x * top);
-            va[i++] = (float) (xAxis.y * left + yAxis.y * top);
-            va[i++] = (float) (xAxis.z * left + yAxis.z * top);
-
-            va[i++] = (float) normal.x;
-            va[i++] = (float) normal.y;
-            va[i++] = (float) normal.z;
-
-            va[i++] = 0f;
-            va[i++] = 1f;
-
             vertexAttributes = framework.newVertexBuffer().from(va).build();
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
             normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
@@ -169,7 +169,7 @@ public final class Rectangle {
 
         @Override
         public PolygonType getPolygonType() {
-            return PolygonType.QUADS;
+            return PolygonType.TRIANGLE_STRIP;
         }
 
         @Override

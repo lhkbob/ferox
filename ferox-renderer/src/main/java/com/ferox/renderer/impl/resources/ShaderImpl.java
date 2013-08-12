@@ -53,7 +53,6 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
         super(handle);
         this.glslVersion = glslVersion;
 
-        // FIXME sort in appropriate order
         this.uniforms = Collections.unmodifiableList(uniforms);
         this.attributes = Collections.unmodifiableList(attributes);
         this.bufferMap = Collections.unmodifiableMap(bufferMap);
@@ -171,11 +170,11 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             if (u.floatValues != null) {
                 floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, u.floatValues.capacity())
                                         .asFloatBuffer();
-                floatValues.put(u.floatValues).reset();
+                floatValues.put(u.floatValues).clear();
                 intValues = null;
             } else {
                 intValues = BufferUtil.newByteBuffer(DataType.INT, u.intValues.capacity()).asIntBuffer();
-                intValues.put(u.intValues).reset();
+                intValues.put(u.intValues).clear();
                 floatValues = null;
             }
         }

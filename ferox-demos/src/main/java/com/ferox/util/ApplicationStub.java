@@ -46,8 +46,10 @@ public abstract class ApplicationStub {
     private boolean showFPS;
     private boolean showProfiling;
 
+    protected CharacterSet charSet;
+
     public ApplicationStub(Framework framework) {
-        this(framework, new OnscreenSurfaceOptions().windowed(800, 800).fixedSize());
+        this(framework, new OnscreenSurfaceOptions().windowed(800, 600).withDepthBuffer(24));
     }
 
     public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts) {
@@ -59,6 +61,8 @@ public abstract class ApplicationStub {
 
     public void run() {
         OnscreenSurface surface = framework.createSurface(opts);
+        charSet = new CharacterSet(framework, true, false);
+
         InputManager io = new InputManager();
         init(surface);
         installInputHandlers(io);
@@ -66,7 +70,6 @@ public abstract class ApplicationStub {
         io.attach(surface);
 
         Runtime r = Runtime.getRuntime();
-        CharacterSet charSet = new CharacterSet(framework, true, false);
         TextRenderer fps = null;
         TextRenderer profile = null;
 

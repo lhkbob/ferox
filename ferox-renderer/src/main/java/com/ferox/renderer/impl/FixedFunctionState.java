@@ -303,8 +303,6 @@ public class FixedFunctionState {
     // global lighting
     public final Vector4 globalAmbient;
     public boolean lightingEnabled;
-    public boolean lightingTwoSided;
-    public boolean lightingSmoothed;
 
     // lights
     public LightState[] lights; // "final"
@@ -354,8 +352,6 @@ public class FixedFunctionState {
 
         globalAmbient = new Vector4(DEFAULT_MAT_A_COLOR);
         lightingEnabled = false;
-        lightingTwoSided = false;
-        lightingSmoothed = true;
 
         lights = new LightState[MAX_LIGHTS];
         for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -408,8 +404,6 @@ public class FixedFunctionState {
         fogEnabled = toClone.fogEnabled;
         globalAmbient = new Vector4(toClone.globalAmbient);
         lightingEnabled = toClone.lightingEnabled;
-        lightingTwoSided = toClone.lightingTwoSided;
-        lightingSmoothed = toClone.lightingSmoothed;
 
         lights = new LightState[toClone.lights.length];
         for (int i = 0; i < lights.length; i++) {

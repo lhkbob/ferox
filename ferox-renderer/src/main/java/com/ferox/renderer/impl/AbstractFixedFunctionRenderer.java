@@ -1065,13 +1065,13 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     private void setTextureUnit(int unit) {
         if (unit != delegate.state.activeTexture) {
-            delegate.state.activeTexture = unit;
             glActiveTexture(unit);
         }
     }
 
     /**
-     * Invoke OpenGL calls to set the active texture unit
+     * Invoke OpenGL calls to set the active texture unit, and is responsible for updating the state, or
+     * delegating to the proper context method that preserves state
      */
     protected abstract void glActiveTexture(int unit);
 

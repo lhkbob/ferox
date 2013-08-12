@@ -27,58 +27,78 @@ in vec4 aDiffuse;
 
 // FIXME add texture coordinates
 
-out vec4 vPrimaryColor;
-out vec4 vSecondaryColor;
+out vec4 vFrontPrimaryColor;
+out vec4 vBackPrimaryColor;
+out vec4 vFrontSecondaryColor;
+out vec4 vBackSecondaryColor;
+
+void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
+                     out vec4 primaryColor, out vec4 secondaryColor) {
+    vec3 vp;
+    float attenuation = 1.0;
+    float spot = 0.0;
+    if (uLightPos[light].w == 0.0) {
+        // DIRECTION LIGHT
+        vp = normalize(uLightPos[light].xyz);
+        // don't need to compute attenuation or spot
+    } else {
+        // POINT OR SPOT LIGHT
+        vp = uLightPos[light].xyz - eyePos.xyz;
+        float d = length(vp);
+        vp = vp / d;
+
+        attenuation = 1.0 / (uLightAttenuation[light].x + uLightAttenuation[light].y * d + uLightAttenuation[light].z * d * d);
+        float sdi = max(dot(-vp, uSpotlightDirection[light]), 0.0);
+        if (uSpotlightCutoff[light] == 180.0) {
+            spot = 1.0;
+        } else if (sdi >= cos(radians(uSpotlightCutoff[light]))) {
+            spot = pow(sdi, uSpotlightExponent[light]);
+        }
+    }
+
+    float di = max(dot(eyeNorm, vp), 0.0);
+    primaryColor = attenuation * spot * (uMatAmbient * uLightAmbient[light] + di * aDiffuse * uLightDiffuse[light]);
+    if (di > 0) {
+        vec3 h = normalize(vp - eyeNorm);
+        float si = pow(max(dot(eyeNorm, h), 0.0), uMatShininess);
+        secondaryColor = attenuation * spot * si * uMatSpecular * uLightSpecular[light];
+    } else {
+        secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
+    }
+}
 
 void main() {
     vec4 eyePos = uModelview * aVertex;
-    vec4 primaryColor = aDiffuse;
-    vec4 secondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 frontPrimaryColor = aDiffuse;
+    vec4 frontSecondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+    vec4 backPrimaryColor = frontPrimaryColor;
+    vec4 backSecondaryColor = frontSecondaryColor;
 
     if (uEnableLighting) {
         vec3 eyeNorm = normalize((transpose(inverse(mat3(uModelview))) * aNormal.xyz));
+        vec3 backEyeNorm = -eyeNorm;
 
-        primaryColor = uMatEmissive + uMatAmbient * uGlobalLight;
+        frontPrimaryColor = uMatEmissive + uMatAmbient * uGlobalLight;
+        backPrimaryColor = frontPrimaryColor;
 
         for (int i = 0; i < 8; i++) {
             if (uEnableLight[i]) {
-                vec3 vp;
-                float attenuation = 1.0;
-                float spot = 0.0;
-                if (uLightPos[i].w == 0.0) {
-                    // DIRECTION LIGHT
-                    vp = normalize(uLightPos[i].xyz);
-                    // don't need to compute attenuation or spot
-                } else {
-                    // POINT OR SPOT LIGHT
-                    vp = uLightPos[i].xyz - eyePos.xyz;
-                    float d = length(vp);
-                    vp = vp / d;
+                vec4 fp, fs, bp, bs;
+                computeLighting(i, eyePos, eyeNorm, fp, fs);
+                computeLighting(i, eyePos, backEyeNorm, bp, bs);
 
-                    attenuation = 1.0 / (uLightAttenuation[i].x + uLightAttenuation[i].y * d + uLightAttenuation[i].z * d * d);
-                    float sdi = max(dot(-vp, uSpotlightDirection[i]), 0.0);
-                    if (uSpotlightCutoff[i] == 180.0) {
-                        spot = 1.0;
-                    } else if (sdi >= cos(radians(uSpotlightCutoff[i]))) {
-                        spot = pow(sdi, uSpotlightExponent[i]);
-                    }
-                }
-
-                float di = max(dot(eyeNorm, vp), 0.0);
-                primaryColor = primaryColor + attenuation * spot * (uMatAmbient * uLightAmbient[i] + di * aDiffuse * uLightDiffuse[i]);
-                if (di > 0) {
-                    vec3 h = normalize(vp - eyeNorm);
-                    float si = pow(max(dot(eyeNorm, h), 0.0), uMatShininess);
-                    secondaryColor = secondaryColor + attenuation * spot * si * uMatSpecular * uLightSpecular[i];
-                }
+                frontPrimaryColor += fp;
+                frontSecondaryColor += fs;
+                backPrimaryColor += bp;
+                backSecondaryColor += bs;
             }
         }
     }
 
-    primaryColor.w = 1.0;
-    secondaryColor.w = 1.0;
-    vPrimaryColor = primaryColor;
-    vSecondaryColor = secondaryColor;
+    vFrontPrimaryColor = vec4(frontPrimaryColor.xyz, aDiffuse.w);
+    vFrontSecondaryColor = vec4(frontSecondaryColor.xyz, 0.0);
+    vBackPrimaryColor = vec4(backPrimaryColor.xyz, aDiffuse.w);
+    vBackSecondaryColor = vec4(backSecondaryColor.xyz, 0.0);
     gl_Position = uProjection * eyePos;
 }
-

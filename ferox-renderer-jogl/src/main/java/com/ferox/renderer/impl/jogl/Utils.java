@@ -154,8 +154,6 @@ public class Utils {
             return GL.GL_LINES;
         case POINTS:
             return GL.GL_POINTS;
-        case QUADS:
-            return GL2.GL_QUADS;
         case TRIANGLE_STRIP:
             return GL.GL_TRIANGLE_STRIP;
         case TRIANGLES:

@@ -70,7 +70,7 @@ public class PbufferShadowContext extends JoglContext {
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         GLCapabilities glCaps = new GLCapabilities(creator.getGLProfile());
-        glCaps.setPBuffer(false);
+        glCaps.setPBuffer(true);
         glCaps.setFBO(false);
         glCaps.setOnscreen(false);
 

@@ -50,6 +50,9 @@ import java.nio.ShortBuffer;
 public class LwjglRendererDelegate extends RendererDelegate {
     // capabilities
     private boolean useGL3StyleFallback;
+
+    // note that we could just use the state variables as well, but this serves to isolate us from the
+    // canonical description and to act as a boolean check to use this behavior.
     private DrawStyle actualFront;
     private DrawStyle actualBack;
 

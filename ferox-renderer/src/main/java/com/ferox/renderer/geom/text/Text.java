@@ -285,7 +285,7 @@ public class Text {
             v[i++] = 1f;
 
             // tex
-            v[i++] = lastTextLayout[j * 4 + 0];
+            v[i++] = lastTextLayout[j * 4];
             v[i++] = lastTextLayout[j * 4 + 1];
         }
 
@@ -295,22 +295,34 @@ public class Text {
         final VertexAttribute ts = new VertexAttribute(vbo, 2, 6, 6);
         final AxisAlignedBox bounds = new AxisAlignedBox(v, 0, 5, vertexCount);
 
+        i = 0;
+        int[] ind = new int[3 * vertexCount / 2]; // every 4 vertices = 1 quad = 2 tri, each with 3 indices
+        for (int j = 0; j < vertexCount / 4; j++) {
+            ind[i++] = 4 * j;
+            ind[i++] = 4 * j + 1;
+            ind[i++] = 4 * j + 2;
+
+            ind[i++] = 4 * j + 2;
+            ind[i++] = 4 * j + 3;
+            ind[i++] = 4 * j;
+        }
+        final ElementBuffer ebo = framework.newElementBuffer().fromUnsigned(ind).build();
+
         return new Geometry() {
-            @Override
-            public
             @Const
-            AxisAlignedBox getBounds() {
+            @Override
+            public AxisAlignedBox getBounds() {
                 return bounds;
             }
 
             @Override
             public PolygonType getPolygonType() {
-                return PolygonType.QUADS;
+                return PolygonType.TRIANGLES;
             }
 
             @Override
             public ElementBuffer getIndices() {
-                return null;
+                return ebo;
             }
 
             @Override
@@ -320,7 +332,7 @@ public class Text {
 
             @Override
             public int getIndexCount() {
-                return vertexCount;
+                return ebo.getLength();
             }
 
             @Override

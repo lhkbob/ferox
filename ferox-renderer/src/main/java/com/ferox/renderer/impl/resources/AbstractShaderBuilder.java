@@ -41,6 +41,12 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, ShaderImpl.ShaderHandle>
         implements ShaderBuilder {
+    public static enum ShaderType {
+        VERTEX,
+        FRAGMENT,
+        GEOMETRY
+    }
+
     private static final Pattern VERSION = Pattern.compile("#VERSION (\\d+)[\\s]+.*");
 
     private String vertexCode;
@@ -160,17 +166,18 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
     @Override
     protected ShaderImpl.ShaderHandle allocate(OpenGLContext ctx) {
-        int geometryID = (geometryCode == null ? 0 : createNewGeometryShader(ctx));
-        return new ShaderImpl.ShaderHandle(framework, createNewProgram(ctx), createNewVertexShader(ctx),
-                                           createNewFragmentShader(ctx), geometryID);
+        int geometryID = (geometryCode == null ? 0 : createNewShader(ctx, ShaderType.GEOMETRY));
+        return new ShaderImpl.ShaderHandle(framework, createNewProgram(ctx),
+                                           createNewShader(ctx, ShaderType.VERTEX),
+                                           createNewShader(ctx, ShaderType.FRAGMENT), geometryID);
     }
 
     @Override
     protected void pushToGPU(OpenGLContext ctx, ShaderImpl.ShaderHandle handle) {
-        compileShader(ctx, handle.vertexShaderID, cleanSourceCode(vertexCode));
-        compileShader(ctx, handle.fragmentShaderID, cleanSourceCode(fragmentCode));
+        compileShader(ctx, ShaderType.VERTEX, handle.vertexShaderID, cleanSourceCode(vertexCode));
+        compileShader(ctx, ShaderType.FRAGMENT, handle.fragmentShaderID, cleanSourceCode(fragmentCode));
         if (geometryCode != null) {
-            compileShader(ctx, handle.geometryShaderID, cleanSourceCode(geometryCode));
+            compileShader(ctx, ShaderType.GEOMETRY, handle.geometryShaderID, cleanSourceCode(geometryCode));
         }
 
         attachShader(ctx, handle.programID, handle.vertexShaderID);
@@ -190,7 +197,9 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
         // query linked program state
         detectedUniforms = getUniforms(ctx, handle);
+        Collections.sort(detectedUniforms, indexSorter);
         detectedAttributes = getAttributes(ctx, handle);
+        Collections.sort(detectedAttributes, indexSorter);
 
         detectedBufferMapping = new HashMap<>();
         for (String variable : mappedBuffers.keySet()) {
@@ -216,13 +225,9 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
     protected abstract int createNewProgram(OpenGLContext context);
 
-    protected abstract int createNewVertexShader(OpenGLContext context);
+    protected abstract int createNewShader(OpenGLContext context, ShaderType type);
 
-    protected abstract int createNewFragmentShader(OpenGLContext context);
-
-    protected abstract int createNewGeometryShader(OpenGLContext context);
-
-    protected abstract void compileShader(OpenGLContext context, int shaderID, String code);
+    protected abstract void compileShader(OpenGLContext context, ShaderType type, int shaderID, String code);
 
     protected abstract void attachShader(OpenGLContext context, int programID, int shaderID);
 
@@ -254,4 +259,11 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
     private String cleanSourceCode(String code) {
         return code.replaceAll("\r\n", "\n");
     }
+
+    private static final Comparator<Shader.Variable> indexSorter = new Comparator<Shader.Variable>() {
+        @Override
+        public int compare(Shader.Variable o1, Shader.Variable o2) {
+            return o1.getIndex() - o2.getIndex();
+        }
+    };
 }

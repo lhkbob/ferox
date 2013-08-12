@@ -56,22 +56,21 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
     }
 
     @Override
-    protected int createNewVertexShader(OpenGLContext context) {
-        return getGL(context).glCreateShader(GL2GL3.GL_VERTEX_SHADER);
+    protected int createNewShader(OpenGLContext context, ShaderType type) {
+        switch (type) {
+        case VERTEX:
+            return getGL(context).glCreateShader(GL2GL3.GL_VERTEX_SHADER);
+        case FRAGMENT:
+            return getGL(context).glCreateShader(GL2GL3.GL_FRAGMENT_SHADER);
+        case GEOMETRY:
+            return getGL(context).glCreateShader(GL3.GL_GEOMETRY_SHADER);
+        default:
+            throw new UnsupportedOperationException("Unknown shader type: " + type);
+        }
     }
 
     @Override
-    protected int createNewFragmentShader(OpenGLContext context) {
-        return getGL(context).glCreateShader(GL2GL3.GL_FRAGMENT_SHADER);
-    }
-
-    @Override
-    protected int createNewGeometryShader(OpenGLContext context) {
-        return getGL(context).glCreateShader(GL3.GL_GEOMETRY_SHADER);
-    }
-
-    @Override
-    protected void compileShader(OpenGLContext context, int shaderID, String code) {
+    protected void compileShader(OpenGLContext context, ShaderType type, int shaderID, String code) {
         getGL(context).glShaderSource(shaderID, 1, new String[] { code }, new int[] { code.length() }, 0);
         getGL(context).glCompileShader(shaderID);
 
@@ -89,9 +88,10 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             getGL(context).glGetShaderInfoLog(shaderID, maxLogLength, query, 0, log, 0);
 
             String msg = new String(log, 0, query[0]);
-            throw new ResourceException("shader unit failed to compile: " + msg);
+            throw new ResourceException(type.name().toLowerCase() + " shader failed to compile: " + msg);
         } else {
-            throw new ResourceException("shader unit failed to compile without providing info log");
+            throw new ResourceException(
+                    type.name().toLowerCase() + " shader unit failed to compile without providing info log");
         }
     }
 

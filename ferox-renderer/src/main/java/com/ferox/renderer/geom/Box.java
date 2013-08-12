@@ -97,8 +97,8 @@ public final class Box {
 
     private static class BoxImpl implements Geometry {
         // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
-        // ordered in such a way as to not need indices
         private final VertexBuffer vertexAttributes;
+        private final ElementBuffer indices;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
@@ -128,41 +128,60 @@ public final class Box {
             int i = 0;
             float[] va = new float[192]; // 72v + 72n + 48t
 
+            // 3 verts per triangle, 2 triangles per face, 6 faces = 36
+            int[] indices = new int[] {
+                    0, 1, 2, 2, 3, 0, // BACK
+                    4, 5, 6, 6, 7, 4, // RIGHT
+                    8, 9, 10, 10, 11, 8, // FRONT
+                    12, 13, 14, 14, 15, 12, // LEFT
+                    16, 17, 18, 18, 19, 16, // TOP
+                    20, 21, 22, 22, 23, 20, // BOTTOM
+            };
+            this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
+
             // back
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = -1f; /* t */
+            va[i++] = -1f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = -1f; /* t */
+            va[i++] = -1f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = -1f; /* t */
+            va[i++] = -1f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = -1f; /* t */
+            va[i++] = -1f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -170,37 +189,45 @@ public final class Box {
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -208,37 +235,45 @@ public final class Box {
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 0f;
-            va[i++] = 1f; /* t */
+            va[i++] = 1f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -246,37 +281,45 @@ public final class Box {
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = -1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = -1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = -1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = -1f;
             va[i++] = 0f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -284,37 +327,45 @@ public final class Box {
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = 1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -322,37 +373,45 @@ public final class Box {
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = -1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = minZ; /* n */
+            va[i++] = minZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = -1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 1f;
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = -1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 0f;
             va[i++] = 0f;
             /* v */
             va[i++] = minX;
             va[i++] = minY;
-            va[i++] = maxZ; /* n */
+            va[i++] = maxZ;
+            /* n */
             va[i++] = 0f;
             va[i++] = -1f;
-            va[i++] = 0f; /* t */
+            va[i++] = 0f;
+            /* t */
             va[i++] = 1f;
             va[i++] = 0f;
 
@@ -366,12 +425,12 @@ public final class Box {
 
         @Override
         public PolygonType getPolygonType() {
-            return PolygonType.QUADS;
+            return PolygonType.TRIANGLES;
         }
 
         @Override
         public ElementBuffer getIndices() {
-            return null;
+            return indices;
         }
 
         @Override
@@ -381,7 +440,7 @@ public final class Box {
 
         @Override
         public int getIndexCount() {
-            return 24;
+            return 36;
         }
 
         @Override

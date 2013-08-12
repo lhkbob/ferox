@@ -57,22 +57,22 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
     }
 
     @Override
-    protected int createNewVertexShader(OpenGLContext context) {
-        return GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
+    protected int createNewShader(OpenGLContext context, ShaderType type) {
+        switch (type) {
+
+        case VERTEX:
+            return GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
+        case FRAGMENT:
+            return GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
+        case GEOMETRY:
+            return GL20.glCreateShader(EXTGeometryShader4.GL_GEOMETRY_SHADER_EXT);
+        default:
+            throw new UnsupportedOperationException("Unknown shader type: " + type);
+        }
     }
 
     @Override
-    protected int createNewFragmentShader(OpenGLContext context) {
-        return GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-    }
-
-    @Override
-    protected int createNewGeometryShader(OpenGLContext context) {
-        return GL20.glCreateShader(EXTGeometryShader4.GL_GEOMETRY_SHADER_EXT);
-    }
-
-    @Override
-    protected void compileShader(OpenGLContext context, int shaderID, String code) {
+    protected void compileShader(OpenGLContext context, ShaderType type, int shaderID, String code) {
         GL20.glShaderSource(shaderID, code);
         GL20.glCompileShader(shaderID);
 
@@ -83,10 +83,12 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         // otherwise compilation failure
         int maxLogLength = GL20.glGetShaderi(shaderID, GL20.GL_INFO_LOG_LENGTH);
         if (maxLogLength > 0) {
-            throw new ResourceException(
-                    "shader unit failed to compile: " + GL20.glGetShaderInfoLog(shaderID, maxLogLength));
+            throw new ResourceException(type.name().toLowerCase() +
+                                        " shader failed to compile: " +
+                                        GL20.glGetShaderInfoLog(shaderID, maxLogLength));
         } else {
-            throw new ResourceException("shader unit failed to compile without providing info log");
+            throw new ResourceException(
+                    type.name().toLowerCase() + " shader failed to compile without providing info log");
         }
     }
 

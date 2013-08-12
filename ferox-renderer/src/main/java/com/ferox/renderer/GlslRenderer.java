@@ -574,6 +574,8 @@ public interface GlslRenderer extends Renderer {
      */
     public void setUniform(Shader.Uniform var, @Const ColorRGB color, boolean isHDR);
 
+    // TODO document this
+
     public void bindAttributeArray(Shader.Attribute var, int index, VertexAttribute attr);
 
     public void bindAttributeArray(Shader.Attribute var, int index, int column, VertexAttribute attr);

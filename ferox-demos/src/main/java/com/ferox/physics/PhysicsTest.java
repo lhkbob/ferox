@@ -33,6 +33,7 @@ import com.ferox.math.Vector4;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
+import com.ferox.renderer.Renderer;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
 import com.ferox.scene.*;
@@ -41,10 +42,10 @@ import com.lhkbob.entreri.Entity;
 
 public class PhysicsTest extends PhysicsApplicationStub {
     private static final int NUM_X = 5;
-    private static final int NUM_Y = 5;
+    private static final int NUM_Y = 15;
     private static final int NUM_Z = 5;
     private static final double SCALE_X = 2.0;
-    private static final double SCALE_Y = 2.2;
+    private static final double SCALE_Y = 3.2;
     private static final double SCALE_Z = 2.0;
 
     private static final double RANDOM = 0;
@@ -90,7 +91,8 @@ public class PhysicsTest extends PhysicsApplicationStub {
                     double rz = (Math.random() * randZLim - randZLim / 2);
 
                     Entity e = system.addEntity();
-                    e.add(Renderable.class).setGeometry(geomShape);
+                    e.add(Renderable.class).setGeometry(geomShape)
+                     .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
                     e.add(LambertianDiffuseModel.class).setColor(color);
 
                     e.add(CollisionBody.class).setShape(physShape).setTransform(
@@ -111,8 +113,10 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // some walls
         Geometry bottomWall = Box.create(getFramework(), BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN);
         Entity wall = system.addEntity();
-        wall.add(Renderable.class).setGeometry(bottomWall);
+        wall.add(Renderable.class).setGeometry(bottomWall)
+            .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
         wall.add(LambertianDiffuseModel.class).setColor(new ColorRGB(0.5, 0.5, 0.5));
+        wall.add(DiffuseColorMap.class).setTexture(charSet.getTexture());
 
         wall.add(CollisionBody.class).setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
             .setTransform(new Matrix4().setIdentity().setCol(3, new Vector4(0, -.5, 0, 1)));

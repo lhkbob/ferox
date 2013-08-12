@@ -151,6 +151,11 @@ public class JoglContext implements OpenGLContext {
     public void makeCurrent() {
         try {
             context.makeCurrent();
+            //            if (context.getGL().isGL2() && !(context.getGL() instanceof DebugGL2)) {
+            //                context.setGL(new DebugGL2(context.getGL().getGL2()));
+            //            } else if (context.getGL().isGL3() && !(context.getGL() instanceof DebugGL3)) {
+            //                context.setGL(new DebugGL3(context.getGL().getGL3()));
+            //            }
         } catch (GLException e) {
             throw new FrameworkException("Unable to make context current", e);
         }

@@ -249,8 +249,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                         // mark it as reserved and configure the uniform
                         reservedUnits.add(unit);
-                        u.intValues.put(i, unit);
+
                         prepBuffer(u.intValues, i, u.getType());
+                        u.intValues.put(i, unit);
                         glUniform(u.getIndex() + i, u.getType(), u.intValues);
 
                         // bind a null texture
@@ -735,11 +736,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.floatValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.floatValues.get(offset) != val) {
             u.initialized = true;
             u.floatValues.put(offset, (float) val);
-            prepBuffer(u.floatValues, index, u.getType());
             glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
@@ -756,12 +757,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.floatValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.floatValues.get(offset) != v1 || u.floatValues.get(offset + 1) != v2) {
             u.initialized = true;
             u.floatValues.put(offset, (float) v1);
             u.floatValues.put(offset + 1, (float) v2);
-            prepBuffer(u.floatValues, index, u.getType());
             glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
@@ -778,6 +779,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.floatValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.floatValues.get(offset) != v1 || u.floatValues.get(offset + 1) != v1 ||
             u.floatValues.get(offset + 2) != v2 || u.floatValues.get(offset + 3) != v3) {
@@ -786,7 +788,6 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(offset + 1, (float) v2);
             u.floatValues.put(offset + 2, (float) v3);
             u.floatValues.put(offset + 3, (float) v4);
-            prepBuffer(u.floatValues, index, u.getType());
             glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
     }
@@ -803,9 +804,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
-        int offset = index * u.getType().getPrimitiveCount();
-        val.get(u.floatValues, offset, false);
         prepBuffer(u.floatValues, index, u.getType());
+        val.get(u.floatValues, index * u.getType().getPrimitiveCount(), false);
 
         u.initialized = true;
         glUniform(u.getIndex() + index, u.getType(), u.floatValues);
@@ -823,9 +823,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
-        int offset = index * u.getType().getPrimitiveCount();
-        val.get(u.floatValues, offset, false);
         prepBuffer(u.floatValues, index, u.getType());
+        val.get(u.floatValues, index * u.getType().getPrimitiveCount(), false);
 
         u.initialized = true;
         glUniform(u.getIndex() + index, u.getType(), u.floatValues);
@@ -847,6 +846,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.floatValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.floatValues.get(offset) != x || u.floatValues.get(offset + 1) != y ||
             u.floatValues.get(offset + 2) != z) {
@@ -854,7 +854,6 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(offset, (float) x);
             u.floatValues.put(offset + 1, (float) y);
             u.floatValues.put(offset + 2, (float) z);
-            prepBuffer(u.floatValues, index, u.getType());
 
             glUniform(u.getIndex() + index, u.getType(), u.floatValues);
         }
@@ -884,8 +883,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
-        if (var.getType() != Shader.VariableType.INT ||
-            var.getType() != Shader.VariableType.UINT ||
+        if (var.getType() != Shader.VariableType.INT &&
+            var.getType() != Shader.VariableType.UINT &&
             var.getType() != Shader.VariableType.BOOL) {
             throw new IllegalArgumentException("Uniform must have a type of INT, UINT, or BOOL");
         }
@@ -893,11 +892,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.intValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.intValues.get(offset) != val) {
             u.initialized = true;
             u.intValues.put(offset, val);
-            prepBuffer(u.intValues, index, u.getType());
 
             glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
@@ -908,8 +907,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
-        if (var.getType() != Shader.VariableType.IVEC2 ||
-            var.getType() != Shader.VariableType.UVEC2 ||
+        if (var.getType() != Shader.VariableType.IVEC2 &&
+            var.getType() != Shader.VariableType.UVEC2 &&
             var.getType() != Shader.VariableType.BVEC2) {
             throw new IllegalArgumentException("Uniform must have a type of IVEC2, UVEC2, or BVEC2");
         }
@@ -917,12 +916,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.intValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2) {
             u.initialized = true;
             u.intValues.put(offset, v1);
             u.intValues.put(offset + 1, v2);
-            prepBuffer(u.intValues, index, u.getType());
 
             glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
@@ -933,8 +932,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
-        if (var.getType() != Shader.VariableType.IVEC3 ||
-            var.getType() != Shader.VariableType.UVEC3 ||
+        if (var.getType() != Shader.VariableType.IVEC3 &&
+            var.getType() != Shader.VariableType.UVEC3 &&
             var.getType() != Shader.VariableType.BVEC3) {
             throw new IllegalArgumentException("Uniform must have a type of IVEC3, UVEC3, or BVEC3");
         }
@@ -942,6 +941,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.intValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2 ||
             u.intValues.get(offset + 2) != v3) {
@@ -949,7 +949,6 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(0, v1);
             u.intValues.put(1, v2);
             u.intValues.put(2, v3);
-            prepBuffer(u.intValues, index, u.getType());
 
             glUniform(u.getIndex(), u.getType(), u.intValues);
         }
@@ -960,8 +959,8 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (var == null) {
             throw new NullPointerException("Uniform cannot be null");
         }
-        if (var.getType() != Shader.VariableType.IVEC4 ||
-            var.getType() != Shader.VariableType.UVEC4 ||
+        if (var.getType() != Shader.VariableType.IVEC4 &&
+            var.getType() != Shader.VariableType.UVEC4 &&
             var.getType() != Shader.VariableType.BVEC4) {
             throw new IllegalArgumentException("Uniform must have a type of IVEC4, UVEC4, or BVEC4");
         }
@@ -969,6 +968,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         ShaderImpl.UniformImpl u = (ShaderImpl.UniformImpl) var;
         validate(u, index);
 
+        prepBuffer(u.intValues, index, u.getType());
         int offset = index * u.getType().getPrimitiveCount();
         if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2 ||
             u.intValues.get(offset + 2) != v3 || u.intValues.get(offset + 3) != v4) {
@@ -977,7 +977,6 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(offset + 1, v2);
             u.intValues.put(offset + 2, v3);
             u.intValues.put(offset + 3, v4);
-            prepBuffer(u.intValues, index, u.getType());
 
             glUniform(u.getIndex() + index, u.getType(), u.intValues);
         }
@@ -985,23 +984,23 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
     @Override
     public void setUniformArray(Shader.Uniform var, int index, boolean val) {
-        setUniform(var, val ? 1 : 0);
+        setUniformArray(var, index, val ? 1 : 0);
     }
 
     @Override
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2) {
-        setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0);
+        setUniformArray(var, index, v1 ? 1 : 0, v2 ? 1 : 0);
     }
 
     @Override
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3) {
-        setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0);
+        setUniformArray(var, index, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0);
     }
 
     @Override
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3,
                                 boolean v4) {
-        setUniform(var, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0, v4 ? 1 : 0);
+        setUniformArray(var, index, v1 ? 1 : 0, v2 ? 1 : 0, v3 ? 1 : 0, v4 ? 1 : 0);
     }
 
     private void validateSamplerType(Shader.VariableType type, Sampler texture) {

@@ -1,7 +1,7 @@
 #version 150
 
 uniform bool uEnableAlphaTest;
-uniform uint uAlphaComparison; // ordinal of Comparison
+uniform int uAlphaComparison; // ordinal of Comparison
 uniform float uAlphaRefValue;
 
 uniform vec3 uFogConfig; // 0 = start/density 1 = end 2 = signal (0 = linear, > = exp, < = exp squared)
@@ -10,16 +10,27 @@ uniform bool uEnableFog;
 
 // FIXME add texture uniforms somehow
 
-in vec4 vPrimaryColor;
-in vec4 vSecondaryColor;
+in vec4 vFrontPrimaryColor;
+in vec4 vFrontSecondaryColor;
+in vec4 vBackPrimaryColor;
+in vec4 vBackSecondaryColor;
 
 // FIXME add interpolated texture coordinates
 
 out vec4 fColor;
 
 void main() {
+    vec4 primaryColor, secondaryColor;
+    if (gl_FrontFacing) {
+        primaryColor = vFrontPrimaryColor;
+        secondaryColor = vFrontSecondaryColor;
+    } else {
+        primaryColor = vBackPrimaryColor;
+        secondaryColor = vBackSecondaryColor;
+    }
+
     // FIXME apply texturing to vPrimaryColor before color sum
-    vec4 color = vPrimaryColor + vec4(vSecondaryColor.xyz, 0.0);
+    vec4 color = primaryColor + secondaryColor;
 
     // fog
     if (uEnableFog) {
@@ -48,37 +59,37 @@ void main() {
 
     // alpha test
     if (uEnableAlphaTest) {
-        if (uAlphaComparison == 0u) {
+        if (uAlphaComparison == 0) {
             // EQUAL
             if (uAlphaRefValue != color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 1u) {
+        } else if (uAlphaComparison == 1) {
             // GREATER
             if (uAlphaRefValue <= color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 2u) {
+        } else if (uAlphaComparison == 2) {
             // LESS
             if (uAlphaRefValue >= color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 3u) {
+        } else if (uAlphaComparison == 3) {
             // GEQUAL
             if (uAlphaRefValue < color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 4u) {
+        } else if (uAlphaComparison == 4) {
             // LEQUAL
             if (uAlphaRefValue > color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 5u) {
+        } else if (uAlphaComparison == 5) {
             // NOT_EQUAL
             if (uAlphaRefValue == color.a) {
                 discard;
             }
-        } else if (uAlphaComparison == 6u) {
+        } else if (uAlphaComparison == 6) {
             // NEVER
             discard;
         }

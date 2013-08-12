@@ -196,6 +196,8 @@ public class PhysicsApplicationStub extends ApplicationStub {
 
     @Override
     protected void init(OnscreenSurface surface) {
+        surface.setVSyncEnabled(true);
+
         // physics handling
         physicsJob = system.getScheduler()
                            .createJob("physics", Timers.fixedDelta(1 / 60.0), new IntegrationTask(),
