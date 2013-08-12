@@ -56,6 +56,7 @@ public class JoglContext implements OpenGLContext {
     private final JoglGlslRenderer glsl;
 
     private int fbo;
+    private int vao;
 
     /**
      * Create a JoglContext wrapper around the given GLContext. It is assumed the provided Capabilities
@@ -80,8 +81,10 @@ public class JoglContext implements OpenGLContext {
         JoglRendererDelegate shared = new JoglRendererDelegate(this, sharedState);
         glsl = new JoglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
         if (caps.getMajorVersion() < 3) {
+            vao = 0; // do not use vao's at all
             fixed = new JoglFixedFunctionRenderer(this, shared);
         } else {
+            vao = -1; // specify that vao needs to be created first time this context is made current
             fixed = new ShaderFixedFunctionEmulator(glsl);
         }
     }
@@ -151,11 +154,13 @@ public class JoglContext implements OpenGLContext {
     public void makeCurrent() {
         try {
             context.makeCurrent();
-            //            if (context.getGL().isGL2() && !(context.getGL() instanceof DebugGL2)) {
-            //                context.setGL(new DebugGL2(context.getGL().getGL2()));
-            //            } else if (context.getGL().isGL3() && !(context.getGL() instanceof DebugGL3)) {
-            //                context.setGL(new DebugGL3(context.getGL().getGL3()));
-            //            }
+            if (vao < 0) {
+                // make a vao for attributes
+                int[] id = new int[1];
+                context.getGL().getGL3().glGenVertexArrays(1, id, 0);
+                vao = id[0];
+                context.getGL().getGL3().glBindVertexArray(vao);
+            }
         } catch (GLException e) {
             throw new FrameworkException("Unable to make context current", e);
         }

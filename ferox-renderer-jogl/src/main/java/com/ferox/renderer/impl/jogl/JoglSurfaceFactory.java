@@ -65,7 +65,7 @@ public class JoglSurfaceFactory implements SurfaceFactory {
         if (GLProfile.isAvailable(GLProfile.GL4)) {
             profile = GLProfile.get(GLProfile.GL4);
         } else if (GLProfile.isAvailable(GLProfile.GL3)) {
-            profile = GLProfile.get(GLProfile.GL2);
+            profile = GLProfile.get(GLProfile.GL3);
         } else {
             profile = GLProfile.get(GLProfile.GL2);
         }

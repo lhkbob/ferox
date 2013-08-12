@@ -57,6 +57,7 @@ public class LwjglContext implements OpenGLContext {
     private final LwjglGlslRenderer glsl;
 
     private int fbo;
+    private int vao;
 
     // cached switches for extensions
     private final boolean useEXTFramebufferObject;
@@ -88,8 +89,10 @@ public class LwjglContext implements OpenGLContext {
         glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
 
         if (caps.getMajorVersion() < 3) {
+            vao = 0; // set to 0 so we don't use the vao when rendering
             fixed = new LwjglFixedFunctionRenderer(this, shared);
         } else {
+            vao = -1; // set to negative to create when we're first made current
             fixed = new ShaderFixedFunctionEmulator(glsl);
         }
     }
@@ -163,6 +166,11 @@ public class LwjglContext implements OpenGLContext {
     public void makeCurrent() {
         try {
             context.makeCurrent();
+            if (vao < 0) {
+                // create a single VAO to use for all vertex array binding
+                vao = GL30.glGenVertexArrays();
+                GL30.glBindVertexArray(vao);
+            }
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to make context current", e);
         }

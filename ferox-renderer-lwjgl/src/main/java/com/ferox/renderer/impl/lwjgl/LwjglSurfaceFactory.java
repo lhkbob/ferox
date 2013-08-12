@@ -59,8 +59,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         if (LWJGLUtil.getPlatform() == LWJGLUtil.PLATFORM_MACOSX &&
             LWJGLUtil.isMacOSXEqualsOrBetterThan(10, 7)) {
             // for mac we need to explicitly select this context profile to get 3+
-            //            attribs = new ContextAttribs(3, 2).withProfileCore(true);
-            attribs = null;
+            attribs = new ContextAttribs(3, 2).withProfileCore(true);
         } else {
             // for everyone else, it should just automatically select the highest opengl version
             // FIXME I think we should have better profile support because the presence of the compatibility

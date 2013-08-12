@@ -23,6 +23,11 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private final Vector3 cachedFogConfig = new Vector3();
     private final Vector3 cachedAttenuations = new Vector3();
 
+    private final Vector3 cachedSpotlightDirection = new Vector3();
+    private final Vector4 cachedLightPos = new Vector4();
+
+    private final Matrix4 modelview = new Matrix4();
+
     // lazily allocated during the first activate()
     private Shader shader;
     private ContextState<GlslRenderer> defaultState;
@@ -292,8 +297,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     @Override
     public void setLightPosition(int light, @Const Vector4 pos) {
         // FIXME validate w
-        // FIXME transform into eye space
-        glsl.setUniformArray(lightPosition, light, pos);
+        cachedLightPos.mul(modelview, pos);
+        glsl.setUniformArray(lightPosition, light, cachedLightPos);
     }
 
     @Override
@@ -306,8 +311,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     @Override
     public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
         // FIXME prenormalize the direction
-        // FIXME transform into eye space
-        glsl.setUniformArray(spotlightDirections, light, dir);
+        cachedSpotlightDirection.transform(modelview, dir, 0.0);
+        glsl.setUniformArray(spotlightDirections, light, cachedSpotlightDirection);
         glsl.setUniformArray(spotlightCutoffs, light, angle);
         glsl.setUniformArray(spotlightExponents, light, exponent);
     }
@@ -408,7 +413,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     @Override
     public void setModelViewMatrix(@Const Matrix4 modelView) {
         glsl.setUniform(modelviewMatrix, modelView);
-        // FIXME store modelview so that we can compute eye space params for lights and eye planes
+        modelview.set(modelView);
     }
 
     // FIXME validate element size and or type? type should be handled, but element size is more flexible
@@ -533,6 +538,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
         // transform uniforms
         glsl.setUniform(modelviewMatrix, defaults.modelView);
+        modelview.set(defaults.modelView);
         glsl.setUniform(projectionMatrix, defaults.projection);
 
         // lighting
