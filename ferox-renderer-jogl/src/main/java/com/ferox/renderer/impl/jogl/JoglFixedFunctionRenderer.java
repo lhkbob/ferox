@@ -221,16 +221,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glEnableLineAntiAliasing(boolean enable) {
-        glEnable(GL2.GL_LINE_SMOOTH, enable);
-    }
-
-    @Override
-    protected void glLineWidth(double width) {
-        gl.glLineWidth((float) width);
-    }
-
-    @Override
     protected void glMaterialColor(ColorPurpose component, @Const Vector4 color) {
         int c = getGLLight(component);
         if (component == FixedFunctionState.ColorPurpose.DIFFUSE) {
@@ -244,21 +234,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glMaterialShininess(double shininess) {
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, (float) shininess);
-    }
-
-    @Override
-    protected void glEnablePointAntiAliasing(boolean enable) {
-        glEnable(GL2.GL_POINT_SMOOTH, enable);
-    }
-
-    @Override
-    protected void glPointWidth(double width) {
-        gl.glPointSize((float) width);
-    }
-
-    @Override
-    protected void glEnablePolyAntiAliasing(boolean enable) {
-        glEnable(GL2.GL_POLYGON_SMOOTH, enable);
     }
 
     @Override

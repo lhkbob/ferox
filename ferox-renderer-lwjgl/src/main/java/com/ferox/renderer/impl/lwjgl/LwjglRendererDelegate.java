@@ -72,6 +72,31 @@ public class LwjglRendererDelegate extends RendererDelegate {
     }
 
     @Override
+    protected void glEnablePointAntiAliasing(boolean enable) {
+        glEnable(GL11.GL_POINT_SMOOTH, enable);
+    }
+
+    @Override
+    protected void glPointWidth(double width) {
+        GL11.glPointSize((float) width);
+    }
+
+    @Override
+    protected void glEnablePolyAntiAliasing(boolean enable) {
+        glEnable(GL11.GL_POLYGON_SMOOTH, enable);
+    }
+
+    @Override
+    protected void glEnableLineAntiAliasing(boolean enable) {
+        glEnable(GL11.GL_LINE_SMOOTH, enable);
+    }
+
+    @Override
+    protected void glLineWidth(double width) {
+        GL11.glLineWidth((float) width);
+    }
+
+    @Override
     protected void glBlendColor(@Const Vector4 color) {
         GL14.glBlendColor((float) color.x, (float) color.y, (float) color.z, (float) color.w);
     }

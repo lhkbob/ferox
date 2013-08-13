@@ -118,13 +118,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         setMaterial(f.matAmbient, f.matDiffuse, f.matSpecular, f.matEmissive);
         setMaterialShininess(f.matShininess);
 
-        setLineAntiAliasingEnabled(f.lineAAEnabled);
-        setPointAntiAliasingEnabled(f.pointAAEnabled);
-        setPolygonAntiAliasingEnabled(f.pointAAEnabled);
-
-        setLineSize(f.lineWidth);
-        setPointSize(f.pointWidth);
-
         setProjectionMatrix(f.projection);
 
         // set the modelview to the identity matrix, since the subsequent state
@@ -544,35 +537,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected abstract void glEnableLighting(boolean enable);
 
     @Override
-    public void setLineAntiAliasingEnabled(boolean enable) {
-        if (state.lineAAEnabled != enable) {
-            state.lineAAEnabled = enable;
-            glEnableLineAntiAliasing(enable);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to enable line aa
-     */
-    protected abstract void glEnableLineAntiAliasing(boolean enable);
-
-    @Override
-    public void setLineSize(double width) {
-        if (width < 1f) {
-            throw new IllegalArgumentException("Line width must be at least 1, not: " + width);
-        }
-        if (state.lineWidth != width) {
-            state.lineWidth = width;
-            glLineWidth(width);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to set line width
-     */
-    protected abstract void glLineWidth(double width);
-
-    @Override
     public void setMaterial(@Const Vector4 amb, @Const Vector4 diff, @Const Vector4 spec,
                             @Const Vector4 emm) {
         setMaterialAmbient(amb);
@@ -646,48 +610,6 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
      * Invoke OpenGL calls to set the material shininess
      */
     protected abstract void glMaterialShininess(double shininess);
-
-    @Override
-    public void setPointAntiAliasingEnabled(boolean enable) {
-        if (state.pointAAEnabled != enable) {
-            state.pointAAEnabled = enable;
-            glEnablePointAntiAliasing(enable);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to enable point aa
-     */
-    protected abstract void glEnablePointAntiAliasing(boolean enable);
-
-    @Override
-    public void setPointSize(double width) {
-        if (width < 1.0) {
-            throw new IllegalArgumentException("Point width must be at least 1, not: " + width);
-        }
-        if (state.pointWidth != width) {
-            state.pointWidth = width;
-            glPointWidth(width);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to set point width
-     */
-    protected abstract void glPointWidth(double width);
-
-    @Override
-    public void setPolygonAntiAliasingEnabled(boolean enable) {
-        if (state.polyAAEnabled != enable) {
-            state.polyAAEnabled = enable;
-            glEnablePolyAntiAliasing(enable);
-        }
-    }
-
-    /**
-     * Invoke OpenGL calls to enable polygon aa
-     */
-    protected abstract void glEnablePolyAntiAliasing(boolean enable);
 
     @Override
     public void setTexture(int tex, Sampler image) {

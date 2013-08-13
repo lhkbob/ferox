@@ -218,16 +218,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     }
 
     @Override
-    protected void glEnableLineAntiAliasing(boolean enable) {
-        glEnable(GL11.GL_LINE_SMOOTH, enable);
-    }
-
-    @Override
-    protected void glLineWidth(double width) {
-        GL11.glLineWidth((float) width);
-    }
-
-    @Override
     protected void glMaterialColor(ColorPurpose component, @Const Vector4 color) {
         int c = getGLLight(component);
         if (component == ColorPurpose.DIFFUSE) {
@@ -241,21 +231,6 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glMaterialShininess(double shininess) {
         GL11.glMaterialf(GL11.GL_FRONT_AND_BACK, GL11.GL_SHININESS, (float) shininess);
-    }
-
-    @Override
-    protected void glEnablePointAntiAliasing(boolean enable) {
-        glEnable(GL11.GL_POINT_SMOOTH, enable);
-    }
-
-    @Override
-    protected void glPointWidth(double width) {
-        GL11.glPointSize((float) width);
-    }
-
-    @Override
-    protected void glEnablePolyAntiAliasing(boolean enable) {
-        glEnable(GL11.GL_POLYGON_SMOOTH, enable);
     }
 
     @Override

@@ -372,6 +372,69 @@ public interface Renderer {
 
     /**
      * <p/>
+     * Set to true to cause points to be rendered as anti-aliased circles instead of squares. When
+     * anti-aliasing is enabled, the final point width may not be exactly the requested point size. This
+     * anti-aliasing is independent of any per-pixel anti-aliasing performed by the Surface.
+     * <p/>
+     * Point anti-aliasing is disabled by default.
+     *
+     * @param enable True if points should be anti-aliased
+     */
+    public void setPointAntiAliasingEnabled(boolean enable);
+
+    /**
+     * <p/>
+     * Set to true to cause lines to be rendered as anti-aliased lines. When enabled, the actual line width
+     * may not be exactly the requested line width. This anti-aliasing is independent of the Surface
+     * anti-aliasing.
+     * <p/>
+     * Line anti-aliasing is disabled by default.
+     *
+     * @param enable True if lines should be anti-aliased
+     */
+    public void setLineAntiAliasingEnabled(boolean enable);
+
+    /**
+     * <p/>
+     * Set to true if the edges of rendered polygons should be anti-aliased. It is not recommended to use this
+     * when using adjacent polygons because the edges are independently anti-aliased and will appear to pull
+     * away from each other. Polygons that have DrawStyles of LINE or POINT use the anti-aliasing
+     * configuration for points and lines.
+     * <p/>
+     * Polygon anti-aliasing is disabled by default.
+     *
+     * @param enable True if solid polygons should have their edges anti-aliased
+     */
+    public void setPolygonAntiAliasingEnabled(boolean enable);
+
+    /**
+     * <p/>
+     * Set the pixel width of rendered points. If the width has a fractional component, it will only appear
+     * that width when anti-aliasing is enabled.
+     * <p/>
+     * The default point width is 1.
+     *
+     * @param width The new point width
+     *
+     * @throws IllegalArgumentException if width < 1
+     */
+    public void setPointSize(double width);
+
+    /**
+     * <p/>
+     * Set the line width of rendered lines. If the width has a fractional component, it will only appear the
+     * correct width when line anti-aliasing is enabled.
+     * <p/>
+     * The default line width is 1.
+     *
+     * @param width The new line width
+     *
+     * @throws IllegalArgumentException if width < 1
+     */
+    public void setLineSize(double width);
+
+    /**
+     * <p/>
      * Set the {@link Renderer.StencilUpdate} operations for the three stages in the pixel pipeline that can
      * update the stencil buffer.
      * <p/>

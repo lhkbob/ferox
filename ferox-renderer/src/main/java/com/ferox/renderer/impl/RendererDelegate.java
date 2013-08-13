@@ -108,6 +108,13 @@ public abstract class RendererDelegate {
         setStencilUpdateBack(state.stencilFailBack, state.depthFailBack, state.depthPassBack);
         setStencilTestEnabled(state.stencilEnabled);
 
+        setLineAntiAliasingEnabled(state.lineAAEnabled);
+        setPointAntiAliasingEnabled(state.pointAAEnabled);
+        setPolygonAntiAliasingEnabled(state.pointAAEnabled);
+
+        setLineSize(state.lineWidth);
+        setPointSize(state.pointWidth);
+
         if (state.viewWidth >= 0 && state.viewHeight >= 0) {
             setViewport(state.viewX, state.viewY, state.viewWidth, state.viewHeight);
         }
@@ -142,6 +149,72 @@ public abstract class RendererDelegate {
      */
     public abstract void clear(boolean clearColor, boolean clearDepth, boolean clearStencil,
                                @Const Vector4 color, double depth, int stencil);
+
+    public void setLineAntiAliasingEnabled(boolean enable) {
+        if (state.lineAAEnabled != enable) {
+            state.lineAAEnabled = enable;
+            glEnableLineAntiAliasing(enable);
+        }
+    }
+
+    /**
+     * Invoke OpenGL calls to enable line aa
+     */
+    protected abstract void glEnableLineAntiAliasing(boolean enable);
+
+    public void setLineSize(double width) {
+        if (width < 1f) {
+            throw new IllegalArgumentException("Line width must be at least 1, not: " + width);
+        }
+        if (state.lineWidth != width) {
+            state.lineWidth = width;
+            glLineWidth(width);
+        }
+    }
+
+    /**
+     * Invoke OpenGL calls to set line width
+     */
+    protected abstract void glLineWidth(double width);
+
+    public void setPointAntiAliasingEnabled(boolean enable) {
+        if (state.pointAAEnabled != enable) {
+            state.pointAAEnabled = enable;
+            glEnablePointAntiAliasing(enable);
+        }
+    }
+
+    /**
+     * Invoke OpenGL calls to enable point aa
+     */
+    protected abstract void glEnablePointAntiAliasing(boolean enable);
+
+    public void setPointSize(double width) {
+        if (width < 1.0) {
+            throw new IllegalArgumentException("Point width must be at least 1, not: " + width);
+        }
+        if (state.pointWidth != width) {
+            state.pointWidth = width;
+            glPointWidth(width);
+        }
+    }
+
+    /**
+     * Invoke OpenGL calls to set point width
+     */
+    protected abstract void glPointWidth(double width);
+
+    public void setPolygonAntiAliasingEnabled(boolean enable) {
+        if (state.polyAAEnabled != enable) {
+            state.polyAAEnabled = enable;
+            glEnablePolyAntiAliasing(enable);
+        }
+    }
+
+    /**
+     * Invoke OpenGL calls to enable polygon aa
+     */
+    protected abstract void glEnablePolyAntiAliasing(boolean enable);
 
     public void setBlendColor(@Const Vector4 color) {
         if (color == null) {

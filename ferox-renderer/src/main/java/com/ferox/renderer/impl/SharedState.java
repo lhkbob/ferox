@@ -92,6 +92,14 @@ public class SharedState {
 
     public boolean stencilEnabled;
 
+    // primitive size/aa
+    public boolean lineAAEnabled;
+    public boolean pointAAEnabled;
+    public boolean polyAAEnabled;
+
+    public double lineWidth;
+    public double pointWidth;
+
     // bindable resources
     public BufferImpl.BufferHandle elementVBO;
     public BufferImpl.BufferHandle arrayVBO;
@@ -154,6 +162,13 @@ public class SharedState {
         stencilMaskFront = ~0;
         stencilMaskBack = ~0;
 
+        lineAAEnabled = false;
+        pointAAEnabled = false;
+        polyAAEnabled = false;
+
+        lineWidth = 1;
+        pointWidth = 1;
+
         viewX = 0;
         viewY = 0;
         viewWidth = -1;
@@ -208,6 +223,12 @@ public class SharedState {
 
         stencilMaskFront = toClone.stencilMaskFront;
         stencilMaskBack = toClone.stencilMaskBack;
+
+        lineAAEnabled = toClone.lineAAEnabled;
+        pointAAEnabled = toClone.pointAAEnabled;
+        polyAAEnabled = toClone.polyAAEnabled;
+        lineWidth = toClone.lineWidth;
+        pointWidth = toClone.pointWidth;
 
         viewX = toClone.viewX;
         viewY = toClone.viewY;

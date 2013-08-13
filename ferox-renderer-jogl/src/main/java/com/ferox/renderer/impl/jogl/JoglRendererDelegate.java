@@ -35,6 +35,7 @@ import com.ferox.renderer.impl.RendererDelegate;
 import com.ferox.renderer.impl.SharedState;
 import com.ferox.renderer.impl.resources.BufferImpl;
 
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
 
 /**
@@ -66,6 +67,31 @@ public class JoglRendererDelegate extends RendererDelegate {
      */
     public JoglRendererDelegate(OpenGLContext context, SharedState sharedState) {
         super(context, sharedState);
+    }
+
+    @Override
+    protected void glEnableLineAntiAliasing(boolean enable) {
+        glEnable(GL2.GL_LINE_SMOOTH, enable);
+    }
+
+    @Override
+    protected void glLineWidth(double width) {
+        gl.glLineWidth((float) width);
+    }
+
+    @Override
+    protected void glEnablePointAntiAliasing(boolean enable) {
+        glEnable(GL2.GL_POINT_SMOOTH, enable);
+    }
+
+    @Override
+    protected void glPointWidth(double width) {
+        gl.glPointSize((float) width);
+    }
+
+    @Override
+    protected void glEnablePolyAntiAliasing(boolean enable) {
+        glEnable(GL2.GL_POLYGON_SMOOTH, enable);
     }
 
     @Override

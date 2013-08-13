@@ -315,14 +315,6 @@ public class FixedFunctionState {
 
     public double matShininess;
 
-    // primitive size/aa
-    public boolean lineAAEnabled;
-    public boolean pointAAEnabled;
-    public boolean polyAAEnabled;
-
-    public double lineWidth;
-    public double pointWidth;
-
     // texturing
     public final TextureState[] textures;
 
@@ -367,13 +359,6 @@ public class FixedFunctionState {
 
         matShininess = 0;
 
-        lineAAEnabled = false;
-        pointAAEnabled = false;
-        polyAAEnabled = false;
-
-        lineWidth = 1;
-        pointWidth = 1;
-
         textures = new TextureState[MAX_TEXTURES];
         for (int i = 0; i < MAX_TEXTURES; i++) {
             textures[i] = new TextureState(i);
@@ -415,11 +400,6 @@ public class FixedFunctionState {
         matSpecular = new Vector4(toClone.matSpecular);
         matEmissive = new Vector4(toClone.matEmissive);
         matShininess = toClone.matShininess;
-        lineAAEnabled = toClone.lineAAEnabled;
-        pointAAEnabled = toClone.pointAAEnabled;
-        polyAAEnabled = toClone.polyAAEnabled;
-        lineWidth = toClone.lineWidth;
-        pointWidth = toClone.pointWidth;
 
         textures = new TextureState[toClone.textures.length];
         for (int i = 0; i < textures.length; i++) {

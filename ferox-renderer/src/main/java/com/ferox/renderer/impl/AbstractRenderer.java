@@ -74,6 +74,29 @@ public abstract class AbstractRenderer implements Renderer, Activateable {
         clear(clearColor, clearDepth, clearStencil, BLACK, 1.0, 0);
     }
 
+    public void setLineAntiAliasingEnabled(boolean enable) {
+        delegate.setLineAntiAliasingEnabled(enable);
+    }
+
+    public void setLineSize(double width) {
+        delegate.setLineSize(width);
+    }
+
+    @Override
+    public void setPointAntiAliasingEnabled(boolean enable) {
+        delegate.setPointAntiAliasingEnabled(enable);
+    }
+
+    @Override
+    public void setPointSize(double width) {
+        delegate.setPointSize(width);
+    }
+
+    @Override
+    public void setPolygonAntiAliasingEnabled(boolean enable) {
+        delegate.setPolygonAntiAliasingEnabled(enable);
+    }
+
     @Override
     public void setBlendColor(@Const Vector4 color) {
         delegate.setBlendColor(color);

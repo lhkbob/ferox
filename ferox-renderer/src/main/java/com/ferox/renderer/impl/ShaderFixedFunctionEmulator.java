@@ -250,25 +250,29 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(fogConfig, cachedFogConfig);
     }
 
-    // FIXME move these up to Renderer?
     @Override
     public void setPointAntiAliasingEnabled(boolean enable) {
+        glsl.setPointAntiAliasingEnabled(enable);
     }
 
     @Override
     public void setLineAntiAliasingEnabled(boolean enable) {
+        glsl.setLineAntiAliasingEnabled(enable);
     }
 
     @Override
     public void setPolygonAntiAliasingEnabled(boolean enable) {
+        glsl.setPolygonAntiAliasingEnabled(enable);
     }
 
     @Override
     public void setPointSize(double width) {
+        glsl.setPointSize(width);
     }
 
     @Override
     public void setLineSize(double width) {
+        glsl.setLineSize(width);
     }
 
     @Override
