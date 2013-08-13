@@ -10,27 +10,16 @@ uniform bool uEnableFog;
 
 // FIXME add texture uniforms somehow
 
-in vec4 vFrontPrimaryColor;
-in vec4 vFrontSecondaryColor;
-in vec4 vBackPrimaryColor;
-in vec4 vBackSecondaryColor;
+in vec4 vPrimaryColor;
+in vec4 vSecondaryColor;
 
 // FIXME add interpolated texture coordinates
 
 out vec4 fColor;
 
 void main() {
-    vec4 primaryColor, secondaryColor;
-    if (gl_FrontFacing) {
-        primaryColor = vFrontPrimaryColor;
-        secondaryColor = vFrontSecondaryColor;
-    } else {
-        primaryColor = vBackPrimaryColor;
-        secondaryColor = vBackSecondaryColor;
-    }
-
     // FIXME apply texturing to vPrimaryColor before color sum
-    vec4 color = primaryColor + secondaryColor;
+    vec4 color = vPrimaryColor + vSecondaryColor;
 
     // fog
     if (uEnableFog) {

@@ -1,6 +1,7 @@
 #version 150
 
 uniform mat4 uModelview;
+uniform mat3 uNormalMatrix; // compute on CPU to improve performance when vertex bound
 uniform mat4 uProjection;
 
 uniform bool uEnableLighting;
@@ -11,8 +12,8 @@ uniform vec4 uLightPos[8];
 uniform vec4 uLightDiffuse[8];
 uniform vec4 uLightAmbient[8];
 uniform vec4 uLightSpecular[8];
-uniform vec3 uSpotlightDirection[8];
-uniform float uSpotlightCutoff[8];
+uniform vec3 uSpotlightDirection[8]; // assumed to be normalized
+uniform float uSpotlightCutoff[8]; // cached to cos of actual angle, so 180 -> -1.0
 uniform float uSpotlightExponent[8];
 uniform vec3 uLightAttenuation[8];
 
@@ -27,10 +28,8 @@ in vec4 aDiffuse;
 
 // FIXME add texture coordinates
 
-out vec4 vFrontPrimaryColor;
-out vec4 vBackPrimaryColor;
-out vec4 vFrontSecondaryColor;
-out vec4 vBackSecondaryColor;
+out vec4 vPrimaryColor;
+out vec4 vSecondaryColor;
 
 void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
                      out vec4 primaryColor, out vec4 secondaryColor) {
@@ -49,9 +48,9 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
 
         attenuation = 1.0 / (uLightAttenuation[light].x + uLightAttenuation[light].y * d + uLightAttenuation[light].z * d * d);
         float sdi = max(dot(-vp, uSpotlightDirection[light]), 0.0);
-        if (uSpotlightCutoff[light] == 180.0) {
+        if (uSpotlightCutoff[light] == -1.0) {
             spot = 1.0;
-        } else if (sdi >= cos(radians(uSpotlightCutoff[light]))) {
+        } else if (sdi >= uSpotlightCutoff[light]) {
             spot = pow(sdi, uSpotlightExponent[light]);
         }
     }
@@ -63,42 +62,33 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
         float si = pow(max(dot(eyeNorm, h), 0.0), uMatShininess);
         secondaryColor = attenuation * spot * si * uMatSpecular * uLightSpecular[light];
     } else {
-        secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
+       secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
 }
 
 void main() {
     vec4 eyePos = uModelview * aVertex;
-    vec4 frontPrimaryColor = aDiffuse;
-    vec4 frontSecondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
-
-    vec4 backPrimaryColor = frontPrimaryColor;
-    vec4 backSecondaryColor = frontSecondaryColor;
+    vec4 primaryColor = aDiffuse;
+    vec4 secondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
 
     if (uEnableLighting) {
-        vec3 eyeNorm = normalize((transpose(inverse(mat3(uModelview))) * aNormal.xyz));
+        vec3 eyeNorm = normalize(uNormalMatrix * aNormal.xyz);
         vec3 backEyeNorm = -eyeNorm;
 
-        frontPrimaryColor = uMatEmissive + uMatAmbient * uGlobalLight;
-        backPrimaryColor = frontPrimaryColor;
+        primaryColor = uMatEmissive + uMatAmbient * uGlobalLight;
 
         for (int i = 0; i < 8; i++) {
             if (uEnableLight[i]) {
-                vec4 fp, fs, bp, bs;
+                vec4 fp, fs;
                 computeLighting(i, eyePos, eyeNorm, fp, fs);
-                computeLighting(i, eyePos, backEyeNorm, bp, bs);
 
-                frontPrimaryColor += fp;
-                frontSecondaryColor += fs;
-                backPrimaryColor += bp;
-                backSecondaryColor += bs;
+                primaryColor += fp;
+                secondaryColor += fs;
             }
         }
     }
 
-    vFrontPrimaryColor = vec4(frontPrimaryColor.xyz, aDiffuse.w);
-    vFrontSecondaryColor = vec4(frontSecondaryColor.xyz, 0.0);
-    vBackPrimaryColor = vec4(backPrimaryColor.xyz, aDiffuse.w);
-    vBackSecondaryColor = vec4(backSecondaryColor.xyz, 0.0);
+    vPrimaryColor = vec4(primaryColor.xyz, aDiffuse.w);
+    vSecondaryColor = vec4(secondaryColor.xyz, 0.0);
     gl_Position = uProjection * eyePos;
 }

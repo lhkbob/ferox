@@ -61,7 +61,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     // state tracking
     private boolean alphaTestEnabled;
-    private boolean twosidedLighting;
 
     private GL2 gl;
 
@@ -72,7 +71,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
         transferBuffer = BufferUtil.newByteBuffer(DataType.FLOAT, 16).asFloatBuffer();
         alphaTestEnabled = false;
-        twosidedLighting = false;
     }
 
     @Override
@@ -93,19 +91,6 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
         }
 
         super.activate(surface);
-    }
-
-    @Override
-    public void setDrawStyle(DrawStyle front, DrawStyle back) {
-        super.setDrawStyle(front, back);
-
-        if (back != DrawStyle.NONE && !twosidedLighting) {
-            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
-            twosidedLighting = true;
-        } else if (back == DrawStyle.NONE && twosidedLighting) {
-            gl.glLightModeli(GL2.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_FALSE);
-            twosidedLighting = false;
-        }
     }
 
     @Override

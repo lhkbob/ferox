@@ -40,7 +40,7 @@ import com.ferox.math.Vector4;
  * <p/>
  * For the purposes of lighting, the renderer supports 8 simultaneous lights. For the purposes of texturing,
  * the renderer supports 4 simultaneous textures. Lighting is computed using the Blinn-Phong model adopted by
- * OpenGL and will use two-sided lighting, separate specular colors, and smooth shading.
+ * OpenGL and will use single-sided lighting, separate specular colors, and smooth shading.
  *
  * @author Michael Ludwig
  */

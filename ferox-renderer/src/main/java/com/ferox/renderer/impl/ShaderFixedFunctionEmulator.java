@@ -1,9 +1,6 @@
 package com.ferox.renderer.impl;
 
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.ShaderBuilder;
 
@@ -27,6 +24,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private final Vector4 cachedLightPos = new Vector4();
 
     private final Matrix4 modelview = new Matrix4();
+    private final Matrix3 normal = new Matrix3();
 
     // lazily allocated during the first activate()
     private Shader shader;
@@ -37,6 +35,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
      */
     private Shader.Uniform modelviewMatrix; // mat4
     private Shader.Uniform projectionMatrix; // mat4
+    private Shader.Uniform normalMatrix; // mat3
 
     private Shader.Uniform enableLighting; // bool
 
@@ -296,7 +295,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setLightPosition(int light, @Const Vector4 pos) {
-        // FIXME validate w
+        if (pos.w != 0 && pos.w != 1.0) {
+            throw new IllegalArgumentException(
+                    "Light position must have a w component of 0 or 1, not: " + pos.w);
+        }
         cachedLightPos.mul(modelview, pos);
         glsl.setUniformArray(lightPosition, light, cachedLightPos);
     }
@@ -310,10 +312,9 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
-        // FIXME prenormalize the direction
-        cachedSpotlightDirection.transform(modelview, dir, 0.0);
+        cachedSpotlightDirection.transform(modelview, dir, 0.0).normalize();
         glsl.setUniformArray(spotlightDirections, light, cachedSpotlightDirection);
-        glsl.setUniformArray(spotlightCutoffs, light, angle);
+        glsl.setUniformArray(spotlightCutoffs, light, Math.cos(Math.toRadians(angle)));
         glsl.setUniformArray(spotlightExponents, light, exponent);
     }
 
@@ -414,6 +415,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     public void setModelViewMatrix(@Const Matrix4 modelView) {
         glsl.setUniform(modelviewMatrix, modelView);
         modelview.set(modelView);
+
+        // compute normal matrix
+        normal.setUpper(modelView).inverse().transpose();
+        glsl.setUniform(normalMatrix, normal);
     }
 
     // FIXME validate element size and or type? type should be handled, but element size is more flexible
@@ -491,6 +496,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
         modelviewMatrix = shader.getUniform("uModelview");
         projectionMatrix = shader.getUniform("uProjection");
+        normalMatrix = shader.getUniform("uNormalMatrix");
         enableLighting = shader.getUniform("uEnableLighting");
         globalAmbient = shader.getUniform("uGlobalLight");
 
@@ -537,8 +543,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(fogConfig, cachedFogConfig);
 
         // transform uniforms
-        glsl.setUniform(modelviewMatrix, defaults.modelView);
         modelview.set(defaults.modelView);
+        glsl.setUniform(modelviewMatrix, defaults.modelView);
+        normal.setUpper(modelview).inverse().transpose();
+        glsl.setUniform(normalMatrix, normal);
         glsl.setUniform(projectionMatrix, defaults.projection);
 
         // lighting
