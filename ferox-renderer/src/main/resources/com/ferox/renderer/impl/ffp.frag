@@ -26,13 +26,13 @@ void main() {
         float factor = 0.0;
         if (uFogConfig.z > 0) {
             // EXP
-            factor = exp(-uFogConfig.x * gl_FragDepth);
+            factor = exp(-uFogConfig.x * gl_FragCoord.z);
         } else if (uFogConfig.z < 0) {
             // EXP2
-            factor = exp(-(uFogConfig.x * uFogConfig.x * gl_FragDepth * gl_FragDepth));
+            factor = exp(-(uFogConfig.x * uFogConfig.x * gl_FragCoord.z * gl_FragCoord.z));
         } else {
             // LINEAR
-            factor = (uFogConfig.y - gl_FragDepth) / (uFogConfig.y - uFogConfig.x);
+            factor = (uFogConfig.y - gl_FragCoord.z) / (uFogConfig.y - uFogConfig.x);
         }
 
         // clamp to [0, 1]

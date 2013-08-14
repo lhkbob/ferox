@@ -563,7 +563,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             glsl.setUniformArray(specularLightColors, i, defaults.lights[i].specular);
             glsl.setUniformArray(ambientLightColors, i, defaults.lights[i].ambient);
             glsl.setUniformArray(spotlightDirections, i, defaults.lights[i].spotlightDirection);
-            glsl.setUniformArray(spotlightCutoffs, i, defaults.lights[i].spotAngle);
+            glsl.setUniformArray(spotlightCutoffs, i, Math.cos(Math.toRadians(defaults.lights[i].spotAngle)));
             glsl.setUniformArray(spotlightExponents, i, defaults.lights[i].spotExponent);
             cachedAttenuations
                     .set(defaults.lights[i].constAtt, defaults.lights[i].linAtt, defaults.lights[i].quadAtt);

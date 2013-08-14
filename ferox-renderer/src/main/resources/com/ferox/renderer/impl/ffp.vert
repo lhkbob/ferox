@@ -35,7 +35,7 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
                      out vec4 primaryColor, out vec4 secondaryColor) {
     vec3 vp;
     float attenuation = 1.0;
-    float spot = 0.0;
+    float spot = 1.0;
     if (uLightPos[light].w == 0.0) {
         // DIRECTION LIGHT
         vp = normalize(uLightPos[light].xyz);
@@ -48,28 +48,31 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
 
         attenuation = 1.0 / (uLightAttenuation[light].x + uLightAttenuation[light].y * d + uLightAttenuation[light].z * d * d);
         float sdi = max(dot(-vp, uSpotlightDirection[light]), 0.0);
-        if (uSpotlightCutoff[light] == -1.0) {
-            spot = 1.0;
-        } else if (sdi >= uSpotlightCutoff[light]) {
-            spot = pow(sdi, uSpotlightExponent[light]);
+        if (uSpotlightCutoff[light] != -1.0) {
+            if (sdi >= uSpotlightCutoff[light]) {
+                spot = pow(sdi, uSpotlightExponent[light]);
+            } else {
+                spot = 0.0;
+            }
         }
     }
 
     float di = max(dot(eyeNorm, vp), 0.0);
     primaryColor = attenuation * spot * (uMatAmbient * uLightAmbient[light] + di * aDiffuse * uLightDiffuse[light]);
+
     if (di > 0) {
-        vec3 h = normalize(vp - eyeNorm);
+        vec3 h = normalize(vp - normalize(eyePos.xyz));
         float si = pow(max(dot(eyeNorm, h), 0.0), uMatShininess);
         secondaryColor = attenuation * spot * si * uMatSpecular * uLightSpecular[light];
     } else {
-       secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
+        secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
     }
 }
 
 void main() {
     vec4 eyePos = uModelview * aVertex;
     vec4 primaryColor = aDiffuse;
-    vec4 secondaryColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
 
     if (uEnableLighting) {
         vec3 eyeNorm = normalize(uNormalMatrix * aNormal.xyz);
