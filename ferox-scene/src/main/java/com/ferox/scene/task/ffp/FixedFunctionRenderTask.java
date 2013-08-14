@@ -271,7 +271,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         ComponentIterator it = system.fastIterator();
         AtmosphericFog fog = it.addRequired(AtmosphericFog.class);
-        Transform transform = it.addRequired(Transform.class);
+        Transform transform = it.addOptional(Transform.class);
         InfluenceRegion influence = it.addOptional(InfluenceRegion.class);
 
         while (it.next()) {
@@ -321,7 +321,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         ComponentIterator it = system.fastIterator();
         AmbientLight light = it.addRequired(AmbientLight.class);
-        Transform transform = it.addRequired(Transform.class);
+        Transform transform = it.addOptional(Transform.class);
         InfluenceRegion influence = it.addOptional(InfluenceRegion.class);
 
         while (it.next()) {
