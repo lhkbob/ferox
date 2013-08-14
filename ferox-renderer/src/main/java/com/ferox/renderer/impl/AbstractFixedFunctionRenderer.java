@@ -144,20 +144,9 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             setTextureCombineAlpha(i, tf.alphaFunc, tf.srcAlpha[0], tf.opAlpha[0], tf.srcAlpha[1],
                                    tf.opAlpha[1], tf.srcAlpha[2], tf.opAlpha[2]);
 
-            setTextureCoordGeneration(i, TexCoord.S, tf.tcS);
-            setTextureCoordGeneration(i, TexCoord.T, tf.tcT);
-            setTextureCoordGeneration(i, TexCoord.R, tf.tcR);
-            setTextureCoordGeneration(i, TexCoord.Q, tf.tcQ);
-
-            setTextureObjectPlane(i, TexCoord.S, tf.objPlaneS);
-            setTextureObjectPlane(i, TexCoord.T, tf.objPlaneT);
-            setTextureObjectPlane(i, TexCoord.R, tf.objPlaneR);
-            setTextureObjectPlane(i, TexCoord.Q, tf.objPlaneQ);
-
-            setTextureObjectPlane(i, TexCoord.S, tf.eyePlaneS);
-            setTextureObjectPlane(i, TexCoord.T, tf.eyePlaneT);
-            setTextureObjectPlane(i, TexCoord.R, tf.eyePlaneR);
-            setTextureObjectPlane(i, TexCoord.Q, tf.eyePlaneQ);
+            setTextureCoordGeneration(i, tf.source);
+            setTextureObjectPlanes(i, tf.objPlanes);
+            setTextureEyePlanes(i, tf.eyePlanes);
 
             setTextureTransform(i, tf.textureMatrix);
         }
@@ -785,192 +774,66 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
 
     @Override
     public void setTextureCoordGeneration(int tex, TexCoordSource gen) {
-        setTextureCoordGeneration(tex, TexCoord.S, gen);
-        setTextureCoordGeneration(tex, TexCoord.T, gen);
-        setTextureCoordGeneration(tex, TexCoord.R, gen);
-        setTextureCoordGeneration(tex, TexCoord.Q, gen);
-    }
-
-    @Override
-    public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen) {
-        if (coord == null) {
-            throw new NullPointerException("TexCoord can't be null");
-        }
         if (gen == null) {
             throw new NullPointerException("TexCoordSource can't be null");
         }
 
         TextureState t = state.textures[tex];
-        switch (coord) {
-        case S:
-            if (t.tcS != gen) {
-                setTextureUnit(tex);
-                if (t.tcS == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, true);
-                } else if (gen == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, false);
-                }
-
-                t.tcS = gen;
-                glTexGen(coord, gen);
-            }
-            break;
-        case R:
-            if (t.tcR != gen) {
-                setTextureUnit(tex);
-                if (t.tcR == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, true);
-                } else if (gen == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, false);
-                }
-
-                t.tcR = gen;
-                glTexGen(coord, gen);
-            }
-            break;
-        case T:
-            if (t.tcT != gen) {
-                setTextureUnit(tex);
-                if (t.tcT == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, true);
-                } else if (gen == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, false);
-                }
-
-                t.tcT = gen;
-                glTexGen(coord, gen);
-            }
-            break;
-        case Q:
-            if (t.tcQ != gen) {
-                setTextureUnit(tex);
-                if (t.tcQ == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, true);
-                } else if (gen == TexCoordSource.ATTRIBUTE) {
-                    glEnableTexGen(coord, false);
-                }
-
-                t.tcQ = gen;
-                glTexGen(coord, gen);
-            }
-            break;
+        if (gen != t.source) {
+            t.source = gen;
+            setTextureUnit(tex);
+            glTexGen(gen);
         }
     }
 
     /**
-     * Invoke OpenGL to set the coordinate generation for the active texture
+     * Invoke OpenGL to set the coordinate generation for the active texture, disable tex gen if source is
+     * ATTRIBUTE.
      */
-    protected abstract void glTexGen(TexCoord coord, TexCoordSource gen);
-
-    /**
-     * Invoke OpenGL operations to enable/disable coord generation
-     */
-    protected abstract void glEnableTexGen(TexCoord coord, boolean enable);
+    protected abstract void glTexGen(TexCoordSource gen);
 
     @Override
-    public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane) {
-        if (plane == null) {
-            throw new NullPointerException("Eye plane cannot be null");
-        }
-        if (coord == null) {
-            throw new NullPointerException("TexCoord cannot be null");
+    public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
+        if (planes == null) {
+            throw new NullPointerException("Object planes cannot be null");
         }
 
         TextureState t = state.textures[tex];
-
         if (isModelInverseDirty) {
             // update inverse matrix
             inverseModelView.inverse(state.modelView);
             isModelInverseDirty = false;
         }
 
-        switch (coord) {
-        case S:
-            t.eyePlaneS.mul(plane, inverseModelView);
-            break;
-        case T:
-            t.eyePlaneT.mul(plane, inverseModelView);
-            break;
-        case R:
-            t.eyePlaneR.mul(plane, inverseModelView);
-            break;
-        case Q:
-            t.eyePlaneQ.mul(plane, inverseModelView);
-            break;
-        }
-
+        // store post transform
+        t.eyePlanes.mul(planes, inverseModelView);
         flushModelView();
         setTextureUnit(tex);
-        glTexEyePlane(coord, plane);
-    }
-
-    @Override
-    public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
-        setTextureEyePlane(tex, TexCoord.S, planes.getRow(0));
-        setTextureEyePlane(tex, TexCoord.T, planes.getRow(1));
-        setTextureEyePlane(tex, TexCoord.R, planes.getRow(2));
-        setTextureEyePlane(tex, TexCoord.Q, planes.getRow(3));
+        glTexEyePlanes(planes);
     }
 
     /**
      * Invoke OpenGL to set the eye plane for the given coordinate on the active texture
      */
-    protected abstract void glTexEyePlane(TexCoord coord, @Const Vector4 plane);
-
-    @Override
-    public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane) {
-        if (plane == null) {
-            throw new NullPointerException("Object plane cannot be null");
-        }
-        if (coord == null) {
-            throw new NullPointerException("TexCoord cannot be null");
-        }
-
-        TextureState t = state.textures[tex];
-        switch (coord) {
-        case S:
-            if (!t.objPlaneS.equals(plane)) {
-                t.objPlaneS.set(plane);
-                setTextureUnit(tex);
-                glTexObjPlane(coord, plane);
-            }
-            break;
-        case T:
-            if (!t.objPlaneT.equals(plane)) {
-                t.objPlaneT.set(plane);
-                setTextureUnit(tex);
-                glTexObjPlane(coord, plane);
-            }
-            break;
-        case R:
-            if (!t.objPlaneR.equals(plane)) {
-                t.objPlaneR.set(plane);
-                setTextureUnit(tex);
-                glTexObjPlane(coord, plane);
-            }
-            break;
-        case Q:
-            if (!t.objPlaneQ.equals(plane)) {
-                t.objPlaneQ.set(plane);
-                setTextureUnit(tex);
-                glTexObjPlane(coord, plane);
-            }
-            break;
-        }
-    }
+    protected abstract void glTexEyePlanes(@Const Matrix4 planes);
 
     @Override
     public void setTextureObjectPlanes(int tex, @Const Matrix4 planes) {
-        setTextureObjectPlane(tex, TexCoord.S, planes.getRow(0));
-        setTextureObjectPlane(tex, TexCoord.T, planes.getRow(1));
-        setTextureObjectPlane(tex, TexCoord.R, planes.getRow(2));
-        setTextureObjectPlane(tex, TexCoord.Q, planes.getRow(3));
+        if (planes == null) {
+            throw new NullPointerException("Object planes cannot be null");
+        }
+
+        TextureState t = state.textures[tex];
+        if (!planes.equals(t.objPlanes)) {
+            t.objPlanes.set(planes);
+            glTexObjPlanes(planes);
+        }
     }
 
     /**
      * Invoke OpenGL to set the object plane for the active texture
      */
-    protected abstract void glTexObjPlane(TexCoord coord, @Const Vector4 plane);
+    protected abstract void glTexObjPlanes(@Const Matrix4 planes);
 
     @Override
     public void setTextureTransform(int tex, @Const Matrix4 matrix) {

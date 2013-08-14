@@ -197,31 +197,6 @@ public interface FixedFunctionRenderer extends Renderer {
     }
 
     /**
-     * TexCoord represents the enum of available texture coordinates used to access a texture. Each texture
-     * can be accessed by up to four coordinates: (s, t, r, q). Often however, only the first two or three are
-     * used. When all four are specified, the q coordinate acts as a homogeneous coordinate. If r is not
-     * provided for when a Texture requires three coordinates, undefined results occur.
-     */
-    public static enum TexCoord {
-        /**
-         * The first texture coordinate.
-         */
-        S,
-        /**
-         * The second texture coordinate.
-         */
-        T,
-        /**
-         * The third texture coordinate.
-         */
-        R,
-        /**
-         * The fourth texture coordinate.
-         */
-        Q
-    }
-
-    /**
      * When mapping a Texture onto a rendered Geometry, texture coordinates are used to wrap the image about
      * the shape. There are multiple options for how these coordinates are derived.
      */
@@ -645,7 +620,7 @@ public interface FixedFunctionRenderer extends Renderer {
     /**
      * <p/>
      * Set the texture coordinate source for all four coordinates to <var>gen</var>, for the given texture
-     * unit.
+     * unit. See {@link TexCoordSource} for a description of each source.
      * <p/>
      * The default source for every texture unit and coordinate is ATTRIBUTE.
      *
@@ -654,81 +629,29 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException      if gen is null
      * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     * @see #setTextureCoordGeneration(int, TexCoord, TexCoordSource)
      */
     public void setTextureCoordGeneration(int tex, TexCoordSource gen);
 
     /**
+     * Set the sixteen values used for {@link TexCoordSource#OBJECT} generation for each coordinate. Each set
+     * of four values represent (p1, p2, p3, p4) as described in TexCoordSource.OBJECT.
      * <p/>
-     * Set the texture coordinate source for the specified texture coordinate for the given texture unit.
-     * These texture coordinates can be auto-generated or specified as part of the Geometry. See {@link
-     * TexCoordSource} for a description of each source.
-     * <p/>
-     * The default state uses a source of ATTRIBUTE for every unit and all four coordinates.
-     *
-     * @param tex   The texture unit
-     * @param coord The coordinate that's source is to be modified
-     * @param gen   The new texture coordinate source
-     *
-     * @throws NullPointerException      if coord or gen are null
-     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     */
-    public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen);
-
-    /**
-     * <p/>
-     * Set the four values used for {@link TexCoordSource#OBJECT} generation for the given coordinate. These
-     * four values represent (p1, p2, p3, p4) as described in TexCoordSource.OBJECT. Each texture coordinate
-     * has its own four planar values (for each unit, too). These four values are independent of the four
-     * values stored for the eye plane.
-     * <p/>
-     * For every texture unit, the S coordinate has a value of (1, 0, 0, 0), the T coordinate has a value of
-     * (0, 1, 0, 0), and both R and Q have (0, 0, 0, 0).
-     *
-     * @param tex   The texture unit
-     * @param coord The coordinate whose object plane will be set
-     * @param plane The object plane that's used for this unit and coordinate
-     *
-     * @throws NullPointerException      if coord or plane are null
-     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     */
-    public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane);
-
-    /**
-     * Set the object plane for S coordinate to the first row of the matrix {@code planes}, the plane for T to
-     * the second row, the plane for R to the third row, and the plane for Q to the fourth row.
+     * This sets the object plane for S coordinate to the first row of the matrix {@code planes}, the plane
+     * for T to the second row, the plane for R to the third row, and the plane for Q to the fourth row.
      *
      * @param tex    The texture unit
      * @param planes The matrix holding the 4 plane equations in row-order
      *
      * @throws NullPointerException      if planes is null
      * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     * @see #setTextureObjectPlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
-     *      com.ferox.math.Vector4)
      */
     public void setTextureObjectPlanes(int tex, @Const Matrix4 planes);
 
     /**
+     * Set the sixteen values used for {@link TexCoordSource#EYE} generation for each coordinate. Each set of
+     * four values represent (p1, p2, p3, p4) as described in TexCoordSource.EYE. These four values are
+     * multiplied by the inverse of the current modelview matrix when this method is invoked.
      * <p/>
-     * Set the four values used for the {@link TexCoordSource#EYE} generation for the given coordinate and
-     * texture. These four values represent (p1, p2, p3, p4) as described in TexCoordSource.EYE. These four
-     * values are multiplied by the inverse of the current modelview matrix when this method is invoked. Like
-     * with the object plane, each coordinate for each unit has its own set of four eye plane values. These
-     * values are independent from the object plane.
-     * <p/>
-     * For every texture unit, the S coordinate has a value of (1, 0, 0, 0), the T coordinate has a value of
-     * (0, 1, 0, 0), and both R and Q have (0, 0, 0, 0).
-     *
-     * @param tex   The texture unit
-     * @param coord The coordinate whose eye plane will be set
-     * @param plane The eye plane to be specified, values are before inverse modelview multiplication
-     *
-     * @throws NullPointerException      if coord or plane are null
-     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     */
-    public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane);
-
-    /**
      * Set the eue plane for S coordinate to the first row of the matrix {@code planes}, the plane for T to
      * the second row, the plane for R to the third row, and the plane for Q to the fourth row.
      *
@@ -737,8 +660,6 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException      if planes is null
      * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
-     * @see #setTextureEyePlane(int, com.ferox.renderer.FixedFunctionRenderer.TexCoord,
-     *      com.ferox.math.Vector4)
      */
     public void setTextureEyePlanes(int tex, @Const Matrix4 planes);
 

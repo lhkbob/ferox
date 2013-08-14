@@ -28,7 +28,10 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.DataType;
-import com.ferox.renderer.FixedFunctionRenderer.*;
+import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
+import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
+import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.Sampler;
 import com.ferox.renderer.Shader;
@@ -824,24 +827,6 @@ public class Utils {
         default:
             throw new RuntimeException("Unsupported enum value: " + gen);
         }
-    }
-
-    /**
-     * Coord must be null
-     */
-    public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
-        switch (coord) {
-        case Q:
-            return (forEnable ? GL11.GL_TEXTURE_GEN_Q : GL11.GL_Q);
-        case R:
-            return (forEnable ? GL11.GL_TEXTURE_GEN_R : GL11.GL_R);
-        case S:
-            return (forEnable ? GL11.GL_TEXTURE_GEN_S : GL11.GL_S);
-        case T:
-            return (forEnable ? GL11.GL_TEXTURE_GEN_T : GL11.GL_T);
-        }
-
-        return -1;
     }
 
     /**

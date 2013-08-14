@@ -165,21 +165,12 @@ public class FixedFunctionState {
     public static class TextureState {
         public final int unit;
 
-        public TexCoordSource tcS;
-        public TexCoordSource tcT;
-        public TexCoordSource tcR;
-        public TexCoordSource tcQ;
+        public TexCoordSource source;
 
-        public final Vector4 objPlaneS;
-        public final Vector4 objPlaneT;
-        public final Vector4 objPlaneR;
-        public final Vector4 objPlaneQ;
+        public final Matrix4 objPlanes;
 
         // post-transform by current modelview matrix
-        public final Vector4 eyePlaneS;
-        public final Vector4 eyePlaneT;
-        public final Vector4 eyePlaneR;
-        public final Vector4 eyePlaneQ;
+        public final Matrix4 eyePlanes;
 
         public final Matrix4 textureMatrix;
 
@@ -197,17 +188,12 @@ public class FixedFunctionState {
         public TextureState(int unit) {
             this.unit = unit;
 
-            tcS = tcT = tcR = tcQ = TexCoordSource.ATTRIBUTE;
+            source = TexCoordSource.ATTRIBUTE;
 
-            objPlaneS = new Vector4(DEFAULT_S_PLANE);
-            objPlaneT = new Vector4(DEFAULT_T_PLANE);
-            objPlaneR = new Vector4(DEFAULT_RQ_PLANE);
-            objPlaneQ = new Vector4(DEFAULT_RQ_PLANE);
-
-            eyePlaneS = new Vector4(DEFAULT_S_PLANE);
-            eyePlaneT = new Vector4(DEFAULT_T_PLANE);
-            eyePlaneR = new Vector4(DEFAULT_RQ_PLANE);
-            eyePlaneQ = new Vector4(DEFAULT_RQ_PLANE);
+            objPlanes = new Matrix4().setRow(0, DEFAULT_S_PLANE).setRow(1, DEFAULT_T_PLANE)
+                                     .setRow(2, DEFAULT_RQ_PLANE).setRow(3, DEFAULT_RQ_PLANE);
+            eyePlanes = new Matrix4().setRow(0, DEFAULT_S_PLANE).setRow(1, DEFAULT_T_PLANE)
+                                     .setRow(2, DEFAULT_RQ_PLANE).setRow(3, DEFAULT_RQ_PLANE);
 
             textureMatrix = new Matrix4().setIdentity();
 
@@ -232,18 +218,9 @@ public class FixedFunctionState {
 
         public TextureState(TextureState state) {
             unit = state.unit;
-            tcS = state.tcS;
-            tcT = state.tcT;
-            tcR = state.tcR;
-            tcQ = state.tcQ;
-            objPlaneS = new Vector4(state.objPlaneS);
-            objPlaneT = new Vector4(state.objPlaneT);
-            objPlaneR = new Vector4(state.objPlaneR);
-            objPlaneQ = new Vector4(state.objPlaneQ);
-            eyePlaneS = new Vector4(state.eyePlaneS);
-            eyePlaneT = new Vector4(state.eyePlaneT);
-            eyePlaneR = new Vector4(state.eyePlaneR);
-            eyePlaneQ = new Vector4(state.eyePlaneQ);
+            source = state.source;
+            objPlanes = new Matrix4(state.objPlanes);
+            eyePlanes = new Matrix4(state.eyePlanes);
             textureMatrix = new Matrix4(state.textureMatrix);
             color = new Vector4(state.color);
             rgbFunc = state.rgbFunc;

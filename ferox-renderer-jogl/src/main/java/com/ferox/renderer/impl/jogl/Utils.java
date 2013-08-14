@@ -28,7 +28,10 @@ package com.ferox.renderer.impl.jogl;
 
 import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.DataType;
-import com.ferox.renderer.FixedFunctionRenderer.*;
+import com.ferox.renderer.FixedFunctionRenderer.CombineFunction;
+import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
+import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
+import com.ferox.renderer.FixedFunctionRenderer.TexCoordSource;
 import com.ferox.renderer.Renderer.*;
 import com.ferox.renderer.Sampler;
 import com.ferox.renderer.Shader;
@@ -763,24 +766,6 @@ public class Utils {
         default:
             throw new RuntimeException("Unsupported enum value: " + gen);
         }
-    }
-
-    /**
-     * Coord must be null
-     */
-    public static int getGLTexCoord(TexCoord coord, boolean forEnable) {
-        switch (coord) {
-        case Q:
-            return (forEnable ? GL2.GL_TEXTURE_GEN_Q : GL2.GL_Q);
-        case R:
-            return (forEnable ? GL2.GL_TEXTURE_GEN_R : GL2.GL_R);
-        case S:
-            return (forEnable ? GL2.GL_TEXTURE_GEN_S : GL2.GL_S);
-        case T:
-            return (forEnable ? GL2.GL_TEXTURE_GEN_T : GL2.GL_T);
-        }
-
-        return -1;
     }
 
     /**

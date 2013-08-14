@@ -59,16 +59,12 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     // math object transfer objects
     private final FloatBuffer transferBuffer;
 
-    // state tracking
-    private boolean alphaTestEnabled;
-
     public LwjglFixedFunctionRenderer(LwjglContext context, LwjglRendererDelegate delegate) {
         super(context, delegate);
 
         initialized = false;
 
         transferBuffer = BufferUtil.newByteBuffer(DataType.FLOAT, 16).asFloatBuffer();
-        alphaTestEnabled = false;
     }
 
     @Override
@@ -114,15 +110,9 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glAlphaTest(Comparison test, double ref) {
         if (test == Comparison.ALWAYS) {
-            if (alphaTestEnabled) {
-                alphaTestEnabled = false;
-                glEnable(GL11.GL_ALPHA_TEST, false);
-            }
+            glEnable(GL11.GL_ALPHA_TEST, false);
         } else {
-            if (!alphaTestEnabled) {
-                alphaTestEnabled = true;
-                glEnable(GL11.GL_ALPHA_TEST, true);
-            }
+            glEnable(GL11.GL_ALPHA_TEST, true);
         }
         GL11.glAlphaFunc(Utils.getGLPixelTest(test), (float) ref);
     }
@@ -255,31 +245,11 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glCombineSrc(int operand, CombineSource src, boolean rgb) {
         int o = Utils.getGLCombineSrc(src);
-        int target = -1;
+        int target;
         if (rgb) {
-            switch (operand) {
-            case 0:
-                target = GL13.GL_SOURCE0_RGB;
-                break;
-            case 1:
-                target = GL13.GL_SOURCE1_RGB;
-                break;
-            case 2:
-                target = GL13.GL_SOURCE2_RGB;
-                break;
-            }
+            target = GL13.GL_SOURCE0_RGB + operand;
         } else {
-            switch (operand) {
-            case 0:
-                target = GL13.GL_SOURCE0_ALPHA;
-                break;
-            case 1:
-                target = GL13.GL_SOURCE1_ALPHA;
-                break;
-            case 2:
-                target = GL13.GL_SOURCE2_ALPHA;
-                break;
-            }
+            target = GL13.GL_SOURCE0_ALPHA + operand;
         }
 
         GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, target, o);
@@ -288,64 +258,67 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
     @Override
     protected void glCombineOp(int operand, CombineOperand op, boolean rgb) {
         int o = Utils.getGLCombineOp(op);
-        int target = -1;
+        int target;
         if (rgb) {
-            switch (operand) {
-            case 0:
-                target = GL13.GL_OPERAND0_RGB;
-                break;
-            case 1:
-                target = GL13.GL_OPERAND1_RGB;
-                break;
-            case 2:
-                target = GL13.GL_OPERAND2_RGB;
-                break;
-            }
+            target = GL13.GL_OPERAND0_RGB + operand;
         } else {
-            switch (operand) {
-            case 0:
-                target = GL13.GL_OPERAND0_ALPHA;
-                break;
-            case 1:
-                target = GL13.GL_OPERAND1_ALPHA;
-                break;
-            case 2:
-                target = GL13.GL_OPERAND2_ALPHA;
-                break;
-            }
+            target = GL13.GL_OPERAND0_ALPHA + operand;
         }
 
         GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, target, o);
     }
 
     @Override
-    protected void glTexGen(TexCoord coord, TexCoordSource gen) {
+    protected void glTexGen(TexCoordSource gen) {
         if (gen == TexCoordSource.ATTRIBUTE) {
-            return; // don't need to do anything, it's already disabled
+            // disable tex gen for all coordinates
+            glEnable(GL11.GL_TEXTURE_GEN_S, false);
+            glEnable(GL11.GL_TEXTURE_GEN_T, false);
+            glEnable(GL11.GL_TEXTURE_GEN_R, false);
+            glEnable(GL11.GL_TEXTURE_GEN_Q, false);
+        } else {
+            // enable and configure
+            glEnable(GL11.GL_TEXTURE_GEN_S, true);
+            glEnable(GL11.GL_TEXTURE_GEN_T, true);
+            glEnable(GL11.GL_TEXTURE_GEN_R, true);
+            glEnable(GL11.GL_TEXTURE_GEN_Q, true);
+
+            int mode = Utils.getGLTexGen(gen);
+            GL11.glTexGeni(GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, mode);
+            GL11.glTexGeni(GL11.GL_T, GL11.GL_TEXTURE_GEN_MODE, mode);
+            GL11.glTexGeni(GL11.GL_R, GL11.GL_TEXTURE_GEN_MODE, mode);
+            GL11.glTexGeni(GL11.GL_Q, GL11.GL_TEXTURE_GEN_MODE, mode);
         }
-
-        int mode = Utils.getGLTexGen(gen);
-        int tc = Utils.getGLTexCoord(coord, false);
-        GL11.glTexGeni(tc, GL11.GL_TEXTURE_GEN_MODE, mode);
     }
 
     @Override
-    protected void glEnableTexGen(TexCoord coord, boolean enable) {
-        glEnable(Utils.getGLTexCoord(coord, true), enable);
+    protected void glTexEyePlanes(@Const Matrix4 plane) {
+        plane.get(transferBuffer, 0, true); // row-major so every 4 units is a plane
+
+        transferBuffer.limit(4).position(0);
+        GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, transferBuffer);
+        transferBuffer.limit(8).position(4);
+        GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, transferBuffer);
+        transferBuffer.limit(12).position(8);
+        GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, transferBuffer);
+        transferBuffer.limit(16).position(12);
+        GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, transferBuffer);
+        transferBuffer.clear();
     }
 
     @Override
-    protected void glTexEyePlane(TexCoord coord, @Const Vector4 plane) {
-        plane.get(transferBuffer, 0);
-        int tc = Utils.getGLTexCoord(coord, false);
-        GL11.glTexGen(tc, GL11.GL_EYE_PLANE, transferBuffer);
-    }
+    protected void glTexObjPlanes(@Const Matrix4 plane) {
+        plane.get(transferBuffer, 0, true); // row-major so every 4 units is a plane
 
-    @Override
-    protected void glTexObjPlane(TexCoord coord, @Const Vector4 plane) {
-        plane.get(transferBuffer, 0);
-        int tc = Utils.getGLTexCoord(coord, false);
-        GL11.glTexGen(tc, GL11.GL_OBJECT_PLANE, transferBuffer);
+        transferBuffer.limit(4).position(0);
+        GL11.glTexGen(GL11.GL_S, GL11.GL_OBJECT_PLANE, transferBuffer);
+        transferBuffer.limit(8).position(4);
+        GL11.glTexGen(GL11.GL_T, GL11.GL_OBJECT_PLANE, transferBuffer);
+        transferBuffer.limit(12).position(8);
+        GL11.glTexGen(GL11.GL_R, GL11.GL_OBJECT_PLANE, transferBuffer);
+        transferBuffer.limit(16).position(12);
+        GL11.glTexGen(GL11.GL_Q, GL11.GL_OBJECT_PLANE, transferBuffer);
+        transferBuffer.clear();
     }
 
     @Override
