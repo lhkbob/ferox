@@ -23,7 +23,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private final Vector3 cachedSpotlightDirection = new Vector3();
     private final Vector4 cachedLightPos = new Vector4();
 
+    private final Matrix4 cachedEyePlanes = new Matrix4();
+
     private final Matrix4 modelview = new Matrix4();
+    private final Matrix4 inverseModelview = new Matrix4();
     private final Matrix3 normal = new Matrix3();
 
     // lazily allocated during the first activate()
@@ -55,6 +58,11 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private Shader.Uniform emittedMaterial; // vec4
     private Shader.Uniform shininess; // float
 
+    private Shader.Uniform textureMatrix; // mat4[4]
+    private Shader.Uniform objPlanes; // mat4[4]
+    private Shader.Uniform eyePlanes; // mat4[4]
+    private Shader.Uniform texCoordSource; // int[4]
+
     /*
      * Fragment shader uniforms
      */
@@ -66,12 +74,28 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private Shader.Uniform fogColor; // vec4
     private Shader.Uniform enableFog; // bool
 
+    private Shader.Uniform sampler1D; // sampler1D[4]
+    private Shader.Uniform sampler2D; // sampler2D[4]
+    private Shader.Uniform sampler3D; // sampler3D[4]
+    private Shader.Uniform samplerCube; // samplerCube[4]
+    private Shader.Uniform texConfig; // int[4]
+    private Shader.Uniform depthComparison; // int[4]
+
+    private Shader.Uniform combineSrcAlpha; // ivec3[4]
+    private Shader.Uniform combineSrcRGB; // ivec3[4]
+    private Shader.Uniform combineOpAlpha; // ivec3[4]
+    private Shader.Uniform combineOpRGB; // ivec3[4]
+    private Shader.Uniform combineFuncAlpha; // int[4]
+    private Shader.Uniform combineFuncRGB; // int[4]
+    private Shader.Uniform combineColor; // vec4[4]
+
     /*
      * Shader attributes
      */
     private Shader.Attribute vertices;
     private Shader.Attribute normals;
     private Shader.Attribute colors;
+    private Shader.Attribute texCoords; // vec4[4]
 
     public ShaderFixedFunctionEmulator(GlslRenderer shaderRenderer) {
         glsl = shaderRenderer;
@@ -364,50 +388,74 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setTexture(int tex, Sampler image) {
+        if (image instanceof Texture1D) {
+            glsl.setUniformArray(sampler1D, tex, image);
+            glsl.setUniformArray(texConfig, tex, 0);
+            glsl.setUniformArray(depthComparison, tex, -1);
+        } else if (image instanceof Texture2D) {
+            glsl.setUniformArray(sampler2D, tex, image);
+            glsl.setUniformArray(texConfig, tex, 1);
+            glsl.setUniformArray(depthComparison, tex, -1);
+        } else if (image instanceof Texture3D) {
+            glsl.setUniformArray(sampler3D, tex, image);
+            glsl.setUniformArray(texConfig, tex, 2);
+            glsl.setUniformArray(depthComparison, tex, -1);
+        } else if (image instanceof TextureCubeMap) {
+            glsl.setUniformArray(samplerCube, tex, image);
+            glsl.setUniformArray(texConfig, tex, 3);
+            glsl.setUniformArray(depthComparison, tex, -1);
+        } else if (image instanceof DepthMap2D) {
+            glsl.setUniformArray(sampler2D, tex, image);
+            glsl.setUniformArray(texConfig, tex, 1);
+
+            DepthMap2D map = (DepthMap2D) image;
+            int compare = (map.getDepthComparison() == null ? -1 : map.getDepthComparison().ordinal());
+            glsl.setUniformArray(depthComparison, tex, compare);
+        }
     }
 
     @Override
     public void setTextureColor(int tex, @Const Vector4 color) {
+        glsl.setUniformArray(combineColor, tex, color);
     }
 
     @Override
-    public void setTextureCoordGeneration(int tex, TexCoordSource gen) {
-    }
-
-    @Override
-    public void setTextureCoordGeneration(int tex, TexCoord coord, TexCoordSource gen) {
-    }
-
-    @Override
-    public void setTextureObjectPlane(int tex, TexCoord coord, @Const Vector4 plane) {
+    public void setTextureCoordinateSource(int tex, TexCoordSource gen) {
+        glsl.setUniformArray(texCoordSource, tex, gen.ordinal());
     }
 
     @Override
     public void setTextureObjectPlanes(int tex, @Const Matrix4 planes) {
-    }
-
-    @Override
-    public void setTextureEyePlane(int tex, TexCoord coord, @Const Vector4 plane) {
+        glsl.setUniformArray(objPlanes, tex, planes);
     }
 
     @Override
     public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
+        cachedEyePlanes.mul(planes, inverseModelview);
+        glsl.setUniformArray(eyePlanes, tex, cachedEyePlanes);
     }
 
     @Override
     public void setTextureTransform(int tex, @Const Matrix4 matrix) {
+        glsl.setUniformArray(textureMatrix, tex, matrix);
     }
 
     @Override
     public void setTextureCombineRGB(int tex, CombineFunction function, CombineSource src0,
                                      CombineOperand op0, CombineSource src1, CombineOperand op1,
                                      CombineSource src2, CombineOperand op2) {
+        glsl.setUniform(combineFuncRGB, tex, function.ordinal());
+        glsl.setUniform(combineSrcRGB, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
+        glsl.setUniform(combineOpRGB, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
     }
 
     @Override
     public void setTextureCombineAlpha(int tex, CombineFunction function, CombineSource src0,
                                        CombineOperand op0, CombineSource src1, CombineOperand op1,
                                        CombineSource src2, CombineOperand op2) {
+        glsl.setUniform(combineFuncAlpha, tex, function.ordinal());
+        glsl.setUniform(combineSrcAlpha, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
+        glsl.setUniform(combineOpAlpha, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
     }
 
     @Override
@@ -421,7 +469,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         modelview.set(modelView);
 
         // compute normal matrix
-        normal.setUpper(modelView).inverse().transpose();
+        inverseModelview.inverse(modelView);
+        normal.setUpper(inverseModelview).transpose();
         glsl.setUniform(normalMatrix, normal);
     }
 
@@ -444,6 +493,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setTextureCoordinates(int tex, VertexAttribute texCoords) {
+        glsl.bindAttributeArray(this.texCoords, tex, texCoords);
     }
 
     @Override
@@ -498,6 +548,21 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         fogConfig = shader.getUniform("uFogConfig");
         fogColor = shader.getUniform("uFogColor");
 
+        sampler1D = shader.getUniform("uSampler1D");
+        sampler2D = shader.getUniform("uSampler2D");
+        sampler3D = shader.getUniform("uSampler3D");
+        samplerCube = shader.getUniform("uSamplerCube");
+        texConfig = shader.getUniform("uTexConfig");
+        depthComparison = shader.getUniform("uDepthComparison");
+
+        combineSrcAlpha = shader.getUniform("uCombineSrcAlpha");
+        combineSrcRGB = shader.getUniform("uCombineSrcRGB");
+        combineOpAlpha = shader.getUniform("uCombineOpAlpha");
+        combineOpRGB = shader.getUniform("uCombineOpRGB");
+        combineFuncAlpha = shader.getUniform("uCombineFuncAlpha");
+        combineFuncRGB = shader.getUniform("uCombineFuncRGB");
+        combineColor = shader.getUniform("uCombineColor");
+
         modelviewMatrix = shader.getUniform("uModelview");
         projectionMatrix = shader.getUniform("uProjection");
         normalMatrix = shader.getUniform("uNormalMatrix");
@@ -519,9 +584,15 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         spotlightCutoffs = shader.getUniform("uSpotlightCutoff");
         lightAttenuations = shader.getUniform("uLightAttenuation");
 
+        textureMatrix = shader.getUniform("uTextureMatrix");
+        objPlanes = shader.getUniform("uTexGenObjPlanes");
+        eyePlanes = shader.getUniform("uTexGenEyePlanes");
+        texCoordSource = shader.getUniform("uTexCoordSource");
+
         vertices = shader.getAttribute("aVertex");
         normals = shader.getAttribute("aNormal");
         colors = shader.getAttribute("aDiffuse");
+        texCoords = shader.getAttribute("aTexCoord");
     }
 
     private void loadDefaultState() {
@@ -556,7 +627,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         // lighting
         glsl.setUniform(enableLighting, defaults.lightingEnabled);
         glsl.setUniform(globalAmbient, defaults.globalAmbient);
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < FixedFunctionState.MAX_LIGHTS; i++) {
             glsl.setUniformArray(enableSingleLight, i, defaults.lights[i].enabled);
             glsl.setUniformArray(lightPosition, i, defaults.lights[i].position);
             glsl.setUniformArray(diffuseLightColors, i, defaults.lights[i].diffuse);
@@ -576,9 +647,38 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(emittedMaterial, defaults.matEmissive);
         glsl.setUniform(shininess, defaults.matShininess);
 
+        // texturing
+        for (int i = 0; i < FixedFunctionState.MAX_TEXTURES; i++) {
+            glsl.setUniformArray(textureMatrix, i, defaults.textures[i].textureMatrix);
+            glsl.setUniformArray(objPlanes, i, defaults.textures[i].objPlanes);
+            glsl.setUniformArray(eyePlanes, i, defaults.textures[i].eyePlanes);
+            glsl.setUniformArray(texCoordSource, i, defaults.textures[i].source.ordinal());
+
+            glsl.setUniformArray(combineSrcAlpha, i, defaults.textures[i].srcAlpha[0].ordinal(),
+                                 defaults.textures[i].srcAlpha[1].ordinal(),
+                                 defaults.textures[i].srcAlpha[2].ordinal());
+            glsl.setUniformArray(combineSrcRGB, i, defaults.textures[i].srcRgb[0].ordinal(),
+                                 defaults.textures[i].srcRgb[1].ordinal(),
+                                 defaults.textures[i].srcRgb[2].ordinal());
+            glsl.setUniformArray(combineOpAlpha, i, defaults.textures[i].opAlpha[0].ordinal(),
+                                 defaults.textures[i].opAlpha[1].ordinal(),
+                                 defaults.textures[i].opAlpha[2].ordinal());
+            glsl.setUniformArray(combineOpRGB, i, defaults.textures[i].opRgb[0].ordinal(),
+                                 defaults.textures[i].opRgb[1].ordinal(),
+                                 defaults.textures[i].opRgb[2].ordinal());
+            glsl.setUniformArray(combineFuncAlpha, i, defaults.textures[i].alphaFunc.ordinal());
+            glsl.setUniformArray(combineFuncRGB, i, defaults.textures[i].rgbFunc.ordinal());
+            glsl.setUniformArray(combineColor, i, defaults.textures[i].color);
+
+            glsl.setUniformArray(texConfig, i, -1); // no textures enabled by default
+
+            glsl.bindAttribute(texCoords, new Vector4(0, 0, 0, 1));
+        }
+
         glsl.bindAttribute(colors, defaults.matDiffuse);
-        glsl.bindAttribute(vertices, new Vector4());
-        glsl.bindAttribute(normals, new Vector3());
+        glsl.bindAttribute(vertices, new Vector4(0, 0, 0, 1));
+        glsl.bindAttribute(normals, new Vector3(0, 0, 1));
+
 
         defaultState = glsl.getCurrentState();
     }

@@ -823,7 +823,7 @@ public class Utils {
             return GL.GL_TEXTURE;
         case PREV_TEX:
             return GL2ES1.GL_PREVIOUS;
-        case VERTEX_COLOR:
+        case PRIMARY_COLOR:
             return GL2ES1.GL_PRIMARY_COLOR;
         case TEX0:
             return GL.GL_TEXTURE0;
@@ -833,62 +833,6 @@ public class Utils {
             return GL.GL_TEXTURE2;
         case TEX3:
             return GL.GL_TEXTURE3;
-        case TEX4:
-            return GL.GL_TEXTURE4;
-        case TEX5:
-            return GL.GL_TEXTURE5;
-        case TEX6:
-            return GL.GL_TEXTURE6;
-        case TEX7:
-            return GL.GL_TEXTURE7;
-        case TEX8:
-            return GL.GL_TEXTURE8;
-        case TEX9:
-            return GL.GL_TEXTURE9;
-        case TEX10:
-            return GL.GL_TEXTURE10;
-        case TEX11:
-            return GL.GL_TEXTURE11;
-        case TEX12:
-            return GL.GL_TEXTURE12;
-        case TEX13:
-            return GL.GL_TEXTURE13;
-        case TEX14:
-            return GL.GL_TEXTURE14;
-        case TEX15:
-            return GL.GL_TEXTURE15;
-        case TEX16:
-            return GL.GL_TEXTURE16;
-        case TEX17:
-            return GL.GL_TEXTURE17;
-        case TEX18:
-            return GL.GL_TEXTURE18;
-        case TEX19:
-            return GL.GL_TEXTURE19;
-        case TEX20:
-            return GL.GL_TEXTURE20;
-        case TEX21:
-            return GL.GL_TEXTURE21;
-        case TEX22:
-            return GL.GL_TEXTURE22;
-        case TEX23:
-            return GL.GL_TEXTURE23;
-        case TEX24:
-            return GL.GL_TEXTURE24;
-        case TEX25:
-            return GL.GL_TEXTURE25;
-        case TEX26:
-            return GL.GL_TEXTURE26;
-        case TEX27:
-            return GL.GL_TEXTURE27;
-        case TEX28:
-            return GL.GL_TEXTURE28;
-        case TEX29:
-            return GL.GL_TEXTURE29;
-        case TEX30:
-            return GL.GL_TEXTURE30;
-        case TEX31:
-            return GL.GL_TEXTURE31;
         }
 
         return -1;

@@ -85,7 +85,7 @@ public class ShadowMapState implements State {
 
         // configure shadow map texturing
         r.setTexture(shadowMapUnit, shadowTexture);
-        r.setTextureCoordGeneration(shadowMapUnit, TexCoordSource.EYE);
+        r.setTextureCoordinateSource(shadowMapUnit, TexCoordSource.EYE);
 
         Matrix4 texM = new Matrix4();
         texM.mul(bias, smFrustum.getProjectionMatrix()).mul(smFrustum.getViewMatrix());

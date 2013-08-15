@@ -144,7 +144,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             setTextureCombineAlpha(i, tf.alphaFunc, tf.srcAlpha[0], tf.opAlpha[0], tf.srcAlpha[1],
                                    tf.opAlpha[1], tf.srcAlpha[2], tf.opAlpha[2]);
 
-            setTextureCoordGeneration(i, tf.source);
+            setTextureCoordinateSource(i, tf.source);
             setTextureObjectPlanes(i, tf.objPlanes);
             setTextureEyePlanes(i, tf.eyePlanes);
 
@@ -773,7 +773,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
     protected abstract void glCombineOp(int operand, CombineOperand op, boolean rgb);
 
     @Override
-    public void setTextureCoordGeneration(int tex, TexCoordSource gen) {
+    public void setTextureCoordinateSource(int tex, TexCoordSource gen) {
         if (gen == null) {
             throw new NullPointerException("TexCoordSource can't be null");
         }

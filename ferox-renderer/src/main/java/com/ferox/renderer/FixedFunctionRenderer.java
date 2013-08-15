@@ -150,50 +150,19 @@ public interface FixedFunctionRenderer extends Renderer {
      * CombineSources and CombineOperands can be used by {@link CombineFunction} to provide more complex
      * texture combination algorithms. <ul> <li>CURR_TEX = color of this texture image</li> <li>PREV_TEX =
      * color of the texture in the texture unit processed just before this one (if this is the first unit,
-     * then it's the same as VERTEX_COLOR)</li> <li>CONST_COLOR = environment color of this texture</li>
-     * <li>VERTEX_COLOR = color computed based on material color and lighting</li> <li>TEXi = color of the
+     * then it's the same as PRIMARY_COLOR)</li> <li>CONST_COLOR = environment color of this texture</li>
+     * <li>PRIMARY_COLOR = color computed based on material color and lighting</li> <li>TEXi = color of the
      * texture image bound to the given unit</li> </ul>
-     * <p/>
-     * <b>Note:</b> not all TEXi will be supported because hardware may not have that many texture units
-     * available. Units beyond 8 are included for advanced graphics cards (or future cards).
      */
     public static enum CombineSource {
         CURR_TEX,
         PREV_TEX,
         CONST_COLOR,
-        VERTEX_COLOR,
+        PRIMARY_COLOR,
         TEX0,
         TEX1,
         TEX2,
-        TEX3,
-        TEX4,
-        TEX5,
-        TEX6,
-        TEX7,
-        TEX8,
-        TEX9,
-        TEX10,
-        TEX11,
-        TEX12,
-        TEX13,
-        TEX14,
-        TEX15,
-        TEX16,
-        TEX17,
-        TEX18,
-        TEX19,
-        TEX20,
-        TEX21,
-        TEX22,
-        TEX23,
-        TEX24,
-        TEX25,
-        TEX26,
-        TEX27,
-        TEX28,
-        TEX29,
-        TEX30,
-        TEX31
+        TEX3
     }
 
     /**
@@ -630,7 +599,7 @@ public interface FixedFunctionRenderer extends Renderer {
      * @throws NullPointerException      if gen is null
      * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
      */
-    public void setTextureCoordGeneration(int tex, TexCoordSource gen);
+    public void setTextureCoordinateSource(int tex, TexCoordSource gen);
 
     /**
      * Set the sixteen values used for {@link TexCoordSource#OBJECT} generation for each coordinate. Each set

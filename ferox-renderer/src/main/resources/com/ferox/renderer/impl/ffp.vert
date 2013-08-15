@@ -22,14 +22,20 @@ uniform vec4 uMatSpecular;
 uniform vec4 uMatEmissive;
 uniform float uMatShininess;
 
+uniform mat4 uTextureMatrix[4];
+uniform mat4 uTexGenObjPlanes[4];
+uniform mat4 uTexGenEyePlanes[4]; // assumed to be pre-multiplied by appropriate inverse modelview
+uniform int uTexCoordSource[4]; // each component is a unit, ordinal value of TexCoordSource
+
 in vec4 aVertex;
 in vec3 aNormal;
 in vec4 aDiffuse;
 
-// FIXME add texture coordinates
+in vec4 aTexCoord[4];
 
 out vec4 vPrimaryColor;
 out vec4 vSecondaryColor;
+out vec4 vTexCoord[4];
 
 void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
                      out vec4 primaryColor, out vec4 secondaryColor) {
@@ -69,15 +75,43 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
     }
 }
 
+vec4 computeTextureCoord(const int tex, vec4 eyePos, vec3 eyeNorm) {
+    vec4 tc;
+    if (uTexCoordSource[tex] == 0) {
+        // ATTRIBUTE
+        tc = aTexCoord[tex];
+    } else if (uTexCoordSource[tex] == 1) {
+        // EYE
+        tc = uTexGenEyePlanes[tex] * aVertex;
+    } else if (uTexCoordSource[tex] == 2) {
+        // OBJECT
+        tc = uTexGenObjPlanes[tex] * eyePos;
+    } else if (uTexCoordSource[tex] == 3) {
+        // SPHERE
+        vec3 u = normalize(eyePos.xyz);
+        vec3 r = reflect(u, eyeNorm);
+        float m = 2.0 * sqrt(r.x * r.x + r.y * r.y + (r.z + 1.0) * (r.z + 1.0));
+        tc = vec4(r.x / m + 0.5, r.y / m + 0.5, 0.0, 1.0);
+    } else if (uTexCoordSource[tex] == 4) {
+        // NORMAL
+        tc = vec4(eyeNorm, 1.0);
+    } else if (uTexCoordSource[tex] == 5) {
+        // REFLECTION
+        vec3 u = normalize(eyePos.xyz);
+        tc = vec4(reflect(u, eyeNorm), 1.0);
+    }
+    mat4 texMat = uTextureMatrix[tex];
+    return texMat * tc;
+}
+
 void main() {
     vec4 eyePos = uModelview * aVertex;
+    vec3 eyeNorm = normalize(uNormalMatrix * aNormal.xyz);
+
     vec4 primaryColor = aDiffuse;
     vec4 secondaryColor = vec4(0.0, 0.0, 0.0, 0.0);
 
     if (uEnableLighting) {
-        vec3 eyeNorm = normalize(uNormalMatrix * aNormal.xyz);
-        vec3 backEyeNorm = -eyeNorm;
-
         primaryColor = uMatEmissive + uMatAmbient * uGlobalLight;
 
         for (int i = 0; i < 8; i++) {
@@ -90,6 +124,11 @@ void main() {
             }
         }
     }
+
+    vTexCoord[0] = computeTextureCoord(0, eyePos, eyeNorm);
+    vTexCoord[1] = computeTextureCoord(1, eyePos, eyeNorm);
+    vTexCoord[2] = computeTextureCoord(2, eyePos, eyeNorm);
+    vTexCoord[3] = computeTextureCoord(3, eyePos, eyeNorm);
 
     vPrimaryColor = vec4(primaryColor.xyz, aDiffuse.w);
     vSecondaryColor = vec4(secondaryColor.xyz, 0.0);
