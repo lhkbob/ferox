@@ -38,12 +38,16 @@ import com.ferox.renderer.geom.Geometry;
  *
  */
 public class JoglFixedFunctionTest {
-    public static void main(String[] args) throws Exception {
-        Framework framework = Framework.Factory.create();
-        final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().windowed(500, 500));
-        s.setTitle("Hello World");
-        s.setVSyncEnabled(true);
+    static double x = 0;
 
+    public static void main(String[] args) throws Exception {
+        final Framework framework = Framework.Factory.create();
+        final OnscreenSurface s = framework
+                .createSurface(new OnscreenSurfaceOptions().windowed(500, 500).withDepthBuffer(24));
+        s.setTitle("Hello World");
+        //        s.setVSyncEnabled(true);
+
+        //                final Geometry box = Sphere.create(framework, 1.5, 8);
         final Geometry box = Box.create(framework, 3.0);
 
         try {
@@ -56,33 +60,44 @@ public class JoglFixedFunctionTest {
                         r.clear(true, true, true);
 
                         Frustum view = new Frustum(60.0, 1.0, 1.0, 1000.0);
-                        view.setOrientation(new Vector3(0, 0, 150), new Vector3(0, 0, -1),
+                        view.setOrientation(new Vector3(0, 0, 25), new Vector3(0, 0, -1),
                                             new Vector3(0, 1, 0));
                         r.setProjectionMatrix(view.getProjectionMatrix());
                         r.setModelViewMatrix(view.getViewMatrix());
 
                         r.setLightingEnabled(true);
                         r.setLightEnabled(0, true);
-                        r.setLightColor(0, new Vector4(.4, .2, 0, 1), new Vector4(.4, .2, 0, 1),
-                                        new Vector4(1, 1, 1, 1));
-                        r.setLightPosition(0, new Vector4(50, 50, 50, 1));
+                        //                        r.setGlobalAmbientLight(new Vector4(.3, .3, .3, 1.0));
 
-                        r.setMaterialDiffuse(new Vector4(.8, .8, .8, 1));
+                        r.setLightColor(0, new Vector4(1, 1, 1, 1), new Vector4(1, 1, 1, 1), new Vector4());
+                        r.setLightPosition(0, new Vector4(0, 0, 25, 1));
+                        //                        r.setSpotlight(0, new Vector3(0, 0, -1), 15, 40);
+
+                        r.setMaterialDiffuse(new Vector4(.5, 0, .5, 1));
+                        r.setMaterialAmbient(new Vector4(.2, .2, .2, 1));
 
                         r.setNormals(box.getNormals());
                         r.setVertices(box.getVertices());
                         r.setIndices(box.getIndices());
 
+                        r.setDepthTest(Renderer.Comparison.GREATER);
+                        r.setDepthTest(Renderer.Comparison.LESS);
 
-                        Matrix4 m = new Matrix4();
+                        Matrix4 m = new Matrix4().setIdentity();
                         Vector4 t = new Vector4();
-                        for (int i = 0; i < 10000; i++) {
-                            t.set(Math.random() * 100 - 50, Math.random() * 100 - 50,
-                                  Math.random() * 100 - 50, 1);
-                            m.setIdentity().setCol(3, t);
-                            r.setModelViewMatrix(m.mul(view.getViewMatrix(), m));
 
-                            r.render(box.getPolygonType(), box.getIndexOffset(), box.getIndexCount());
+                        for (int y = 0; y < 5; y++) {
+                            for (int x = 0; x < 5; x++) {
+                                t.set(JoglFixedFunctionTest.x + 2.8 * (x - 2), 2.8 * (y - 2), 0, 1);
+                                m.setCol(3, t);
+
+                                r.setModelViewMatrix(m.mul(view.getViewMatrix(), m));
+                                r.render(box.getPolygonType(), box.getIndexOffset(), box.getIndexCount());
+                            }
+                        }
+                        x += 0.001;
+                        if (x > 10) {
+                            x = -10;
                         }
 
                         c.flush();

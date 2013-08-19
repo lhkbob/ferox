@@ -32,6 +32,7 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
+import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Renderer;
 import com.ferox.renderer.geom.Box;
@@ -116,7 +117,7 @@ public class PhysicsTest extends PhysicsApplicationStub {
         wall.add(Renderable.class).setGeometry(bottomWall)
             .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
         wall.add(LambertianDiffuseModel.class).setColor(new ColorRGB(0.5, 0.5, 0.5));
-        wall.add(DiffuseColorMap.class).setTexture(charSet.getTexture());
+        //        wall.add(DiffuseColorMap.class).setTexture(charSet.getTexture());
 
         wall.add(CollisionBody.class).setShape(new com.ferox.physics.collision.shape.Box(BOUNDS, 1, BOUNDS))
             .setTransform(new Matrix4().setIdentity().setCol(3, new Vector4(0, -.5, 0, 1)));
@@ -136,13 +137,13 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(false)
-           .setCutoffAngle(Double.NaN);
+        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(true).setCutoffAngle(Double.NaN);
         inf.get(Transform.class)
            .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15), new Vector3(0, 1, 0)));
     }
 
     public static void main(String[] args) {
+        Framework.Factory.enableDebugMode();
         new PhysicsTest().run();
     }
 }

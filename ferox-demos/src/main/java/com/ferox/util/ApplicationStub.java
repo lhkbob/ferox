@@ -75,39 +75,43 @@ public abstract class ApplicationStub {
 
         int numFrames = 0;
         long last = System.currentTimeMillis();
-        while (!surface.isDestroyed()) {
-            io.process();
-            renderFrame(surface);
-            numFrames++;
+        try {
+            while (!surface.isDestroyed()) {
+                io.process();
+                renderFrame(surface);
+                numFrames++;
 
-            if (fps != null) {
-                fps.render(surface);
-            }
-            if (profile != null) {
-                profile.render(surface);
-            }
-            framework.flush(surface);
-            framework.sync();
-
-            long now = System.currentTimeMillis();
-            if (now - last > 100) {
-                // it's been a 10th of a second
-                double dt = (now - last) / 1e3;
-                if (showFPS) {
-                    fps = formatFPS((numFrames / dt), charSet);
-                } else {
-                    fps = null;
+                if (fps != null) {
+                    fps.render(surface);
                 }
-
-                if (showProfiling) {
-                    profile = formatProfiling(r.totalMemory() - r.freeMemory(), r.totalMemory(), charSet);
-                } else {
-                    profile = null;
+                if (profile != null) {
+                    profile.render(surface);
                 }
+                framework.flush(surface);
+                framework.sync();
 
-                last = now;
-                numFrames = 0;
+                long now = System.currentTimeMillis();
+                if (now - last > 100) {
+                    // it's been a 10th of a second
+                    double dt = (now - last) / 1e3;
+                    if (showFPS) {
+                        fps = formatFPS((numFrames / dt), charSet);
+                    } else {
+                        fps = null;
+                    }
+
+                    if (showProfiling) {
+                        profile = formatProfiling(r.totalMemory() - r.freeMemory(), r.totalMemory(), charSet);
+                    } else {
+                        profile = null;
+                    }
+
+                    last = now;
+                    numFrames = 0;
+                }
             }
+        } finally {
+            framework.destroy();
         }
     }
 

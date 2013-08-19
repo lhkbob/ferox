@@ -392,22 +392,18 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             glsl.setUniformArray(sampler1D, tex, image);
             glsl.setUniformArray(texConfig, tex, 0);
             glsl.setUniformArray(depthComparison, tex, -1);
-            System.out.println("setting tex config to 1D for : " + tex);
         } else if (image instanceof Texture2D) {
             glsl.setUniformArray(sampler2D, tex, image);
             glsl.setUniformArray(texConfig, tex, 1);
             glsl.setUniformArray(depthComparison, tex, -1);
-            System.out.println("setting tex config to 2D for : " + tex);
         } else if (image instanceof Texture3D) {
             glsl.setUniformArray(sampler3D, tex, image);
             glsl.setUniformArray(texConfig, tex, 2);
             glsl.setUniformArray(depthComparison, tex, -1);
-            System.out.println("setting tex config to 3D for : " + tex);
         } else if (image instanceof TextureCubeMap) {
             glsl.setUniformArray(samplerCube, tex, image);
             glsl.setUniformArray(texConfig, tex, 3);
             glsl.setUniformArray(depthComparison, tex, -1);
-            System.out.println("setting tex config to cube for : " + tex);
         } else if (image instanceof DepthMap2D) {
             glsl.setUniformArray(sampler2D, tex, image);
             glsl.setUniformArray(texConfig, tex, 1);
@@ -415,8 +411,6 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             DepthMap2D map = (DepthMap2D) image;
             int compare = (map.getDepthComparison() == null ? -1 : map.getDepthComparison().ordinal());
             glsl.setUniformArray(depthComparison, tex, compare);
-            System.out.println("setting tex config to depth2d for : " + tex);
-
         } else {
             glsl.setUniformArray(texConfig, tex, -1);
         }
@@ -452,18 +446,18 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     public void setTextureCombineRGB(int tex, CombineFunction function, CombineSource src0,
                                      CombineOperand op0, CombineSource src1, CombineOperand op1,
                                      CombineSource src2, CombineOperand op2) {
-        glsl.setUniform(combineFuncRGB, tex, function.ordinal());
-        glsl.setUniform(combineSrcRGB, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
-        glsl.setUniform(combineOpRGB, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
+        glsl.setUniformArray(combineFuncRGB, tex, function.ordinal());
+        glsl.setUniformArray(combineSrcRGB, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
+        glsl.setUniformArray(combineOpRGB, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
     }
 
     @Override
     public void setTextureCombineAlpha(int tex, CombineFunction function, CombineSource src0,
                                        CombineOperand op0, CombineSource src1, CombineOperand op1,
                                        CombineSource src2, CombineOperand op2) {
-        glsl.setUniform(combineFuncAlpha, tex, function.ordinal());
-        glsl.setUniform(combineSrcAlpha, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
-        glsl.setUniform(combineOpAlpha, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
+        glsl.setUniformArray(combineFuncAlpha, tex, function.ordinal());
+        glsl.setUniformArray(combineSrcAlpha, tex, src0.ordinal(), src1.ordinal(), src2.ordinal());
+        glsl.setUniformArray(combineOpAlpha, tex, op0.ordinal(), op1.ordinal(), op2.ordinal());
     }
 
     @Override

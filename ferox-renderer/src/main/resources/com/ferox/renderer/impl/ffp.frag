@@ -55,34 +55,34 @@ vec4 sampleTexture(const int tex) {
     switch(uTexConfig[tex]) {
         case 0: // 1D
             float coord1 = vTexCoord[tex].s / vTexCoord[tex].q;
-            //return texture(uTex1D[tex], coord1);
-            return vec4(1.0, 0.0, 0.0, 1.0);
+            return texture(uTex1D[tex], coord1);
+            //return vec4(1.0, 0.0, 0.0, 1.0);
         case 1: // 2D
             if (uDepthComparison[tex] >= 0) {
                 // depth comparison
                 vec3 coord = vTexCoord[tex].stp / vTexCoord[tex].q;
                 float d = texture(uTex2D[tex], coord.st).r;
 
-                //if (compare(d, coord.p, uDepthComparison[tex])) {
-                //    return vec4(1.0);
-                //} else {
-                //    return vec4(0.0);
-                //}
-                return vec4(0.0, 0.5, 0.5, 1.0);
+                if (compare(d, coord.p, uDepthComparison[tex])) {
+                    return vec4(1.0);
+                } else {
+                    return vec4(0.0);
+                }
+                //return vec4(0.0, 0.5, 0.5, 1.0);
             } else {
                 // regular texture
                 vec2 coord = vTexCoord[tex].st / vTexCoord[tex].q;
-                //return texture(uTex2D[tex], coord);
-                return vec4(0.0, 1.0, 0.0, 1.0);
+                return texture(uTex2D[tex], coord);
+                //return vec4(0.0, 1.0, 0.0, 1.0);
             }
         case 2: // 3D
             vec3 coord3 = vTexCoord[tex].stp / vTexCoord[tex].q;
-            //return texture(uTex3D[tex], coord3);
-            return vec4(0.0, 0.0, 1.0, 1.0);
+            return texture(uTex3D[tex], coord3);
+            //return vec4(0.0, 0.0, 1.0, 1.0);
         case 3: // CUBE
             vec3 coord4 = vTexCoord[tex].stp; // no divide needed for cube maps
-            //return texture(uTexCube[tex], coord4);
-            return vec4(1.0, 1.0, 0.0, 1.0);
+            return texture(uTexCube[tex], coord4);
+            //return vec4(1.0, 1.0, 0.0, 1.0);
         default: // disabled
             return vec4(1.0, 0.0, 1.0, 1.0);
     }

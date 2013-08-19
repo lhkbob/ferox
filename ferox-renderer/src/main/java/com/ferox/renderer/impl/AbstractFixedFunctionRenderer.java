@@ -50,7 +50,7 @@ import com.ferox.renderer.impl.resources.TextureImpl;
  */
 public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         implements FixedFunctionRenderer {
-    private static final Matrix4 IDENTITY = new Matrix4();
+    private static final Matrix4 IDENTITY = new Matrix4().setIdentity();
     private static final Vector4 DEFAULT_MAT_D_COLOR = new Vector4(.8, .8, .8, 1);
 
     protected final FixedFunctionState state;
