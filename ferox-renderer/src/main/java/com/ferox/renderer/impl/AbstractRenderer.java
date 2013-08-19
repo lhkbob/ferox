@@ -113,7 +113,7 @@ public abstract class AbstractRenderer implements Renderer, Activateable {
     }
 
     @Override
-    public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
+    public void setBlendModeRGB(BlendFunction function, BlendFactor src, BlendFactor dst) {
         delegate.setBlendModeRgb(function, src, dst);
     }
 

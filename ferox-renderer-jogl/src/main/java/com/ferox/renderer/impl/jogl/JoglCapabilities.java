@@ -50,8 +50,8 @@ public class JoglCapabilities extends Capabilities {
     private boolean queried = false;
 
     public static JoglCapabilities computeCapabilities(GLProfile profile, DisplayMode[] availableModes) {
-        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
-        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+        boolean forceNoPBuffer = Boolean.getBoolean(Framework.Factory.DISABLE_PBUFFER_PROPERTY);
+        boolean forceNoFBO = Boolean.getBoolean(Framework.Factory.DISABLE_FBO_PROPERTY);
 
         if (NativeWindowFactory.getNativeWindowType(true).equals(NativeWindowFactory.TYPE_MACOSX) &&
             profile.isGL3()) {

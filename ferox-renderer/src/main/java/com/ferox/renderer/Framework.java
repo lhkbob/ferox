@@ -83,9 +83,83 @@ public interface Framework extends Destructible {
      * Factory class for Frameworks
      */
     public static final class Factory {
-        private static final String FACTORY_DIR = "META-INF/ferox/renderer/";
+        public static final String FACTORY_DIR = "META-INF/ferox/renderer/";
+
+        /**
+         * System properties that control aspects of how the Framework functions.
+         */
+        public static final String DISABLE_PBUFFER_PROPERTY = "ferox.disable.pbuffer";
+        public static final String DISABLE_FBO_PROPERTY = "ferox.disable.fbo";
+        public static final String DEBUG_PROPERTY = "ferox.debug";
 
         private Factory() {
+        }
+
+        /**
+         * Disable pbuffer usage by frameworks created after this method is called. When disabled, the
+         * framework's capabilities will report that pbuffers are not supported at all (regardless of actual
+         * hardware support).
+         *
+         * @see Capabilities#getPBufferSupport()
+         */
+        public static void disablePBuffers() {
+            System.setProperty(DISABLE_PBUFFER_PROPERTY, Boolean.FALSE.toString());
+        }
+
+        /**
+         * Enable pbuffer usage by frameworks created after this method is called. This is ignored if the
+         * hardware does not support pbuffers at all. Pbuffers are enabled by default unless a property
+         * overrides it.
+         *
+         * @see Capabilities#getPBufferSupport()
+         */
+        public static void enablePBuffers() {
+            System.setProperty(DISABLE_PBUFFER_PROPERTY, Boolean.TRUE.toString());
+        }
+
+        /**
+         * Disable framewbuffer object usage by frameworks created after this method is called. When disabled,
+         * the framework's capabilities will report that fbos are not support at all (regardless of actual
+         * hardware support).
+         *
+         * @see Capabilities#getFBOSupport()
+         */
+        public static void disableFBOs() {
+            System.setProperty(DISABLE_FBO_PROPERTY, Boolean.FALSE.toString());
+        }
+
+        /**
+         * Enable framebuffer object by frameworks created after this method is called. This is ignored if the
+         * hardare does not support fbos at all. FBOs are enabled by default unless a property overrides it.
+         *
+         * @see Capabilities#getFBOSupport()
+         */
+        public static void enableFBOs() {
+            System.setProperty(DISABLE_FBO_PROPERTY, Boolean.TRUE.toString());
+        }
+
+        /**
+         * Enable debug mode on renderers returned by activated {@link Context Contexts}. This will affect all
+         * Frameworks created after this is called. When enabled, every call to the renderer will
+         * automatically query OpenGL's error flag and throw an exception if there is an error.
+         * <p/>
+         * The renderer APIs have been designed to make it impossible to produce OpenGL errors and should
+         * throw more specific exceptions before invoking OpenGL commands. However, this can be useful if
+         * there is suspicion about the renderer itself.
+         */
+        public static void enableDebugMode() {
+            System.setProperty(DEBUG_PROPERTY, Boolean.TRUE.toString());
+        }
+
+        /**
+         * Disable debug mode on renderers returned by activated {@link Context Contexts}. This will affect
+         * all Frameworks created after this is called. By default debug mode is disabled unless enabled by a
+         * system property.
+         *
+         * @see #enableDebugMode()
+         */
+        public static void disableDebugMode() {
+            System.setProperty(DEBUG_PROPERTY, Boolean.FALSE.toString());
         }
 
         public static Framework create() {

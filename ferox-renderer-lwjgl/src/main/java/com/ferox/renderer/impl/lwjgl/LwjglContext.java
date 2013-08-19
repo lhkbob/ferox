@@ -192,7 +192,7 @@ public class LwjglContext implements OpenGLContext {
     @Override
     public String checkGLErrors() {
         int error = GL11.glGetError();
-        return (error == 0 ? null : Util.translateGLErrorString(error));
+        return Utils.getGLErrorString(error);
     }
 
     @Override

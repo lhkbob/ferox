@@ -47,8 +47,8 @@ public class LwjglCapabilities extends Capabilities {
 
     public static LwjglCapabilities computeCapabilities(ContextAttribs attribs,
                                                         DisplayMode[] availableModes) {
-        boolean forceNoPBuffer = Boolean.getBoolean("ferox.disable.pbuffer");
-        boolean forceNoFBO = Boolean.getBoolean("ferox.disable.fbo");
+        boolean forceNoPBuffer = Boolean.getBoolean(Framework.Factory.DISABLE_PBUFFER_PROPERTY);
+        boolean forceNoFBO = Boolean.getBoolean(Framework.Factory.DISABLE_FBO_PROPERTY);
 
         // Technically on Mac 10.7+ pbuffers are deprecated but LWJGL does not support sharing contexts
         // between AWTGLCanvas and Display. That means there's no real alternative. Also, unlike JOGL

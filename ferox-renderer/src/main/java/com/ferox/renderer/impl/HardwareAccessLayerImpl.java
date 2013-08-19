@@ -38,11 +38,13 @@ import com.ferox.renderer.impl.resources.AbstractResource;
  */
 public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     private final FrameworkImpl framework;
+    private final boolean useDebugRenderers;
 
     private ContextImpl currentContext;
 
-    public HardwareAccessLayerImpl(FrameworkImpl framework) {
+    public HardwareAccessLayerImpl(FrameworkImpl framework, boolean useDebugRenderers) {
         this.framework = framework;
+        this.useDebugRenderers = useDebugRenderers;
     }
 
     @Override
@@ -118,11 +120,17 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         @Override
         public GlslRenderer getGlslRenderer() {
             if (selectedRenderer == null) {
-                // need to select a renderer
+                // activate the glsl renderer
                 selectedRenderer = context.getGlslRenderer();
                 if (selectedRenderer instanceof Activateable) {
                     ((Activateable) selectedRenderer).activate(surface);
                 }
+
+                // we wrap in debug mode afterwards because it does not implement activateable
+                if (useDebugRenderers) {
+                    selectedRenderer = new DebugGlslRenderer(context, (GlslRenderer) selectedRenderer);
+                }
+
                 selectedRenderer.reset();
             }
 
@@ -136,11 +144,18 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
         @Override
         public FixedFunctionRenderer getFixedFunctionRenderer() {
             if (selectedRenderer == null) {
-                // need to select a renderer
+                // activate the ffp renderer
                 selectedRenderer = context.getFixedFunctionRenderer();
                 if (selectedRenderer instanceof Activateable) {
                     ((Activateable) selectedRenderer).activate(surface);
                 }
+
+                // we wrap in debug mode afterwards because it does not implement activateable
+                if (useDebugRenderers) {
+                    selectedRenderer = new DebugFixedFunctionRenderer(context,
+                                                                      (FixedFunctionRenderer) selectedRenderer);
+                }
+
                 selectedRenderer.reset();
             }
 

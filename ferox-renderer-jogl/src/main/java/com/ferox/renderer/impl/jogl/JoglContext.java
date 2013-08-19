@@ -37,7 +37,10 @@ import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL3;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -154,7 +157,6 @@ public class JoglContext implements OpenGLContext {
     public void makeCurrent() {
         try {
             context.makeCurrent();
-
             if (vao < 0) {
                 // make a vao for attributes
                 int[] id = new int[1];
@@ -183,32 +185,7 @@ public class JoglContext implements OpenGLContext {
     @Override
     public String checkGLErrors() {
         int error = context.getGL().glGetError();
-        return (error == 0 ? null : translateGLErrorString(error));
-    }
-
-    private static String translateGLErrorString(int error_code) {
-        switch (error_code) {
-        case GL.GL_NO_ERROR:
-            return "No error";
-        case GL.GL_INVALID_ENUM:
-            return "Invalid enum";
-        case GL.GL_INVALID_VALUE:
-            return "Invalid value";
-        case GL.GL_INVALID_OPERATION:
-            return "Invalid operation";
-        case GL2.GL_STACK_OVERFLOW:
-            return "Stack overflow";
-        case GL2.GL_STACK_UNDERFLOW:
-            return "Stack underflow";
-        case GL.GL_OUT_OF_MEMORY:
-            return "Out of memory";
-        case GL2.GL_TABLE_TOO_LARGE:
-            return "Table too large";
-        case GL3.GL_INVALID_FRAMEBUFFER_OPERATION:
-            return "Invalid framebuffer operation";
-        default:
-            return null;
-        }
+        return Utils.getGLErrorString(error);
     }
 
     @Override

@@ -200,8 +200,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     }
 
     @Override
-    public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
-        glsl.setBlendModeRgb(function, src, dst);
+    public void setBlendModeRGB(BlendFunction function, BlendFactor src, BlendFactor dst) {
+        glsl.setBlendModeRGB(function, src, dst);
     }
 
     @Override

@@ -750,7 +750,7 @@ public interface Renderer {
      * @throws NullPointerException     if function, src, or dst are null
      * @throws IllegalArgumentException if dst is {@link BlendFactor#SRC_ALPHA_SATURATE}
      * @see #setBlendModeAlpha(BlendFunction, BlendFactor, BlendFactor)
-     * @see #setBlendModeRgb(BlendFunction, BlendFactor, BlendFactor)
+     * @see #setBlendModeRGB(BlendFunction, BlendFactor, BlendFactor)
      */
     public void setBlendMode(BlendFunction function, BlendFactor src, BlendFactor dst);
 
@@ -771,7 +771,7 @@ public interface Renderer {
      * @throws IllegalArgumentException if dst is {@link BlendFactor#SRC_ALPHA_SATURATE}
      * @see #setBlendModeAlpha(BlendFunction, BlendFactor, BlendFactor)
      */
-    public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst);
+    public void setBlendModeRGB(BlendFunction function, BlendFactor src, BlendFactor dst);
 
     /**
      * <p/>
@@ -788,7 +788,7 @@ public interface Renderer {
      *
      * @throws NullPointerException     if function, src, or dst are null
      * @throws IllegalArgumentException if dst is {@link BlendFactor#SRC_ALPHA_SATURATE}
-     * @see #setBlendModeRgb(BlendFunction, BlendFactor, BlendFactor)
+     * @see #setBlendModeRGB(BlendFunction, BlendFactor, BlendFactor)
      */
     public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst);
 

@@ -48,6 +48,31 @@ import java.lang.reflect.InvocationTargetException;
  * @author Michael Ludwig
  */
 public class Utils {
+    public static String getGLErrorString(int errorCode) {
+        switch (errorCode) {
+        case GL11.GL_NO_ERROR:
+            return null;
+        case GL11.GL_INVALID_ENUM:
+            return "invalid enum";
+        case GL11.GL_INVALID_VALUE:
+            return "invalid value";
+        case GL11.GL_INVALID_OPERATION:
+            return "invalid operation";
+        case GL11.GL_STACK_OVERFLOW:
+            return "stack overflow";
+        case GL11.GL_STACK_UNDERFLOW:
+            return "stack underflow";
+        case GL11.GL_OUT_OF_MEMORY:
+            return "out of memory";
+        case ARBImaging.GL_TABLE_TOO_LARGE:
+            return "table too large";
+        case GL30.GL_INVALID_FRAMEBUFFER_OPERATION:
+            return "invalid framebuffer operation";
+        default:
+            return "unknown error code (" + errorCode + ")";
+        }
+    }
+
     /**
      * Return the VariableType enum value associated with the returned GL enum for glsl variable type.
      */

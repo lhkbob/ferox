@@ -38,10 +38,7 @@ import com.ferox.renderer.Shader;
 import com.ferox.renderer.impl.ContextManager;
 import com.ferox.renderer.impl.resources.TextureImpl;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
-import javax.media.opengl.GL2ES1;
-import javax.media.opengl.GL2GL3;
+import javax.media.opengl.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -53,6 +50,31 @@ import java.util.concurrent.Future;
  * @author Michael Ludwig
  */
 public class Utils {
+    public static String getGLErrorString(int errorCode) {
+        switch (errorCode) {
+        case GL.GL_NO_ERROR:
+            return null;
+        case GL.GL_INVALID_ENUM:
+            return "invalid enum";
+        case GL.GL_INVALID_VALUE:
+            return "invalid value";
+        case GL.GL_INVALID_OPERATION:
+            return "invalid operation";
+        case GL2.GL_STACK_OVERFLOW:
+            return "stack overflow";
+        case GL2.GL_STACK_UNDERFLOW:
+            return "stack underflow";
+        case GL.GL_OUT_OF_MEMORY:
+            return "out of memory";
+        case GL2.GL_TABLE_TOO_LARGE:
+            return "table too large";
+        case GL3.GL_INVALID_FRAMEBUFFER_OPERATION:
+            return "invalid framebuffer operation";
+        default:
+            return "unknown error code (" + errorCode + ")";
+        }
+    }
+
     /**
      * Return the VariableType enum value associated with the returned GL enum for glsl variable type.
      */
