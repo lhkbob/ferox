@@ -118,4 +118,12 @@ public interface OpenGLContext {
      * @return Get the shared state that provides access to the bound resources
      */
     public SharedState getState();
+
+    /**
+     * Return an error message reported by OpenGL if it has an entered an erroneous state. If there is no
+     * current error, then null should be returned.
+     *
+     * @return The current error message, or null
+     */
+    public String checkGLErrors();
 }

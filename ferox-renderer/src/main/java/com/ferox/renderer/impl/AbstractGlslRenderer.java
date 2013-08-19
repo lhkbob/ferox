@@ -109,6 +109,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         data.limit((index + 1) * type.getPrimitiveCount()).position(index * type.getPrimitiveCount()).mark();
     }
 
+    private static int ix(Shader.Attribute attr, int index, int column) {
+        return attr.getIndex() + index * attr.getType().getColumnCount() + column;
+    }
+
+    private static int ix(Shader.Uniform uniform, int index) {
+        return uniform.getIndex() + index * uniform.getType().getColumnCount();
+    }
+
     private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState,
                                  List<ShaderImpl.UniformImpl> uniformState) {
         // this will bind the expected shader and the textures, so that will be in a consistent state
@@ -148,7 +156,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                             prepBuffer(real.floatValues, i, u.getType());
                             prepBuffer(u.floatValues, i, u.getType());
                             real.floatValues.put(u.floatValues).reset();
-                            glUniform(real.getIndex() + i, real.getType(), real.floatValues);
+                            glUniform(ix(real, i), real.getType(), real.floatValues);
                         }
                     } else if (u.getType().getPrimitiveType() == DataType.INT ||
                                u.getType().getPrimitiveType() == DataType.UNSIGNED_INT) {
@@ -156,7 +164,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                             prepBuffer(real.intValues, i, u.getType());
                             prepBuffer(u.intValues, i, u.getType());
                             real.intValues.put(u.intValues).reset();
-                            glUniform(real.getIndex() + i, real.getType(), real.intValues);
+                            glUniform(ix(real, i), real.getType(), real.intValues);
                         }
                     } else {
                         // texture type, so their intValues should be the same and we just have to check texture handle
@@ -252,7 +260,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
 
                         prepBuffer(u.intValues, i, u.getType());
                         u.intValues.put(i, unit);
-                        glUniform(u.getIndex() + i, u.getType(), u.intValues);
+                        glUniform(ix(u, i), u.getType(), u.intValues);
 
                         // bind a null texture
                         context.bindTexture(unit, null);
@@ -345,9 +353,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attribute, index);
 
-        ShaderOnlyState.AttributeState a = state.attributes[attribute.getIndex() +
-                                                            index * attribute.getType().getColumnCount() +
-                                                            column];
+        ShaderOnlyState.AttributeState a = state.attributes[ix(attribute, index, column)];
         if (attr != null) {
             if (attr.getVBO().isDestroyed()) {
                 throw new ResourceException("Cannot use a destroyed resource");
@@ -466,8 +472,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 1,
-                      (float) val, 0f, 0f, 0f);
+        bindAttribute(state.attributes[ix(attr, index, 0)], 1, (float) val, 0f, 0f, 0f);
     }
 
     @Override
@@ -480,8 +485,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 2,
-                      (float) v1, (float) v2, 0f, 0f);
+        bindAttribute(state.attributes[ix(attr, index, 0)], 2, (float) v1, (float) v2, 0f, 0f);
     }
 
     @Override
@@ -494,8 +498,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 3,
-                      (float) v.x, (float) v.y, (float) v.z, 0f);
+        bindAttribute(state.attributes[ix(attr, index, 0)], 3, (float) v.x, (float) v.y, (float) v.z, 0f);
     }
 
     @Override
@@ -512,13 +515,11 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         validate((ShaderImpl.AttributeImpl) attr, index);
 
         if (attr.getType() == Shader.VariableType.VEC4) {
-            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 4,
-                          (float) m00, (float) m01, (float) m10, (float) m11);
+            bindAttribute(state.attributes[ix(attr, index, 0)], 4, (float) m00, (float) m01, (float) m10,
+                          (float) m11);
         } else if (attr.getType() == Shader.VariableType.MAT2) {
-            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 2,
-                          (float) m00, (float) m01, 0f, 0f);
-            bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 2,
-                          (float) m10, (float) m11, 0f, 0f);
+            bindAttribute(state.attributes[ix(attr, index, 0)], 2, (float) m00, (float) m01, 0f, 0f);
+            bindAttribute(state.attributes[ix(attr, index, 1)], 2, (float) m10, (float) m11, 0f, 0f);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of VEC4 or MAT2");
         }
@@ -534,12 +535,12 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 3,
-                      (float) v.m00, (float) v.m01, (float) v.m02, 0f);
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 3,
-                      (float) v.m10, (float) v.m11, (float) v.m12, 0f);
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 2], 3,
-                      (float) v.m20, (float) v.m21, (float) v.m22, 0f);
+        bindAttribute(state.attributes[ix(attr, index, 0)], 3, (float) v.m00, (float) v.m01, (float) v.m02,
+                      0f);
+        bindAttribute(state.attributes[ix(attr, index, 1)], 3, (float) v.m10, (float) v.m11, (float) v.m12,
+                      0f);
+        bindAttribute(state.attributes[ix(attr, index, 2)], 3, (float) v.m20, (float) v.m21, (float) v.m22,
+                      0f);
     }
 
     @Override
@@ -552,14 +553,14 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         }
         validate((ShaderImpl.AttributeImpl) attr, index);
 
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount()], 4,
-                      (float) v.m00, (float) v.m01, (float) v.m02, (float) v.m03);
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 1], 4,
-                      (float) v.m10, (float) v.m11, (float) v.m12, (float) v.m13);
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 2], 4,
-                      (float) v.m20, (float) v.m21, (float) v.m22, (float) v.m23);
-        bindAttribute(state.attributes[attr.getIndex() + index * attr.getType().getColumnCount() + 3], 4,
-                      (float) v.m30, (float) v.m31, (float) v.m32, (float) v.m33);
+        bindAttribute(state.attributes[ix(attr, index, 0)], 4, (float) v.m00, (float) v.m01, (float) v.m02,
+                      (float) v.m03);
+        bindAttribute(state.attributes[ix(attr, index, 1)], 4, (float) v.m10, (float) v.m11, (float) v.m12,
+                      (float) v.m13);
+        bindAttribute(state.attributes[ix(attr, index, 2)], 4, (float) v.m20, (float) v.m21, (float) v.m22,
+                      (float) v.m23);
+        bindAttribute(state.attributes[ix(attr, index, 3)], 4, (float) v.m30, (float) v.m31, (float) v.m32,
+                      (float) v.m33);
     }
 
     @Override
@@ -570,11 +571,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UINT) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 1, true,
-                          val, 0, 0, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 1, true, val, 0, 0, 0);
         } else if (var.getType() == Shader.VariableType.INT) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 1, false,
-                          val, 0, 0, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 1, false, val, 0, 0, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of INT or UINT");
         }
@@ -588,11 +587,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC2) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 2, true,
-                          v1, v2, 0, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 2, true, v1, v2, 0, 0);
         } else if (var.getType() == Shader.VariableType.IVEC2) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 2, false,
-                          v1, v2, 0, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 2, false, v1, v2, 0, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC2 or UVEC2");
         }
@@ -606,11 +603,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC3) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 3, true,
-                          v1, v2, v3, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 3, true, v1, v2, v3, 0);
         } else if (var.getType() == Shader.VariableType.IVEC3) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 3, false,
-                          v1, v2, v3, 0);
+            bindAttribute(state.attributes[ix(var, index, 0)], 3, false, v1, v2, v3, 0);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC3 or UVEC3");
         }
@@ -624,11 +619,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         validate((ShaderImpl.AttributeImpl) var, index);
 
         if (var.getType() == Shader.VariableType.UVEC4) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 4, true,
-                          v1, v2, v3, v4);
+            bindAttribute(state.attributes[ix(var, index, 0)], 4, true, v1, v2, v3, v4);
         } else if (var.getType() == Shader.VariableType.IVEC4) {
-            bindAttribute(state.attributes[var.getIndex() + index * var.getType().getColumnCount()], 4, false,
-                          v1, v2, v3, v4);
+            bindAttribute(state.attributes[ix(var, index, 0)], 4, false, v1, v2, v3, v4);
         } else {
             throw new IllegalArgumentException("Attribute must have a type of IVEC4 or UVEC4");
         }
@@ -741,7 +734,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (!u.initialized || u.floatValues.get(offset) != val) {
             u.initialized = true;
             u.floatValues.put(offset, (float) val);
-            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+            glUniform(ix(u, index), u.getType(), u.floatValues);
         }
     }
 
@@ -763,7 +756,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.initialized = true;
             u.floatValues.put(offset, (float) v1);
             u.floatValues.put(offset + 1, (float) v2);
-            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+            glUniform(ix(u, index), u.getType(), u.floatValues);
         }
     }
 
@@ -788,7 +781,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(offset + 1, (float) v2);
             u.floatValues.put(offset + 2, (float) v3);
             u.floatValues.put(offset + 3, (float) v4);
-            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+            glUniform(ix(u, index), u.getType(), u.floatValues);
         }
     }
 
@@ -808,7 +801,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         val.get(u.floatValues, index * u.getType().getPrimitiveCount(), false);
 
         u.initialized = true;
-        glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+        glUniform(ix(u, index), u.getType(), u.floatValues);
     }
 
     @Override
@@ -827,7 +820,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         val.get(u.floatValues, index * u.getType().getPrimitiveCount(), false);
 
         u.initialized = true;
-        glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+        glUniform(ix(u, index), u.getType(), u.floatValues);
     }
 
     @Override
@@ -855,7 +848,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.floatValues.put(offset + 1, (float) y);
             u.floatValues.put(offset + 2, (float) z);
 
-            glUniform(u.getIndex() + index, u.getType(), u.floatValues);
+            glUniform(ix(u, index), u.getType(), u.floatValues);
         }
     }
 
@@ -898,7 +891,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.initialized = true;
             u.intValues.put(offset, val);
 
-            glUniform(u.getIndex() + index, u.getType(), u.intValues);
+            glUniform(ix(u, index), u.getType(), u.intValues);
         }
     }
 
@@ -923,7 +916,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(offset, v1);
             u.intValues.put(offset + 1, v2);
 
-            glUniform(u.getIndex() + index, u.getType(), u.intValues);
+            glUniform(ix(u, index), u.getType(), u.intValues);
         }
     }
 
@@ -950,7 +943,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(1, v2);
             u.intValues.put(2, v3);
 
-            glUniform(u.getIndex(), u.getType(), u.intValues);
+            glUniform(ix(u, index), u.getType(), u.intValues);
         }
     }
 
@@ -978,7 +971,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             u.intValues.put(offset + 2, v3);
             u.intValues.put(offset + 3, v4);
 
-            glUniform(u.getIndex() + index, u.getType(), u.intValues);
+            glUniform(ix(u, index), u.getType(), u.intValues);
         }
     }
 

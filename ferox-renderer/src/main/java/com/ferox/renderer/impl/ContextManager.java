@@ -279,6 +279,12 @@ public class ContextManager {
         }
     }
 
+    /**
+     * Ensure that the particular context is current on the calling thread, which must be the managed context
+     * thread.
+     *
+     * @param context The context to make current
+     */
     public void ensureContext(OpenGLContext context) {
         Thread current = Thread.currentThread();
         if (current == thread) {
@@ -287,6 +293,22 @@ public class ContextManager {
         } else {
             // Should never happen, these methods should be restricted to the ContextThreads
             throw new IllegalThreadStateException("ensureContext() cannot be called on this Thread");
+        }
+    }
+
+    /**
+     * Get the current context, which may be null if there is no active context. It is generally recommended
+     * to call {@link #ensureContext()} to guarantee a valid context is current.
+     *
+     * @return The current context or null
+     */
+    public OpenGLContext getCurrentContext() {
+        Thread current = Thread.currentThread();
+        if (current == thread) {
+            return thread.currentContext;
+        } else {
+            // Should never happen, these methods should be restricted to the ContextThreads
+            throw new IllegalThreadStateException("getCurrentContext() cannot be called on this Thread");
         }
     }
 
@@ -405,9 +427,6 @@ public class ContextManager {
                     // Ignore the interrupted exception and loop again
                 }
 
-                // Because all surfaces that are active must be AbstractSurfaces, this will
-                // reset all of the renderers so resources will be unlocked correctly,
-                // even in the event of an exception.
                 deactivateSurface();
             }
             releaseContext();

@@ -135,7 +135,7 @@ public interface Shader extends Resource {
          * @return The total number of primitives required for a single value
          */
         public int getPrimitiveCount() {
-            return Math.abs(row * col);
+            return row * col;
         }
     }
 

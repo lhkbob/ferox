@@ -280,7 +280,16 @@ public class FrameworkImpl implements Framework {
 
         @Override
         public T call() throws Exception {
-            return task.run(new HardwareAccessLayerImpl(FrameworkImpl.this));
+            T value = task.run(new HardwareAccessLayerImpl(FrameworkImpl.this));
+            OpenGLContext ctx = impl.contextManager.getCurrentContext();
+            if (ctx != null) {
+                String error = ctx.checkGLErrors();
+                if (error != null) {
+                    throw new FrameworkException(
+                            "OpenGL error produced after running " + task + ": " + error);
+                }
+            }
+            return value;
         }
     }
 
@@ -313,9 +322,17 @@ public class FrameworkImpl implements Framework {
                                                                          impl.contextManager
                                                                              .getSharedContext());
             impl.destructibleManager.manage(created, created.getSurfaceDestructible());
-
             if (created.isFullscreen()) {
                 fullscreenSurface = new WeakReference<OnscreenSurface>(created);
+            }
+
+            OpenGLContext ctx = impl.contextManager.getCurrentContext();
+            if (ctx != null) {
+                String error = ctx.checkGLErrors();
+                if (error != null) {
+                    throw new FrameworkException(
+                            "OpenGL error produced after creating onscreen surface: " + error);
+                }
             }
             return created;
         }
@@ -339,6 +356,15 @@ public class FrameworkImpl implements Framework {
                                                                        impl.contextManager
                                                                            .getSharedContext());
             impl.destructibleManager.manage(created, created.getSurfaceDestructible());
+            OpenGLContext ctx = impl.contextManager.getCurrentContext();
+            if (ctx != null) {
+                String error = ctx.checkGLErrors();
+                if (error != null) {
+                    throw new FrameworkException(
+                            "OpenGL error produced after creating texture surface: " + error);
+                }
+            }
+
             return created;
         }
     }
