@@ -77,31 +77,29 @@ void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
 
 vec4 computeTextureCoord(const int tex, vec4 eyePos, vec3 eyeNorm) {
     vec4 tc;
-    if (uTexCoordSource[tex] == 0) {
-        // ATTRIBUTE
-        tc = aTexCoord[tex];
-    } else if (uTexCoordSource[tex] == 1) {
-        // EYE
-        tc = uTexGenEyePlanes[tex] * aVertex;
-    } else if (uTexCoordSource[tex] == 2) {
-        // OBJECT
-        tc = uTexGenObjPlanes[tex] * eyePos;
-    } else if (uTexCoordSource[tex] == 3) {
-        // SPHERE
-        vec3 u = normalize(eyePos.xyz);
-        vec3 r = reflect(u, eyeNorm);
-        float m = 2.0 * sqrt(r.x * r.x + r.y * r.y + (r.z + 1.0) * (r.z + 1.0));
-        tc = vec4(r.x / m + 0.5, r.y / m + 0.5, 0.0, 1.0);
-    } else if (uTexCoordSource[tex] == 4) {
-        // NORMAL
-        tc = vec4(eyeNorm, 1.0);
-    } else if (uTexCoordSource[tex] == 5) {
-        // REFLECTION
-        vec3 u = normalize(eyePos.xyz);
-        tc = vec4(reflect(u, eyeNorm), 1.0);
+    switch(uTexCoordSource[tex]) {
+        case 0: // ATTRIBUTE
+            tc = aTexCoord[tex];
+            break;
+        case 1: // EYE
+            tc = uTexGenEyePlanes[tex] * aVertex;
+            break;
+        case 2: // OBJECT
+            tc = uTexGenObjPlanes[tex] * eyePos;
+            break;
+        case 3: // SPHERE
+            vec3 r = reflect(normalize(eyePos.xyz), eyeNorm);
+            float m = 2.0 * sqrt(r.x * r.x + r.y * r.y + (r.z + 1.0) * (r.z + 1.0));
+            tc = vec4(r.x / m + 0.5, r.y / m + 0.5, 0.0, 1.0);
+            break;
+        case 4: // NORMAL
+            tc = vec4(eyeNorm, 1.0);
+            break;
+        case 5: // REFLECTION
+            tc = vec4(reflect(normalize(eyePos.xyz), eyeNorm), 1.0);
+            break;
     }
-    mat4 texMat = uTextureMatrix[tex];
-    return texMat * tc;
+    return uTextureMatrix[tex] * tc;
 }
 
 void main() {

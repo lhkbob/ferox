@@ -66,7 +66,6 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     /*
      * Fragment shader uniforms
      */
-    private Shader.Uniform enableAlphaTest; // bool
     private Shader.Uniform alphaTest; // int
     private Shader.Uniform alphaRefValue; // float
 
@@ -301,8 +300,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setAlphaTest(Comparison test, double refValue) {
-        glsl.setUniform(enableAlphaTest, test != Comparison.ALWAYS);
-        glsl.setUniform(alphaTest, test.ordinal());
+        // pass -1 to disable completely
+        glsl.setUniform(alphaTest, test == Comparison.ALWAYS ? -1 : test.ordinal());
         glsl.setUniform(alphaRefValue, refValue);
     }
 
@@ -388,22 +387,27 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setTexture(int tex, Sampler image) {
+        // FIXME set others to null?
         if (image instanceof Texture1D) {
             glsl.setUniformArray(sampler1D, tex, image);
             glsl.setUniformArray(texConfig, tex, 0);
             glsl.setUniformArray(depthComparison, tex, -1);
+            System.out.println("setting tex config to 1D for : " + tex);
         } else if (image instanceof Texture2D) {
             glsl.setUniformArray(sampler2D, tex, image);
             glsl.setUniformArray(texConfig, tex, 1);
             glsl.setUniformArray(depthComparison, tex, -1);
+            System.out.println("setting tex config to 2D for : " + tex);
         } else if (image instanceof Texture3D) {
             glsl.setUniformArray(sampler3D, tex, image);
             glsl.setUniformArray(texConfig, tex, 2);
             glsl.setUniformArray(depthComparison, tex, -1);
+            System.out.println("setting tex config to 3D for : " + tex);
         } else if (image instanceof TextureCubeMap) {
             glsl.setUniformArray(samplerCube, tex, image);
             glsl.setUniformArray(texConfig, tex, 3);
             glsl.setUniformArray(depthComparison, tex, -1);
+            System.out.println("setting tex config to cube for : " + tex);
         } else if (image instanceof DepthMap2D) {
             glsl.setUniformArray(sampler2D, tex, image);
             glsl.setUniformArray(texConfig, tex, 1);
@@ -411,6 +415,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             DepthMap2D map = (DepthMap2D) image;
             int compare = (map.getDepthComparison() == null ? -1 : map.getDepthComparison().ordinal());
             glsl.setUniformArray(depthComparison, tex, compare);
+            System.out.println("setting tex config to depth2d for : " + tex);
+
+        } else {
+            glsl.setUniformArray(texConfig, tex, -1);
         }
     }
 
@@ -542,16 +550,15 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private void loadVariables() {
         alphaRefValue = shader.getUniform("uAlphaRefValue");
         alphaTest = shader.getUniform("uAlphaComparison");
-        enableAlphaTest = shader.getUniform("uEnableAlphaTest");
 
         enableFog = shader.getUniform("uEnableFog");
         fogConfig = shader.getUniform("uFogConfig");
         fogColor = shader.getUniform("uFogColor");
 
-        sampler1D = shader.getUniform("uSampler1D");
-        sampler2D = shader.getUniform("uSampler2D");
-        sampler3D = shader.getUniform("uSampler3D");
-        samplerCube = shader.getUniform("uSamplerCube");
+        sampler1D = shader.getUniform("uTex1D");
+        sampler2D = shader.getUniform("uTex2D");
+        sampler3D = shader.getUniform("uTex3D");
+        samplerCube = shader.getUniform("uTexCube");
         texConfig = shader.getUniform("uTexConfig");
         depthComparison = shader.getUniform("uDepthComparison");
 
@@ -601,8 +608,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
         // alpha test uniforms
         glsl.setUniform(alphaRefValue, defaults.alphaRefValue);
-        glsl.setUniform(alphaTest, defaults.alphaTest.ordinal());
-        glsl.setUniform(enableAlphaTest, defaults.alphaTest != Comparison.ALWAYS);
+        glsl.setUniform(alphaTest,
+                        defaults.alphaTest == Comparison.ALWAYS ? -1 : defaults.alphaTest.ordinal());
 
         // fog uniforms
         glsl.setUniform(fogColor, defaults.fogColor);

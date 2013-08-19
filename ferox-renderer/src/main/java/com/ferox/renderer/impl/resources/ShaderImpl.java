@@ -170,10 +170,12 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             if (u.floatValues != null) {
                 floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, u.floatValues.capacity())
                                         .asFloatBuffer();
+                u.floatValues.clear();
                 floatValues.put(u.floatValues).clear();
                 intValues = null;
             } else {
                 intValues = BufferUtil.newByteBuffer(DataType.INT, u.intValues.capacity()).asIntBuffer();
+                u.intValues.clear();
                 intValues.put(u.intValues).clear();
                 floatValues = null;
             }
