@@ -182,18 +182,17 @@ public class LwjglContext implements OpenGLContext {
 
     @Override
     public void release() {
-        int error;
         try {
-            error = GL11.glGetError();
             context.releaseContext();
         } catch (LWJGLException e) {
             throw new FrameworkException("Unable to release context", e);
         }
+    }
 
-        if (error != 0) {
-            throw new FrameworkException("OpenGL error flagged, checked on context release: " +
-                                         Util.translateGLErrorString(error));
-        }
+    @Override
+    public String checkGLErrors() {
+        int error = GL11.glGetError();
+        return (error == 0 ? null : Util.translateGLErrorString(error));
     }
 
     @Override

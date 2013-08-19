@@ -154,6 +154,7 @@ public class JoglContext implements OpenGLContext {
     public void makeCurrent() {
         try {
             context.makeCurrent();
+
             if (vao < 0) {
                 // make a vao for attributes
                 int[] id = new int[1];
@@ -172,18 +173,17 @@ public class JoglContext implements OpenGLContext {
 
     @Override
     public void release() {
-        int error;
         try {
-            error = context.getGL().glGetError();
             context.release();
         } catch (GLException e) {
             throw new FrameworkException("Unable to release context", e);
         }
+    }
 
-        if (error != 0) {
-            throw new FrameworkException(
-                    "OpenGL error flagged, checked on context release: " + translateGLErrorString(error));
-        }
+    @Override
+    public String checkGLErrors() {
+        int error = context.getGL().glGetError();
+        return (error == 0 ? null : translateGLErrorString(error));
     }
 
     private static String translateGLErrorString(int error_code) {
