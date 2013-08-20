@@ -424,6 +424,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             a.elementSize = elementSize;
             a.stride = stride;
             a.offset = offset;
+            a.vbo = handle;
             glAttributePointer(a.index, handle, a.offset, a.stride, a.elementSize);
         }
     }

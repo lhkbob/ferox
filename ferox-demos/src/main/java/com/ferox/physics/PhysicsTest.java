@@ -137,7 +137,8 @@ public class PhysicsTest extends PhysicsApplicationStub {
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(true).setCutoffAngle(Double.NaN);
+        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(false)
+           .setCutoffAngle(Double.NaN);
         inf.get(Transform.class)
            .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15), new Vector3(0, 1, 0)));
     }
