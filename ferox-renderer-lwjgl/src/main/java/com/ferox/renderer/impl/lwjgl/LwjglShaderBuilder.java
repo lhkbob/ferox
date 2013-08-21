@@ -28,6 +28,7 @@ package com.ferox.renderer.impl.lwjgl;
 
 import com.ferox.renderer.DataType;
 import com.ferox.renderer.ResourceException;
+import com.ferox.renderer.Shader;
 import com.ferox.renderer.impl.BufferUtil;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
@@ -40,8 +41,7 @@ import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -117,10 +117,26 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         }
     }
 
+    private static String getSafeName(ByteBuffer name, int length) {
+        byte[] nameBytes = new byte[length];
+        name.limit(length).position(0);
+        name.get(nameBytes);
+        String baseName = new String(nameBytes);
+        if (baseName.charAt(baseName.length() - 1) == ']') {
+            // variable name includes an array index
+            return baseName.substring(0, baseName.lastIndexOf('['));
+        } else {
+            // variable is not an array variable
+            return baseName;
+        }
+    }
+
     @Override
     protected List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context,
                                                        ShaderImpl.ShaderHandle handle) {
-        List<ShaderImpl.UniformImpl> uniforms = new ArrayList<>();
+        // some drivers report all array expansions, so we keep the uniform until another of the same name comes
+        // along with a higher length (implying its a lower index, until we hit [0]).
+        Map<String, ShaderImpl.UniformImpl> uniforms = new HashMap<>();
 
         int programID = handle.programID;
         int numUniforms = GL20.glGetProgrami(programID, GL20.GL_ACTIVE_UNIFORMS);
@@ -134,24 +150,26 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
             // read uniform properties
             name.clear();
             GL20.glGetActiveUniform(programID, i, nameLen, len, type, name);
-            byte[] bs = new byte[nameLen.get(0)];
-            name.get(bs, 0, bs.length).position(0);
-            // strip off [0] at the end of an array name
-            String uniformName = new String(bs, 0, len.get(0) > 1 ? bs.length - 3 : bs.length);
+            String uniformName = getSafeName(name, nameLen.get(0));
 
             int location = GL20.glGetUniformLocation(programID, uniformName);
             ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type.get(0)),
                                                                   len.get(0), uniformName, location);
-            uniforms.add(u);
+            ShaderImpl.UniformImpl old = uniforms.get(uniformName);
+            if (old == null || old.getLength() < u.getLength()) {
+                uniforms.put(uniformName, u);
+            }
         }
 
-        return uniforms;
+        return new ArrayList<>(uniforms.values());
     }
 
     @Override
     protected List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context,
                                                            ShaderImpl.ShaderHandle handle) {
-        List<ShaderImpl.AttributeImpl> attributes = new ArrayList<>();
+        // some drivers report all array expansions, so we keep the attribute until another of the same name comes
+        // along with a higher length (implying its a lower index, until we hit [0]).
+        Map<String, ShaderImpl.AttributeImpl> attributes = new HashMap<>();
 
         int programID = handle.programID;
         int numAttrs = GL20.glGetProgrami(programID, GL20.GL_ACTIVE_ATTRIBUTES);
@@ -162,23 +180,23 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         IntBuffer nameLen = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         IntBuffer len = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         IntBuffer type = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
-
         for (int i = 0; i < numAttrs; i++) {
             // read uniform properties
             name.clear();
             GL20.glGetActiveAttrib(programID, i, nameLen, len, type, name);
-            byte[] bs = new byte[nameLen.get(0)];
-            name.get(bs, 0, bs.length);
-            String attrName = new String(bs);
+            String attrName = getSafeName(name, nameLen.get(0));
 
             int index = GL20.glGetAttribLocation(programID, attrName);
             ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(handle,
                                                                       Utils.getVariableType(type.get(0)),
                                                                       attrName, len.get(0), index);
-            attributes.add(a);
+            ShaderImpl.AttributeImpl old = attributes.get(attrName);
+            if (old == null || old.getLength() < a.getLength()) {
+                attributes.put(attrName, a);
+            }
         }
 
-        return attributes;
+        return new ArrayList<>(attributes.values());
     }
 
     @Override

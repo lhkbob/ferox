@@ -36,7 +36,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -58,20 +60,20 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
     @Override
     protected int createNewShader(OpenGLContext context, ShaderType type) {
         switch (type) {
-        case VERTEX:
-            return getGL(context).glCreateShader(GL2GL3.GL_VERTEX_SHADER);
-        case FRAGMENT:
-            return getGL(context).glCreateShader(GL2GL3.GL_FRAGMENT_SHADER);
-        case GEOMETRY:
-            return getGL(context).glCreateShader(GL3.GL_GEOMETRY_SHADER);
-        default:
-            throw new UnsupportedOperationException("Unknown shader type: " + type);
+            case VERTEX:
+                return getGL(context).glCreateShader(GL2GL3.GL_VERTEX_SHADER);
+            case FRAGMENT:
+                return getGL(context).glCreateShader(GL2GL3.GL_FRAGMENT_SHADER);
+            case GEOMETRY:
+                return getGL(context).glCreateShader(GL3.GL_GEOMETRY_SHADER);
+            default:
+                throw new UnsupportedOperationException("Unknown shader type: " + type);
         }
     }
 
     @Override
     protected void compileShader(OpenGLContext context, ShaderType type, int shaderID, String code) {
-        getGL(context).glShaderSource(shaderID, 1, new String[] { code }, new int[] { code.length() }, 0);
+        getGL(context).glShaderSource(shaderID, 1, new String[]{code}, new int[]{code.length()}, 0);
         getGL(context).glCompileShader(shaderID);
 
         int[] query = new int[1];
@@ -126,10 +128,23 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
         }
     }
 
+    private static String getSafeName(byte[] nameBytes, int length) {
+        String baseName = new String(nameBytes, 0, length);
+        if (baseName.charAt(baseName.length() - 1) == ']') {
+            // variable name includes an array index
+            return baseName.substring(0, baseName.lastIndexOf('['));
+        } else {
+            // variable is not an array variable
+            return baseName;
+        }
+    }
+
     @Override
     protected List<ShaderImpl.UniformImpl> getUniforms(OpenGLContext context,
                                                        ShaderImpl.ShaderHandle handle) {
-        List<ShaderImpl.UniformImpl> uniforms = new ArrayList<>();
+        // some drivers report all array expansions, so we keep the uniform until another of the same name comes
+        // along with a higher length (implying its a lower index, until we hit [0]).
+        Map<String, ShaderImpl.UniformImpl> uniforms = new HashMap<>();
 
         int programID = handle.programID;
         int[] query = new int[1];
@@ -145,26 +160,29 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
         int[] type = new int[1];
         for (int i = 0; i < numUniforms; i++) {
             // read uniform properties
-            getGL(context)
-                    .glGetActiveUniform(programID, i, maxUniformNameLength, nameLen, 0, len, 0, type, 0, name,
-                                        0);
-            // strip off [0] at the end of an array name
-            String uniformName = new String(name, 0, len[0] > 1 ? nameLen[0] - 3 : nameLen[0]);
+            getGL(context).glGetActiveUniform(programID, i, maxUniformNameLength, nameLen, 0, len, 0, type, 0, name,
+                    0);
+            String uniformName = getSafeName(name, nameLen[0]);
 
             // get uniform location
             int location = getGL(context).glGetUniformLocation(programID, uniformName);
             ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type[0]),
-                                                                  len[0], uniformName, location);
-            uniforms.add(u);
+                    len[0], uniformName, location);
+            ShaderImpl.UniformImpl old = uniforms.get(uniformName);
+            if (old == null || old.getLength() < u.getLength()) {
+                uniforms.put(uniformName, u);
+            }
         }
 
-        return uniforms;
+        return new ArrayList<>(uniforms.values());
     }
 
     @Override
     protected List<ShaderImpl.AttributeImpl> getAttributes(OpenGLContext context,
                                                            ShaderImpl.ShaderHandle handle) {
-        List<ShaderImpl.AttributeImpl> attributes = new ArrayList<>();
+        // some drivers report all array expansions, so we keep the attribute until another of the same name comes
+        // along with a higher length (implying its a lower index, until we hit [0]).
+        Map<String, ShaderImpl.AttributeImpl> attributes = new HashMap<>();
 
         int programID = handle.programID;
         int[] query = new int[1];
@@ -182,16 +200,19 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             // read uniform properties
             getGL(context)
                     .glGetActiveAttrib(programID, i, maxAttributeNameLength, nameLen, 0, len, 0, type, 0,
-                                       name, 0);
-            String attrName = new String(name, 0, nameLen[0]);
+                            name, 0);
+            String attrName = getSafeName(name, nameLen[0]);
 
             int index = getGL(context).glGetAttribLocation(programID, attrName);
             ShaderImpl.AttributeImpl a = new ShaderImpl.AttributeImpl(handle, Utils.getVariableType(type[0]),
-                                                                      attrName, len[0], index);
-            attributes.add(a);
+                    attrName, len[0], index);
+            ShaderImpl.AttributeImpl old = attributes.get(attrName);
+            if (old == null || old.getLength() < a.getLength()) {
+                attributes.put(attrName, a);
+            }
         }
 
-        return attributes;
+        return new ArrayList<>(attributes.values());
     }
 
     @Override
