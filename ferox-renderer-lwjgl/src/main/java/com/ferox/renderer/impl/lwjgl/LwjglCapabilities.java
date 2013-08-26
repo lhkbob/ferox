@@ -173,7 +173,7 @@ public class LwjglCapabilities extends Capabilities {
         float glslVersionNum = formatVersion(GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
         glslVersion = (int) Math.floor(100 * glslVersionNum);
 
-        geometryShaderSupport = caps.GL_EXT_geometry_shader4 || (majorVersion >= 3 && minorVersion >= 3);
+        geometryShaderSupport = caps.GL_EXT_geometry_shader4 || (majorVersion >= 3 && minorVersion >= 2);
 
         fboSupported = !forceNoFBO && (majorVersion >= 3 || caps.GL_EXT_framebuffer_object);
         if (fboSupported) {
@@ -184,9 +184,16 @@ public class LwjglCapabilities extends Capabilities {
 
         maxVertexAttributes = GL11.glGetInteger(GL20.GL_MAX_VERTEX_ATTRIBS);
 
-        maxVertexShaderTextures = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-        maxFragmentShaderTextures = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
-        maxCombinedTextures = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+        maxFragmentSamplers = GL11.glGetInteger(GL20.GL_MAX_TEXTURE_IMAGE_UNITS);
+        maxVertexSamplers = GL11.glGetInteger(GL20.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+
+        if (geometryShaderSupport) {
+            maxGeometrySamplers = GL11.glGetInteger(GL32.GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS);
+        } else {
+            maxGeometrySamplers = 0;
+        }
+
+        maxTextureUnits = GL11.glGetInteger(GL20.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
 
         fpTextures = majorVersion >= 3 || caps.GL_ARB_texture_float;
         s3tcTextures = caps.GL_EXT_texture_compression_s3tc;

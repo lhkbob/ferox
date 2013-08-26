@@ -83,7 +83,7 @@ public class LwjglContext implements OpenGLContext {
         // if functions related to this are called, we assume FBOs are supported somehow
         useEXTFramebufferObject = caps.getMajorVersion() < 3;
 
-        sharedState = new SharedState(caps.getMaxFragmentShaderTextures());
+        sharedState = new SharedState(caps.getMaxTextureUnits());
 
         LwjglRendererDelegate shared = new LwjglRendererDelegate(this, sharedState);
         glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());

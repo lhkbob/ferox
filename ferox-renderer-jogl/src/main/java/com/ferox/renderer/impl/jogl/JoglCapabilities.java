@@ -212,7 +212,7 @@ public class JoglCapabilities extends Capabilities {
         glslVersion = (int) Math.floor(100 * glslVersionNum);
 
         geometryShaderSupport = gl.isExtensionAvailable("GL_EXT_geometry_shader4") ||
-                                (majorVersion >= 3 && minorVersion >= 3);
+                                (majorVersion >= 3 && minorVersion >= 2);
 
         int[] query = new int[1];
         fboSupported =
@@ -227,12 +227,20 @@ public class JoglCapabilities extends Capabilities {
         gl.glGetIntegerv(GL2.GL_MAX_VERTEX_ATTRIBS, query, 0);
         maxVertexAttributes = query[0];
 
-        gl.glGetIntegerv(GL2.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, query, 0);
-        maxVertexShaderTextures = query[0];
         gl.glGetIntegerv(GL2.GL_MAX_TEXTURE_IMAGE_UNITS, query, 0);
-        maxFragmentShaderTextures = query[0];
+        maxFragmentSamplers = query[0];
+        gl.glGetIntegerv(GL2.GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, query, 0);
+        maxVertexSamplers = query[0];
+
+        if (geometryShaderSupport) {
+            gl.glGetIntegerv(GL3.GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, query, 0);
+            maxGeometrySamplers = query[0];
+        } else {
+            maxGeometrySamplers = 0;
+        }
+
         gl.glGetIntegerv(GL2.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, query, 0);
-        maxCombinedTextures = query[0];
+        maxTextureUnits = query[0];
 
         fpTextures = majorVersion >= 3 || gl.isExtensionAvailable("GL_ARB_texture_float");
         s3tcTextures = gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc");

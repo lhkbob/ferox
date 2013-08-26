@@ -62,10 +62,12 @@ public abstract class Capabilities {
     // glsl
     protected boolean geometryShaderSupport = false; //
     protected int glslVersion;
-    protected int maxVertexShaderTextures = -1; //
-    protected int maxFragmentShaderTextures = -1; //
-    protected int maxCombinedTextures = -1; //
     protected int maxVertexAttributes = 0; //
+    protected int maxTextureUnits = 0; //
+
+    protected int maxVertexSamplers = 0; //
+    protected int maxFragmentSamplers = 0; //
+    protected int maxGeometrySamplers = 0; //
 
     protected String vendor = ""; //
     protected int majorVersion = 0;
@@ -210,33 +212,39 @@ public abstract class Capabilities {
     }
 
     /**
-     * Get max number of textures allowed in the vertex shader stage of a GLSL program. This will return a
-     * number <= 0 if GLSL shaders are not supported.
+     * Get the max number of texture units that can be simulatneously bound.
      *
-     * @return Number of textures allowed in a vertex shader
+     * @return Total number of texture units
      */
-    public int getMaxVertexShaderTextures() {
-        return maxVertexShaderTextures;
+    public int getMaxTextureUnits() {
+        return maxTextureUnits;
     }
 
     /**
-     * Get the max number of textures allowed in the fragment shader of GLSL program. This will return a
-     * number <= 0 if GLSL shaders are not supported.
+     * Get the max number of active sampler variables used by a vertex shader.
      *
-     * @return Number of textures allowed in a fragment shader
+     * @return Total number of samplers in a vertex shader
      */
-    public int getMaxFragmentShaderTextures() {
-        return maxFragmentShaderTextures;
+    public int getMaxVertexSamplers() {
+        return maxVertexSamplers;
     }
 
     /**
-     * Get the max number of textures used by an entire GLSL program. This may be less than the sum of {@link
-     * #getMaxVertexShaderTextures()} and {@link #getMaxFragmentShaderTextures()}.
+     * Get the max number of active sampler variables used by a fragment shader.
      *
-     * @return Total number of texture samplers in a GLSL program
+     * @return Total number of samplers in a vertex shader
      */
-    public int getMaxCombinedTextures() {
-        return maxCombinedTextures;
+    public int getMaxFragmentSamplers() {
+        return maxFragmentSamplers;
+    }
+
+    /**
+     * Get the max number of active sampler variables used by a geometry shader.
+     *
+     * @return Total number of samplers in a vertex shader
+     */
+    public int getMaxGeometrySamplers() {
+        return maxGeometrySamplers;
     }
 
     /**

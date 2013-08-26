@@ -79,7 +79,7 @@ public class JoglContext implements OpenGLContext {
 
         cleanupTasks = new CopyOnWriteArrayList<>();
 
-        sharedState = new SharedState(caps.getMaxFragmentShaderTextures());
+        sharedState = new SharedState(caps.getMaxTextureUnits());
 
         JoglRendererDelegate shared = new JoglRendererDelegate(this, sharedState);
         glsl = new JoglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
