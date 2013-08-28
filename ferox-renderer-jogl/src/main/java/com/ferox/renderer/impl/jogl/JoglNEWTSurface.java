@@ -67,7 +67,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         window.setDefaultCloseOperation(
                 WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
         window.setTitle("");
-        window.setPosition(options.getX(), options.getY());
+        window.setPosition(0, 0);
         window.setVisible(true);
         window.requestFocus();
 

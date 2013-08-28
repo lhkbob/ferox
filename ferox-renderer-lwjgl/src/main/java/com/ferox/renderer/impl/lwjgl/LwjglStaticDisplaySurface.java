@@ -30,12 +30,14 @@ import com.ferox.input.KeyListener;
 import com.ferox.input.MouseKeyEventDispatcher;
 import com.ferox.input.MouseListener;
 import com.ferox.renderer.DisplayMode;
+import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.SurfaceCreationException;
 import com.ferox.renderer.impl.AbstractOnscreenSurface;
 import com.ferox.renderer.impl.FrameworkImpl;
 import com.ferox.renderer.impl.OpenGLContext;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.LWJGLUtil;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.GL11;
@@ -58,6 +60,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     private final LwjglStaticDisplayDestructible impl;
 
     private final DisplayMode displayMode;
+    private final boolean emulateVSync;
+    private long lastSyncTime;
 
     private final int depthBits;
     private final int stencilBits;
@@ -66,15 +70,15 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     private boolean vsync;
     private boolean vsyncNeedsUpdate;
 
-    public LwjglStaticDisplaySurface(FrameworkImpl framework, LwjglSurfaceFactory factory,
+    public LwjglStaticDisplaySurface(final FrameworkImpl framework, final LwjglSurfaceFactory factory,
                                      final OnscreenSurfaceOptions options, LwjglContext shareWith) {
         if (Display.isCreated()) {
             throw new SurfaceCreationException(
                     "Static LWJGL Display is already in use, cannot create another surface");
         }
 
-        org.lwjgl.opengl.PixelFormat format = choosePixelFormat(options, factory);
-        Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
+        final org.lwjgl.opengl.PixelFormat format = choosePixelFormat(options, factory);
+        final Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
 
         Canvas glCanvas = null;
         Frame parentFrame = null;
@@ -107,41 +111,42 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             displayMode = options.getFullscreenMode();
         } else {
             // not a fullscreen window
-            final Frame innerFrame = new Frame();
-            final Canvas innerCanvas = new Canvas(); //new PaintDisabledCanvas();
+            boolean needCanvasParent = options.isResizable() || options.isUndecorated();
+            if (needCanvasParent) {
+                parentFrame = new Frame();
+                glCanvas = new PaintDisabledCanvas();
 
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    innerFrame.setResizable(options.isResizable());
-                    innerFrame.setUndecorated(options.isUndecorated());
-                    innerFrame.setBounds(options.getX(), options.getY(), options.getWidth(),
-                                         options.getHeight());
-                    innerFrame.add(innerCanvas);
+                parentFrame.setResizable(options.isResizable());
+                parentFrame.setUndecorated(options.isUndecorated());
+                parentFrame.setBounds(0, 0, options.getWidth(), options.getHeight());
+                parentFrame.add(glCanvas);
 
-                    innerCanvas.setSize(options.getWidth(), options.getHeight());
+                parentFrame.setVisible(true);
+                glCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
 
-                    innerFrame.setVisible(true);
-                    innerFrame.pack();
-                    innerCanvas.requestFocusInWindow(); // We use LWJGL's input system, but just in case
-
-                    innerFrame.setIgnoreRepaint(true);
-                    innerCanvas.setIgnoreRepaint(true);
-                }
-            }, true);
+                parentFrame.setIgnoreRepaint(true);
+                glCanvas.setIgnoreRepaint(true);
+            }
 
             try {
-                Display.setParent(innerCanvas);
+                if (glCanvas != null) {
+                    Display.setParent(glCanvas);
+                } else {
+                    Display.setDisplayMode(
+                            new org.lwjgl.opengl.DisplayMode(options.getWidth(), options.getHeight()));
+                }
+
                 Display.create(format, realShare, factory.getContextAttribs());
+                if (glCanvas == null) {
+                    Display.setLocation(0, 0);
+                    Display.setTitle("");
+                }
             } catch (LWJGLException e) {
                 if (Display.isCreated()) {
                     Display.destroy();
                 }
                 throw new SurfaceCreationException("Unable to create static display", e);
             }
-
-            parentFrame = innerFrame;
-            glCanvas = innerCanvas;
             displayMode = factory.getDefaultDisplayMode();
         }
 
@@ -180,6 +185,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
         vsync = false;
         vsyncNeedsUpdate = true;
+        // TODO test if other platforms support vsync with a parented window
+        emulateVSync = LWJGLUtil.getPlatform() == LWJGLUtil.PLATFORM_MACOSX && parentFrame != null;
+        lastSyncTime = -1L;
 
         impl = new LwjglStaticDisplayDestructible(framework, this, context, parentFrame, glCanvas);
     }
@@ -245,7 +253,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
         super.onSurfaceActivate(context);
 
         synchronized (impl) {
-            if (vsyncNeedsUpdate) {
+            if (vsyncNeedsUpdate && !emulateVSync) {
                 Display.setSwapInterval(vsync ? 1 : 0);
                 vsyncNeedsUpdate = false;
             }
@@ -274,7 +282,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
 
     @Override
     public boolean isFullscreen() {
-        return impl.parentFrame == null;
+        return impl.parentFrame == null && Display.isFullscreen();
     }
 
     @Override
@@ -306,14 +314,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     @Override
     public void setTitle(final String title) {
         if (impl.parentFrame != null) {
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (impl) {
-                        impl.parentFrame.setTitle(title);
-                    }
-                }
-            }, false);
+            synchronized (impl) {
+                impl.parentFrame.setTitle(title);
+            }
         } else {
             synchronized (impl) {
                 // Display.setTitle() does not require the display to be current.
@@ -328,7 +331,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             if (impl.parentFrame != null) {
                 return impl.parentFrame.getX();
             } else {
-                return 0; // fullscreen
+                return Display.getX();
             }
         }
     }
@@ -339,7 +342,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             if (impl.parentFrame != null) {
                 return impl.parentFrame.getY();
             } else {
-                return 0; // fullscreen
+                return Display.getY();
             }
         }
     }
@@ -350,33 +353,31 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
 
-        if (impl.parentFrame != null) {
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (impl) {
-                        impl.parentFrame.setSize(width, height);
-                    }
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                impl.parentFrame.setSize(width, height);
+            } else if (!Display.isFullscreen()) {
+                try {
+                    Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(width, height));
+                } catch (LWJGLException e) {
+                    throw new FrameworkException("Unexpected error changing window size", e);
                 }
-            }, false);
-        } else {
-            throw new IllegalStateException("Surface is fullscreen");
+            } else {
+                throw new IllegalStateException("Surface is fullscreen");
+            }
         }
     }
 
     @Override
     public void setLocation(final int x, final int y) {
-        if (impl.parentFrame != null) {
-            Utils.invokeOnAWTThread(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (impl) {
-                        impl.parentFrame.setLocation(x, y);
-                    }
-                }
-            }, false);
-        } else {
-            throw new IllegalStateException("Surface is fullscreen");
+        synchronized (impl) {
+            if (impl.parentFrame != null) {
+                impl.parentFrame.setLocation(x, y);
+            } else if (!Display.isFullscreen()) {
+                Display.setLocation(x, y);
+            } else {
+                throw new IllegalStateException("Surface is fullscreen");
+            }
         }
     }
 
@@ -400,6 +401,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             if (impl.parentFrame != null) {
                 return impl.glCanvas.getWidth();
             } else {
+                // FIXME insets
                 return Display.getWidth();
             }
         }
@@ -411,6 +413,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             if (impl.parentFrame != null) {
                 return impl.glCanvas.getHeight();
             } else {
+                // FIXME insets
                 return Display.getHeight();
             }
         }
@@ -445,8 +448,34 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     public void flush(OpenGLContext context) {
         // Just swap the buffers during flush(), we'll process messages
         // in another queued task
-        //            Display.swapBuffers();
         Display.update(false);
+
+        if (emulateVSync) {
+            boolean vsync;
+            synchronized (impl) {
+                vsync = this.vsync;
+            }
+
+            if (vsync && lastSyncTime >= 0) {
+                int freq = Display.getDisplayMode().getFrequency();
+                if (freq <= 0) {
+                    freq = 60; // default
+                }
+
+                long totalFrameTime = 1000 / freq;
+                long renderedTime = System.currentTimeMillis() - lastSyncTime;
+                while (totalFrameTime < renderedTime) {
+                    totalFrameTime *= 2; // double the interval if we've missed it
+                }
+
+                try {
+                    Thread.sleep(totalFrameTime - renderedTime);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+        lastSyncTime = System.currentTimeMillis();
     }
 
     private static class LwjglStaticDisplayDestructible extends SurfaceDestructible
@@ -552,9 +581,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
         }
 
         /*
-     * Internal class that queues tasks to the gpu thread to periodically check
-     * OS state to push input events, or close the window.
-     */
+         * Internal class that queues tasks to the gpu thread to periodically check
+         * OS state to push input events, or close the window.
+         */
         private class EventMonitor implements Runnable {
             @Override
             public void run() {

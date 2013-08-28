@@ -40,9 +40,6 @@ public final class OnscreenSurfaceOptions {
     private final int width;
     private final int height;
 
-    private final int x;
-    private final int y;
-
     private final DisplayMode fullMode;
 
     private final int depthBits;
@@ -54,18 +51,15 @@ public final class OnscreenSurfaceOptions {
      * a decorated, resizable window at (0, 0) with dimensions 600 x 600.
      */
     public OnscreenSurfaceOptions() {
-        this(24, 0, 0, false, true, 0, 0, 600, 600, null);
+        this(24, 0, 0, false, true, 600, 600, null);
     }
 
     private OnscreenSurfaceOptions(int depthBits, int msaa, int stencilBits, boolean undecorated,
-                                   boolean resizable, int x, int y, int width, int height,
-                                   DisplayMode fullMode) {
+                                   boolean resizable, int width, int height, DisplayMode fullMode) {
         this.undecorated = undecorated;
         this.resizable = resizable;
         this.width = width;
         this.height = height;
-        this.x = x;
-        this.y = y;
 
         this.fullMode = fullMode;
         this.depthBits = depthBits;
@@ -83,22 +77,8 @@ public final class OnscreenSurfaceOptions {
      * @return New options configured for the given dimensions
      */
     public OnscreenSurfaceOptions windowed(int width, int height) {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, x, y, width,
-                                          height, null);
-    }
-
-    /**
-     * Create a new options that is updated to set the location of the of a windowed OnscreenSurface. The
-     * options are coerced to a windowed surface if there was a non-null fullscreen display mode.
-     *
-     * @param x The x location of the window in pixels from the left edge of the monitor
-     * @param y The y location of the window in pixels from the top of the monitor
-     *
-     * @return New options configured for the given location
-     */
-    public OnscreenSurfaceOptions locatedAt(int x, int y) {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, x, y, width,
-                                          height, null);
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, width, height,
+                                          null);
     }
 
     /**
@@ -114,7 +94,7 @@ public final class OnscreenSurfaceOptions {
      * @return New options configured for a fullscreen surface
      */
     public OnscreenSurfaceOptions fullScreen(DisplayMode mode) {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, false, 0, 0, mode.getWidth(),
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, false, mode.getWidth(),
                                           mode.getHeight(), mode);
     }
 
@@ -127,8 +107,8 @@ public final class OnscreenSurfaceOptions {
      * @return New options with the new depth buffer configuration
      */
     public OnscreenSurfaceOptions withDepthBuffer(int depthBits) {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, x, y, width,
-                                          height, fullMode);
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, width, height,
+                                          fullMode);
     }
 
     /**
@@ -140,8 +120,8 @@ public final class OnscreenSurfaceOptions {
      * @return New options with the new depth stencil configuration
      */
     public OnscreenSurfaceOptions withStencilBuffer(int stencilBits) {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, x, y, width,
-                                          height, fullMode);
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, resizable, width, height,
+                                          fullMode);
     }
 
     /**
@@ -154,8 +134,8 @@ public final class OnscreenSurfaceOptions {
      * @return New options with the new MSAA configuration
      */
     public OnscreenSurfaceOptions withMSAA(int samples) {
-        return new OnscreenSurfaceOptions(depthBits, samples, stencilBits, undecorated, resizable, x, y,
-                                          width, height, fullMode);
+        return new OnscreenSurfaceOptions(depthBits, samples, stencilBits, undecorated, resizable, width,
+                                          height, fullMode);
     }
 
     /**
@@ -166,7 +146,7 @@ public final class OnscreenSurfaceOptions {
      * @return New options marking the surface as undecorated
      */
     public OnscreenSurfaceOptions undecorated() {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, resizable, x, y, width, height,
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, true, resizable, width, height,
                                           fullMode);
     }
 
@@ -178,22 +158,8 @@ public final class OnscreenSurfaceOptions {
      * @return New options marking the surface as not resizable
      */
     public OnscreenSurfaceOptions fixedSize() {
-        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, false, x, y, width,
-                                          height, fullMode);
-    }
-
-    /**
-     * @return The initial x coordinate of the OnscreenSurface when windowed
-     */
-    public int getX() {
-        return x;
-    }
-
-    /**
-     * @return The initial y coordinate of the OnscreenSurface when windowed
-     */
-    public int getY() {
-        return y;
+        return new OnscreenSurfaceOptions(depthBits, msaa, stencilBits, undecorated, false, width, height,
+                                          fullMode);
     }
 
     /**
