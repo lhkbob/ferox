@@ -64,7 +64,18 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
         getGL(context).glGenTextures(1, query, 0);
         return query[0];
     }
-    // FIXME implement glUnpack state setting
+
+    private static void glUnpackRegion(GL2GL3 gl, int xOffset, int yOffset, int zOffset, int blockWidth,
+                                       int blockHeight) {
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, xOffset);
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_ROWS, yOffset);
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_SKIP_PIXELS, zOffset);
+
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_ROW_LENGTH, blockWidth);
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
+
+        gl.glPixelStorei(GL2GL3.GL_UNPACK_ALIGNMENT, 1);
+    }
 
     public static void refreshTexture(OpenGLContext context, Sampler sampler) {
         TextureImpl t = (TextureImpl) sampler;
@@ -76,34 +87,39 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
             type = Utils.getGLDataTypeForPackedTextureFormat(t.getFullFormat());
         }
 
+        GL2GL3 gl = getGL(context);
         context.bindTexture(0, h);
         switch (h.target) {
         case TEX_1D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    getGL(context).glTexSubImage1D(GL2GL3.GL_TEXTURE_1D, i, 0, Math.max(t.getWidth() >> i, 1),
-                                                   srcFormat, type,
-                                                   BufferUtil.newBuffer(t.getDataArray(0, i)));
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    glUnpackRegion(gl, 0, 0, 0, width, 1);
+                    gl.glTexSubImage1D(GL2GL3.GL_TEXTURE_1D, i, 0, width, srcFormat, type,
+                                       BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
             break;
         case TEX_2D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    getGL(context)
-                            .glTexSubImage2D(GL2GL3.GL_TEXTURE_2D, i, 0, 0, Math.max(t.getWidth() >> i, 1),
-                                             Math.max(t.getHeight() >> i, 1), srcFormat, type,
-                                             BufferUtil.newBuffer(t.getDataArray(0, i)));
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    int height = Math.max(t.getHeight() >> i, 1);
+                    glUnpackRegion(gl, 0, 0, 0, width, height);
+                    gl.glTexSubImage2D(GL2GL3.GL_TEXTURE_2D, i, 0, 0, width, height, srcFormat, type,
+                                       BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
             break;
         case TEX_3D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    getGL(context)
-                            .glTexSubImage3D(GL2GL3.GL_TEXTURE_3D, i, 0, 0, 0, Math.max(t.getWidth() >> i, 1),
-                                             Math.max(t.getHeight() >> i, 1), Math.max(t.getDepth() >> i, 1),
-                                             srcFormat, type, BufferUtil.newBuffer(t.getDataArray(0, i)));
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    int height = Math.max(t.getHeight() >> i, 1);
+                    glUnpackRegion(gl, 0, 0, 0, width, height);
+                    gl.glTexSubImage3D(GL2GL3.GL_TEXTURE_3D, i, 0, 0, 0, width, height,
+                                       Math.max(t.getDepth() >> i, 1), srcFormat, type,
+                                       BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
             break;
@@ -111,10 +127,11 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
             for (int s = 0; s < 6; s++) {
                 for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                     if (t.getDataArray(s, i) != null) {
-                        getGL(context).glTexSubImage2D(Utils.getGLCubeFace(s), i, 0, 0,
-                                                       Math.max(t.getWidth() >> i, 1),
-                                                       Math.max(t.getHeight() >> i, 1), srcFormat, type,
-                                                       BufferUtil.newBuffer(t.getDataArray(s, i)));
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        int height = Math.max(t.getHeight() >> i, 1);
+                        glUnpackRegion(gl, 0, 0, 0, width, height);
+                        gl.glTexSubImage2D(Utils.getGLCubeFace(s), i, 0, 0, width, height, srcFormat, type,
+                                           BufferUtil.newBuffer(t.getDataArray(s, i)));
                     }
                 }
             }
@@ -123,10 +140,12 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
             for (int i = 0; i < t.getImageCount(); i++) {
                 for (int m = t.getBaseMipmap(); m <= t.getMaxMipmap(); m++) {
                     if (t.getDataArray(i, m) != null) {
-                        getGL(context).glTexSubImage3D(GL2GL3.GL_TEXTURE_2D_ARRAY, m, 0, 0, i,
-                                                       Math.max(t.getWidth() >> i, 1),
-                                                       Math.max(t.getHeight() >> i, 1), 1, srcFormat, type,
-                                                       BufferUtil.newBuffer(t.getDataArray(i, m)));
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        int height = Math.max(t.getHeight() >> i, 1);
+                        // we use a zOffset of 0 since the data array is already separated
+                        glUnpackRegion(gl, 0, 0, 0, width, height);
+                        gl.glTexSubImage3D(GL2GL3.GL_TEXTURE_2D_ARRAY, m, 0, 0, i, width, height, 1,
+                                           srcFormat, type, BufferUtil.newBuffer(t.getDataArray(i, m)));
                     }
                 }
             }
@@ -135,9 +154,11 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
             for (int i = 0; i < t.getImageCount(); i++) {
                 for (int m = t.getBaseMipmap(); m <= t.getMaxMipmap(); m++) {
                     if (t.getDataArray(i, m) != null) {
-                        getGL(context).glTexSubImage2D(GL2GL3.GL_TEXTURE_1D_ARRAY, m, 0, i,
-                                                       Math.max(t.getWidth() >> i, 1), 1, srcFormat, type,
-                                                       BufferUtil.newBuffer(t.getDataArray(i, m)));
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        // we use a yOffset of 0 since the data array is already separated
+                        glUnpackRegion(gl, 0, 0, 0, width, 1);
+                        gl.glTexSubImage2D(GL2GL3.GL_TEXTURE_1D_ARRAY, m, 0, i, width, 1, srcFormat, type,
+                                           BufferUtil.newBuffer(t.getDataArray(i, m)));
                     }
                 }
             }
@@ -158,27 +179,27 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
             type = Utils.getGLDataTypeForPackedTextureFormat(format);
         }
 
+        GL2GL3 gl = getGL(context);
+        glUnpackRegion(gl, 0, 0, 0, width, height);
         switch (this.target) {
         case TEX_1D:
-            getGL(context).glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type, imageData);
+            gl.glTexImage1D(target, mipmap, dstFormat, width, 0, srcFormat, type, imageData);
             break;
         case TEX_2D:
         case TEX_CUBEMAP:
         case TEX_1D_ARRAY:
             if (srcFormat > 0) {
                 // uncompressed (height is automatically set to image length for 1D-arrays
-                getGL(context).glTexImage2D(target, mipmap, dstFormat, width, height, 0, srcFormat, type,
-                                            imageData);
+                gl.glTexImage2D(target, mipmap, dstFormat, width, height, 0, srcFormat, type, imageData);
             } else {
                 // compressed - always a ByteBuffer
-                getGL(context).glCompressedTexImage2D(target, mipmap, dstFormat, width, height, 0,
-                                                      imageData.capacity(), imageData);
+                gl.glCompressedTexImage2D(target, mipmap, dstFormat, width, height, 0, imageData.capacity(),
+                                          imageData);
             }
             break;
         case TEX_3D:
         case TEX_2D_ARRAY:
-            getGL(context).glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0, srcFormat, type,
-                                        imageData);
+            gl.glTexImage3D(target, mipmap, dstFormat, width, height, depth, 0, srcFormat, type, imageData);
             break;
         default:
             throw new RuntimeException("Unexpected texture target: " + this.target);

@@ -56,7 +56,18 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
     protected int generateTextureID(OpenGLContext context) {
         return GL11.glGenTextures();
     }
-    // FIXME implement glUnpack state setting
+
+    private static void glUnpackRegion(int xOffset, int yOffset, int zOffset, int blockWidth,
+                                       int blockHeight) {
+        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, xOffset);
+        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, yOffset);
+        GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, zOffset);
+
+        GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, blockWidth);
+        GL11.glPixelStorei(GL12.GL_UNPACK_IMAGE_HEIGHT, blockHeight);
+
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+    }
 
     public static void refreshTexture(OpenGLContext context, Sampler sampler) {
         TextureImpl t = (TextureImpl) sampler;
@@ -73,16 +84,20 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
         case TEX_1D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    GL11.glTexSubImage1D(GL11.GL_TEXTURE_1D, i, 0, Math.max(t.getWidth() >> i, 1), srcFormat,
-                                         type, BufferUtil.newBuffer(t.getDataArray(0, i)));
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    glUnpackRegion(0, 0, 0, width, 1);
+                    GL11.glTexSubImage1D(GL11.GL_TEXTURE_1D, i, 0, width, srcFormat, type,
+                                         BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
             break;
         case TEX_2D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, i, 0, 0, Math.max(t.getWidth() >> i, 1),
-                                         Math.max(t.getHeight() >> i, 1), srcFormat, type,
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    int height = Math.max(t.getHeight() >> i, 1);
+                    glUnpackRegion(0, 0, 0, width, height);
+                    GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, i, 0, 0, width, height, srcFormat, type,
                                          BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
@@ -90,9 +105,12 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
         case TEX_3D:
             for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                 if (t.getDataArray(0, i) != null) {
-                    GL12.glTexSubImage3D(GL12.GL_TEXTURE_3D, i, 0, 0, 0, Math.max(t.getWidth() >> i, 1),
-                                         Math.max(t.getHeight() >> i, 1), Math.max(t.getDepth() >> i, 1),
-                                         srcFormat, type, BufferUtil.newBuffer(t.getDataArray(0, i)));
+                    int width = Math.max(t.getWidth() >> i, 1);
+                    int height = Math.max(t.getHeight() >> i, 1);
+                    glUnpackRegion(0, 0, 0, width, height);
+                    GL12.glTexSubImage3D(GL12.GL_TEXTURE_3D, i, 0, 0, 0, width, height,
+                                         Math.max(t.getDepth() >> i, 1), srcFormat, type,
+                                         BufferUtil.newBuffer(t.getDataArray(0, i)));
                 }
             }
             break;
@@ -100,8 +118,10 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
             for (int s = 0; s < 6; s++) {
                 for (int i = t.getBaseMipmap(); i <= t.getMaxMipmap(); i++) {
                     if (t.getDataArray(s, i) != null) {
-                        GL11.glTexSubImage2D(Utils.getGLCubeFace(s), i, 0, 0, Math.max(t.getWidth() >> i, 1),
-                                             Math.max(t.getHeight() >> i, 1), srcFormat, type,
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        int height = Math.max(t.getHeight() >> i, 1);
+                        glUnpackRegion(0, 0, 0, width, height);
+                        GL11.glTexSubImage2D(Utils.getGLCubeFace(s), i, 0, 0, width, height, srcFormat, type,
                                              BufferUtil.newBuffer(t.getDataArray(s, i)));
                     }
                 }
@@ -111,9 +131,12 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
             for (int i = 0; i < t.getImageCount(); i++) {
                 for (int m = t.getBaseMipmap(); m <= t.getMaxMipmap(); m++) {
                     if (t.getDataArray(i, m) != null) {
-                        GL12.glTexSubImage3D(GL30.GL_TEXTURE_2D_ARRAY, m, 0, 0, i,
-                                             Math.max(t.getWidth() >> i, 1), Math.max(t.getHeight() >> i, 1),
-                                             1, srcFormat, type, BufferUtil.newBuffer(t.getDataArray(i, m)));
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        int height = Math.max(t.getHeight() >> i, 1);
+                        // we use a zOffset of 0 since the data is already split into each image
+                        glUnpackRegion(0, 0, 0, width, height);
+                        GL12.glTexSubImage3D(GL30.GL_TEXTURE_2D_ARRAY, m, 0, 0, i, width, height, 1,
+                                             srcFormat, type, BufferUtil.newBuffer(t.getDataArray(i, m)));
                     }
                 }
             }
@@ -122,8 +145,10 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
             for (int i = 0; i < t.getImageCount(); i++) {
                 for (int m = t.getBaseMipmap(); m <= t.getMaxMipmap(); m++) {
                     if (t.getDataArray(i, m) != null) {
-                        GL11.glTexSubImage2D(GL30.GL_TEXTURE_1D_ARRAY, m, 0, i,
-                                             Math.max(t.getWidth() >> i, 1), 1, srcFormat, type,
+                        int width = Math.max(t.getWidth() >> i, 1);
+                        // we use a yOffset of 0 since the data is already split into each image
+                        glUnpackRegion(0, 0, 0, width, 1);
+                        GL11.glTexSubImage2D(GL30.GL_TEXTURE_1D_ARRAY, m, 0, i, width, 1, srcFormat, type,
                                              BufferUtil.newBuffer(t.getDataArray(i, m)));
                     }
                 }
@@ -144,6 +169,8 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
         if (format.getType().equals(DataType.INT_BIT_FIELD)) {
             type = Utils.getGLDataTypeForPackedTextureFormat(format);
         }
+
+        glUnpackRegion(0, 0, 0, width, height);
 
         switch (this.target) {
         case TEX_1D:
