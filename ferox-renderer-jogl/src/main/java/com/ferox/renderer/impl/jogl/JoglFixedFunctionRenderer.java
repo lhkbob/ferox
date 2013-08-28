@@ -83,6 +83,11 @@ public class JoglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             gl.glLightModeli(GL2.GL_LIGHT_MODEL_COLOR_CONTROL, GL2.GL_SEPARATE_SPECULAR_COLOR);
             gl.glShadeModel(GL2.GL_SMOOTH);
 
+            for (int i = 0; i < FixedFunctionState.MAX_TEXTURES; i++) {
+                glActiveTexture(i);
+                gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_COMBINE);
+            }
+
             initialized = true;
         }
 

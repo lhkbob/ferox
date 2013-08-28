@@ -34,6 +34,7 @@ import com.ferox.renderer.DataType;
 import com.ferox.renderer.impl.AbstractFixedFunctionRenderer;
 import com.ferox.renderer.impl.AbstractSurface;
 import com.ferox.renderer.impl.BufferUtil;
+import com.ferox.renderer.impl.FixedFunctionState;
 import com.ferox.renderer.impl.FixedFunctionState.ColorPurpose;
 import com.ferox.renderer.impl.FixedFunctionState.FogMode;
 import com.ferox.renderer.impl.FixedFunctionState.MatrixMode;
@@ -69,6 +70,8 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
 
     @Override
     public void activate(AbstractSurface surface) {
+        super.activate(surface);
+
         if (!initialized) {
             // set initial state not actually tracked
             GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE);
@@ -80,10 +83,13 @@ public class LwjglFixedFunctionRenderer extends AbstractFixedFunctionRenderer {
             GL11.glLightModeli(GL12.GL_LIGHT_MODEL_COLOR_CONTROL, GL12.GL_SEPARATE_SPECULAR_COLOR);
             GL11.glShadeModel(GL11.GL_SMOOTH);
 
+            for (int i = 0; i < FixedFunctionState.MAX_TEXTURES; i++) {
+                glActiveTexture(i);
+                GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_COMBINE);
+            }
+
             initialized = true;
         }
-
-        super.activate(surface);
     }
 
     @Override
