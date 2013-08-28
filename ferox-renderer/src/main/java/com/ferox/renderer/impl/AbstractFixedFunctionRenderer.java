@@ -613,6 +613,11 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             if (image.isDestroyed()) {
                 throw new ResourceException("Cannot use a destroyed resource");
             }
+            if (!(image instanceof Texture1D) && !(image instanceof Texture2D) &&
+                !(image instanceof TextureCubeMap) && !(image instanceof DepthMap2D)) {
+                throw new UnsupportedOperationException(
+                        image.getClass() + " cannot be used in a FixedFunctionRenderer");
+            }
 
             TextureImpl.TextureHandle newImage = ((TextureImpl) image).getHandle();
             enableTexture(tex, newImage);

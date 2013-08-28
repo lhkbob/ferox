@@ -940,9 +940,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         if (!u.initialized || u.intValues.get(offset) != v1 || u.intValues.get(offset + 1) != v2 ||
             u.intValues.get(offset + 2) != v3) {
             u.initialized = true;
-            u.intValues.put(0, v1);
-            u.intValues.put(1, v2);
-            u.intValues.put(2, v3);
+            u.intValues.put(offset, v1);
+            u.intValues.put(offset + 1, v2);
+            u.intValues.put(offset + 2, v3);
 
             glUniform(ix(u, index), u.getType(), u.intValues);
         }

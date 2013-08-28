@@ -33,6 +33,11 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     private Shader shader;
     private ContextState<GlslRenderer> defaultState;
 
+    // the getCurrentState() records the valid viewport dimensions of the original surface, which
+    // we don't want to preserve so we remember the surface dimensions in activate() and apply them in reset()
+    private int resetSurfaceWidth;
+    private int resetSurfaceHeight;
+
     /*
      * Vertex shader uniforms
      */
@@ -75,10 +80,9 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     private Shader.Uniform sampler1D; // sampler1D[4]
     private Shader.Uniform sampler2D; // sampler2D[4]
-    private Shader.Uniform sampler3D; // sampler3D[4]
     private Shader.Uniform samplerCube; // samplerCube[4]
+    private Shader.Uniform sampler2DShadow; // sampler2DShadow[4]
     private Shader.Uniform texConfig; // int[4]
-    private Shader.Uniform depthComparison; // int[4]
 
     private Shader.Uniform combineSrcAlpha; // ivec3[4]
     private Shader.Uniform combineSrcRGB; // ivec3[4]
@@ -243,6 +247,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     @Override
     public void reset() {
         glsl.setCurrentState(defaultState);
+        glsl.setViewport(0, 0, resetSurfaceWidth, resetSurfaceHeight);
     }
 
     @Override
@@ -387,30 +392,30 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setTexture(int tex, Sampler image) {
-        // FIXME set others to null?
         if (image instanceof Texture1D) {
             glsl.setUniformArray(sampler1D, tex, image);
             glsl.setUniformArray(texConfig, tex, 0);
-            glsl.setUniformArray(depthComparison, tex, -1);
         } else if (image instanceof Texture2D) {
             glsl.setUniformArray(sampler2D, tex, image);
             glsl.setUniformArray(texConfig, tex, 1);
-            glsl.setUniformArray(depthComparison, tex, -1);
-        } else if (image instanceof Texture3D) {
-            glsl.setUniformArray(sampler3D, tex, image);
-            glsl.setUniformArray(texConfig, tex, 2);
-            glsl.setUniformArray(depthComparison, tex, -1);
         } else if (image instanceof TextureCubeMap) {
             glsl.setUniformArray(samplerCube, tex, image);
-            glsl.setUniformArray(texConfig, tex, 3);
-            glsl.setUniformArray(depthComparison, tex, -1);
+            glsl.setUniformArray(texConfig, tex, 2);
         } else if (image instanceof DepthMap2D) {
-            glsl.setUniformArray(sampler2D, tex, image);
-            glsl.setUniformArray(texConfig, tex, 1);
-
             DepthMap2D map = (DepthMap2D) image;
-            int compare = (map.getDepthComparison() == null ? -1 : map.getDepthComparison().ordinal());
-            glsl.setUniformArray(depthComparison, tex, compare);
+
+            if (map.getDepthComparison() != null) {
+                // use shadow sampler
+                glsl.setUniformArray(sampler2DShadow, tex, image);
+                glsl.setUniformArray(texConfig, tex, 3);
+            } else {
+                // treat it like its a regular 2d texture
+                glsl.setUniformArray(sampler2D, tex, image);
+                glsl.setUniformArray(texConfig, tex, 1);
+            }
+        } else if (image != null) {
+            throw new UnsupportedOperationException(
+                    image.getClass() + " not supported in FixedFunctionRenderer");
         } else {
             glsl.setUniformArray(texConfig, tex, -1);
         }
@@ -539,6 +544,9 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             loadVariables();
             loadDefaultState();
         }
+
+        resetSurfaceWidth = surface.getWidth();
+        resetSurfaceHeight = surface.getHeight();
     }
 
     private void loadVariables() {
@@ -551,10 +559,9 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
         sampler1D = shader.getUniform("uTex1D");
         sampler2D = shader.getUniform("uTex2D");
-        sampler3D = shader.getUniform("uTex3D");
+        sampler2DShadow = shader.getUniform("uTexShadow");
         samplerCube = shader.getUniform("uTexCube");
         texConfig = shader.getUniform("uTexConfig");
-        depthComparison = shader.getUniform("uDepthComparison");
 
         combineSrcAlpha = shader.getUniform("uCombineSrcAlpha");
         combineSrcRGB = shader.getUniform("uCombineSrcRGB");
@@ -679,7 +686,6 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.bindAttribute(colors, defaults.matDiffuse);
         glsl.bindAttribute(vertices, new Vector4(0, 0, 0, 1));
         glsl.bindAttribute(normals, new Vector3(0, 0, 1));
-
 
         defaultState = glsl.getCurrentState();
     }

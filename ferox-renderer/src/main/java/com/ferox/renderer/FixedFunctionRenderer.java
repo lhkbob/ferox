@@ -35,12 +35,16 @@ import com.ferox.math.Vector4;
  * <p/>
  * The FixedFunctionRenderer describes a Renderer that exposes the majority of useful state described by the
  * fixed-function pipeline of pre-3.1 OpenGL implementations. Although the OpenGL versions between 2.0 and 3.0
- * had support for GLSL shaders (and even earlier using extensions), this Renderer does not expose that since
+ * have support for GLSL shaders (and even earlier using extensions), this Renderer does not expose that since
  * it's more robust to completely separate fixed and programmable pipelines.
  * <p/>
- * For the purposes of lighting, the renderer supports 8 simultaneous lights. For the purposes of texturing,
- * the renderer supports 4 simultaneous textures. Lighting is computed using the Blinn-Phong model adopted by
- * OpenGL and will use single-sided lighting, separate specular colors, and smooth shading.
+ * To support easy shader emulation, the renderer imposes slightly more restrictions than the actual
+ * fixed-function specification of OpenGL.  Hardware that does not even meet these restrictions will not work
+ * with Ferox at all. For the purposes of lighting, the renderer supports 8 simultaneous lights.  Lighting is
+ * computed using the Blinn-Phong model adopted by OpenGL and will use single-sided lighting, separate
+ * specular colors, and smooth shading. For the purposes of texturing, the renderer supports 4 simultaneous
+ * textures. Only {@link Texture1D}, {@link Texture2D}, {@link TextureCubeMap} and {@link DepthMap2D} can be
+ * used.
  *
  * @author Michael Ludwig
  */
@@ -563,8 +567,10 @@ public interface FixedFunctionRenderer extends Renderer {
      * @param tex   The texture unit
      * @param image The Texture to be bound to tex
      *
-     * @throws IllegalArgumentException  if tex is less than 0
-     * @throws IndexOutOfBoundsException if tex is greater than or equal to 4, or if tex is less than 0
+     * @throws IllegalArgumentException      if tex is less than 0
+     * @throws IndexOutOfBoundsException     if tex is greater than or equal to 4, or if tex is less than 0
+     * @throws UnsupportedOperationException if image is not a Texture1D, Texture2D, TextureCubeMap or
+     *                                       DepthMap2D
      */
     public void setTexture(int tex, Sampler image);
 

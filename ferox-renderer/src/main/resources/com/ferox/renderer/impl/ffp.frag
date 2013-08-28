@@ -11,10 +11,9 @@ uniform bool uEnableFog;
 // is the minimum required for OpenGL 3
 uniform sampler1D uTex1D[4];
 uniform sampler2D uTex2D[4];
-uniform sampler3D uTex3D[4];
 uniform samplerCube uTexCube[4];
-uniform int uTexConfig[4]; // neg. value is disabled, 0 = 1D, 1 = 2D, 2 = 3D, 3 = cube
-uniform int uDepthComparison[4]; // -1 for disabled, otherwise ordinal of Comparison
+uniform sampler2DShadow uTexShadow[4];
+uniform int uTexConfig[4]; // neg. value is disabled, 0 = 1D, 1 = 2D, 2 = cube, 3 = 2D shadow
 
 uniform ivec3 uCombineSrcAlpha[4]; // xyz represent 0,1,2 arguments to the functions
 uniform ivec3 uCombineSrcRGB[4]; // values are ordinal of CombineSource and CombineOperand
@@ -54,74 +53,55 @@ bool compare(const float testValue, const float refValue, const int test) {
 vec4 sampleTexture(const int tex) {
     switch(uTexConfig[tex]) {
         case 0: // 1D
-            float coord1 = vTexCoord[tex].s / vTexCoord[tex].q;
-            return texture(uTex1D[tex], coord1);
+            return texture(uTex1D[tex], vTexCoord[tex].s / vTexCoord[tex].q);
             //return vec4(1.0, 0.0, 0.0, 1.0);
         case 1: // 2D
-            if (uDepthComparison[tex] >= 0) {
-                // depth comparison
-                vec3 coord = vTexCoord[tex].stp / vTexCoord[tex].q;
-                float d = texture(uTex2D[tex], coord.st).r;
-
-                if (compare(d, coord.p, uDepthComparison[tex])) {
-                    return vec4(1.0);
-                } else {
-                    return vec4(0.0);
-                }
-                //return vec4(0.0, 0.5, 0.5, 1.0);
-            } else {
-                // regular texture
-                vec2 coord = vTexCoord[tex].st / vTexCoord[tex].q;
-                return texture(uTex2D[tex], coord);
-                //return vec4(0.0, 1.0, 0.0, 1.0);
-            }
-        case 2: // 3D
-            vec3 coord3 = vTexCoord[tex].stp / vTexCoord[tex].q;
-            return texture(uTex3D[tex], coord3);
-            //return vec4(0.0, 0.0, 1.0, 1.0);
-        case 3: // CUBE
-            vec3 coord4 = vTexCoord[tex].stp; // no divide needed for cube maps
-            return texture(uTexCube[tex], coord4);
+            return texture(uTex2D[tex], vTexCoord[tex].st / vTexCoord[tex].q);
+            //return vec4(0.0, 1.0, 0.0, 1.0);
+        case 2: // CUBE
+            return texture(uTexCube[tex], vTexCoord[tex].stp); // no divide needed for cube maps
             //return vec4(1.0, 1.0, 0.0, 1.0);
+        case 4: // 2D Shadow
+            return vec4(texture(uTexShadow[tex], vTexCoord[tex].stp / vTexCoord[tex].q));
         default: // disabled
-            return vec4(1.0, 0.0, 1.0, 1.0);
+            return vec4(0.0, 0.0, 0.0, 1.0);
     }
 }
 
-vec4 select(const vec4 tex0, const vec4 tex1, const vec4 tex2, const vec4 tex3,
-            const vec4 currTex, const vec4 prevTex, const vec4 primary, const vec4 constant,
-            const int srcRGB, const int opRGB, const int srcAlpha, const int opAlpha) {
+vec4 select(const int arg, const int unit, const vec4 tex[4], const vec4 prevTex) {
     vec4 selectRGB = vec4(0.0, 0.0, 0.0, 1.0);
     float selectAlpha = 0.0;
     vec3 postRGB = vec3(0.0, 0.0, 0.0);
     float postAlpha = 0.0;
 
     // compute postRGB = opRGB(srcRBG)
-    switch(srcRGB) {
+    switch(uCombineSrcRGB[unit][arg]) {
         case 0: // CURR_TEX
-            selectRGB = currTex;
+            selectRGB = tex[unit];
             break;
         case 1: // PREV_TEX
             selectRGB = prevTex;
             break;
         case 2: // CONSTANT
-            selectRGB = constant;
+            selectRGB = uCombineColor[unit];
             break;
         case 3: // PRIMARY
-            selectRGB = primary;
+            selectRGB = vPrimaryColor;
             break;
         case 4: // TEX0
-            selectRGB = tex0;
+            selectRGB = tex[0];
             break;
         case 5: // TEX1
-            selectRGB = tex1;
+            selectRGB = tex[1];
             break;
         case 6: // TEX2
-            selectRGB = tex2;
+            selectRGB = tex[2];
+            break;
         case 7: // TEX3
-            selectRGB = tex3;
+            selectRGB = tex[3];
+            break;
     }
-    switch(opRGB) {
+    switch(uCombineOpRGB[unit][arg]) {
         case 0: // COLOR
             postRGB = selectRGB.rgb;
             break;
@@ -137,33 +117,33 @@ vec4 select(const vec4 tex0, const vec4 tex1, const vec4 tex2, const vec4 tex3,
     }
 
     // compute postAlpha = opAlpha(srcAlpha)
-    switch(srcAlpha) {
+    switch(uCombineSrcAlpha[unit][arg]) {
         case 0: // CURR_TEX
-            selectAlpha = currTex.a;
+            selectAlpha = tex[0].a;
             break;
         case 1: // PREV_TEX
             selectAlpha = prevTex.a;
             break;
         case 2: // CONSTANT
-            selectAlpha = constant.a;
+            selectAlpha = uCombineColor[unit].a;
             break;
         case 3: // PRIMARY
-            selectAlpha = primary.a;
+            selectAlpha = vPrimaryColor.a;
             break;
         case 4: // TEX0
-            selectAlpha = tex0.a;
+            selectAlpha = tex[0].a;
             break;
         case 5: // TEX1
-            selectAlpha = tex1.a;
+            selectAlpha = tex[1].a;
             break;
         case 6: // TEX2
-            selectAlpha = tex2.a;
+            selectAlpha = tex[2].a;
             break;
         case 7: // TEX3
-            selectAlpha = tex3.a;
+            selectAlpha = tex[3].a;
             break;
     }
-    switch(opAlpha) {
+    switch(uCombineOpAlpha[unit][arg]) {
         case 1: // ALPHA
             postAlpha = selectAlpha;
             break;
@@ -181,17 +161,9 @@ float dot3(vec3 arg0, vec3 arg1) {
 }
 
 vec4 evaluateUnit(const int unit, const vec4 tex[4], const vec4 prevColor) {
-    ivec3 srcRGB = uCombineSrcRGB[unit];
-    ivec3 srcAlpha = uCombineSrcAlpha[unit];
-    ivec3 opRGB = uCombineOpRGB[unit];
-    ivec3 opAlpha = uCombineOpAlpha[unit];
-
-    vec4 arg0 = select(tex[0], tex[1], tex[2], tex[3], tex[unit], prevColor, vPrimaryColor, uCombineColor[unit],
-                       srcRGB.x, opRGB.x, srcAlpha.x, opAlpha.x);
-    vec4 arg1 = select(tex[0], tex[1], tex[2], tex[3], tex[unit], prevColor, vPrimaryColor, uCombineColor[unit],
-                       srcRGB.y, opRGB.y, srcAlpha.y, opAlpha.y);
-    vec4 arg2 = select(tex[0], tex[1], tex[2], tex[3], tex[unit], prevColor, vPrimaryColor, uCombineColor[unit],
-                       srcRGB.z, opRGB.z, srcAlpha.z, opAlpha.z);
+    vec4 arg0 = select(0, unit, tex, prevColor);
+    vec4 arg1 = select(1, unit, tex, prevColor);
+    vec4 arg2 = select(2, unit, tex, prevColor);
 
     float alpha = 0.0;
     switch(uCombineFuncAlpha[unit]) {
