@@ -123,6 +123,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         // set the modelview to the identity matrix, since the subsequent state
         // is modified by the current modelview, but we store them post-transform
         setModelViewMatrix(IDENTITY);
+        flushModelView();
         for (int i = 0; i < f.lights.length; i++) {
             LightState fl = f.lights[i];
             setLightEnabled(i, fl.enabled);
@@ -432,7 +433,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
 
         // compute the eye-space light position
-        state.lights[light].position.mul(state.lights[light].position, state.modelView);
+        state.lights[light].position.mul(state.modelView, pos);
         flushModelView();
         glLightPosition(light, pos);
     }
@@ -466,7 +467,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         }
 
         // compute eye-space spotlight direction
-        l.spotlightDirection.transform(state.modelView, l.spotlightDirection, 0);
+        l.spotlightDirection.transform(state.modelView, dir, 0);
         flushModelView();
         glLightDirection(light, dir);
     }
