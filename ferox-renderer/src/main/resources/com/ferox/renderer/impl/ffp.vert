@@ -36,6 +36,7 @@ in vec4 aTexCoord[4];
 out vec4 vPrimaryColor;
 out vec4 vSecondaryColor;
 out vec4 vTexCoord[4];
+out vec4 vEyePos;
 
 void computeLighting(const int light, const vec4 eyePos, const vec3 eyeNorm,
                      out vec4 primaryColor, out vec4 secondaryColor) {
@@ -130,5 +131,6 @@ void main() {
 
     vPrimaryColor = vec4(primaryColor.xyz, aDiffuse.w);
     vSecondaryColor = vec4(secondaryColor.xyz, 0.0);
+    vEyePos = eyePos;
     gl_Position = uProjection * eyePos;
 }

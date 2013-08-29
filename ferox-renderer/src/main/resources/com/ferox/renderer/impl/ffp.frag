@@ -26,6 +26,7 @@ uniform vec4 uCombineColor[4];
 in vec4 vPrimaryColor;
 in vec4 vSecondaryColor;
 in vec4 vTexCoord[4];
+in vec4 vEyePos;
 
 out vec4 fColor;
 
@@ -249,17 +250,18 @@ void main() {
 
     // fog
     if (uEnableFog) {
-    // FIXME I think this part is broken
+        float eyeDepth = abs(vEyePos.z);
+
         float factor = 0.0;
         if (uFogConfig.z > 0) {
             // EXP
-            factor = exp(-uFogConfig.x * gl_FragCoord.z);
+            factor = exp(-uFogConfig.x * eyeDepth);
         } else if (uFogConfig.z < 0) {
             // EXP2
-            factor = exp(-(uFogConfig.x * uFogConfig.x * gl_FragCoord.z * gl_FragCoord.z));
+            factor = exp(-(uFogConfig.x * uFogConfig.x * eyeDepth * eyeDepth));
         } else {
             // LINEAR
-            factor = (uFogConfig.y - gl_FragCoord.z) / (uFogConfig.y - uFogConfig.x);
+            factor = (uFogConfig.y - eyeDepth) / (uFogConfig.y - uFogConfig.x);
         }
 
         // clamp to [0, 1]
