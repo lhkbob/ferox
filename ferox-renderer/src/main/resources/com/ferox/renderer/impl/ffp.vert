@@ -83,10 +83,10 @@ vec4 computeTextureCoord(const int tex, vec4 eyePos, vec3 eyeNorm) {
             tc = aTexCoord[tex];
             break;
         case 1: // EYE
-            tc = uTexGenEyePlanes[tex] * aVertex;
+            tc = uTexGenEyePlanes[tex] * eyePos;
             break;
         case 2: // OBJECT
-            tc = uTexGenObjPlanes[tex] * eyePos;
+            tc = uTexGenObjPlanes[tex] * aVertex;
             break;
         case 3: // SPHERE
             vec3 r = reflect(normalize(eyePos.xyz), eyeNorm);

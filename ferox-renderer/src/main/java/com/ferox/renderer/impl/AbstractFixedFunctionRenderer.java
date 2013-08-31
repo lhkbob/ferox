@@ -727,33 +727,33 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
         setTextureUnit(tex);
         if (t.alphaFunc != function) {
             t.alphaFunc = function;
-            glCombineFunction(function, true);
+            glCombineFunction(function, false);
         }
 
         if (t.srcAlpha[0] != src0) {
             t.srcAlpha[0] = src0;
-            glCombineSrc(0, src0, true);
+            glCombineSrc(0, src0, false);
         }
         if (t.srcAlpha[1] != src1) {
             t.srcAlpha[1] = src1;
-            glCombineSrc(1, src1, true);
+            glCombineSrc(1, src1, false);
         }
         if (t.srcAlpha[2] != src2) {
             t.srcRgb[2] = src2;
-            glCombineSrc(2, src2, true);
+            glCombineSrc(2, src2, false);
         }
 
         if (t.opAlpha[0] != op0) {
             t.opAlpha[0] = op0;
-            glCombineOp(0, op0, true);
+            glCombineOp(0, op0, false);
         }
         if (t.opAlpha[1] != op1) {
             t.opAlpha[1] = op1;
-            glCombineOp(1, op1, true);
+            glCombineOp(1, op1, false);
         }
         if (t.opAlpha[2] != op2) {
             t.opAlpha[2] = op2;
-            glCombineOp(2, op2, true);
+            glCombineOp(2, op2, false);
         }
     }
 

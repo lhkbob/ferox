@@ -17,17 +17,17 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     private final GlslRenderer glsl;
 
-    private final Vector3 cachedFogConfig = new Vector3();
-    private final Vector3 cachedAttenuations = new Vector3();
-
-    private final Vector3 cachedSpotlightDirection = new Vector3();
-    private final Vector4 cachedLightPos = new Vector4();
-
-    private final Matrix4 cachedEyePlanes = new Matrix4();
+    private final Vector3 temp3 = new Vector3();
+    private final Vector4 temp4 = new Vector4();
+    private final Matrix4 tempM = new Matrix4();
 
     private final Matrix4 modelview = new Matrix4();
     private final Matrix4 inverseModelview = new Matrix4();
     private final Matrix3 normal = new Matrix3();
+
+    // must remember the default model view to properly reset this additional state tracked
+    // outside of the uniform state
+    private final Matrix4 defaultModelview = new Matrix4();
 
     // lazily allocated during the first activate()
     private Shader shader;
@@ -241,19 +241,25 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public ContextState<FixedFunctionRenderer> getCurrentState() {
-        return new WrappedState(glsl.getCurrentState());
+        return new WrappedState(glsl.getCurrentState(), modelview);
     }
 
     @Override
     public void reset() {
         glsl.setCurrentState(defaultState);
         glsl.setViewport(0, 0, resetSurfaceWidth, resetSurfaceHeight);
+
+        // must speciall update our cached modelview state for related uniform computations
+        setModelViewMatrices(defaultModelview);
     }
 
     @Override
     public void setCurrentState(ContextState<FixedFunctionRenderer> state) {
         WrappedState s = (WrappedState) state;
         glsl.setCurrentState(s.realState);
+
+        // must specially update our cached modelview state for related uniform computations
+        setModelViewMatrices(s.modelview);
     }
 
     @Override
@@ -268,14 +274,14 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setFogLinear(double start, double end) {
-        cachedFogConfig.set(start, end, 0.0);
-        glsl.setUniform(fogConfig, cachedFogConfig);
+        temp3.set(start, end, 0.0);
+        glsl.setUniform(fogConfig, temp3);
     }
 
     @Override
     public void setFogExponential(double density, boolean squared) {
-        cachedFogConfig.set(density, 0.0, squared ? -1.0 : 1.0);
-        glsl.setUniform(fogConfig, cachedFogConfig);
+        temp3.set(density, 0.0, squared ? -1.0 : 1.0);
+        glsl.setUniform(fogConfig, temp3);
     }
 
     @Override
@@ -331,8 +337,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             throw new IllegalArgumentException(
                     "Light position must have a w component of 0 or 1, not: " + pos.w);
         }
-        cachedLightPos.mul(modelview, pos);
-        glsl.setUniformArray(lightPosition, light, cachedLightPos);
+        temp4.mul(modelview, pos);
+        glsl.setUniformArray(lightPosition, light, temp4);
     }
 
     @Override
@@ -344,16 +350,16 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setSpotlight(int light, @Const Vector3 dir, double angle, double exponent) {
-        cachedSpotlightDirection.transform(modelview, dir, 0.0).normalize();
-        glsl.setUniformArray(spotlightDirections, light, cachedSpotlightDirection);
+        temp3.transform(modelview, dir, 0.0).normalize();
+        glsl.setUniformArray(spotlightDirections, light, temp3);
         glsl.setUniformArray(spotlightCutoffs, light, Math.cos(Math.toRadians(angle)));
         glsl.setUniformArray(spotlightExponents, light, exponent);
     }
 
     @Override
     public void setLightAttenuation(int light, double constant, double linear, double quadratic) {
-        cachedAttenuations.set(constant, linear, quadratic);
-        glsl.setUniformArray(lightAttenuations, light, cachedAttenuations);
+        temp3.set(constant, linear, quadratic);
+        glsl.setUniformArray(lightAttenuations, light, temp3);
     }
 
     @Override
@@ -409,9 +415,10 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
                 glsl.setUniformArray(sampler2DShadow, tex, image);
                 glsl.setUniformArray(texConfig, tex, 3);
             } else {
-                // treat it like its a regular 2d texture
+                // treat it like its a regular 2d texture but with special flag to convert r value
+                // into a luminance value for ffp
                 glsl.setUniformArray(sampler2D, tex, image);
-                glsl.setUniformArray(texConfig, tex, 1);
+                glsl.setUniformArray(texConfig, tex, 4);
             }
         } else if (image != null) {
             throw new UnsupportedOperationException(
@@ -438,8 +445,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setTextureEyePlanes(int tex, @Const Matrix4 planes) {
-        cachedEyePlanes.mul(planes, inverseModelview);
-        glsl.setUniformArray(eyePlanes, tex, cachedEyePlanes);
+        tempM.mul(planes, inverseModelview);
+        glsl.setUniformArray(eyePlanes, tex, tempM);
     }
 
     @Override
@@ -472,12 +479,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setModelViewMatrix(@Const Matrix4 modelView) {
+        setModelViewMatrices(modelView);
         glsl.setUniform(modelviewMatrix, modelView);
-        modelview.set(modelView);
-
-        // compute normal matrix
-        inverseModelview.inverse(modelView);
-        normal.setUpper(inverseModelview).transpose();
         glsl.setUniform(normalMatrix, normal);
     }
 
@@ -603,6 +606,12 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         texCoords = shader.getAttribute("aTexCoord");
     }
 
+    private void setModelViewMatrices(@Const Matrix4 mat) {
+        modelview.set(mat);
+        inverseModelview.inverse(mat);
+        normal.setUpper(inverseModelview).transpose();
+    }
+
     private void loadDefaultState() {
         glsl.setShader(shader);
         FixedFunctionState defaults = new FixedFunctionState();
@@ -617,18 +626,19 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(enableFog, defaults.fogEnabled);
 
         if (defaults.fogMode == FixedFunctionState.FogMode.EXP) {
-            cachedFogConfig.set(defaults.fogDensity, 0.0, 1.0);
+            temp3.set(defaults.fogDensity, 0.0, 1.0);
         } else if (defaults.fogMode == FixedFunctionState.FogMode.EXP_SQUARED) {
-            cachedFogConfig.set(defaults.fogDensity, 0.0, -1.0);
+            temp3.set(defaults.fogDensity, 0.0, -1.0);
         } else {
-            cachedFogConfig.set(defaults.fogStart, defaults.fogEnd, 0.0);
+            temp3.set(defaults.fogStart, defaults.fogEnd, 0.0);
         }
-        glsl.setUniform(fogConfig, cachedFogConfig);
+        glsl.setUniform(fogConfig, temp3);
 
         // transform uniforms
-        modelview.set(defaults.modelView);
+        defaultModelview.set(defaults.modelView);
+        setModelViewMatrices(defaults.modelView);
+
         glsl.setUniform(modelviewMatrix, defaults.modelView);
-        normal.setUpper(modelview).inverse().transpose();
         glsl.setUniform(normalMatrix, normal);
         glsl.setUniform(projectionMatrix, defaults.projection);
 
@@ -636,6 +646,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         glsl.setUniform(enableLighting, defaults.lightingEnabled);
         glsl.setUniform(globalAmbient, defaults.globalAmbient);
         for (int i = 0; i < FixedFunctionState.MAX_LIGHTS; i++) {
+            // the default position and spotlight are given post modelview anyways
             glsl.setUniformArray(enableSingleLight, i, defaults.lights[i].enabled);
             glsl.setUniformArray(lightPosition, i, defaults.lights[i].position);
             glsl.setUniformArray(diffuseLightColors, i, defaults.lights[i].diffuse);
@@ -644,9 +655,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
             glsl.setUniformArray(spotlightDirections, i, defaults.lights[i].spotlightDirection);
             glsl.setUniformArray(spotlightCutoffs, i, Math.cos(Math.toRadians(defaults.lights[i].spotAngle)));
             glsl.setUniformArray(spotlightExponents, i, defaults.lights[i].spotExponent);
-            cachedAttenuations
-                    .set(defaults.lights[i].constAtt, defaults.lights[i].linAtt, defaults.lights[i].quadAtt);
-            glsl.setUniformArray(lightAttenuations, i, cachedAttenuations);
+            temp3.set(defaults.lights[i].constAtt, defaults.lights[i].linAtt, defaults.lights[i].quadAtt);
+            glsl.setUniformArray(lightAttenuations, i, temp3);
         }
 
         // material
@@ -692,9 +702,11 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     private static class WrappedState implements ContextState<FixedFunctionRenderer> {
         private final ContextState<GlslRenderer> realState;
+        private final Matrix4 modelview;
 
-        public WrappedState(ContextState<GlslRenderer> realState) {
+        public WrappedState(ContextState<GlslRenderer> realState, @Const Matrix4 modelview) {
             this.realState = realState;
+            this.modelview = new Matrix4(modelview);
         }
     }
 }

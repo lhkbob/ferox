@@ -13,7 +13,7 @@ uniform sampler1D uTex1D[4];
 uniform sampler2D uTex2D[4];
 uniform samplerCube uTexCube[4];
 uniform sampler2DShadow uTexShadow[4];
-uniform int uTexConfig[4]; // neg. value is disabled, 0 = 1D, 1 = 2D, 2 = cube, 3 = 2D shadow
+uniform int uTexConfig[4]; // neg. value is disabled, 0 = 1D, 1 = 2D, 2 = cube, 3 = 2D shadow with comparison, 4 = 2D shadow no comparison (uses uTex2D)
 
 uniform ivec3 uCombineSrcAlpha[4]; // xyz represent 0,1,2 arguments to the functions
 uniform ivec3 uCombineSrcRGB[4]; // values are ordinal of CombineSource and CombineOperand
@@ -52,18 +52,19 @@ bool compare(const float testValue, const float refValue, const int test) {
 }
 
 vec4 sampleTexture(const int tex) {
+    vec4 tc = vTexCoord[tex];
     switch(uTexConfig[tex]) {
         case 0: // 1D
-            return texture(uTex1D[tex], vTexCoord[tex].s / vTexCoord[tex].q);
-            //return vec4(1.0, 0.0, 0.0, 1.0);
+            return texture(uTex1D[tex], tc.s / tc.q);
         case 1: // 2D
-            return texture(uTex2D[tex], vTexCoord[tex].st / vTexCoord[tex].q);
-            //return vec4(0.0, 1.0, 0.0, 1.0);
+            return texture(uTex2D[tex], tc.st / tc.q);
         case 2: // CUBE
-            return texture(uTexCube[tex], vTexCoord[tex].stp); // no divide needed for cube maps
-            //return vec4(1.0, 1.0, 0.0, 1.0);
-        case 4: // 2D Shadow
-            return vec4(texture(uTexShadow[tex], vTexCoord[tex].stp / vTexCoord[tex].q));
+            return texture(uTexCube[tex], tc.stp); // no divide needed for cube maps
+        case 3: // 2D Shadow
+            return vec4(texture(uTexShadow[tex], tc.stp / tc.q));
+        case 4: // 2D Shadow no comparison
+            float l = texture(uTex2D[tex], tc.st / tc.q).r;
+            return vec4(l, l, l, 1.0);
         default: // disabled
             return vec4(0.0, 0.0, 0.0, 1.0);
     }
