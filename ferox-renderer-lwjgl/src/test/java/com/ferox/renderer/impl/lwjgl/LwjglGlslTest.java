@@ -5,6 +5,7 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
+import com.ferox.renderer.builder.DepthMap2DBuilder;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
 
@@ -24,8 +25,9 @@ public class LwjglGlslTest {
                                             "}\n";
     public static final String FRAGMENT_120 = "#version 120\n" +
                                               "varying vec4 color;\n" +
+                                              "uniform sampler2D img;\n" +
                                               "void main() {\n" +
-                                              "gl_FragColor = color;\n" +
+                                              "gl_FragColor = vec4(0.3) + texture2D(img, color.xy);\n" +
                                               "}\n";
 
     public static final String VERTEX_150 = "#version 150\n" +
@@ -41,13 +43,17 @@ public class LwjglGlslTest {
     public static final String FRAGMENT_150 = "#version 150\n" +
                                               "in vec4 color;\n" +
                                               "out vec4 fColor;\n" +
+                                              "uniform sampler2DShadow img;\n" +
                                               "void main() {\n" +
-                                              "fColor = color;\n" +
+                                              "vec4 inColor = color;\n" +
+                                              "inColor.z = 1.0;\n" +
+                                              "fColor = vec4(texture(img, inColor.xyz));\n" +
                                               "}\n";
 
     static double x = 0;
 
     public static void main(String[] args) throws Exception {
+        Framework.Factory.enableDebugMode();
         final Framework framework = Framework.Factory.create();
         final OnscreenSurface s = framework
                 .createSurface(new OnscreenSurfaceOptions().windowed(500, 500).withDepthBuffer(24));
@@ -61,15 +67,21 @@ public class LwjglGlslTest {
 
         if (framework.getCapabilities().getMajorVersion() >= 3) {
             shader = framework.newShader().withVertexShader(VERTEX_150).withFragmentShader(FRAGMENT_150)
-                              .build();
+                              .bindColorBuffer("fColor", 0).build();
         } else {
             shader = framework.newShader().withVertexShader(VERTEX_120).withFragmentShader(FRAGMENT_120)
-                              .bindColorBuffer("fColor", 0).build();
+                              .build();
         }
         final Shader.Uniform modelview = shader.getUniform("modelview");
         final Shader.Uniform projection = shader.getUniform("projection");
+        final Shader.Uniform img = shader.getUniform("img");
         final Shader.Attribute vertex = shader.getAttribute("vertex");
         final Shader.Attribute normal = shader.getAttribute("normal");
+
+        DepthMap2DBuilder b = framework.newDepthMap2D().width(1).height(1)
+                                       .depthComparison(Renderer.Comparison.GEQUAL);
+        b.depth().mipmap(0).from(new float[] { .5f });
+        final DepthMap2D realImg = b.build();
 
         try {
             while (!s.isDestroyed()) {
@@ -91,6 +103,7 @@ public class LwjglGlslTest {
                         r.bindAttribute(vertex, box.getVertices());
                         r.bindAttribute(normal, box.getNormals());
                         r.setIndices(box.getIndices());
+                        r.setUniform(img, realImg);
 
                         r.setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.LINE);
                         //                        r.setDepthTest(Renderer.Comparison.ALWAYS);

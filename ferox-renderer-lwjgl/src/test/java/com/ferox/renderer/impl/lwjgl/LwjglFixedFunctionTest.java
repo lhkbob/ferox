@@ -31,6 +31,8 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
+import com.ferox.renderer.builder.DepthMap2DBuilder;
+import com.ferox.renderer.builder.Texture2DBuilder;
 import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
 
@@ -43,11 +45,27 @@ public class LwjglFixedFunctionTest {
     public static void main(String[] args) throws Exception {
         final Framework framework = Framework.Factory.create();
         final OnscreenSurface s = framework
-                .createSurface(new OnscreenSurfaceOptions().windowed(500, 500).withDepthBuffer(24));
+                .createSurface(new OnscreenSurfaceOptions().withDepthBuffer(24).fixedSize());
         s.setTitle("Hello World");
+        s.setVSyncEnabled(true);
 
         //                final Geometry box = Sphere.create(framework, 1.5, 16);
         final Geometry box = Box.create(framework, 3.0);
+
+        float[] texData = new float[256*256*3];
+        for (int y = 0; y < 256; y++) {
+            for (int x = 0; x < 256; x++) {
+                texData[y * 256 * 3 + x * 3] = x / 255f;
+                texData[y * 256 * 3 + x * 3 + 1] = y / 255f;
+            }
+        }
+        Texture2DBuilder tb = framework.newTexture2D().width(256).height(256);
+        tb.rgb().mipmap(0).from(texData);
+
+        final Texture2D tex = tb.build();
+
+        int frames = 0;
+        long now = System.currentTimeMillis();
 
         try {
             while (!s.isDestroyed()) {
@@ -58,13 +76,15 @@ public class LwjglFixedFunctionTest {
                         FixedFunctionRenderer r = c.getFixedFunctionRenderer();
                         r.clear(true, true, true, new Vector4(.3, .2, .5, 1), 1.0, 0);
 
-                        Frustum view = new Frustum(60.0, 1.0, 1.0, 1000.0);
-                        view.setOrientation(new Vector3(0, 0, 25), new Vector3(0, 0, -1),
+                        Frustum view = new Frustum(60.0, 1.0, 1.0, 70.0);
+                        view.setOrientation(new Vector3(10, 0, 45), new Vector3(0, 0, -1),
                                             new Vector3(0, 1, 0));
                         r.setProjectionMatrix(view.getProjectionMatrix());
+                        r.setTextureEyePlanes(1, new Matrix4().setIdentity());
+
                         r.setModelViewMatrix(view.getViewMatrix());
 
-                        r.setLightingEnabled(true);
+//                        r.setLightingEnabled(true);
                         r.setLightEnabled(0, true);
                         //                        r.setGlobalAmbientLight(new Vector4(.3, .3, .3, 1.0));
 
@@ -73,13 +93,18 @@ public class LwjglFixedFunctionTest {
                         r.setLightPosition(0, new Vector4(0, 0, 25, 1));
                         //                        r.setSpotlight(0, new Vector3(0, 0, -1), 15, 40);
 
-                        r.setMaterialDiffuse(new Vector4(.5, 0, .5, 1));
+                        r.setMaterialDiffuse(new Vector4(1.0, 1.0, 1.0, 1));
                         r.setMaterialAmbient(new Vector4(.2, .2, .2, 1));
                         r.setMaterialSpecular(new Vector4(.2, .9, .2, 1));
                         r.setMaterialShininess(10.0);
 
+                        r.setTexture(1, tex);
+
+                        r.setTextureCoordinateSource(1, FixedFunctionRenderer.TexCoordSource.EYE);
+
                         r.setNormals(box.getNormals());
                         r.setVertices(box.getVertices());
+//                        r.setTextureCoordinates(1, box.getTextureCoordinates());
                         r.setIndices(box.getIndices());
 
                         r.setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.LINE);
@@ -99,7 +124,7 @@ public class LwjglFixedFunctionTest {
                                 }
                             }
                         }
-                        x += 0.01;
+                        x += 0.03;
                         if (x > 20) {
                             x = -20;
                         }
@@ -109,8 +134,12 @@ public class LwjglFixedFunctionTest {
                         return null;
                     }
                 }).get();
+                frames++;
             }
         } finally {
+            double time = (System.currentTimeMillis() - now) / 1e3;
+            System.out.printf("Total frames: %d Total time: %.2f sec Average fps: %.2f\n", frames, time,
+                              frames / time);
             framework.destroy();
         }
     }
