@@ -47,7 +47,7 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
         GEOMETRY
     }
 
-    private static final Pattern VERSION = Pattern.compile("#VERSION (\\d+)[\\s]+.*");
+    private static final Pattern VERSION = Pattern.compile("#version (\\d+).*");
 
     private String vertexCode;
     private String fragmentCode;
@@ -245,8 +245,8 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
     protected abstract int getFragmentLocation(OpenGLContext context, int programID, String variable);
 
     private int extractShaderVersion(String code) {
-        // FIXME bad pattern matcher
-        Matcher m = VERSION.matcher(code);
+        String firstLine = code.substring(0, code.indexOf('\n')).toLowerCase();
+        Matcher m = VERSION.matcher(firstLine);
         if (m.matches()) {
             return Integer.parseInt(m.group(1));
         } else {
