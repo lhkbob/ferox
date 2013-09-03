@@ -85,8 +85,8 @@ public class LwjglInputEventAdapter {
             int scrollDelta = Mouse.getEventDWheel();
             if (scrollDelta != 0) {
                 // push a mouse-wheel-scroll event
-                dispatcher.dispatchEvent(
-                        new MouseEvent(MouseEvent.Type.SCROLL, source, x, y, 0, MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.SCROLL, source, x, y, scrollDelta,
+                                                        MouseEvent.MouseButton.NONE));
             }
 
             switch (Mouse.getEventButton()) {

@@ -312,13 +312,15 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
             return KeyCode.NUMPAD_MULTIPLY;
 
         case com.jogamp.newt.event.KeyEvent.VK_ALT:
-            // as far as I can tell NEWT does not provide locations
             return KeyCode.LEFT_ALT;
+        case com.jogamp.newt.event.KeyEvent.VK_ALT_GRAPH:
+            return KeyCode.RIGHT_ALT;
         case com.jogamp.newt.event.KeyEvent.VK_CONTROL:
             return KeyCode.LEFT_CONTROL;
         case com.jogamp.newt.event.KeyEvent.VK_SHIFT:
             return KeyCode.LEFT_SHIFT;
         case com.jogamp.newt.event.KeyEvent.VK_META:
+        case com.jogamp.newt.event.KeyEvent.VK_WINDOWS:
             return KeyCode.LEFT_META;
         default:
             return KeyCode.UNKNOWN;
@@ -339,9 +341,9 @@ public class NEWTEventAdapter implements KeyListener, MouseListener {
             return MouseButton.NONE;
         case com.jogamp.newt.event.MouseEvent.BUTTON1:
             return MouseButton.LEFT;
-        case com.jogamp.newt.event.MouseEvent.BUTTON2:
-            return MouseButton.RIGHT;
         case com.jogamp.newt.event.MouseEvent.BUTTON3:
+            return MouseButton.RIGHT;
+        case com.jogamp.newt.event.MouseEvent.BUTTON2:
             return MouseButton.CENTER;
         default:
             throw new IllegalArgumentException("Unknown NEWT button code");
