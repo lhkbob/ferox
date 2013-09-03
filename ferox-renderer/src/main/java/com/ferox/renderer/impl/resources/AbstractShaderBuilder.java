@@ -245,7 +245,9 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
     protected abstract int getFragmentLocation(OpenGLContext context, int programID, String variable);
 
     private int extractShaderVersion(String code) {
-        String firstLine = code.substring(0, code.indexOf('\n')).toLowerCase();
+        // we trim to remove blank lines preceeding #version, and we make it lower case
+        // to support different capitalizations of #version
+        String firstLine = code.trim().substring(0, code.indexOf('\n')).toLowerCase();
         Matcher m = VERSION.matcher(firstLine);
         if (m.matches()) {
             return Integer.parseInt(m.group(1));
