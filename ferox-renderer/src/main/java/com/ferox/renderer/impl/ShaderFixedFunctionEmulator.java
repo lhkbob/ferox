@@ -373,7 +373,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
     @Override
     public void setMaterialDiffuse(@Const Vector4 diff) {
-        glsl.bindAttribute(colors, diff);
+        glsl.setAttribute(colors, diff);
     }
 
     @Override
@@ -690,12 +690,12 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
 
             glsl.setUniformArray(texConfig, i, -1); // no textures enabled by default
 
-            glsl.bindAttribute(texCoords, new Vector4(0, 0, 0, 1));
+            glsl.setAttribute(texCoords, new Vector4(0, 0, 0, 1));
         }
 
-        glsl.bindAttribute(colors, defaults.matDiffuse);
-        glsl.bindAttribute(vertices, new Vector4(0, 0, 0, 1));
-        glsl.bindAttribute(normals, new Vector3(0, 0, 1));
+        glsl.setAttribute(colors, defaults.matDiffuse);
+        glsl.setAttribute(vertices, new Vector4(0, 0, 0, 1));
+        glsl.setAttribute(normals, new Vector3(0, 0, 1));
 
         defaultState = glsl.getCurrentState();
     }

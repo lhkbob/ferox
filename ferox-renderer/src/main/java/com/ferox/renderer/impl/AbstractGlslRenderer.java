@@ -283,58 +283,58 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double val) {
-        bindAttributeArray(var, 0, val);
+    public void setAttribute(Shader.Attribute var, double val) {
+        setAttributeArray(var, 0, val);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double v1, double v2) {
-        bindAttributeArray(var, 0, v1, v2);
+    public void setAttribute(Shader.Attribute var, double v1, double v2) {
+        setAttributeArray(var, 0, v1, v2);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Vector3 v) {
-        bindAttributeArray(var, 0, v);
+    public void setAttribute(Shader.Attribute var, @Const Vector3 v) {
+        setAttributeArray(var, 0, v);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Vector4 v) {
-        bindAttributeArray(var, 0, v);
+    public void setAttribute(Shader.Attribute var, @Const Vector4 v) {
+        setAttributeArray(var, 0, v);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11) {
-        bindAttributeArray(var, 0, m00, m01, m10, m11);
+    public void setAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11) {
+        setAttributeArray(var, 0, m00, m01, m10, m11);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Matrix3 v) {
-        bindAttributeArray(var, 0, v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix3 v) {
+        setAttributeArray(var, 0, v);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Matrix4 v) {
-        bindAttributeArray(var, 0, v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix4 v) {
+        setAttributeArray(var, 0, v);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int val) {
-        bindAttributeArray(var, 0, val);
+    public void setAttribute(Shader.Attribute var, int val) {
+        setAttributeArray(var, 0, val);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2) {
-        bindAttributeArray(var, 0, v1, v2);
+    public void setAttribute(Shader.Attribute var, int v1, int v2) {
+        setAttributeArray(var, 0, v1, v2);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3) {
-        bindAttributeArray(var, 0, v1, v2, v3);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3) {
+        setAttributeArray(var, 0, v1, v2, v3);
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
-        bindAttributeArray(var, 0, v1, v2, v3, v4);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
+        setAttributeArray(var, 0, v1, v2, v3, v4);
     }
 
     @Override
@@ -464,7 +464,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, double val) {
+    public void setAttributeArray(Shader.Attribute attr, int index, double val) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -477,7 +477,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, double v1, double v2) {
+    public void setAttributeArray(Shader.Attribute attr, int index, double v1, double v2) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -490,7 +490,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Vector3 v) {
+    public void setAttributeArray(Shader.Attribute attr, int index, @Const Vector3 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -503,13 +503,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Vector4 v) {
-        bindAttribute(attr, v.x, v.y, v.z, v.w);
+    public void setAttributeArray(Shader.Attribute attr, int index, @Const Vector4 v) {
+        setAttribute(attr, v.x, v.y, v.z, v.w);
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, double m00, double m01, double m10,
-                                   double m11) {
+    public void setAttributeArray(Shader.Attribute attr, int index, double m00, double m01, double m10,
+                                  double m11) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -527,7 +527,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Matrix3 v) {
+    public void setAttributeArray(Shader.Attribute attr, int index, @Const Matrix3 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -545,7 +545,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute attr, int index, @Const Matrix4 v) {
+    public void setAttributeArray(Shader.Attribute attr, int index, @Const Matrix4 v) {
         if (attr == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -565,7 +565,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int val) {
+    public void setAttributeArray(Shader.Attribute var, int index, int val) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -581,7 +581,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2) {
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -597,7 +597,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3) {
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }
@@ -613,7 +613,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4) {
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4) {
         if (var == null) {
             throw new NullPointerException("Attribute cannot be null");
         }

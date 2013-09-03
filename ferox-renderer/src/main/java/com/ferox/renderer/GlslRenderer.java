@@ -135,7 +135,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  FLOAT
      */
-    public void bindAttribute(Shader.Attribute var, double val);
+    public void setAttribute(Shader.Attribute var, double val);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -152,7 +152,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  VEC2
      */
-    public void bindAttribute(Shader.Attribute var, double v1, double v2);
+    public void setAttribute(Shader.Attribute var, double v1, double v2);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -168,7 +168,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  VEC3
      */
-    public void bindAttribute(Shader.Attribute var, @Const Vector3 v);
+    public void setAttribute(Shader.Attribute var, @Const Vector3 v);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -185,7 +185,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  VEC4 or MAT2
      */
-    public void bindAttribute(Shader.Attribute var, @Const Vector4 v);
+    public void setAttribute(Shader.Attribute var, @Const Vector4 v);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -205,7 +205,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  MAT2 or VEC4
      */
-    public void bindAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11);
+    public void setAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -221,7 +221,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  FLOAT
      */
-    public void bindAttribute(Shader.Attribute var, @Const Matrix3 v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix3 v);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -237,7 +237,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  MAT4
      */
-    public void bindAttribute(Shader.Attribute var, @Const Matrix4 v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix4 v);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -254,7 +254,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not INT
      *                                  or UINT
      */
-    public void bindAttribute(Shader.Attribute var, int val);
+    public void setAttribute(Shader.Attribute var, int val);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -272,7 +272,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  IVEC2 or UVEC2
      */
-    public void bindAttribute(Shader.Attribute var, int v1, int v2);
+    public void setAttribute(Shader.Attribute var, int v1, int v2);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -291,7 +291,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  IVEC3 or UVEC3
      */
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3);
 
     /**
      * Bind the attribute to the constant value. The same value will be used for every vertex. This can be
@@ -311,7 +311,7 @@ public interface GlslRenderer extends Renderer {
      * @throws IllegalArgumentException if var is not defined in the current shader, or if its type is not
      *                                  IVEC2 or UVEC2
      */
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4);
 
     /**
      * Set the value of the given uniform to {@code val}. Once assigned the state of a shader's uniform value
@@ -356,7 +356,7 @@ public interface GlslRenderer extends Renderer {
 
     /**
      * Set the uniform value when the uniform's type is VEC4 or MAT2. The layout of the vector when
-     * interpreted as a 2x2 matrix is identical to {@link #bindAttribute(com.ferox.renderer.Shader.Attribute,
+     * interpreted as a 2x2 matrix is identical to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
      * com.ferox.math.Vector4)}.
      *
      * @param var The uniform variable
@@ -382,7 +382,7 @@ public interface GlslRenderer extends Renderer {
      * @throws NullPointerException     if var is null
      * @throws IllegalArgumentException if var is from another shader, or if its type is not MAT2 or VEC4
      * @see #setUniform(com.ferox.renderer.Shader.Uniform, double)
-     * @see #bindAttribute(com.ferox.renderer.Shader.Attribute, double, double, double, double)
+     * @see #setAttribute(com.ferox.renderer.Shader.Attribute, double, double, double, double)
      */
     public void setUniform(Shader.Uniform var, double m00, double m01, double m10, double m11);
 
@@ -574,70 +574,469 @@ public interface GlslRenderer extends Renderer {
      */
     public void setUniform(Shader.Uniform var, @Const ColorRGB color, boolean isHDR);
 
-    // TODO document this
-
+    /**
+     * Bind the VertexAttribute, {@code attr} to the given attribute, at the array index. If the attribute is
+     * not an array of variables, {@code index} must be 0, otherwise the index must be less than the length of
+     * the variable. Other than taking the array index, this behaves equivalently to {@link
+     * #bindAttribute(com.ferox.renderer.Shader.Attribute, VertexAttribute)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param attr  The VertexAttribute that is the source of values
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void bindAttributeArray(Shader.Attribute var, int index, VertexAttribute attr);
 
+    /**
+     * Bind the VertexAttribute, {@code attr} to the given attribute column, at the array index. If the
+     * attribute is not an array of variables, {@code index} must be 0, otherwise the index must be less than
+     * the length of the variable. Other than taking the array index, this behaves equivalently to {@link
+     * #setAttribute(com.ferox.renderer.Shader.Attribute, int VertexAttribute)}.
+     *
+     * @param var    The variable to bind to
+     * @param index  The array index into variable
+     * @param column The column within the primitive referenced by the variable and array index
+     * @param attr   The VertexAttribute that is the source of values
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void bindAttributeArray(Shader.Attribute var, int index, int column, VertexAttribute attr);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, double val);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * double)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws NullPointerException      if var is null
+     * @throws IllegalArgumentException  if var is from another shader
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, double val);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, double v1, double v2);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * double, double)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, double v1, double v2);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector3 v);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * Vector3)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Vector3 v);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector4 v);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * Vector4)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Vector4 v);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, double m00, double m01, double m10,
-                                   double m11);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * double, double, double, double)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param m00   The constant value's first component (or 1st row and 1st column)
+     * @param m01   The constant value's second component (or 1st row and 2nd column)
+     * @param m10   The constant value's third component (or 2nd row and 1st column)
+     * @param m11   The constant value's fourth component (or 2nd row and 2nd column)
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, double m00, double m01, double m10,
+                                  double m11);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix3 v);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * Matrix3)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Matrix3 v);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix4 v);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * Matrix4)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Matrix4 v);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, int val);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * int)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, int val);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * int, int)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * int, int, int)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3);
 
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4);
+    /**
+     * Bind the constant value to the specified {@code index} within the attribute array. The array index must
+     * be at least 0 and less than the length of the variable. If the attribute is not an array it must be 0.
+     * In all other aspects this is equivalent to {@link #setAttribute(com.ferox.renderer.Shader.Attribute,
+     * int, int, int, int)}.
+     *
+     * @param var   The variable to bind to
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     * @param v4    The constant value's fourth component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * double)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, double val);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, double,
+     * double)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, double v1, double v2);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * Vector3)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const Vector3 v);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * Vector4)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v     The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const Vector4 v);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, double,
+     * double, double, double)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param m00   The constant value's first component (or 1st row and 1st column)
+     * @param m01   The constant value's second component (or 1st row and 2nd column)
+     * @param m10   The constant value's third component (or 2nd row and 1st column)
+     * @param m11   The constant value's fourth component (or 2nd row and 2nd column)
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, double m00, double m01, double m10,
                                 double m11);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * Matrix3)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const Matrix3 val);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * Matrix4)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const Matrix4 val);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, int)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, int val);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, int,
+     * int)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, int v1, int v2);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, int, int,
+     * int)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, int, int,
+     * int, int)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     * @param v4    The constant value's fourth component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, int v1, int v2, int v3, int v4);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * boolean)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param val   The constant value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, boolean val);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, boolean,
+     * boolean)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, boolean,
+     * boolean, boolean)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, boolean,
+     * boolean, boolean, boolean)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param v1    The constant value's first component
+     * @param v2    The constant value's second component
+     * @param v3    The constant value's third component
+     * @param v4    The constant value's fourth component
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, boolean v1, boolean v2, boolean v3,
                                 boolean v4);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * Sampler)}.
+     *
+     * @param var     The variable to set
+     * @param index   The array index into variable
+     * @param texture The texture
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, Sampler texture);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform,
+     * ColorRGB)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param color The color value
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color);
 
+    /**
+     * Set the uniform value for the specified {@code index} within the uniform array. The array index must be
+     * at least 0 and less than the length of the variable. If the uniform is not an array it must be 0. In
+     * all other aspects this is equivalent to {@link #setUniform(com.ferox.renderer.Shader.Uniform, ColorRGB,
+     * boolean)}.
+     *
+     * @param var   The variable to set
+     * @param index The array index into variable
+     * @param color The color value
+     * @param isHDR True if the color values should be taken as HDR
+     *
+     * @throws IndexOutOfBoundsException if index is out of bounds for the defined variable
+     */
     public void setUniformArray(Shader.Uniform var, int index, @Const ColorRGB color, boolean isHDR);
 }

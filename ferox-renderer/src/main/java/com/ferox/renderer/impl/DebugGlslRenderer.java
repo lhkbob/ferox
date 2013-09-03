@@ -52,68 +52,68 @@ public class DebugGlslRenderer implements GlslRenderer {
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double val) {
-        delegate.bindAttribute(var, val);
+    public void setAttribute(Shader.Attribute var, double val) {
+        delegate.setAttribute(var, val);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double v1, double v2) {
-        delegate.bindAttribute(var, v1, v2);
+    public void setAttribute(Shader.Attribute var, double v1, double v2) {
+        delegate.setAttribute(var, v1, v2);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Vector3 v) {
-        delegate.bindAttribute(var, v);
+    public void setAttribute(Shader.Attribute var, @Const Vector3 v) {
+        delegate.setAttribute(var, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Vector4 v) {
-        delegate.bindAttribute(var, v);
+    public void setAttribute(Shader.Attribute var, @Const Vector4 v) {
+        delegate.setAttribute(var, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11) {
-        delegate.bindAttribute(var, m00, m01, m10, m11);
+    public void setAttribute(Shader.Attribute var, double m00, double m01, double m10, double m11) {
+        delegate.setAttribute(var, m00, m01, m10, m11);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Matrix3 v) {
-        delegate.bindAttribute(var, v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix3 v) {
+        delegate.setAttribute(var, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, @Const Matrix4 v) {
-        delegate.bindAttribute(var, v);
+    public void setAttribute(Shader.Attribute var, @Const Matrix4 v) {
+        delegate.setAttribute(var, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int val) {
-        delegate.bindAttribute(var, val);
+    public void setAttribute(Shader.Attribute var, int val) {
+        delegate.setAttribute(var, val);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2) {
-        delegate.bindAttribute(var, v1, v2);
+    public void setAttribute(Shader.Attribute var, int v1, int v2) {
+        delegate.setAttribute(var, v1, v2);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3) {
-        delegate.bindAttribute(var, v1, v2, v3);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3) {
+        delegate.setAttribute(var, v1, v2, v3);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
-        delegate.bindAttribute(var, v1, v2, v3, v4);
+    public void setAttribute(Shader.Attribute var, int v1, int v2, int v3, int v4) {
+        delegate.setAttribute(var, v1, v2, v3, v4);
         checkGLErrors();
     }
 
@@ -238,69 +238,69 @@ public class DebugGlslRenderer implements GlslRenderer {
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, double val) {
-        delegate.bindAttributeArray(var, index, val);
+    public void setAttributeArray(Shader.Attribute var, int index, double val) {
+        delegate.setAttributeArray(var, index, val);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, double v1, double v2) {
-        delegate.bindAttributeArray(var, index, v1, v2);
+    public void setAttributeArray(Shader.Attribute var, int index, double v1, double v2) {
+        delegate.setAttributeArray(var, index, v1, v2);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector3 v) {
-        delegate.bindAttributeArray(var, index, v);
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Vector3 v) {
+        delegate.setAttributeArray(var, index, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Vector4 v) {
-        delegate.bindAttributeArray(var, index, v);
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Vector4 v) {
+        delegate.setAttributeArray(var, index, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, double m00, double m01, double m10,
-                                   double m11) {
-        delegate.bindAttributeArray(var, index, m00, m01, m10, m11);
+    public void setAttributeArray(Shader.Attribute var, int index, double m00, double m01, double m10,
+                                  double m11) {
+        delegate.setAttributeArray(var, index, m00, m01, m10, m11);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix3 v) {
-        delegate.bindAttributeArray(var, index, v);
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Matrix3 v) {
+        delegate.setAttributeArray(var, index, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, @Const Matrix4 v) {
-        delegate.bindAttributeArray(var, index, v);
+    public void setAttributeArray(Shader.Attribute var, int index, @Const Matrix4 v) {
+        delegate.setAttributeArray(var, index, v);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int val) {
-        delegate.bindAttributeArray(var, index, val);
+    public void setAttributeArray(Shader.Attribute var, int index, int val) {
+        delegate.setAttributeArray(var, index, val);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2) {
-        delegate.bindAttributeArray(var, index, v1, v2);
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2) {
+        delegate.setAttributeArray(var, index, v1, v2);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3) {
-        delegate.bindAttributeArray(var, index, v1, v2, v3);
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3) {
+        delegate.setAttributeArray(var, index, v1, v2, v3);
         checkGLErrors();
     }
 
     @Override
-    public void bindAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4) {
-        delegate.bindAttributeArray(var, index, v1, v2, v3, v4);
+    public void setAttributeArray(Shader.Attribute var, int index, int v1, int v2, int v3, int v4) {
+        delegate.setAttributeArray(var, index, v1, v2, v3, v4);
         checkGLErrors();
     }
 
