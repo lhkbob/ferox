@@ -53,7 +53,6 @@ public class TextureLoader {
     // register some default loaders
     static {
         registerLoader(new ImageIOImageFileLoader());
-        registerLoader(new TGAImageFileLoader());
         registerLoader(new DDSImageFileLoader());
     }
 
