@@ -33,10 +33,12 @@ import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
+import com.lhkbob.entreri.property.SharedInstance;
 
 @Requires(CollisionBody.class)
 public interface RigidBody extends Component {
     @Const
+    @SharedInstance
     public Matrix3 getInertiaTensorInverse();
 
     public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse);
@@ -55,15 +57,19 @@ public interface RigidBody extends Component {
     public double getMass();
 
     @Const
+    @SharedInstance
     public Vector3 getVelocity();
 
     @Const
+    @SharedInstance
     public Vector3 getAngularVelocity();
 
     @Const
+    @SharedInstance
     public Vector3 getForce();
 
     @Const
+    @SharedInstance
     public Vector3 getTorque();
 
     public static final class Utils {

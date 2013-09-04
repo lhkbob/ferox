@@ -32,6 +32,7 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
+import com.lhkbob.entreri.property.SharedInstance;
 
 /**
  * <p/>
@@ -96,8 +97,7 @@ public interface CollisionBody extends Component {
      * @return The world transform of the Collidable
      */
     @Const
-
-
+    @SharedInstance
     @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, //
                     m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0, //
                     m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0, //
@@ -123,8 +123,7 @@ public interface CollisionBody extends Component {
     public Shape getShape();
 
     /**
-     * Copy <var>t</var> into this Collidable's transform, updating its location and orientation. This will
-     * also recompute the Collidable's world bounds.
+     * Copy <var>t</var> into this Collidable's transform, updating its location and orientation.
      *
      * @param t The transform to copy
      *
@@ -135,13 +134,21 @@ public interface CollisionBody extends Component {
     public CollisionBody setTransform(@Const Matrix4 t);
 
     /**
-     * Return the current world bounds of this CollisionBody. This is computed based off of the Shape's local
-     * bounds and the current world transform.
+     * Return the current world bounds of this CollisionBody.
      *
      * @return The world bounds of this CollisionBody
      */
     @Const
+    @SharedInstance
     public AxisAlignedBox getWorldBounds();
 
+    /**
+     * Set the world transform of this collision body. A task is responsible for computing the world bounds
+     * based of this component's shape's local bounds and its transform.
+     *
+     * @param bounds The new world bounds
+     *
+     * @return This component
+     */
     public CollisionBody setWorldBounds(@Const AxisAlignedBox bounds);
 }
