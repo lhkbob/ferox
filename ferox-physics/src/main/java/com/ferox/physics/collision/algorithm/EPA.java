@@ -31,6 +31,12 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.util.Bag;
 
+/**
+ * EPA implements the expanding polytope algorithm that computes penetration distance of two convex hulls.
+ * This should not be used directly, the {@link GjkEpaCollisionAlgorithm} should be used instead.
+ *
+ * @author Michael Ludwig
+ */
 public class EPA {
     private static final int EPA_MAX_ITERATIONS = 255;
     private static final double EPA_ACCURACY = .00001;

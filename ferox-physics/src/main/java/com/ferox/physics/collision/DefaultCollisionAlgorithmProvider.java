@@ -30,7 +30,6 @@ import com.ferox.physics.collision.algorithm.GjkEpaCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.JitteringCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SphereSphereCollisionAlgorithm;
 import com.ferox.physics.collision.algorithm.SwappingCollisionAlgorithm;
-import com.ferox.physics.collision.shape.ConvexShape;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,14 +55,14 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
      * a {@link SphereSphereCollisionAlgorithm} registered.
      */
     public DefaultCollisionAlgorithmProvider() {
-        algorithms = new ArrayList<CollisionAlgorithm<?, ?>>();
+        algorithms = new ArrayList<>();
 
-        algorithmCache = new HashMap<TypePair, CollisionAlgorithm<?, ?>>();
+        algorithmCache = new HashMap<>();
         lookup = new TypePair(null, null);
 
         // wrap the GJK/EPA algorithm with a jittering algorithm to help overcome
         // numerical instabilities
-        register(new JitteringCollisionAlgorithm<ConvexShape, ConvexShape>(new GjkEpaCollisionAlgorithm()));
+        register(new JitteringCollisionAlgorithm<>(new GjkEpaCollisionAlgorithm()));
         register(new SphereSphereCollisionAlgorithm());
     }
 
@@ -88,7 +87,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
         if (swapped != null) {
             // return a wrapped instance of the algorithm that swaps everything
             // and store it in the cache
-            algo = new SwappingCollisionAlgorithm<A, B>(swapped);
+            algo = new SwappingCollisionAlgorithm<>(swapped);
             algorithmCache.put(new TypePair(aType, bType), algo);
             return algo;
         }
@@ -108,7 +107,7 @@ public class DefaultCollisionAlgorithmProvider implements CollisionAlgorithmProv
             algorithmCache.put(orig, algo);
 
             // store swapped algorithm
-            algo = new SwappingCollisionAlgorithm<A, B>(swapped);
+            algo = new SwappingCollisionAlgorithm<>(swapped);
             algorithmCache.put(new TypePair(aType, bType), algo);
             return algo;
         }

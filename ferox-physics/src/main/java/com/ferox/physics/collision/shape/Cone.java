@@ -29,28 +29,61 @@ package com.ferox.physics.collision.shape;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
+/**
+ * Cone is a convex shape implementation that represents a cone. It has two parameters, the height of the cone
+ * and the radius of its base. The orientation of the cylinder is chosen by its dominant axis. The base of the
+ * cone is on the negative half-space along the axis, and the tip is in the positive half-space.
+ *
+ * @author Michael Ludwig
+ */
 public class Cone extends AxisSweptShape {
     private double halfHeight;
     private double baseRadius;
 
+    /**
+     * Create a new Cone with the given radius and height aligned on the Z axis.
+     *
+     * @param baseRadius The cone's base radius
+     * @param height     The height of the cone
+     */
     public Cone(double baseRadius, double height) {
         this(baseRadius, height, Axis.Z);
     }
 
+    /**
+     * Create a new Cone with the given radius, height, and axis of revolution.
+     *
+     * @param baseRadius   The cone's base radius
+     * @param height       The height of the cone
+     * @param dominantAxis The dominant axis that the cone is aligned with
+     */
     public Cone(double baseRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
         setBaseRadius(baseRadius);
         setHeight(height);
     }
 
+    /**
+     * @return The height of the cone
+     */
     public double getHeight() {
         return 2.0 * halfHeight;
     }
 
+    /**
+     * @return The base radius of the cone
+     */
     public double getBaseRadius() {
         return baseRadius;
     }
 
+    /**
+     * Set the height of the cone
+     *
+     * @param height The new height
+     *
+     * @throws IllegalArgumentException if height is less than or equal to 0
+     */
     public void setHeight(double height) {
         if (height <= 0f) {
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);
@@ -59,6 +92,13 @@ public class Cone extends AxisSweptShape {
         update();
     }
 
+    /**
+     * Set the base radius of the cone
+     *
+     * @param radius The new radius
+     *
+     * @throws IllegalArgumentException if radius is less than or equal to 0
+     */
     public void setBaseRadius(double radius) {
         if (radius <= 0f) {
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);

@@ -98,23 +98,20 @@ public abstract class ConvexShape implements Shape {
         Vector3 d = new Vector3();
         Vector3 t = new Vector3();
 
-        // FIXME why is it 2 * margin, and not just margin? are we trying to make
-        // the bounds have extra padding to encourage non-intersecting shapes?
-        // Should experiment with changing this once things start running again
         computeSupport(d.set(1, 0, 0), t);
-        double maxX = t.x + 2 * margin;
+        double maxX = t.x + margin;
         computeSupport(d.set(-1, 0, 0), t);
-        double minX = t.x - 2 * margin;
+        double minX = t.x - margin;
 
         computeSupport(d.set(0, 1, 0), t);
-        double maxY = t.y + 2 * margin;
+        double maxY = t.y + margin;
         computeSupport(d.set(0, -1, 0), t);
-        double minY = t.y - 2 * margin;
+        double minY = t.y - margin;
 
         computeSupport(d.set(0, 0, 1), t);
-        double maxZ = t.z + 2 * margin;
+        double maxZ = t.z + margin;
         computeSupport(d.set(0f, 0f, -1f), t);
-        double minZ = t.z - 2 * margin;
+        double minZ = t.z - margin;
 
         bounds.max.set(maxX, maxY, maxZ);
         bounds.min.set(minX, minY, minZ);

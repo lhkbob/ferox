@@ -33,6 +33,13 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.shape.ConvexShape;
 
+/**
+ * MinkowskiShape represents the minkowski difference between two convex shapes that each have an affine
+ * transform applied to them. It contains functions to evaluate the combined support function of the minkowski
+ * difference.
+ *
+ * @author Michael Ludwig
+ */
 public class MinkowskiShape {
     private static final double CONTACT_NORMAL_ACCURACY = .0001;
 

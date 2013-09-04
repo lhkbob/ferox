@@ -32,7 +32,8 @@ import com.ferox.math.Vector3;
 /**
  * Cylinder is a convex shape implementation that represents a cylinder. It has two parameters, the height of
  * the cylinder and the radius of the cylinder caps. The orientation of the cylinder is chosen by its dominant
- * axis.
+ * axis. The cylinder is centered on its local origin, with half the cylinder in the positive half-space and
+ * half in the negative half-space.
  *
  * @author Michael Ludwig
  */
@@ -41,28 +42,52 @@ public class Cylinder extends AxisSweptShape {
     private double halfHeight;
 
     /**
-     * @param capRadius
-     * @param height
+     * Create a new cylinder that has a radius of {@code capRadius} and the given {@code height}. Its axis of
+     * revolution is the Z axis.
+     *
+     * @param capRadius The radius of the cylinder
+     * @param height    The height of the cylinder
      */
     public Cylinder(double capRadius, double height) {
         this(capRadius, height, Axis.Z);
     }
 
+    /**
+     * Create a new cylinder with a radius of {@code capRadius} and the given {@code height}. The axis of
+     * revolution is {@code dominantAxis}.
+     *
+     * @param capRadius    The radius of the cylinder
+     * @param height       The height of the cylinder
+     * @param dominantAxis The dominant axis
+     */
     public Cylinder(double capRadius, double height, Axis dominantAxis) {
         super(dominantAxis);
-        setCapRadius(capRadius);
+        setRadius(capRadius);
         setHeight(height);
     }
 
-    public double getCapRadius() {
+    /**
+     * @return The radius of the cylinder
+     */
+    public double getRadius() {
         return capRadius;
     }
 
+    /**
+     * @return The height of the cylinder
+     */
     public double getHeight() {
         return 2.0 * halfHeight;
     }
 
-    public void setCapRadius(double radius) {
+    /**
+     * Set the radius of the cylinder
+     *
+     * @param radius The new radius
+     *
+     * @throws IllegalArgumentException if radius is less than or equal to 0
+     */
+    public void setRadius(double radius) {
         if (radius <= 0.0) {
             throw new IllegalArgumentException("Radius must be greater than 0, not: " + radius);
         }
@@ -70,6 +95,13 @@ public class Cylinder extends AxisSweptShape {
         update();
     }
 
+    /**
+     * Set the height of the cylinder
+     *
+     * @param height The new height
+     *
+     * @throws IllegalArgumentException if height is less than or equal to 0
+     */
     public void setHeight(double height) {
         if (height <= 0.0) {
             throw new IllegalArgumentException("Height must be greater than 0, not: " + height);

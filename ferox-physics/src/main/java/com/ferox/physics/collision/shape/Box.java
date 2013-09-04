@@ -29,10 +29,23 @@ package com.ferox.physics.collision.shape;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
+/**
+ * Box represents a three dimensional rectangular prism centered on its local origin with configurable
+ * dimensions aligned with its local x, y, and z axis.
+ *
+ * @author Michael Ludwig
+ */
 public class Box extends ConvexShape {
     private final Vector3 localTensorPartial;
     private final Vector3 halfExtents;
 
+    /**
+     * Create a new Box with the given dimensions.
+     *
+     * @param xExtent The x dimension or width
+     * @param yExtent The y dimension or height
+     * @param zExtent The z dimension or depth
+     */
     public Box(double xExtent, double yExtent, double zExtent) {
         localTensorPartial = new Vector3();
         halfExtents = new Vector3();
@@ -40,16 +53,30 @@ public class Box extends ConvexShape {
         setExtents(xExtent, yExtent, zExtent);
     }
 
-    public
+    /**
+     * @return Get the half extents of this box. It should not be mutated
+     */
     @Const
-    Vector3 getHalfExtents() {
+    public Vector3 getHalfExtents() {
         return halfExtents;
     }
 
+    /**
+     * @return Get the full extents of this box. This creates a new vector
+     */
     public Vector3 getExtents() {
         return new Vector3().scale(halfExtents, 2.0);
     }
 
+    /**
+     * Set the extents of this box to the given dimensions.
+     *
+     * @param width  The x dimension or width of the box
+     * @param height The y dimension or height of the box
+     * @param depth  The z dimension or depth of the box
+     *
+     * @throws IllegalArgumentException if any dimension is less than or equal to 0
+     */
     public void setExtents(double width, double height, double depth) {
         if (width <= 0) {
             throw new IllegalArgumentException("Invalid width, must be greater than 0, not: " + width);
@@ -68,14 +95,23 @@ public class Box extends ConvexShape {
         updateBounds();
     }
 
+    /**
+     * @return Get the width of this box
+     */
     public double getWidth() {
         return halfExtents.x * 2.0;
     }
 
+    /**
+     * @return Get the height of this box
+     */
     public double getHeight() {
         return halfExtents.y * 2.0;
     }
 
+    /**
+     * @return Get the depth of this box
+     */
     public double getDepth() {
         return halfExtents.z * 2.0;
     }

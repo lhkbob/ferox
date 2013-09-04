@@ -29,6 +29,12 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
+/**
+ * GJK implements the GJK convex hull distance algorithm in a MinkowskiShape. Should not be used directly, but
+ * accessed through {@link GjkEpaCollisionAlgorithm}.
+ *
+ * @author Michael Ludwig
+ */
 public class GJK {
     private static final int GJK_MAX_ITERATIONS = 128;
     private static final double GJK_MIN_DISTANCE = .00001;
@@ -49,7 +55,7 @@ public class GJK {
         double alpha = 0.0;
 
         // add first vertex
-        ray.set(simplex.addVertex(guess, true));
+        ray.set(simplex.addNegatedVertex(guess));
         simplex.setWeight(0, 1.0);
 
         Vector3[] oldSupports = new Vector3[] {
@@ -64,7 +70,7 @@ public class GJK {
             }
 
             // add another vertex
-            Vector3 support = simplex.addVertex(ray, true);
+            Vector3 support = simplex.addNegatedVertex(ray);
 
             // check for duplicates
             for (int j = 0; j < oldSupports.length; j++) {

@@ -26,17 +26,44 @@
  */
 package com.ferox.physics.collision;
 
+/**
+ * CollisionPair is a pair of CollisionBodies involved in a potential collision.
+ *
+ * @author Michael Ludwig
+ */
 public class CollisionPair {
     private CollisionBody a;
     private CollisionBody b;
 
+    /**
+     * Create an empty pair that can have its contents updated later (useful for querying collections of
+     * pairs).
+     */
     public CollisionPair() {
     }
 
+    /**
+     * Create a new pair over the given two bodies.
+     *
+     * @param a The first body
+     * @param b The second body
+     *
+     * @see #set(CollisionBody, CollisionBody)
+     */
     public CollisionPair(CollisionBody a, CollisionBody b) {
         set(a, b);
     }
 
+    /**
+     * Set the two bodies on this pair. This should not be called on pairs that are stored inside collections
+     * that depend on {@link #equals(Object)} and {@link #hashCode()}.
+     *
+     * @param a The first body
+     * @param b The second body
+     *
+     * @throws NullPointerException     if a or b are null
+     * @throws IllegalArgumentException if a or b are flyweight instances
+     */
     public void set(CollisionBody a, CollisionBody b) {
         if (a.isFlyweight() || b.isFlyweight()) {
             throw new IllegalArgumentException("Bodies should not be flyweight instances");
@@ -45,10 +72,16 @@ public class CollisionPair {
         this.b = b;
     }
 
+    /**
+     * @return The first body in the pair
+     */
     public CollisionBody getBodyA() {
         return a;
     }
 
+    /**
+     * @return The second body in the pair
+     */
     public CollisionBody getBodyB() {
         return b;
     }

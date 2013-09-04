@@ -29,6 +29,12 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
+/**
+ * Simplex is a data class that builds up a simplex for use by the GJK and EPA algorithms. Much of this class
+ * was ported and restructured from the Simplex used in Bullet's GJK algorithms.
+ *
+ * @author Michael Ludwig
+ */
 public class Simplex {
     public static final int MAX_RANK = 4;
 
@@ -99,15 +105,16 @@ public class Simplex {
         this.rank = rank;
     }
 
-    // FIXME John Carmack makes a good point that a boolean argument in this
-    // case could be hard to remember how to use properly
-    public Vector3 addVertex(@Const Vector3 dir, boolean negate) {
+    public Vector3 addVertex(@Const Vector3 dir) {
         weights[rank] = 0.0;
-        if (negate) {
-            inputs[rank].scale(dir, -1.0).normalize();
-        } else {
-            inputs[rank].normalize(dir);
-        }
+        inputs[rank].normalize(dir);
+        shape.getSupport(inputs[rank], vertices[rank]);
+        return vertices[rank++];
+    }
+
+    public Vector3 addNegatedVertex(@Const Vector3 dir) {
+        weights[rank] = 0.0;
+        inputs[rank].scale(dir, -1.0).normalize();
         shape.getSupport(inputs[rank], vertices[rank]);
         return vertices[rank++];
     }
@@ -149,12 +156,12 @@ public class Simplex {
             Vector3 axis = new Vector3();
             for (int i = 0; i < 3; i++) {
                 axis.set(0, 0, 0).set(i, 1.0);
-                addVertex(axis, false);
+                addVertex(axis);
                 if (encloseOriginImpl()) {
                     return true;
                 }
                 discardLastVertex();
-                addVertex(axis, true);
+                addNegatedVertex(axis);
                 if (encloseOriginImpl()) {
                     return true;
                 }
@@ -169,12 +176,12 @@ public class Simplex {
                 axis.set(0, 0, 0).set(i, 1.0);
                 axis.cross(d, axis);
                 if (axis.lengthSquared() > 0) {
-                    addVertex(axis, false);
+                    addVertex(axis);
                     if (encloseOriginImpl()) {
                         return true;
                     }
                     discardLastVertex();
-                    addVertex(axis, true);
+                    addNegatedVertex(axis);
                     if (encloseOriginImpl()) {
                         return true;
                     }
@@ -186,12 +193,12 @@ public class Simplex {
         case 3: {
             Vector3 n = Util.normal(vertices[0], vertices[1], vertices[2], null);
             if (n.lengthSquared() > 0) {
-                addVertex(n, false);
+                addVertex(n);
                 if (encloseOriginImpl()) {
                     return true;
                 }
                 discardLastVertex();
-                addVertex(n, true);
+                addNegatedVertex(n);
                 if (encloseOriginImpl()) {
                     return true;
                 }

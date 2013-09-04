@@ -51,9 +51,8 @@ public interface Shape {
      *
      * @return The Shape's local bounds
      */
-    public
     @Const
-    AxisAlignedBox getBounds();
+    public AxisAlignedBox getBounds();
 
     /**
      * Return the vector containing the inertia tensor for this shape, in its local transform space. The

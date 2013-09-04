@@ -33,13 +33,24 @@ import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.shape.ConvexShape;
 
+/**
+ * GjkEpaCollisionAlgorithm is a collision algorithm that combines the GJK and EPA algorithms to compute
+ * closest pairs for both separated and penetrating collision bodies. By disabling the margin many small
+ * penetrations within the margin radius can still be computed with GJK. It will also increase the margin to
+ * increase penetration if numerical stabilities prevent the EPA from determining a solution.
+ * <p/>
+ * Even so, it is strongly recommended to wrap this algorithm in a {@link JitteringCollisionAlgorithm} to
+ * further reduce the likelihood of a missed collision.
+ *
+ * @author Michael Ludwig
+ */
 public class GjkEpaCollisionAlgorithm implements CollisionAlgorithm<ConvexShape, ConvexShape> {
     private static final int MAX_EPA_CHECKS = 4;
 
     @Override
     public ClosestPair getClosestPair(ConvexShape shapeA, @Const Matrix4 transA, ConvexShape shapeB,
                                       @Const Matrix4 transB) {
-        ClosestPair p = null;
+        ClosestPair p;
 
         MinkowskiShape shape = new MinkowskiShape(shapeA, transA, shapeB, transB);
         shape.setAppliedMargins(0);

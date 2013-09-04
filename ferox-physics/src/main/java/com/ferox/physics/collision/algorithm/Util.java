@@ -29,13 +29,41 @@ package com.ferox.physics.collision.algorithm;
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 
+/**
+ * Vector utilities used by the GJK and EPA algorithms.
+ *
+ * @author Michael Ludwig
+ */
 public class Util {
-
+    /**
+     * Compute the triple product over the three vectors.
+     *
+     * @param a First vector
+     * @param b Second vector
+     * @param c Third vector
+     *
+     * @return The triple product over a, b, and c
+     *
+     * @throws NullPointerException if a, b, or c are null
+     */
     public static double tripleProduct(@Const Vector3 a, @Const Vector3 b, @Const Vector3 c) {
         return a.y * b.z * c.x + a.z * b.x * c.y - a.x * b.z * c.y - a.y * b.x * c.z + a.x * b.y * c.z -
                a.z * b.y * c.x;
     }
 
+    /**
+     * Compute the normal vector for the triangle formed by {@code va}, {@code vb}, {@code vc} and store it in
+     * {@code result}.
+     *
+     * @param va     First vertex
+     * @param vb     Second vertex
+     * @param vc     Third vertex
+     * @param result The output
+     *
+     * @return The result vector with normal, or a new vector if result is null
+     *
+     * @throws NullPointerException if va, vb, vc are null
+     */
     public static Vector3 normal(@Const Vector3 va, @Const Vector3 vb, @Const Vector3 vc, Vector3 result) {
         // inline subtraction of 2 vectors
         double e1x = vb.x - va.x;

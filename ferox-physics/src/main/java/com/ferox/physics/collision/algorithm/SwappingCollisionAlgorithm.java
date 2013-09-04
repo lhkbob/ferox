@@ -34,9 +34,9 @@ import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.Shape;
 
 /**
- * SwappingCollisionAlgorithm is a utility to swap the shape types that a true collision algorithm can handle.
- * For example, there might be a SphereBoxCollisionAlgorithm. This class can be used to automatically create a
- * BoxSphereCollisionAlgorithm.
+ * SwappingCollisionAlgorithm is a algorithm that swaps the shape types that a true collision algorithm can
+ * handle. For example, there might be a SphereBoxCollisionAlgorithm. This class can be used to automatically
+ * create a BoxSphereCollisionAlgorithm.
  *
  * @param <A> The first Shape type
  * @param <B> The second Shape type
