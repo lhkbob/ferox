@@ -215,7 +215,6 @@ public class TextRenderer {
                         ffp.render(g.getPolygonType(), g.getIndexOffset(), g.getIndexCount());
                     }
                 }
-                // FIXME support a glsl shader that can do the same rendering
                 return null;
             }
         });
