@@ -28,12 +28,14 @@ package com.ferox.physics.dynamics;
 
 import com.ferox.math.Const;
 import com.ferox.math.Vector3;
-import com.ferox.math.entreri.Vector3Property;
+import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.property.SharedInstance;
 
 public interface Gravity extends Component {
     @Const
-    @Vector3Property.DefaultVector3(x = 0.0, y = -9.8, z = 0.0)
+    @SharedInstance
+    @DefaultVector3(x = 0.0, y = -9.8, z = 0.0)
     public Vector3 getGravity();
 
     public Gravity setGravity(@Const Vector3 gravity);
