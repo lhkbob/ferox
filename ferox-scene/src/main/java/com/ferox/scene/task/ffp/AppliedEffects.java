@@ -43,20 +43,31 @@ public class AppliedEffects {
     private final BlendFactor destBlend;
     private final BlendFactor sourceBlend;
 
+    private final boolean diffuseTexture;
+    private final boolean decalTexture;
+    private final boolean emissiveTexture;
+
     private final Matrix4 viewMatrix;
 
     public AppliedEffects() {
         shadowLight = null;
         destBlend = BlendFactor.ZERO;
         sourceBlend = BlendFactor.ONE;
+        diffuseTexture = false;
+        decalTexture = false;
+        emissiveTexture = false;
         viewMatrix = new Matrix4();
     }
 
     private AppliedEffects(@Const Matrix4 view, BlendFactor sourceBlend, BlendFactor destBlend,
-                           Light shadowLight) {
+                           Light shadowLight, boolean diffuseTexture, boolean decalTexture,
+                           boolean emissiveTexture) {
         this.sourceBlend = sourceBlend;
         this.destBlend = destBlend;
         this.shadowLight = shadowLight;
+        this.diffuseTexture = diffuseTexture;
+        this.decalTexture = decalTexture;
+        this.emissiveTexture = emissiveTexture;
         viewMatrix = view;
     }
 
@@ -74,15 +85,35 @@ public class AppliedEffects {
     }
 
     public AppliedEffects applyBlending(BlendFactor source, BlendFactor dest) {
-        return new AppliedEffects(viewMatrix, source, dest, shadowLight);
+        return new AppliedEffects(viewMatrix, source, dest, shadowLight, diffuseTexture, decalTexture,
+                                  emissiveTexture);
     }
 
     public AppliedEffects applyShadowMapping(Light light) {
-        return new AppliedEffects(viewMatrix, sourceBlend, destBlend, light);
+        return new AppliedEffects(viewMatrix, sourceBlend, destBlend, light, diffuseTexture, decalTexture,
+                                  emissiveTexture);
     }
 
     public AppliedEffects applyViewMatrix(@Const Matrix4 view) {
-        return new AppliedEffects(view.clone(), sourceBlend, destBlend, shadowLight);
+        return new AppliedEffects(view.clone(), sourceBlend, destBlend, shadowLight, diffuseTexture,
+                                  decalTexture, emissiveTexture);
+    }
+
+    public AppliedEffects applyTexturing(boolean useDiffuse, boolean useDecal, boolean useEmissive) {
+        return new AppliedEffects(viewMatrix, sourceBlend, destBlend, shadowLight, useDiffuse, useDecal,
+                                  useEmissive);
+    }
+
+    public boolean isDiffuseTextureEnabled() {
+        return diffuseTexture;
+    }
+
+    public boolean isDecalTextureEnabled() {
+        return decalTexture;
+    }
+
+    public boolean isEmissiveTextureEnabled() {
+        return emissiveTexture;
     }
 
     @Const

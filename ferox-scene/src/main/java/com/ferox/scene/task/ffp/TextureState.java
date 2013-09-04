@@ -48,7 +48,6 @@ public class TextureState implements State {
     public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
-        // FIXME if texCoords are null, turn on OBJ coord generation
         if (diffuseTexture != null) {
             r.setTexture(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, diffuseTexture);
             // multiplicative blending with vertex color
@@ -84,8 +83,7 @@ public class TextureState implements State {
             r.setTextureCombineRGB(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, CombineFunction.ADD,
                                    CombineSource.CURR_TEX, CombineOperand.COLOR, CombineSource.PREV_TEX,
                                    CombineOperand.COLOR, CombineSource.CONST_COLOR, CombineOperand.COLOR);
-            // REPLACE with alpha(PREV_TEX) as arg0 preserves the original
-            // alpha
+            // REPLACE with alpha(PREV_TEX) as arg0 preserves the original alpha
             r.setTextureCombineAlpha(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, CombineFunction.REPLACE,
                                      CombineSource.PREV_TEX, CombineOperand.ALPHA, CombineSource.CURR_TEX,
                                      CombineOperand.ALPHA, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
@@ -94,7 +92,9 @@ public class TextureState implements State {
             r.setTexture(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, null);
         }
 
-        currentNode.visitChildren(effects, access);
+        currentNode.visitChildren(
+                effects.applyTexturing(diffuseTexture != null, decalTexture != null, emittedTexture != null),
+                access);
     }
 
     @Override

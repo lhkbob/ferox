@@ -80,33 +80,27 @@ public class GeometryState implements State {
         r.setNormals(normals);
         r.setIndices(indices);
 
-        if (texCoords == null) {
-            r.setTextureObjectPlanes(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, OBJ_PLANES);
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
-
-            r.setTextureObjectPlanes(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, OBJ_PLANES);
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
-
-            r.setTextureObjectPlanes(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, OBJ_PLANES);
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
-        } else {
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
-            r.setTextureCoordinates(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, texCoords);
-
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
-            r.setTextureCoordinates(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, texCoords);
-
-            r.setTextureCoordinateSource(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT,
-                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
-            r.setTextureCoordinates(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, texCoords);
+        if (effects.isDiffuseTextureEnabled()) {
+            setTextureCoordinates(r, FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT);
+        }
+        if (effects.isDecalTextureEnabled()) {
+            setTextureCoordinates(r, FixedFunctionRenderTask.DECAL_TEXTURE_UNIT);
+        }
+        if (effects.isEmissiveTextureEnabled()) {
+            setTextureCoordinates(r, FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT);
         }
 
         currentNode.visitChildren(effects, access);
+    }
+
+    private void setTextureCoordinates(FixedFunctionRenderer r, int unit) {
+        if (texCoords == null) {
+            r.setTextureObjectPlanes(unit, OBJ_PLANES);
+            r.setTextureCoordinateSource(unit, FixedFunctionRenderer.TexCoordSource.OBJECT);
+        } else {
+            r.setTextureCoordinateSource(unit, FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
+            r.setTextureCoordinates(unit, texCoords);
+        }
     }
 
     @Override
