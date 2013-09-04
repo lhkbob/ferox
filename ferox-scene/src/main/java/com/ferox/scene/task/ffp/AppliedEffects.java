@@ -64,7 +64,6 @@ public class AppliedEffects {
         if (isBlendingEnabled()) {
             r.setBlendingEnabled(true);
             r.setBlendMode(BlendFunction.ADD, sourceBlend, destBlend);
-            // FIXME might need a different comparison for shadow-mapping?
             r.setDepthTest(Comparison.LEQUAL);
             r.setDepthWriteMask(false);
         } else {

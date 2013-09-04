@@ -39,12 +39,10 @@ public class ShadowMapState implements State {
     private static final Matrix4 bias = new Matrix4()
             .set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
 
-    private final int shadowMapUnit;
     private final ShadowMapCache shadowMap;
 
-    public ShadowMapState(ShadowMapCache cache, int textureUnit) {
+    public ShadowMapState(ShadowMapCache cache) {
         shadowMap = cache;
-        shadowMapUnit = textureUnit;
     }
 
     @Override
@@ -71,7 +69,7 @@ public class ShadowMapState implements State {
         r = access.getCurrentContext().getFixedFunctionRenderer(); // must re-get renderer, though
         effects.pushBlending(r);
         r.setDepthOffsetsEnabled(false);
-        r.setTexture(shadowMapUnit, null);
+        r.setTexture(FixedFunctionRenderTask.SHADOWMAP_TEXTURE_UNIT, null);
     }
 
     private void renderShadowPass(Light shadowCaster, StateNode node, AppliedEffects effects,
@@ -84,12 +82,12 @@ public class ShadowMapState implements State {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
         // configure shadow map texturing
-        r.setTexture(shadowMapUnit, shadowTexture);
-        r.setTextureCoordinateSource(shadowMapUnit, TexCoordSource.EYE);
+        r.setTexture(FixedFunctionRenderTask.SHADOWMAP_TEXTURE_UNIT, shadowTexture);
+        r.setTextureCoordinateSource(FixedFunctionRenderTask.SHADOWMAP_TEXTURE_UNIT, TexCoordSource.EYE);
 
         Matrix4 texM = new Matrix4();
         texM.mul(bias, smFrustum.getProjectionMatrix()).mul(smFrustum.getViewMatrix());
-        r.setTextureEyePlanes(shadowMapUnit, texM);
+        r.setTextureEyePlanes(FixedFunctionRenderTask.SHADOWMAP_TEXTURE_UNIT, texM);
 
         // depth bias and blending have already been configured, since
         // they won't change from pass to pass

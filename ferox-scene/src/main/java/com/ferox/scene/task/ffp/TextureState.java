@@ -32,32 +32,16 @@ import com.ferox.renderer.FixedFunctionRenderer.CombineOperand;
 import com.ferox.renderer.FixedFunctionRenderer.CombineSource;
 import com.ferox.renderer.HardwareAccessLayer;
 import com.ferox.renderer.Texture;
-import com.ferox.renderer.VertexAttribute;
 
 public class TextureState implements State {
-    private final int diffuseTextureUnit;
-    private final int decalTextureUnit;
-    private final int emittedTextureUnit;
-
     private Texture diffuseTexture;
     private Texture decalTexture;
     private Texture emittedTexture;
 
-    private VertexAttribute texCoords;
-
-    public TextureState(int diffuseTextureUnit, int decalTextureUnit, int emittedTextureUnit) {
-        this.diffuseTextureUnit = diffuseTextureUnit;
-        this.decalTextureUnit = decalTextureUnit;
-        this.emittedTextureUnit = emittedTextureUnit;
-    }
-
-    public void set(Texture diffuseTexture, Texture decalTexture, Texture emittedTexture,
-                    VertexAttribute texCoords) {
+    public void set(Texture diffuseTexture, Texture decalTexture, Texture emittedTexture) {
         this.diffuseTexture = diffuseTexture;
         this.decalTexture = decalTexture;
         this.emittedTexture = emittedTexture;
-
-        this.texCoords = texCoords;
     }
 
     @Override
@@ -66,51 +50,48 @@ public class TextureState implements State {
 
         // FIXME if texCoords are null, turn on OBJ coord generation
         if (diffuseTexture != null) {
-            r.setTexture(diffuseTextureUnit, diffuseTexture);
-            r.setTextureCoordinates(diffuseTextureUnit, texCoords);
+            r.setTexture(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, diffuseTexture);
             // multiplicative blending with vertex color
-            r.setTextureCombineRGB(diffuseTextureUnit, CombineFunction.MODULATE, CombineSource.CURR_TEX,
-                                   CombineOperand.COLOR, CombineSource.PREV_TEX, CombineOperand.COLOR,
-                                   CombineSource.CONST_COLOR, CombineOperand.COLOR);
-            r.setTextureCombineAlpha(diffuseTextureUnit, CombineFunction.MODULATE, CombineSource.CURR_TEX,
-                                     CombineOperand.ALPHA, CombineSource.PREV_TEX, CombineOperand.ALPHA,
-                                     CombineSource.CONST_COLOR, CombineOperand.ALPHA);
+            r.setTextureCombineRGB(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, CombineFunction.MODULATE,
+                                   CombineSource.CURR_TEX, CombineOperand.COLOR, CombineSource.PREV_TEX,
+                                   CombineOperand.COLOR, CombineSource.CONST_COLOR, CombineOperand.COLOR);
+            r.setTextureCombineAlpha(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, CombineFunction.MODULATE,
+                                     CombineSource.CURR_TEX, CombineOperand.ALPHA, CombineSource.PREV_TEX,
+                                     CombineOperand.ALPHA, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
         } else {
             // disable diffuse texture
-            r.setTexture(diffuseTextureUnit, null);
+            r.setTexture(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, null);
         }
 
         if (decalTexture != null) {
-            r.setTexture(decalTextureUnit, decalTexture);
-            r.setTextureCoordinates(decalTextureUnit, texCoords);
+            r.setTexture(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, decalTexture);
             // alpha blended with previous color based on decal map alpha
-            r.setTextureCombineRGB(decalTextureUnit, CombineFunction.INTERPOLATE, CombineSource.CURR_TEX,
-                                   CombineOperand.COLOR, CombineSource.PREV_TEX, CombineOperand.COLOR,
-                                   CombineSource.CURR_TEX, CombineOperand.ALPHA);
+            r.setTextureCombineRGB(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, CombineFunction.INTERPOLATE,
+                                   CombineSource.CURR_TEX, CombineOperand.COLOR, CombineSource.PREV_TEX,
+                                   CombineOperand.COLOR, CombineSource.CURR_TEX, CombineOperand.ALPHA);
             // REPLACE with alpha(PREV_TEX) as arg0 preserves original alpha
-            r.setTextureCombineAlpha(decalTextureUnit, CombineFunction.REPLACE, CombineSource.PREV_TEX,
-                                     CombineOperand.ALPHA, CombineSource.CURR_TEX, CombineOperand.ALPHA,
-                                     CombineSource.CONST_COLOR, CombineOperand.ALPHA);
+            r.setTextureCombineAlpha(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, CombineFunction.REPLACE,
+                                     CombineSource.PREV_TEX, CombineOperand.ALPHA, CombineSource.CURR_TEX,
+                                     CombineOperand.ALPHA, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
         } else {
             // disable decal texture
-            r.setTexture(decalTextureUnit, null);
+            r.setTexture(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, null);
         }
 
         if (emittedTexture != null) {
-            r.setTexture(emittedTextureUnit, emittedTexture);
-            r.setTextureCoordinates(emittedTextureUnit, texCoords);
+            r.setTexture(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, emittedTexture);
             // emitted light is just added to the color output
-            r.setTextureCombineRGB(emittedTextureUnit, CombineFunction.ADD, CombineSource.CURR_TEX,
-                                   CombineOperand.COLOR, CombineSource.PREV_TEX, CombineOperand.COLOR,
-                                   CombineSource.CONST_COLOR, CombineOperand.COLOR);
+            r.setTextureCombineRGB(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, CombineFunction.ADD,
+                                   CombineSource.CURR_TEX, CombineOperand.COLOR, CombineSource.PREV_TEX,
+                                   CombineOperand.COLOR, CombineSource.CONST_COLOR, CombineOperand.COLOR);
             // REPLACE with alpha(PREV_TEX) as arg0 preserves the original
             // alpha
-            r.setTextureCombineAlpha(emittedTextureUnit, CombineFunction.REPLACE, CombineSource.PREV_TEX,
-                                     CombineOperand.ALPHA, CombineSource.CURR_TEX, CombineOperand.ALPHA,
-                                     CombineSource.CONST_COLOR, CombineOperand.ALPHA);
+            r.setTextureCombineAlpha(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, CombineFunction.REPLACE,
+                                     CombineSource.PREV_TEX, CombineOperand.ALPHA, CombineSource.CURR_TEX,
+                                     CombineOperand.ALPHA, CombineSource.CONST_COLOR, CombineOperand.ALPHA);
         } else {
             // disable emissive texture
-            r.setTexture(emittedTextureUnit, null);
+            r.setTexture(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, null);
         }
 
         currentNode.visitChildren(effects, access);
@@ -122,7 +103,6 @@ public class TextureState implements State {
         hash = 31 * hash + (diffuseTexture == null ? 0 : diffuseTexture.hashCode());
         hash = 31 * hash + (decalTexture == null ? 0 : decalTexture.hashCode());
         hash = 31 * hash + (emittedTexture == null ? 0 : emittedTexture.hashCode());
-        hash = 31 * hash + (texCoords == null ? 0 : texCoords.hashCode());
         return hash;
     }
 
@@ -134,7 +114,7 @@ public class TextureState implements State {
 
         TextureState ts = (TextureState) o;
         return nullEquals(ts.diffuseTexture, diffuseTexture) && nullEquals(ts.decalTexture, decalTexture) &&
-               nullEquals(ts.emittedTexture, emittedTexture) && nullEquals(ts.texCoords, texCoords);
+               nullEquals(ts.emittedTexture, emittedTexture);
     }
 
     private static boolean nullEquals(Object a, Object b) {

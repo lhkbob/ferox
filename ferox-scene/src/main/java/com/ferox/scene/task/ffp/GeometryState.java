@@ -26,32 +26,85 @@
  */
 package com.ferox.scene.task.ffp;
 
-import com.ferox.renderer.FixedFunctionRenderer;
-import com.ferox.renderer.HardwareAccessLayer;
+import com.ferox.math.Const;
+import com.ferox.math.Matrix4;
+import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.DrawStyle;
-import com.ferox.renderer.VertexAttribute;
+
+import java.util.Arrays;
 
 public class GeometryState implements State {
+    private static final Matrix4 OBJ_PLANES = new Matrix4().setIdentity();
+
     private VertexAttribute vertices;
     private VertexAttribute normals;
+    private VertexAttribute texCoords;
 
     private DrawStyle front;
     private DrawStyle back;
 
-    public void set(VertexAttribute vertices, VertexAttribute normals, DrawStyle front, DrawStyle back) {
+    private ElementBuffer indices;
+    private int indexOffset;
+    private int indexCount;
+    private Renderer.PolygonType polyType;
+
+    private final Matrix4 modelMatrix = new Matrix4();
+
+    public void set(VertexAttribute vertices, VertexAttribute normals, VertexAttribute texCoords,
+                    DrawStyle front, DrawStyle back, Renderer.PolygonType polyType, ElementBuffer indices,
+                    int offset, int count) {
         this.vertices = vertices;
         this.normals = normals;
+        this.texCoords = texCoords;
         this.front = front;
         this.back = back;
+        this.polyType = polyType;
+        this.indices = indices;
+        indexOffset = offset;
+        indexCount = count;
+    }
+
+    public RenderState newOpaqueRenderState() {
+        return new OpaqueRenderState();
+    }
+
+    public RenderState newTransparentRenderState() {
+        return new TransparentRenderState();
     }
 
     @Override
     public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
         FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
 
-        r.setDrawStyle(front, back);
         r.setVertices(vertices);
         r.setNormals(normals);
+        r.setIndices(indices);
+
+        if (texCoords == null) {
+            r.setTextureObjectPlanes(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, OBJ_PLANES);
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
+
+            r.setTextureObjectPlanes(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, OBJ_PLANES);
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
+
+            r.setTextureObjectPlanes(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, OBJ_PLANES);
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.OBJECT);
+        } else {
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
+            r.setTextureCoordinates(FixedFunctionRenderTask.DIFFUSE_TEXTURE_UNIT, texCoords);
+
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
+            r.setTextureCoordinates(FixedFunctionRenderTask.DECAL_TEXTURE_UNIT, texCoords);
+
+            r.setTextureCoordinateSource(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT,
+                                         FixedFunctionRenderer.TexCoordSource.ATTRIBUTE);
+            r.setTextureCoordinates(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, texCoords);
+        }
 
         currentNode.visitChildren(effects, access);
     }
@@ -61,8 +114,13 @@ public class GeometryState implements State {
         int hash = 17;
         hash = 31 * hash + (vertices == null ? 0 : vertices.hashCode());
         hash = 31 * hash + (normals == null ? 0 : normals.hashCode());
+        hash = 31 * hash + (texCoords == null ? 0 : texCoords.hashCode());
         hash = 31 * hash + front.hashCode();
         hash = 31 * hash + back.hashCode();
+        hash = 31 * hash + (indices == null ? 0 : indices.hashCode());
+        hash = 31 * hash + indexOffset;
+        hash = 31 * hash + indexCount;
+        hash = 31 * hash + polyType.hashCode();
         return hash;
     }
 
@@ -74,10 +132,86 @@ public class GeometryState implements State {
 
         GeometryState ts = (GeometryState) o;
         return nullEquals(ts.normals, normals) && nullEquals(ts.vertices, vertices) &&
+               nullEquals(ts.texCoords, texCoords) && nullEquals(ts.indices, indices) &&
+               ts.indexCount == indexCount && ts.indexOffset == indexOffset && ts.polyType == polyType &&
                ts.front == front && ts.back == back;
     }
 
     private static boolean nullEquals(Object a, Object b) {
         return (a == null ? b == null : a.equals(b));
+    }
+
+    private abstract class AbstractRenderState implements RenderState {
+        // packed objects to render
+        protected float[] matrices;
+        protected int count;
+
+        public AbstractRenderState() {
+            count = 0;
+            matrices = new float[16];
+        }
+
+        @Override
+        public void add(@Const Matrix4 transform) {
+            if (count + 16 > matrices.length) {
+                // grow array
+                matrices = Arrays.copyOf(matrices, matrices.length * 2);
+            }
+
+            // use provided matrix
+            transform.get(matrices, count, false);
+
+            count += 16;
+        }
+    }
+
+    private class OpaqueRenderState extends AbstractRenderState {
+        @Override
+        public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
+            FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
+
+            // for opaque rendering, we can do the front and back in a single pass
+            r.setDrawStyle(front, back);
+            for (int i = 0; i < count; i += 16) {
+                // load and multiply the model with the view
+                modelMatrix.set(matrices, i, false);
+                modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
+
+                r.setModelViewMatrix(modelMatrix);
+                r.render(polyType, indexOffset, indexCount);
+            }
+
+            // restore modelview matrix for lighting, etc.
+            r.setModelViewMatrix(effects.getViewMatrix());
+        }
+    }
+
+    private class TransparentRenderState extends AbstractRenderState {
+        @Override
+        public void visitNode(StateNode currentNode, AppliedEffects effects, HardwareAccessLayer access) {
+            FixedFunctionRenderer r = access.getCurrentContext().getFixedFunctionRenderer();
+
+            for (int i = 0; i < count; i += 16) {
+                // load and multiply the model with the view
+                modelMatrix.set(matrices, i, false);
+                modelMatrix.mul(effects.getViewMatrix(), modelMatrix);
+
+                r.setModelViewMatrix(modelMatrix);
+
+                // draw the back first if we have a non-NONE style for it
+                if (back != DrawStyle.NONE) {
+                    r.setDrawStyle(DrawStyle.NONE, back);
+                    r.render(polyType, indexOffset, indexCount);
+                }
+                // draw the front second if we have a non-NONE style for it
+                if (front != DrawStyle.NONE) {
+                    r.setDrawStyle(front, DrawStyle.NONE);
+                    r.render(polyType, indexOffset, indexCount);
+                }
+            }
+
+            // restore modelview matrix for lighting, etc.
+            r.setModelViewMatrix(effects.getViewMatrix());
+        }
     }
 }

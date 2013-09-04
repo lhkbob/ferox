@@ -118,13 +118,11 @@ public class ShadowMapCache {
         EntitySystem system = pvs.getSource().getEntitySystem();
 
         GeometryState geom = new GeometryState();
-        IndexBufferState render = new IndexBufferState();
 
         // build up required states and tree simultaneously
         StateNode root = new StateNode(new CameraState(pvs.getFrustum()));
 
         List<GeometryState> geomLookup = new ArrayList<>();
-        List<IndexBufferState> renderLookup = new ArrayList<>();
 
         ComponentIterator it = system.fastIterator(pvs.getPotentiallyVisibleSet());
         Renderable renderable = it.addRequired(Renderable.class);
@@ -132,7 +130,6 @@ public class ShadowMapCache {
         Transparent transparent = it.addOptional(Transparent.class);
 
         Map<GeometryState, Integer> geomState = new HashMap<>();
-        Map<IndexBufferState, Integer> renderState = new HashMap<>();
         while (it.next()) {
             // skip transparent entities, as its somewhat physically plausible that
             // they'd cast fainter shadows, and with the quality of FFP shadow mapping,
@@ -146,9 +143,9 @@ public class ShadowMapCache {
 
             // don't need normals, and use front style for back faces and disable
             // front faces so we only render those in the back
-            geom.set(geometry.getVertices(), null, DrawStyle.NONE, renderable.getFrontDrawStyle());
-            render.set(geometry.getPolygonType(), geometry.getIndices(), geometry.getIndexOffset(),
-                       geometry.getIndexCount());
+            geom.set(geometry.getVertices(), null, null, DrawStyle.NONE, renderable.getFrontDrawStyle(),
+                     geometry.getPolygonType(), geometry.getIndices(), geometry.getIndexOffset(),
+                     geometry.getIndexCount());
 
             Integer geomStateIndex = geomState.get(geom);
             if (geomStateIndex == null) {
@@ -158,28 +155,19 @@ public class ShadowMapCache {
                 // create a new state so we don't mutate value stached in collection
                 geom = new GeometryState();
             }
-            Integer renderStateIndex = renderState.get(render);
-            if (renderStateIndex == null) {
-                renderStateIndex = renderLookup.size();
-                renderLookup.add(render);
-                renderState.put(render, geomStateIndex);
-                // create a new state so we don't mutate value stached in collection
-                render = new IndexBufferState();
-            }
 
+            RenderState leaf;
             StateNode geomNode = root.getChild(geomStateIndex);
             if (geomNode == null) {
                 geomNode = new StateNode(geomLookup.get(geomStateIndex));
                 root.setChild(geomStateIndex, geomNode);
+                leaf = geomLookup.get(geomStateIndex).newOpaqueRenderState();
+                geomNode.addChild(new StateNode(leaf));
+            } else {
+                leaf = (RenderState) geomNode.getChild(0).getState();
             }
 
-            StateNode renderNode = geomNode.getChild(renderStateIndex);
-            if (renderNode == null) {
-                renderNode = new StateNode(renderLookup.get(renderStateIndex).newOpaqueRenderState());
-                geomNode.setChild(renderStateIndex, renderNode);
-            }
-
-            ((RenderState) renderNode.getState()).add(transform.getMatrix());
+            leaf.add(transform.getMatrix());
         }
 
         Light source = (Light) pvs.getSource();

@@ -53,28 +53,10 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 public class FixedFunctionRenderTask implements Task, ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(AmbientLight.class);
-        types.add(Light.class);
-        types.add(Renderable.class);
-        types.add(Transform.class);
-        types.add(LambertianDiffuseModel.class);
-        types.add(OrenNayarDiffuseModel.class);
-        types.add(BlinnPhongSpecularModel.class);
-        types.add(CookTorrenceSpecularModel.class);
-        types.add(EmittedColor.class);
-        types.add(DiffuseColorMap.class);
-        types.add(EmittedColorMap.class);
-        types.add(DecalColorMap.class);
-        types.add(Transparent.class);
-        types.add(Camera.class);
-        types.add(AtmosphericFog.class);
-        types.add(InfluenceRegion.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
+    public static final int DIFFUSE_TEXTURE_UNIT = 0;
+    public static final int DECAL_TEXTURE_UNIT = 1;
+    public static final int EMISSIVE_TEXTURE_UNIT = 2;
+    public static final int SHADOWMAP_TEXTURE_UNIT = 3;
 
     private final Framework framework;
     private final boolean flush;
@@ -83,8 +65,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     // other is being rendering
     private final Frame frameA;
     private final Frame frameB;
-
-    private final int shadowmapTextureUnit;
 
     // per-frame data
     private List<PVSResult> cameraPVS;
@@ -135,16 +115,13 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
             shadowMapA = new ShadowMapCache(framework, sz, sz);
             shadowMapB = new ShadowMapCache(framework, sz, sz);
-
-            shadowmapTextureUnit = 3;
         } else {
             shadowMapA = null;
             shadowMapB = null;
-            shadowmapTextureUnit = -1;
         }
 
-        frameA = new Frame(shadowMapA, 0, 1, 2);
-        frameB = new Frame(shadowMapB, 0, 1, 2);
+        frameA = new Frame(shadowMapA);
+        frameB = new Frame(shadowMapB);
     }
 
     @Override
@@ -383,8 +360,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // lit and unlit state nodes for opaque node
         StateNode litNode = new StateNode(LightingState.LIT); // child = shadowmap state
         StateNode unlitNode = new StateNode(LightingState.UNLIT); // child = texture states
-        StateNode smNode = new StateNode(
-                new ShadowMapState(frame.shadowMap, shadowmapTextureUnit)); // children = light groups
+        StateNode smNode = new StateNode(new ShadowMapState(frame.shadowMap)); // children = light groups
 
         opaqueNode.addChild(unlitNode);
         opaqueNode.addChild(litNode);
@@ -437,60 +413,52 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
             // build subtree for lighting within transparent state
             Profiler.push("transparent-tree");
-            if (!transparentEntities.isEmpty()) {
-                StateNode transparentRoot = new StateNode(NullState.INSTANCE, transparentEntities.size());
-                if (fogNode == null) {
-                    root.addChild(transparentRoot);
-                } else {
-                    fogNode.addChild(transparentRoot);
-                }
+            StateNode transparentRoot = new StateNode(NullState.INSTANCE, transparentEntities.size());
+            if (fogNode == null) {
+                root.addChild(transparentRoot);
+            } else {
+                fogNode.addChild(transparentRoot);
+            }
 
-                boolean nodeIsAdditive = false;
-                boolean nodeIsLit = false;
-                StateNode lastNode = null;
+            boolean nodeIsAdditive = false;
+            boolean nodeIsLit = false;
+            StateNode lastNode = null;
 
-                // insert sorted entities into the transparent node of the tree, but
-                // they cannot share nodes so that their depth order is preserved
-                it = system.fastIterator(transparentEntities);
-                renderable = it.addRequired(Renderable.class);
-                transform = it.addRequired(Transform.class);
-                while (it.next()) {
-                    RenderAtom atom = (RenderAtom) frame.atoms.get(renderable.getIndex());
+            // insert sorted entities into the transparent node of the tree, but
+            // they cannot share nodes so that their depth order is preserved
+            it = system.fastIterator(transparentEntities);
+            renderable = it.addRequired(Renderable.class);
+            transform = it.addRequired(Transform.class);
+            while (it.next()) {
+                RenderAtom atom = (RenderAtom) frame.atoms.get(renderable.getIndex());
 
-                    // FIXME track lit state of atom better, especially once we get more color models in
-                    boolean litUpdate = (nodeIsLit ? atom.diffuseColorVersion < 0 &&
-                                                     atom.specularColorVersion < 0
-                                                   : atom.diffuseColorVersion >= 0 ||
-                                                     atom.specularColorVersion >= 0);
-                    boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
-                    if (lastNode == null || litUpdate || blendUpdate) {
-                        StateNode blendNode = new StateNode(
-                                atom.additiveBlending ? TransparentState.ADDITIVE : TransparentState.NORMAL,
-                                1);
-                        transparentRoot.addChild(blendNode);
+                boolean litUpdate = (nodeIsLit ? !atom.isLit : atom.isLit);
+                boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
+                if (lastNode == null || litUpdate || blendUpdate) {
+                    StateNode blendNode = new StateNode(
+                            atom.additiveBlending ? TransparentState.ADDITIVE : TransparentState.NORMAL, 1);
+                    transparentRoot.addChild(blendNode);
 
-                        if (atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0) {
-                            StateNode lit = new StateNode(LightingState.LIT, 1);
-                            blendNode.addChild(lit);
-                            StateNode sm = new StateNode(
-                                    smNode.getChild(groupAssgn.get(renderable.getIndex())).getState(), 1);
-                            lit.addChild(sm);
+                    if (atom.isLit) {
+                        StateNode lit = new StateNode(LightingState.LIT, 1);
+                        blendNode.addChild(lit);
+                        StateNode sm = new StateNode(
+                                smNode.getChild(groupAssgn.get(renderable.getIndex())).getState(), 1);
+                        lit.addChild(sm);
 
-                            lastNode = sm;
-                        } else {
-                            StateNode unlit = new StateNode(LightingState.UNLIT, 1);
-                            blendNode.addChild(unlit);
+                        lastNode = sm;
+                    } else {
+                        StateNode unlit = new StateNode(LightingState.UNLIT, 1);
+                        blendNode.addChild(unlit);
 
-                            lastNode = unlit;
-                        }
-
-                        nodeIsLit = atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0;
-                        nodeIsAdditive = atom.additiveBlending;
+                        lastNode = unlit;
                     }
 
-                    addTransparentAtom(transform, atom, renderable.getGeometry().getVertices(), lastNode,
-                                       frame);
+                    nodeIsLit = atom.isLit;
+                    nodeIsAdditive = atom.additiveBlending;
                 }
+
+                addTransparentAtom(transform, atom, lastNode, frame);
             }
             Profiler.pop();
         }
@@ -526,27 +494,24 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     static int count = 0;
 
-    private void addTransparentAtom(Transform transform, RenderAtom atom, VertexAttribute vertices,
-                                    StateNode firstNode, Frame frame) {
+    private void addTransparentAtom(Transform transform, RenderAtom atom, StateNode firstNode, Frame frame) {
         // texture state
         StateNode texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex), 1);
         firstNode.addChild(texNode);
 
-        // geometry state
-        StateNode geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex), 1);
-        texNode.setChild(0, geomNode);
-
         // color state
         StateNode colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex), 1);
-        geomNode.setChild(0, colorNode);
+        texNode.setChild(0, colorNode);
 
         // transparent render state
-        StateNode renderNode = new StateNode(frame.renderStates.getState(atom.renderStateIndex)
-                                                  .newTransparentRenderState(vertices, frame.sortedIndices));
-        colorNode.setChild(0, renderNode);
+        GeometryState geom = frame.geometryStates.getState(atom.geometryStateIndex);
+        RenderState leaf = geom.newTransparentRenderState();
+        StateNode renderNode = new StateNode(geom);
+        renderNode.addChild(new StateNode(leaf));
+        colorNode.setChild(0, new StateNode(geom));
 
         // now record transform into the state
-        ((RenderState) renderNode.getState()).add(transform.getMatrix());
+        leaf.add(transform.getMatrix());
     }
 
     private void addOpaqueAtom(Transform transform, RenderAtom atom, StateNode firstNode, Frame frame) {
@@ -554,46 +519,42 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         StateNode texNode = firstNode.getChild(atom.textureStateIndex);
         if (texNode == null) {
             texNode = new StateNode(frame.textureStates.getState(atom.textureStateIndex),
-                                    frame.geometryStates.count());
+                                    frame.colorStates.count());
             firstNode.setChild(atom.textureStateIndex, texNode);
         }
 
-        // geometry state
-        StateNode geomNode = texNode.getChild(atom.geometryStateIndex);
-        if (geomNode == null) {
-            geomNode = new StateNode(frame.geometryStates.getState(atom.geometryStateIndex),
-                                     frame.colorStates.count());
-            texNode.setChild(atom.geometryStateIndex, geomNode);
-        }
-
         // color state
-        StateNode colorNode = geomNode.getChild(atom.colorStateIndex);
+        StateNode colorNode = texNode.getChild(atom.colorStateIndex);
         if (colorNode == null) {
             colorNode = new StateNode(frame.colorStates.getState(atom.colorStateIndex),
-                                      frame.renderStates.count());
-            geomNode.setChild(atom.colorStateIndex, colorNode);
+                                      frame.geometryStates.count());
+            texNode.setChild(atom.colorStateIndex, colorNode);
         }
 
         // render state
-        StateNode renderNode = colorNode.getChild(atom.renderStateIndex);
+        RenderState leaf;
+        StateNode renderNode = colorNode.getChild(atom.geometryStateIndex);
         if (renderNode == null) {
             // must clone the geometry since each node accumulates its own
             // packed transforms that must be rendered
-            renderNode = new StateNode(
-                    frame.renderStates.getState(atom.renderStateIndex).newOpaqueRenderState());
-            colorNode.setChild(atom.renderStateIndex, renderNode);
+            GeometryState geom = frame.geometryStates.getState(atom.geometryStateIndex);
+            renderNode = new StateNode(geom);
+            colorNode.setChild(atom.geometryStateIndex, renderNode);
+
+            leaf = geom.newOpaqueRenderState();
+            renderNode.addChild(new StateNode(leaf));
+        } else {
+            leaf = (RenderState) renderNode.getChild(0).getState();
         }
 
         // now record the transform into the render node's state
-        ((RenderState) renderNode.getState()).add(transform.getMatrix());
+        leaf.add(transform.getMatrix());
     }
 
     private void syncEntityState(RenderAtom atom, Frame frame) {
         // sync render state and draw state
         int newRenderableVersion = renderable.getVersion();
-        if (newRenderableVersion != atom.renderableVersion || atom.renderStateIndex < 0 ||
-            atom.geometryStateIndex < 0) {
-            atom.renderStateIndex = frame.getRenderState(renderable, atom.renderStateIndex);
+        if (newRenderableVersion != atom.renderableVersion || atom.geometryStateIndex < 0) {
             atom.geometryStateIndex = frame.getGeometryState(renderable, atom.geometryStateIndex);
         }
 
@@ -606,8 +567,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             newEmittedTexVersion != atom.emittedTextureVersion ||
             atom.textureStateIndex < 0) {
             atom.textureStateIndex = frame
-                    .getTextureState(diffuseTexture, decalTexture, emittedTexture, renderable,
-                                     atom.textureStateIndex);
+                    .getTextureState(diffuseTexture, decalTexture, emittedTexture, atom.textureStateIndex);
         }
 
         // sync color state
@@ -625,6 +585,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         atom.additiveBlending = transparent.isAlive() && transparent.isAdditive();
+        atom.isLit = atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0;
 
         // record new versions
         atom.renderableVersion = newRenderableVersion;
@@ -639,46 +600,30 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     private static class Frame {
         final ShadowMapCache shadowMap;
-        final ElementBuffer sortedIndices;
 
         StateCache<TextureState> textureStates;
         StateCache<GeometryState> geometryStates;
         StateCache<ColorState> colorStates;
-        StateCache<IndexBufferState> renderStates;
 
         // per-entity tracking
         ObjectProperty atoms;
 
-        private final int diffuseTextureUnit;
-        private final int emissiveTextureUnit;
-        private final int decalTextureUnit;
-
-        Frame(ShadowMapCache map, int diffuseTextureUnit, int decalTextureUnit, int emissiveTextureUnit) {
+        Frame(ShadowMapCache map) {
             shadowMap = map;
-
-            this.diffuseTextureUnit = diffuseTextureUnit;
-            this.decalTextureUnit = decalTextureUnit;
-            this.emissiveTextureUnit = emissiveTextureUnit;
 
             textureStates = new StateCache<>(TextureState.class);
             geometryStates = new StateCache<>(GeometryState.class);
             colorStates = new StateCache<>(ColorState.class);
-            renderStates = new StateCache<>(IndexBufferState.class);
-
-            //            sortedIndices = new VertexBufferObject(new BufferData(new int[1]), StorageMode.GPU_DYNAMIC);
-            //            sortedIndices.setUpdatePolicy(UpdatePolicy.MANUAL);
-            sortedIndices = null;
         }
 
         int getTextureState(DiffuseColorMap diffuse, DecalColorMap decal, EmittedColorMap emitted,
-                            Renderable renderable, int oldIndex) {
+                            int oldIndex) {
             Texture diffuseTex = (diffuse.isAlive() ? diffuse.getTexture() : null);
             Texture decalTex = (decal.isAlive() ? decal.getTexture() : null);
             Texture emittedTex = (emitted.isAlive() ? emitted.getTexture() : null);
-            VertexAttribute texCoord = renderable.getGeometry().getTextureCoordinates();
 
-            TextureState state = new TextureState(diffuseTextureUnit, decalTextureUnit, emissiveTextureUnit);
-            state.set(diffuseTex, decalTex, emittedTex, texCoord);
+            TextureState state = new TextureState();
+            state.set(diffuseTex, decalTex, emittedTex);
 
             return textureStates.getStateIndex(state, oldIndex);
         }
@@ -686,8 +631,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int getGeometryState(Renderable renderable, int oldIndex) {
             Geometry g = renderable.getGeometry();
             GeometryState state = new GeometryState();
-            state.set(g.getVertices(), g.getNormals(), renderable.getFrontDrawStyle(),
-                      renderable.getBackDrawStyle());
+            state.set(g.getVertices(), g.getNormals(), g.getTextureCoordinates(),
+                      renderable.getFrontDrawStyle(), renderable.getBackDrawStyle(), g.getPolygonType(),
+                      g.getIndices(), g.getIndexOffset(), g.getIndexCount());
 
             return geometryStates.getStateIndex(state, oldIndex);
         }
@@ -711,19 +657,10 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             return colorStates.getStateIndex(state, oldIndex);
         }
 
-        int getRenderState(Renderable renderable, int oldIndex) {
-            Geometry g = renderable.getGeometry();
-            IndexBufferState state = new IndexBufferState();
-            state.set(g.getPolygonType(), g.getIndices(), g.getIndexOffset(), g.getIndexCount());
-
-            return renderStates.getStateIndex(state, oldIndex);
-        }
-
         void resetStates() {
             textureStates = new StateCache<>(TextureState.class);
             geometryStates = new StateCache<>(GeometryState.class);
             colorStates = new StateCache<>(ColorState.class);
-            renderStates = new StateCache<>(IndexBufferState.class);
 
             // clearing the render atoms effectively invalidates all of the
             // version tracking we do as well
@@ -732,7 +669,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         boolean needsReset() {
             return textureStates.needsReset() || geometryStates.needsReset() ||
-                   colorStates.needsReset() || renderStates.needsReset();
+                   colorStates.needsReset();
         }
 
         @SuppressWarnings("unchecked")
@@ -745,8 +682,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         // state indices
         int textureStateIndex = -1; // depends on the 3 texture versions
         int colorStateIndex = -1; // depends on blinnphong-material and 3 color versions
-        int geometryStateIndex = -1; // depends on renderable, blinnphong-material
-        int renderStateIndex = -1; // depends on indices within renderable
+        int geometryStateIndex = -1; // depends on renderable
 
         // component versions
         int renderableVersion = -1;
@@ -759,5 +695,29 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         int transparentVersion = -1;
 
         boolean additiveBlending = false;
+        boolean isLit = false;
+    }
+
+    private static final Set<Class<? extends Component>> COMPONENTS;
+
+    static {
+        Set<Class<? extends Component>> types = new HashSet<>();
+        types.add(AmbientLight.class);
+        types.add(Light.class);
+        types.add(Renderable.class);
+        types.add(Transform.class);
+        types.add(LambertianDiffuseModel.class);
+        types.add(OrenNayarDiffuseModel.class);
+        types.add(BlinnPhongSpecularModel.class);
+        types.add(CookTorrenceSpecularModel.class);
+        types.add(EmittedColor.class);
+        types.add(DiffuseColorMap.class);
+        types.add(EmittedColorMap.class);
+        types.add(DecalColorMap.class);
+        types.add(Transparent.class);
+        types.add(Camera.class);
+        types.add(AtmosphericFog.class);
+        types.add(InfluenceRegion.class);
+        COMPONENTS = Collections.unmodifiableSet(types);
     }
 }
