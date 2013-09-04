@@ -31,10 +31,11 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.bounds.Frustum;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.Camera;
 import com.ferox.scene.Light;
+import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
-import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.FrustumResult;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
@@ -68,7 +69,9 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     private ComponentIterator iterator;
 
     public void report(BoundsResult r) {
-        sceneBounds = r.getBounds();
+        if (r.getBoundedType().equals(Renderable.class)) {
+            sceneBounds = r.getBounds();
+        }
     }
 
     public void report(FrustumResult fr) {

@@ -27,6 +27,7 @@
 package com.ferox.physics.task;
 
 import com.ferox.math.*;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.ExplicitEulerIntegrator;
 import com.ferox.physics.dynamics.Gravity;
@@ -164,7 +165,7 @@ public class IntegrationTask implements Task, ParallelAware {
             }
         }
 
-        job.report(new BoundsResult(union));
+        job.report(new BoundsResult(CollisionBody.class, union));
         Profiler.pop();
 
         return null;

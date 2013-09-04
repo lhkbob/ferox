@@ -49,7 +49,7 @@ import java.util.Arrays;
  *
  * @author Michael Ludwig
  */
-public class QuadTree<T> implements BoundedSpatialIndex<T> {
+public class QuadTree<T> implements SpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
 

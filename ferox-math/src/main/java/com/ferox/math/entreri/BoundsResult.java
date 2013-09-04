@@ -24,26 +24,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.physics.task;
+package com.ferox.math.entreri;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.task.Result;
 
+/**
+ * BoundsResult is a result that can be used to report the union'ed bounds of a specific type of component. A
+ * component's final bounds might be determined by a combination of components, so the primary component
+ * involved in the behavior should be used with this result. A common use case of this result is to easily
+ * resize a {@link com.ferox.math.bounds.SpatialIndex}.
+ *
+ * @author Michael Ludwig
+ */
 public class BoundsResult extends Result {
     private final AxisAlignedBox bounds;
+    private final Class<? extends Component> boundsOverType;
 
-    public BoundsResult(@Const AxisAlignedBox bounds) {
+    /**
+     * Create a new result for the bounded type {@code boundsOverType} and the bounds. The bounds are copied
+     * so future modification to the passed instance does not reflect the result.
+     *
+     * @param boundsOverType The bounded type
+     * @param bounds         The union'ed bounds of components in the system of the specified type
+     *
+     * @throws NullPointerException if arguments are null
+     */
+    public BoundsResult(Class<? extends Component> boundsOverType, @Const AxisAlignedBox bounds) {
+        if (boundsOverType == null) {
+            throw new NullPointerException("Component type cannot be null");
+        }
         this.bounds = new AxisAlignedBox(bounds);
+        this.boundsOverType = boundsOverType;
     }
 
+    /**
+     * @return Get the reported bounds
+     */
     @Const
     public AxisAlignedBox getBounds() {
         return bounds;
     }
 
+    /**
+     * @return Get the component type bounded by {@link #getBounds()}
+     */
+    public Class<? extends Component> getBoundedType() {
+        return boundsOverType;
+    }
+
     @Override
     public boolean isSingleton() {
-        return true;
+        return false;
     }
 }

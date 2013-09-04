@@ -185,4 +185,14 @@ public class SimpleSpatialIndex<T> implements SpatialIndex<T> {
             }
         }
     }
+
+    @Override
+    public AxisAlignedBox getExtent() {
+        return null;
+    }
+
+    @Override
+    public void setExtent(@Const AxisAlignedBox bounds) {
+        // unbounded so ignore it
+    }
 }

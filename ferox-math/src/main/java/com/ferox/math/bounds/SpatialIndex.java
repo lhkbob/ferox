@@ -63,7 +63,7 @@ public interface SpatialIndex<T> {
      * do not affect the index.
      *
      * @param item   The item to add
-     * @param bounds The extends of <var>item</var>
+     * @param bounds The extents of <var>item</var>
      *
      * @return True if the item was added to the index, false otherwise
      *
@@ -145,4 +145,28 @@ public interface SpatialIndex<T> {
      * @throws NullPointerException if callback is null
      */
     public void query(IntersectionCallback<T> callback);
+
+    /**
+     * Get the extent of this SpatialIndex. Some spatial indices may operate only on a given region and will
+     * reject the addition of objects that are not completely contained by the extents. Bounded spatial
+     * indices will return their non-null extents. If a spatial index is unbounded they should return null to
+     * more easily distinguish the behavior of {@link #setExtent(com.ferox.math.AxisAlignedBox)}.
+     *
+     * @return The current extent of the index
+     */
+    @Const
+    public AxisAlignedBox getExtent();
+
+    /**
+     * Set the new extent of the spatial index. This can only be called when the index is empty. If a spatial
+     * index is unbounded (i.e. {@link #getExtent()} returns {@code null}), this method is ignored. Otherwise
+     * it updates the bounds that this spatial index functions over. Since the index must be empty, this
+     * should be a reasonably timed operation.
+     *
+     * @param bounds The new bounding box for the extent of this index
+     *
+     * @throws IllegalStateException if the index is not empty
+     * @throws NullPointerException  if bounds is null
+     */
+    public void setExtent(@Const AxisAlignedBox bounds);
 }

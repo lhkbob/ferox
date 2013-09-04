@@ -29,11 +29,11 @@ package com.ferox.scene.task.light;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
-import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.bounds.QueryCallback;
+import com.ferox.math.bounds.SpatialIndex;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.*;
-import com.ferox.scene.task.BoundsResult;
 import com.ferox.scene.task.PVSResult;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
@@ -58,7 +58,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         COMPONENTS = Collections.unmodifiableSet(types);
     }
 
-    private final BoundedSpatialIndex<LightSource> lightIndex;
+    private final SpatialIndex<LightSource> lightIndex;
     private IntProperty assignments;
 
     // results
@@ -250,7 +250,9 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     }
 
     public void report(BoundsResult bounds) {
-        lightIndex.setExtent(bounds.getBounds());
+        if (bounds.getBoundedType().equals(Renderable.class)) {
+            lightIndex.setExtent(bounds.getBounds());
+        }
     }
 
     private static class LightCallback implements QueryCallback<LightSource> {

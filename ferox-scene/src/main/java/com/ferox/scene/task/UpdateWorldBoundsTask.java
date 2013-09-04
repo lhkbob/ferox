@@ -27,6 +27,7 @@
 package com.ferox.scene.task;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
 import com.ferox.util.profile.Profiler;
@@ -87,7 +88,7 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
             }
         }
 
-        job.report(new BoundsResult(sceneBounds));
+        job.report(new BoundsResult(Renderable.class, sceneBounds));
 
         Profiler.pop();
         return null;

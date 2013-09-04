@@ -27,9 +27,9 @@
 package com.ferox.physics.task;
 
 import com.ferox.math.AxisAlignedBox;
-import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.IntersectionCallback;
 import com.ferox.math.bounds.SpatialIndex;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.dynamics.RigidBody;
@@ -72,8 +72,8 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
     }
 
     public void report(BoundsResult result) {
-        if (index instanceof BoundedSpatialIndex) {
-            ((BoundedSpatialIndex<?>) index).setExtent(result.getBounds());
+        if (result.getBoundedType().equals(CollisionBody.class)) {
+            index.setExtent(result.getBounds());
         }
     }
 

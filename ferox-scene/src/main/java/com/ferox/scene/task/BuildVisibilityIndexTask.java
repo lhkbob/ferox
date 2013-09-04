@@ -26,8 +26,8 @@
  */
 package com.ferox.scene.task;
 
-import com.ferox.math.bounds.BoundedSpatialIndex;
 import com.ferox.math.bounds.SpatialIndex;
+import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.Renderable;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
@@ -53,8 +53,8 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
     }
 
     public void report(BoundsResult result) {
-        if (index instanceof BoundedSpatialIndex) {
-            ((BoundedSpatialIndex<Entity>) index).setExtent(result.getBounds());
+        if (result.getBoundedType().equals(Renderable.class)) {
+            index.setExtent(result.getBounds());
         }
     }
 

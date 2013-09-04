@@ -47,7 +47,7 @@ import java.util.Arrays;
  *
  * @author Michael Ludwig
  */
-public class Octree<T> implements BoundedSpatialIndex<T> {
+public class Octree<T> implements SpatialIndex<T> {
     private static final int POS_X = 0x1;
     private static final int POS_Y = 0x2;
     private static final int POS_Z = 0x4;
