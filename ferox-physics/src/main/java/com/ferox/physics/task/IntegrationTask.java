@@ -47,7 +47,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * IntegerationTask is a task to run at the start of the physics job that integrates the linear and angular
+ * velocities into the new position and orientation. It then updates all CollisionBodies' world bounds, and
+ * all RigidBodies' inertia tensor matrices. After that it applies a configured gravity acceleration. The
+ * world bounds of the simulation are reported using a {@link BoundsResult} instance.
  *
+ * @author Michael Ludwig
  */
 public class IntegrationTask implements Task, ParallelAware {
     private static final Set<Class<? extends Component>> COMPONENTS;
@@ -77,14 +82,34 @@ public class IntegrationTask implements Task, ParallelAware {
     private final Vector3 force = new Vector3();
     private final Matrix3 rotation = new Matrix3();
 
+    /**
+     * Create a new IntegrationTask that uses the default gravity vector along the y-axis with acceleration
+     * equal to Earth's. An explicit Euler integrator is used.
+     */
     public IntegrationTask() {
         this(new Vector3(0, -9.8, 0));
     }
 
+    /**
+     * Create a new IntegrationTask that uses the given default gravity acceleration vector and an explicit
+     * Euler integrator.
+     *
+     * @param gravity The default gravity (it will be cloned so changes to it do not affect the task)
+     *
+     * @throws NullPointerException if gravity is null
+     */
     public IntegrationTask(@Const Vector3 gravity) {
         this(gravity, new ExplicitEulerIntegrator());
     }
 
+    /**
+     * Create a new IntegrationTask that uses the given default gravity and integrator.
+     *
+     * @param gravity    The default gravity (it will be cloned so changes to it do not affect the task)
+     * @param integrator The integrator to use
+     *
+     * @throws NullPointerException if gravity or integrator are null
+     */
     public IntegrationTask(@Const Vector3 gravity, Integrator integrator) {
         if (integrator == null) {
             throw new NullPointerException("Integrator cannot be null");

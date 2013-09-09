@@ -31,6 +31,7 @@ import com.ferox.math.Functions;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.CollisionPair;
+import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
@@ -42,6 +43,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * TemporalSAPCollisionTask is a collision task that implements the broadphase using a temporal, 3-axis sweep
+ * and prune technique. It maintains edge lists for the X, Y, and Z axis across frames of the simulation and
+ * updates them as necessary. Collisions are reported as the sortedness of the lists are ensured.
+ *
+ * @author Michael Ludwig
+ */
 public class TemporalSAPCollisionTask extends CollisionTask {
     private final EdgeStore[] edges;
     private final Set<CollisionPair> overlappingPairCache;
@@ -50,6 +58,20 @@ public class TemporalSAPCollisionTask extends CollisionTask {
     private CollisionBody body;
     private ComponentIterator bodyIterator; // iterates bodyA
 
+    /**
+     * Create a new TemporalSAPCollisionTask that uses a default collision algorithm provider.
+     */
+    public TemporalSAPCollisionTask() {
+        this(new DefaultCollisionAlgorithmProvider());
+    }
+
+    /**
+     * Create a new TemporalSAPCollisionTask that uses the given algorithm provider.
+     *
+     * @param algorithms The algorithm provider
+     *
+     * @throws NullPointerException if algorithms is null
+     */
     public TemporalSAPCollisionTask(CollisionAlgorithmProvider algorithms) {
         super(algorithms);
 

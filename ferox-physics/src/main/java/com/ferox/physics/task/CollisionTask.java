@@ -44,6 +44,18 @@ import com.lhkbob.entreri.task.Task;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * CollisionTask is an abstract task used to perform the collision detection necessary for a physics
+ * simulation. It manages a {@link ContactManifoldPool} to accumulate collisions and reports the contact and
+ * friction constraints with a {@link ConstraintResult}.
+ * <p/>
+ * Subclasses must implement the broadphase portion of the collision detection algorithm. They can then invoke
+ * {@link #notifyPotentialContact(com.ferox.physics.collision.CollisionBody,
+ * com.ferox.physics.collision.CollisionBody)} to perform the narrowphase and update the collision manifold as
+ * necessary.
+ *
+ * @author Michael Ludwig
+ */
 public abstract class CollisionTask implements Task {
     private final CollisionAlgorithmProvider algorithms;
 
@@ -54,6 +66,13 @@ public abstract class CollisionTask implements Task {
 
     protected double dt;
 
+    /**
+     * Create a new CollisionTask that uses the given algorithm provider.
+     *
+     * @param algorithms The algorithm provider to use
+     *
+     * @throws NullPointerException if algorithms is null
+     */
     public CollisionTask(CollisionAlgorithmProvider algorithms) {
         if (algorithms == null) {
             throw new NullPointerException("Algorithm provider cannot be null");
@@ -69,6 +88,15 @@ public abstract class CollisionTask implements Task {
         this.dt = dt.getTimeDelta();
     }
 
+    /**
+     * Subclasses must call this at the end in order to enable warmstart impulses. This will never return a
+     * null Task.
+     *
+     * @param system The entity system
+     * @param job    The current job
+     *
+     * @return A task that updates the manifold with warmstart impulses from the just completed frame
+     */
     @Override
     public Task process(EntitySystem system, Job job) {
         return new WarmstartTask();
@@ -85,12 +113,26 @@ public abstract class CollisionTask implements Task {
         frictionGroup.clear();
     }
 
+    /**
+     * Compute and report the contact and friction constraints as two different {@link ConstraintResult}
+     * instances. This should be called at the end of the task before the value is returned.
+     *
+     * @param job The current job
+     */
     protected void reportConstraints(Job job) {
         manifolds.generateConstraints(dt, contactGroup, frictionGroup);
         job.report(new ConstraintResult(contactGroup));
         job.report(new ConstraintResult(frictionGroup));
     }
 
+    /**
+     * Compute a narrowphase collision check between the two bodies and update the collision manifold if
+     * necessary. The order of the arguments is not important. The two components should not be flyweight
+     * instances.
+     *
+     * @param bodyA The first body
+     * @param bodyB The second body
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     protected void notifyPotentialContact(CollisionBody bodyA, CollisionBody bodyB) {
         // collisions must have at least one rigid body to act on

@@ -29,9 +29,23 @@ package com.ferox.physics.task;
 import com.ferox.physics.dynamics.LinearConstraintPool;
 import com.lhkbob.entreri.task.Result;
 
+/**
+ * ConstraintResult is a result that can be used to deliver {@link LinearConstraintPool constraints} to a task
+ * that can then solve them when appropriate. Currently this is the aptly named {@link
+ * ConstraintSolvingTask}.
+ *
+ * @author Michael Ludwig
+ */
 public class ConstraintResult extends Result {
     private final LinearConstraintPool group;
 
+    /**
+     * Create a new result that wraps the given constraint pool
+     *
+     * @param group The pool to use
+     *
+     * @throws NullPointerException if group is null
+     */
     public ConstraintResult(LinearConstraintPool group) {
         if (group == null) {
             throw new NullPointerException("LinearConstraintPool cannot be null");
@@ -39,6 +53,9 @@ public class ConstraintResult extends Result {
         this.group = group;
     }
 
+    /**
+     * @return The constraint pool in the result
+     */
     public LinearConstraintPool getConstraints() {
         return group;
     }

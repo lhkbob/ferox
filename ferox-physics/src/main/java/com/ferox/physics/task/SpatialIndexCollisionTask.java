@@ -28,10 +28,12 @@ package com.ferox.physics.task;
 
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.IntersectionCallback;
+import com.ferox.math.bounds.QuadTree;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.math.entreri.BoundsResult;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.Component;
@@ -46,6 +48,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * SpatialIndexCollisionTask is a collision task that implements the broadphase by relying on the {@link
+ * SpatialIndex#query(com.ferox.math.bounds.IntersectionCallback)} method. Thus, the performance of this
+ * broadphase is dependent on the type of spatial index provided.
+ *
+ * @author Michael Ludwig
+ */
 public class SpatialIndexCollisionTask extends CollisionTask implements ParallelAware {
     private static final Set<Class<? extends Component>> COMPONENTS;
 
@@ -63,6 +72,22 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
     private CollisionBody body;
     private ComponentIterator iterator;
 
+    /**
+     * Create a new SpatialIndexCollisionTask that uses a default collision algorithm provider and a quadtree
+     * with 3 levels.
+     */
+    public SpatialIndexCollisionTask() {
+        this(new QuadTree<Entity>(new AxisAlignedBox(), 3), new DefaultCollisionAlgorithmProvider());
+    }
+
+    /**
+     * Create a new SpatialIndexCollisionTask that uses the given algorithm provider and spatial index
+     *
+     * @param index      The spatial index that is used
+     * @param algorithms The algorithm provider
+     *
+     * @throws NullPointerException if index or algorithms are null
+     */
     public SpatialIndexCollisionTask(SpatialIndex<Entity> index, CollisionAlgorithmProvider algorithms) {
         super(algorithms);
         if (index == null) {

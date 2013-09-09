@@ -30,6 +30,7 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Functions;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.Bag;
 import com.ferox.util.profile.Profiler;
@@ -45,6 +46,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * SingleAxisSAPCollisionTask is a collision task that implements the broadphase using the single axis sweep
+ * and prune technique. The current implementation uses the x axis as the sweeping axis.
+ *
+ * @author Michael Ludwig
+ */
 public class SingleAxisSAPCollisionTask extends CollisionTask implements ParallelAware {
     private static final Set<Class<? extends Component>> COMPONENTS;
 
@@ -61,6 +68,20 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
     private CollisionBody body;
     private ComponentIterator iterator;
 
+    /**
+     * Create a new SingleAxisSAPCollisionTask that uses a default collision algorithm provider.
+     */
+    public SingleAxisSAPCollisionTask() {
+        this(new DefaultCollisionAlgorithmProvider());
+    }
+
+    /**
+     * Create a new SingleAxisSAPCollisionTask that uses the given algorithm provider.
+     *
+     * @param algorithms The algorithm provider
+     *
+     * @throws NullPointerException if algorithms is null
+     */
     public SingleAxisSAPCollisionTask(CollisionAlgorithmProvider algorithms) {
         super(algorithms);
         bodies = new Bag<>();

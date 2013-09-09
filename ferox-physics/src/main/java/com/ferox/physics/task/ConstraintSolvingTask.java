@@ -44,6 +44,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * ConstraintSolvingTask is a task implementation that collects all reported {@link ConstraintResult
+ * ConstraintResults} and computes a solution using a {@link LinearConstraintSolver}. It also manages the
+ * decorated properties expected by the solver to accumulate delta impulses and properly adds those impulses
+ * to the rigid bodies' velocities.
+ *
+ * @author Michael Ludwig
+ */
 public class ConstraintSolvingTask implements Task, ParallelAware {
     private final LinearConstraintSolver solver;
 
