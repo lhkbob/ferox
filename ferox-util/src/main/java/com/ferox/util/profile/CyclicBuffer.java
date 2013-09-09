@@ -79,15 +79,20 @@ public class CyclicBuffer {
         return max;
     }
 
+    public void clear() {
+        index = 0;
+    }
+
     public double[] values() {
         if (index <= values.length) {
             // first time filling the array
             return Arrays.copyOf(values, index);
         } else {
             // reorder array about index
+            int idx = index % values.length;
             double[] nv = new double[values.length];
-            System.arraycopy(values, index, nv, 0, values.length - index);
-            System.arraycopy(values, 0, nv, values.length - index, index);
+            System.arraycopy(values, idx, nv, 0, values.length - idx);
+            System.arraycopy(values, 0, nv, values.length - idx, idx);
             return nv;
         }
     }

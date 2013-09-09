@@ -53,12 +53,15 @@ import com.ferox.scene.task.light.ComputeLightGroupTask;
 import com.ferox.scene.task.light.ComputeShadowFrustumTask;
 import com.ferox.util.ApplicationStub;
 import com.ferox.util.profile.Profiler;
+import com.ferox.util.profile.ProfilerData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.Task;
 import com.lhkbob.entreri.task.Timers;
+
+import java.util.Map;
 
 public class PhysicsApplicationStub extends ApplicationStub {
     protected static final int BOUNDS = 50;
@@ -117,7 +120,11 @@ public class PhysicsApplicationStub extends ApplicationStub {
         io.on(Predicates.keyPress(KeyCode.O)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
-                Profiler.getDataSnapshot().print(System.out);
+                Map<Thread, ProfilerData> data = Profiler.getDataSnapshot();
+                for (Map.Entry<Thread, ProfilerData> d : data.entrySet()) {
+                    System.out.println("Thread: " + d.getKey().getName());
+                    d.getValue().print(System.out);
+                }
             }
         });
 

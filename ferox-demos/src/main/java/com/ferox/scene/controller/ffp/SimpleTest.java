@@ -48,6 +48,7 @@ import com.ferox.scene.task.ffp.FixedFunctionRenderTask;
 import com.ferox.scene.task.light.ComputeLightGroupTask;
 import com.ferox.scene.task.light.ComputeShadowFrustumTask;
 import com.ferox.util.profile.Profiler;
+import com.ferox.util.profile.ProfilerData;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
@@ -56,6 +57,7 @@ import com.lhkbob.entreri.task.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class SimpleTest {
@@ -65,7 +67,7 @@ public class SimpleTest {
         Framework framework = Framework.Factory.create();
         OnscreenSurface surface = framework
                 .createSurface(new OnscreenSurfaceOptions().windowed(800, 600).fixedSize());
-        //        surface.setVSyncEnabled(true);
+        surface.setVSyncEnabled(true);
 
         EntitySystem system = EntitySystem.Factory.create();
 
@@ -171,7 +173,12 @@ public class SimpleTest {
 
             System.out.println("***** TIMING *****");
             print("total", total, numRuns);
-            Profiler.getDataSnapshot().print(System.out);
+
+            Map<Thread, ProfilerData> data = Profiler.getDataSnapshot();
+            for (Map.Entry<Thread, ProfilerData> d : data.entrySet()) {
+                System.out.println("Thread: " + d.getKey().getName());
+                d.getValue().print(System.out);
+            }
 
             System.out.println("***** MEMORY *****");
             Runtime r = Runtime.getRuntime();

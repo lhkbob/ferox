@@ -478,11 +478,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                     root.visit(new AppliedEffects(), access);
                     Profiler.pop();
 
-                    count++;
-                    if (count > 100) {
-                        Profiler.getDataSnapshot().print(System.out);
-                        count = 0;
-                    }
                     if (flush) {
                         ctx.flush();
                     }
@@ -491,8 +486,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
         };
     }
-
-    static int count = 0;
 
     private void addTransparentAtom(Transform transform, RenderAtom atom, StateNode firstNode, Frame frame) {
         // texture state
