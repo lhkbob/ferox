@@ -32,11 +32,30 @@ import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.SharedInstance;
 
+/**
+ * Gravity is a component that can be added to a rigid body entity to give it a unique gravity acceleration
+ * that is different from the system's default (which is by default configured through the {@link
+ * com.ferox.physics.task.IntegrationTask}.
+ * <p/>
+ * The gravity components records the acceleration so that it is not dependent on the mass of the entity.
+ *
+ * @author Michael Ludwig
+ */
 public interface Gravity extends Component {
+    /**
+     * @return The current custom gravity acceleration vector
+     */
     @Const
     @SharedInstance
     @DefaultVector3(x = 0.0, y = -9.8, z = 0.0)
     public Vector3 getGravity();
 
+    /**
+     * Set the custom gravity acceleration vector.
+     *
+     * @param gravity The new gravity vector
+     *
+     * @return This component
+     */
     public Gravity setGravity(@Const Vector3 gravity);
 }

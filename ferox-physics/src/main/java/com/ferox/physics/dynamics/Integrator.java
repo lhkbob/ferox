@@ -30,12 +30,62 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
 
+/**
+ * Integrator implementations are used to perform the numerical computing necessary to integrate accelerations
+ * into velocities, and velocities into positions over a time delta. At the moment, only explicit euler
+ * integration is implemented in {@link ExplicitEulerIntegrator}.
+ *
+ * @author Michael Ludwig
+ */
 public interface Integrator {
+    /**
+     * Integrate the given acceleration vector {@code a} over the time delta {@code dt}, measured in seconds.
+     * The computed velocity should be added to {@code velocity}, which can be assumed not to be null.
+     *
+     * @param a        The linear acceleration
+     * @param dt       The time delta in seconds
+     * @param velocity The velocity output vector
+     *
+     * @throws NullPointerException if a or velocity are null
+     */
     public void integrateLinearAcceleration(@Const Vector3 a, double dt, Vector3 velocity);
 
+    /**
+     * Integrate the given angular acceleration vector {@code a} over the time delta {@code dt}, measured in
+     * seconds. The computed velocity should be added to {@code velocity}, which can be assumed not to be
+     * null.
+     *
+     * @param a               The angular acceleration
+     * @param dt              The time delta in seconds
+     * @param angularVelocity The angular velocity output vector
+     *
+     * @throws NullPointerException if a or angularVelocity are null
+     */
     public void integrateAngularAcceleration(@Const Vector3 a, double dt, Vector3 angularVelocity);
 
+    /**
+     * Integrate the given linear velocity vector {@code v} over the time delta {@code dt}, measured in
+     * seconds. The computed delta position should be added to the 'current' position stored in {@code
+     * position}, which can be assumed not to be null.
+     *
+     * @param v        The linear velocity
+     * @param dt       The time delta in seconds
+     * @param position The position output vector
+     *
+     * @throws NullPointerException if v or position are null
+     */
     public void integrateLinearVelocity(@Const Vector3 v, double dt, Vector3 position);
 
+    /**
+     * Integrate the given angular velocity vector {@code a} over the time delta {@code dt}, measured in
+     * seconds. The computed delta orientation should be accumulated into the 'current' orientation stored in
+     * {@code orientation}, which can be assumed not to be null.
+     *
+     * @param v           The angular velocity
+     * @param dt          The time delta in seconds
+     * @param orientation The output orientation matrix
+     *
+     * @throws NullPointerException if a or velocity are null
+     */
     public void integrateAngularVelocity(@Const Vector3 v, double dt, Matrix3 orientation);
 }

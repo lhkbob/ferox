@@ -32,64 +32,103 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Requires;
+import com.lhkbob.entreri.Within;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.SharedInstance;
 
+/**
+ * <p/>
+ * RigidBody represents an instance of an object in a physics simulation that can move, collide, and be
+ * collided with. The RigidBody component is paired with the {@link CollisionBody} and controls the motion
+ * behavior of the entity, such as its velocity, mass, etc.
+ *
+ * @author Michael Ludwig
+ */
 @Requires(CollisionBody.class)
 public interface RigidBody extends Component {
+    /**
+     * @return Get the inverse of the body's inertia tensor matrix
+     */
     @Const
     @SharedInstance
     public Matrix3 getInertiaTensorInverse();
 
+    /**
+     * Set the inverse of the body's inertia tensor matrix. This must be computed by a task, which by default
+     * is handled in the {@link com.ferox.physics.task.IntegrationTask}.
+     *
+     * @param tensorInverse The inverse tensor
+     *
+     * @return This component
+     */
     public RigidBody setInertiaTensorInverse(@Const Matrix3 tensorInverse);
 
-    public RigidBody setForce(@Const Vector3 f);
-
-    public RigidBody setTorque(@Const Vector3 t);
-
+    /**
+     * Set the linear velocity of this rigid body's center of mass.
+     *
+     * @param vel The new linear velocity
+     *
+     * @return This component
+     */
     public RigidBody setVelocity(@Const Vector3 vel);
 
+    /**
+     * Set the angular velocity of this rigid body. The angular velocity is stored as the axis of rotation and
+     * its magnitude is the rate of rotation.
+     *
+     * @param angVel The new angular velocity
+     *
+     * @return This component
+     */
     public RigidBody setAngularVelocity(@Const Vector3 angVel);
 
-    public RigidBody setMass(double mass);
+    /**
+     * Set the mass of this component. The mass must be positive, and to help stability of a simulation, it
+     * must be above 0.0001 'units', which are whatever units you wish the system to be expressed in.
+     *
+     * @param mass The new mass
+     *
+     * @return This component
+     */
+    public RigidBody setMass(@Within(min = 0.0001) double mass);
 
+    /**
+     * @return The mass of the rigid body
+     */
     @DefaultDouble(1.0)
     public double getMass();
 
+    /**
+     * @return The current linear velocity
+     */
     @Const
     @SharedInstance
     public Vector3 getVelocity();
 
+    /**
+     * @return The current angular velocity
+     */
     @Const
     @SharedInstance
     public Vector3 getAngularVelocity();
 
-    @Const
-    @SharedInstance
-    public Vector3 getForce();
-
-    @Const
-    @SharedInstance
-    public Vector3 getTorque();
-
+    /**
+     * Utils contains static methods to operate on RigidBodies in a useful manner, but that can't be placed
+     * directly in RigidBody because it is an interface.
+     */
     public static final class Utils {
         private Utils() {
         }
 
-        public static void addForce(RigidBody body, @Const Vector3 force, @Const Vector3 relPos) {
-            Vector3 totalForce = body.getForce();
-            totalForce.add(force);
-            body.setForce(totalForce);
-
-            if (relPos != null) {
-                Vector3 totalTorque = body.getTorque();
-                // use the body's total force vector as a temporary store, this is safe because we
-                // never use it again and getForce() always refills it
-                totalTorque.add(totalForce.cross(relPos, force));
-                body.setTorque(totalTorque);
-            }
-        }
-
+        /**
+         * Apply the given impulse to the rigid body. This will update both the velocity and angular velocity
+         * based on the mass of the object. An impulse is a force integrated over a time step. If {@code
+         * relPos} is null, it is assumed the impulse is applied to the center of mass.
+         *
+         * @param body    The rigid body to modify
+         * @param impulse The impulse applied to the body
+         * @param relPos  The relative position the impulse affects, or null for the center of mass
+         */
         public static void addImpulse(RigidBody body, @Const Vector3 impulse, @Const Vector3 relPos) {
             Vector3 velocity = body.getVelocity();
             velocity.addScaled(1.0 / body.getMass(), impulse);
@@ -104,16 +143,6 @@ public interface RigidBody extends Component {
                 angular.add(velocity);
                 body.setAngularVelocity(angular);
             }
-        }
-
-        public static void clearForces(RigidBody body) {
-            Vector3 force = body.getForce();
-            force.set(0, 0, 0);
-            body.setForce(force);
-
-            Vector3 torque = body.getTorque();
-            torque.set(0, 0, 0);
-            body.setTorque(torque);
         }
     }
 }

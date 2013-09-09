@@ -39,6 +39,17 @@ import com.lhkbob.entreri.EntitySystem;
 
 import java.util.*;
 
+/**
+ * ContactManifoldPool is a packed data structure that records the approximate contact manifolds of all
+ * collisions and certain near collisions in a simulation. It is responsible for converting these manifolds
+ * into linear constraints to resolve the penetration and friction forces and submit them to the constraint
+ * solver.
+ * <p/>
+ * Credit is due to the Bullet physics engine for the linear algebra involved in computing the requisite
+ * contact and friction constraints.
+ *
+ * @author Michael Ludwig
+ */
 public class ContactManifoldPool {
     private static final int MANIFOLD_POINT_SIZE = 4;
     private static final int RESTING_CONTACT_THRESHOLD = 2;
@@ -95,12 +106,21 @@ public class ContactManifoldPool {
 
     private final Matrix4 transform = new Matrix4();
 
+    /**
+     * Create a new pool that uses a default processing threshold of {@code 0.1} and a breaking threshold of
+     * {@code 0.0343}.
+     */
     public ContactManifoldPool() {
-        // increasing breaking threshold seems to create more stable box drops,
-        // so i should investigate why .0343 was the original default
         this(.1, .0343);
     }
 
+    /**
+     * Create a new pool that uses the given processing and breaking thresholds.
+     *
+     * @param contactProcessingThreshold The contact processing threshold passed to {@link
+     *                                   #setContactProcessingThreshold(double)}
+     * @param contactBreakingThreshold   The breaking threshold passed to {@link #setContactBreakingThreshold(double)}
+     */
     public ContactManifoldPool(double contactProcessingThreshold, double contactBreakingThreshold) {
         manifolds = new HashMap<>();
         query = new CollisionPair();
@@ -112,14 +132,32 @@ public class ContactManifoldPool {
         setContactBreakingThreshold(contactBreakingThreshold);
     }
 
+    /**
+     * Set the EntitySystem used by this pool. This should be invoked by the collision task owning the pool
+     * once it has determined the EntitySystem the task is processing.
+     *
+     * @param system The entity system
+     */
     public void setEntitySystem(EntitySystem system) {
         entitySystem = system;
     }
 
+    /**
+     * @return The current entity system that collisions are a part of
+     */
     public EntitySystem getEntitySystem() {
         return entitySystem;
     }
 
+    /**
+     * Set the threshold for which near collisions are remembered in the manifold. This can be useful to help
+     * dampen jostling collisions that slightly bounce repeatedly over a few contact points. When a manifold
+     * contains no points within this threshold it is discarded.
+     *
+     * @param threshold The new threshold
+     *
+     * @throws IllegalArgumentException if threshold is negative
+     */
     public void setContactProcessingThreshold(double threshold) {
         if (threshold <= 0.0) {
             throw new IllegalArgumentException("Threshold must be positive, not " + threshold);
@@ -127,10 +165,22 @@ public class ContactManifoldPool {
         contactProcessingThreshold = threshold;
     }
 
+    /**
+     * @return Get the contact processing threshold
+     */
     public double getContactProcessingThreshold() {
         return contactProcessingThreshold;
     }
 
+    /**
+     * Set the threshold that prevents a manifold from creating collision and friction constraints. If the
+     * manifold has no collision pairs closer than this threshold, it will not produce constraints. This
+     * threshold should be less than the processing threshold
+     *
+     * @param threshold The new threshold
+     *
+     * @throws IllegalArgumentException if threshold is negative
+     */
     public void setContactBreakingThreshold(double threshold) {
         if (threshold <= 0.0) {
             throw new IllegalArgumentException("Threshold must be positive, not " + threshold);
@@ -138,10 +188,21 @@ public class ContactManifoldPool {
         contactBreakingThreshold = threshold;
     }
 
+    /**
+     * @return Get the contact breaking threshold
+     */
     public double getContactBreakingThreshold() {
         return contactBreakingThreshold;
     }
 
+    /**
+     * Compute the "warmstart" impulses to use in the next frame of simulation based on the solved results
+     * from the contact and friction pools. These pools should have been previously passed to {@link
+     * #generateConstraints(double, LinearConstraintPool, LinearConstraintPool)}.
+     *
+     * @param contactPool  The pool containing constraints for contact
+     * @param frictionPool The pool containing constraints for friction simulation
+     */
     public void computeWarmstartImpulses(LinearConstraintPool contactPool,
                                          LinearConstraintPool frictionPool) {
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
@@ -163,6 +224,13 @@ public class ContactManifoldPool {
         }
     }
 
+    /**
+     * Compute and submit all contact and friction constraints to the given constraint pools.
+     *
+     * @param dt           The time delta in seconds for the simulation step
+     * @param contactPool  The pool that will hold the contact constraints
+     * @param frictionPool The pool that will hold the friction constraints
+     */
     public void generateConstraints(double dt, LinearConstraintPool contactPool,
                                     LinearConstraintPool frictionPool) {
         CollisionBody bodyA, bodyB;
@@ -282,6 +350,17 @@ public class ContactManifoldPool {
         }
     }
 
+    /**
+     * Record a contact between the two bodies. The order of {@code objA} and {@code objB} must be consistent
+     * with what produced the closest pair, but it does not have to be same ordering if the pair (considered
+     * as a set) was already recorded in the pool.
+     *
+     * @param objA The first object in a contact situation
+     * @param objB The second object involved in the contact
+     * @param pair The contact data
+     *
+     * @throws IllegalArgumentException if objA or objB are flyweight instances
+     */
     public void addContact(CollisionBody objA, CollisionBody objB, ClosestPair pair) {
         int manifold = getManifold(objA, objB);
         addManifoldPoint(manifold, objA, objB, pair);
@@ -417,6 +496,14 @@ public class ContactManifoldPool {
         return true;
     }
 
+    /**
+     * Set the internal capacity of this pool. Normally this is managed automatically, but you can resize it
+     * up or down as necessary. Shrinking the pool may discard collision manifolds that are still valid. This
+     * does not prevent the collision from being resolved the next frame, but it may hurt simulation
+     * stability.
+     *
+     * @param newCount The new number of manifolds to hold
+     */
     public void setCapacity(int newCount) {
         int newManifoldCount = newCount * MANIFOLD_POINT_SIZE;
 

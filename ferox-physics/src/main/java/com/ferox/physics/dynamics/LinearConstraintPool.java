@@ -31,6 +31,12 @@ import com.ferox.math.Vector3;
 
 import java.util.Arrays;
 
+/**
+ * LinearConstraintPool is a packed data structure for storing many linear constraints in a representation
+ * usable by {@link LinearConstraintSolver}. Its capacity grows automatically as more constraints are added.
+ *
+ * @author Michael Ludwig
+ */
 public class LinearConstraintPool {
     private int count; // current number of valid constraints in the pool
 
@@ -73,12 +79,24 @@ public class LinearConstraintPool {
     private final Vector3 angularA = new Vector3();
     private final Vector3 angularB = new Vector3();
 
+    /**
+     * Create a new constraint pool that is optionally linked with {@code linkedPool}. If the linked pool is
+     * not null, then this new pool can have dynamic force limits based on the forces in the linked pool.
+     *
+     * @param linkedPool The optional linked pool
+     */
     public LinearConstraintPool(LinearConstraintPool linkedPool) {
         count = 0;
-        dynamicPool = (linkedPool == null ? this : linkedPool);
+        dynamicPool = linkedPool;
         setCapacity(10);
     }
 
+    /**
+     * Manually set the capacity to {@code newCapacity}. If the capacity is smaller than the current capacity,
+     * it will be truncated and the extra constraints discarded.
+     *
+     * @param newCapacity The new capacity
+     */
     public void setCapacity(int newCapacity) {
         constraintForceMixes = Arrays.copyOf(constraintForceMixes, newCapacity);
         solutions = Arrays.copyOf(solutions, newCapacity);
@@ -102,66 +120,27 @@ public class LinearConstraintPool {
         count = Math.min(newCapacity, count);
     }
 
+    /**
+     * Quickly empty the pool of all currently filled constraints. This resets the pointer within the internal
+     * arrays so old constraints will be overwritten.
+     */
     public void clear() {
         count = 0;
     }
 
-    public double getDynamicScaleFactor(int i) {
-        return dynamicScaleFactors[i];
-    }
-
-    public int getDynamicLimitIndex(int i) {
-        return dynamicLimits[i];
-    }
-
-    public int addConstraint(RigidBody bodyA, RigidBody bodyB, float taX, float taY, float taZ, float tbX,
-                             float tbY, float tbZ, float nX, float nY, float nZ, float laX, float laY,
-                             float laZ, float lbX, float lbY, float lbZ, float aaX, float aaY, float aaZ,
-                             float abX, float abY, float abZ) {
-        int i = count++;
-        int veci = i * 3;
-        if (i >= bodyAs.length) {
-            // increase capacity
-            setCapacity((i + 1) * 2);
-        }
-
-        directions[veci] = nX;
-        directions[veci + 1] = nY;
-        directions[veci + 2] = nZ;
-        torqueAs[veci] = taX;
-        torqueAs[veci + 1] = taY;
-        torqueAs[veci + 2] = taZ;
-        torqueBs[veci] = tbX;
-        torqueBs[veci + 1] = tbY;
-        torqueBs[veci + 2] = tbZ;
-
-        if (bodyA != null) {
-            linearDirAs[veci] = laX;
-            linearDirAs[veci + 1] = laY;
-            linearDirAs[veci + 2] = laZ;
-            angleDirAs[veci] = aaX;
-            angleDirAs[veci + 1] = aaY;
-            angleDirAs[veci + 2] = aaZ;
-            bodyAs[i] = bodyA.getIndex();
-        } else {
-            bodyAs[i] = -1;
-        }
-
-        if (bodyB != null) {
-            linearDirBs[veci] = lbX;
-            linearDirBs[veci + 1] = lbY;
-            linearDirBs[veci + 2] = lbZ;
-            angleDirBs[veci] = abX;
-            angleDirBs[veci + 1] = abY;
-            angleDirBs[veci + 2] = abZ;
-            bodyBs[i] = bodyB.getIndex();
-        } else {
-            bodyBs[i] = -1;
-        }
-
-        return i;
-    }
-
+    /**
+     * Add a new constraint to the pool between the two bodies, one of which may be null. The constraint will
+     * be along the given linear direction and torque vectors. The solution parameters of the constraint are
+     * reset. The index of the constraint for later configuration is returned.
+     *
+     * @param bodyA     The first body
+     * @param bodyB     The second body
+     * @param direction The linear direction of the constraint
+     * @param torqueA   The torque vector for body A
+     * @param torqueB   The torque vector for body B
+     *
+     * @return The index of the new constraint
+     */
     public int addConstraint(RigidBody bodyA, RigidBody bodyB, @Const Vector3 direction,
                              @Const Vector3 torqueA, @Const Vector3 torqueB) {
         int i = count++;
@@ -222,40 +201,95 @@ public class LinearConstraintPool {
         return i;
     }
 
+    /**
+     * @param i       The index of the constraint to access
+     * @param impulse The impulse scalar
+     *
+     * @return The linear impulse to apply to A. This vector is reused if this method is invoked so the result
+     *         must be copied out
+     */
     @Const
     public Vector3 getLinearImpulseA(int i, double impulse) {
         return linearA.set(linearDirAs, i * 3).scale(impulse);
     }
 
+    /**
+     * @param i       The index of the constraint to access
+     * @param impulse The impulse scalar
+     *
+     * @return The linear impulse to apply to B. This vector is reused if this method is invoked so the result
+     *         must be copied out
+     */
     @Const
     public Vector3 getLinearImpulseB(int i, double impulse) {
         return linearB.set(linearDirBs, i * 3).scale(impulse);
     }
 
+    /**
+     * @param i       The index of the constraint to access
+     * @param impulse The impulse scalar
+     *
+     * @return The angular impulse to apply to A. This vector is reused if this method is invoked so the
+     *         result must be copied out
+     */
     @Const
     public Vector3 getAngularImpulseA(int i, double impulse) {
         return angularA.set(angleDirAs, i * 3).scale(impulse);
     }
 
+    /**
+     * @param i       The index of the constraint to access
+     * @param impulse The impulse scalar
+     *
+     * @return The angular impulse to apply to A. This vector is reused if this method is invoked so the
+     *         result must be copied out
+     */
     @Const
     public Vector3 getAngularImpulseB(int i, double impulse) {
         return angularB.set(angleDirBs, i * 3).scale(impulse);
     }
 
+    /**
+     * Record the applied impulse for the given constraint
+     *
+     * @param i       The constraint to access
+     * @param impulse The total applied impulse for the constraint
+     */
     public void setAppliedImpulse(int i, double impulse) {
         appliedImpulses[i] = impulse;
     }
 
+    /**
+     * Record the warmstart impulse to apply to this constraint
+     *
+     * @param i       The constraint to modify
+     * @param impulse The warmstart impulse
+     */
     public void setWarmstartImpulse(int i, double impulse) {
         warmstartImpulses[i] = impulse;
     }
 
+    /**
+     * Set the solution parameters of the constraint to inform the constraint solving process.
+     *
+     * @param i        The constraint to modify
+     * @param solution The desired solution
+     * @param cfm      The constraint force mix
+     * @param jacobian The inverse of the Jacobian of the constraint
+     */
     public void setSolution(int i, double solution, double cfm, double jacobian) {
         solutions[i] = solution;
         constraintForceMixes[i] = cfm;
         jacobianDiagInverses[i] = jacobian;
     }
 
+    /**
+     * Set the upper and lower limits of the applied impulse on this constraint.
+     *
+     * @param i     The constraint to modify
+     * @param lower The lower bound on the applied impulse
+     * @param upper The upper bound on the applied impulse
+     */
     public void setStaticLimits(int i, double lower, double upper) {
         if (lower > upper) {
             throw new IllegalArgumentException("Lower limit (" + lower + ") must be less than upper limit (" +
@@ -266,6 +300,14 @@ public class LinearConstraintPool {
         dynamicLimits[i] = -1; // clear dynamic limit
     }
 
+    /**
+     * Set the upper and lower limits of the applied impulse to be proportional to the {@code
+     * linkedConstraint} in the configured linked constraint pool.
+     *
+     * @param i                The constraint to modify
+     * @param linkedConstraint The linked constraint
+     * @param scale            The scaling factor applied to the linked applied impulse
+     */
     public void setDynamicLimits(int i, int linkedConstraint, double scale) {
         if (dynamicPool == null) {
             throw new IllegalStateException("Pool does not have a linked pool");
@@ -279,28 +321,53 @@ public class LinearConstraintPool {
         dynamicScaleFactors[i] = scale;
     }
 
-    public
+    /**
+     * @param i The constraint index
+     *
+     * @return The constraint direction
+     */
     @Const
-    Vector3 getConstraintDirection(int i) {
+    public Vector3 getConstraintDirection(int i) {
         return direction.set(directions, i * 3);
     }
 
-    public
+    /**
+     * @param i The constraint index
+     *
+     * @return The torque vector for body A
+     */
     @Const
-    Vector3 getTorqueA(int i) {
+    public Vector3 getTorqueA(int i) {
         return torqueA.set(torqueAs, i * 3);
     }
 
-    public
+    /**
+     * @param i The constraint index
+     *
+     * @return The torque vector for body B
+     */
     @Const
-    Vector3 getTorqueB(int i) {
+    public Vector3 getTorqueB(int i) {
         return torqueB.set(torqueBs, i * 3);
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The Jacobian inverse of the constraint
+     */
     public double getJacobianDiagonalInverse(int i) {
         return jacobianDiagInverses[i];
     }
 
+    /**
+     * Get the lower limit on the applied impulse for this constraint. This may be a static lower limit or
+     * dynamically computed from a linked constraint.
+     *
+     * @param i The constraint index
+     *
+     * @return The lower impulse limit
+     */
     public double getLowerImpulseLimit(int i) {
         int dynamic = dynamicLimits[i];
         if (dynamic >= 0) {
@@ -310,6 +377,14 @@ public class LinearConstraintPool {
         }
     }
 
+    /**
+     * Get the upper limit on the applied impulse for this constraint. This may be a static upper limit or
+     * dynamically computed from a linked constraint.
+     *
+     * @param i The constraint index
+     *
+     * @return The upper impulse limit
+     */
     public double getUpperImpulseLimit(int i) {
         int dynamic = dynamicLimits[i];
         if (dynamic >= 0) {
@@ -319,30 +394,65 @@ public class LinearConstraintPool {
         }
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The desired constraint solution
+     */
     public double getSolution(int i) {
         return solutions[i];
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The constraint force mix for the constraint
+     */
     public double getConstraintForceMix(int i) {
         return constraintForceMixes[i];
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The warmstart impulse for the constraint
+     */
     public double getWarmstartImpulse(int i) {
         return warmstartImpulses[i];
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The applied impulse for the constraint
+     */
     public double getAppliedImpulse(int i) {
         return appliedImpulses[i];
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The component index of the first RigidBody, or -1 if the constraint didn't have a rigid body at
+     *         this attachment point
+     */
     public int getBodyAIndex(int i) {
         return bodyAs[i];
     }
 
+    /**
+     * @param i The constraint index
+     *
+     * @return The component index of the second RigidBody, or -1 if the constraint didn't have a rigid body
+     *         at this attachment point
+     */
     public int getBodyBIndex(int i) {
         return bodyBs[i];
     }
 
+    /**
+     * @return Get the number of constraints in the pool
+     */
     public int getConstraintCount() {
         return count;
     }

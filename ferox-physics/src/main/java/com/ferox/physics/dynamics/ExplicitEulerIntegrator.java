@@ -31,6 +31,13 @@ import com.ferox.math.Matrix3;
 import com.ferox.math.Quat4;
 import com.ferox.math.Vector3;
 
+/**
+ * ExplicitEulerIntegrator is an integrator implemented using simple Euler integration for the linear
+ * acceleration, velocity, and angular acceleration. Damping is applied to the angular velocity to improve
+ * system stability. The angular velocity integration is ported from the Bullet's integrator.
+ *
+ * @author Michael Ludwig
+ */
 public class ExplicitEulerIntegrator implements Integrator {
     private static final double MAX_ANGULAR_VELOCITY = Math.PI / 2.0;
     private static final double ANGULAR_MOTION_THRESHOLD = Math.PI / 4.0;
@@ -65,8 +72,7 @@ public class ExplicitEulerIntegrator implements Integrator {
         // clamp angular velocity
         Vector3 axis = tempv;
 
-        double veclength = v.length();
-        double angvel = veclength;
+        double angvel = v.length();
         if (angvel * dt > MAX_ANGULAR_VELOCITY) {
             // set axis to be linear velocity but with magnitude = MAX / dt
             axis.scale(v, MAX_ANGULAR_VELOCITY / (angvel * dt));

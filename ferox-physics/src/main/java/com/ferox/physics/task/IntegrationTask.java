@@ -142,26 +142,16 @@ public class IntegrationTask implements Task, ParallelAware {
                 tensor.mulDiagonal(rotation, inertia).mulTransposeRight(rotation);
                 rigidBody.setInertiaTensorInverse(tensor);
 
-                // 4. Add gravity force
+                // 4. Compute and apply gravity force
                 if (gravity.isAlive()) {
                     force.scale(gravity.getGravity(), rigidBody.getMass());
                 } else {
                     force.scale(defaultGravity, rigidBody.getMass());
                 }
-                RigidBody.Utils.addForce(rigidBody, force, null);
 
-                // 5. Integrate and apply forces to the body's velocity
                 Vector3 lv = rigidBody.getVelocity();
-                integrator.integrateLinearAcceleration(
-                        force.scale(rigidBody.getForce(), 1.0 / rigidBody.getMass()), dt, lv);
+                integrator.integrateLinearAcceleration(force.scale(force, 1.0 / rigidBody.getMass()), dt, lv);
                 rigidBody.setVelocity(lv);
-
-                Vector3 la = rigidBody.getAngularVelocity();
-                integrator.integrateAngularAcceleration(force.mul(tensor, rigidBody.getTorque()), dt, la);
-                rigidBody.setAngularVelocity(la);
-
-                // 6. Reset forces
-                RigidBody.Utils.clearForces(rigidBody);
             }
         }
 

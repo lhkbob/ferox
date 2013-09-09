@@ -31,6 +31,8 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NoAutoVersion;
+import com.lhkbob.entreri.Within;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.SharedInstance;
 
@@ -41,12 +43,8 @@ import com.lhkbob.entreri.property.SharedInstance;
  * world position and orientation. Additionally, it has pseudo-physical parameters for determining its
  * surface's friction coefficients and collision response (e.g. elastic or inelastic).
  * <p/>
- * CollisionBodies also have configurable "groups" which can restrict the sets of objects that can collide
- * with each other. This is useful for supporting no-clip like features in multiplyer games for members of the
- * same team. Each CollisionBody belongs to some number of integer groups; they also have a bit mask
- * specifying which groups they can collide against. When considering a pair of CollisionBodies for collision,
- * the pair can collide if any of either instance's groups are in the opposite's collision mask. A
- * CollisionBody with no group cannot collide with anything.
+ * A CollisionBody without a RigidBody component is a static object in the scene that can be collided with but
+ * will not react to collisions.
  *
  * @author Michael Ludwig
  */
@@ -68,7 +66,7 @@ public interface CollisionBody extends Component {
      *
      * @return This instance
      */
-    public CollisionBody setFriction(double friction);
+    public CollisionBody setFriction(@Within(min = 0.0) double friction);
 
     /**
      * Get the restitution coefficient of this CollisionBody. Restitution is an approximation of the
@@ -86,10 +84,8 @@ public interface CollisionBody extends Component {
      * @param restitution The new restitution value
      *
      * @return This instance
-     *
-     * @throws IllegalArgumentException if restitution is less than 0
      */
-    public CollisionBody setRestitution(double restitution);
+    public CollisionBody setRestitution(@Within(min = 0.0) double restitution);
 
     /**
      * Return the matrix instance holding this Collidable's world transform.
@@ -144,11 +140,14 @@ public interface CollisionBody extends Component {
 
     /**
      * Set the world transform of this collision body. A task is responsible for computing the world bounds
-     * based of this component's shape's local bounds and its transform.
+     * based of this component's shape's local bounds and its transform. Note that this method does not update
+     * the version of the component, because the world bounds is meant to be a computed property from the
+     * local bounds and transform, both of which already increment the version.
      *
      * @param bounds The new world bounds
      *
      * @return This component
      */
+    @NoAutoVersion
     public CollisionBody setWorldBounds(@Const AxisAlignedBox bounds);
 }
