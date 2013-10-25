@@ -11,7 +11,7 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
     final String name;
     final Class<T> type;
 
-    public MirrorImpl(Class<T> type, String name) {
+    private MirrorImpl(Class<T> type, String name) {
         this.name = name;
         this.type = type;
     }
@@ -39,6 +39,7 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     private static <T extends Mirror> T create(Class<T> type, MirrorImpl handler) {
+        // FIXME validate mirror definition: must have a @TypeName annotation and one of @BuiltIn or @Struct
         return (T) Proxy
                 .newProxyInstance(MirrorImpl.class.getClassLoader(), new Class<?>[] { type }, handler);
     }
@@ -67,17 +68,13 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
 
     public String getTypeName() {
         Mirror.TypeName t = type.getAnnotation(Mirror.TypeName.class);
-        if (t == null) {
-            throw new IllegalStateException(
-                    "Mirror type is not annotated with @TypeName, cannot proceed: " + type);
-        }
         return t.value();
     }
 
     public static class NodeOutputMirror<T extends Mirror> extends MirrorImpl<T> {
         final Node source;
 
-        public NodeOutputMirror(Class<T> type, String name, Node source) {
+        private NodeOutputMirror(Class<T> type, String name, Node source) {
             super(type, name);
             this.source = source;
         }
@@ -107,7 +104,7 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
     }
 
     public static class UniformMirror<T extends Mirror> extends MirrorImpl<T> {
-        public UniformMirror(Class<T> type, String name) {
+        private UniformMirror(Class<T> type, String name) {
             super(type, name);
         }
 
@@ -137,7 +134,7 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
     public static class ConstantMirror<T extends Mirror> extends MirrorImpl<T> {
         final Object value;
 
-        public ConstantMirror(Class<T> type, String name, Object value) {
+        private ConstantMirror(Class<T> type, String name, Object value) {
             super(type, name);
             this.value = value;
         }
@@ -168,7 +165,7 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
 
     public static class VertexInputMirror<T extends Mirror> extends MirrorImpl<T> {
 
-        public VertexInputMirror(Class<T> type, String name) {
+        private VertexInputMirror(Class<T> type, String name) {
             super(type, name);
         }
 

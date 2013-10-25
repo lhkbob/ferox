@@ -105,7 +105,7 @@ public final class GLSL {
     }
 
     public <T extends Node> T node(String name, Class<T> cls) {
-
+        return NodeImpl.createNode(cls, name);
     }
 
     public void setPosition(Mirror.Vec4 position) {
