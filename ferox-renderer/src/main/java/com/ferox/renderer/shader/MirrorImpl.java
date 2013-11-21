@@ -32,6 +32,11 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
         return create(type, new VertexInputMirror<>(type, name));
     }
 
+    public static <T extends Mirror> T createShaderOutput(T output, boolean fromVertexStage) {
+        Class<T> type = getImpl(output).type;
+        return create(type, new ShaderOutputMirror<>(type, output, fromVertexStage));
+    }
+
     @SuppressWarnings("unchecked")
     public static <T extends Mirror> MirrorImpl<T> getImpl(T m) {
         return (MirrorImpl<T>) Proxy.getInvocationHandler(m);
@@ -69,6 +74,10 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
     public String getTypeName() {
         Mirror.TypeName t = type.getAnnotation(Mirror.TypeName.class);
         return t.value();
+    }
+
+    public Class<T> getMirrorType() {
+        return type;
     }
 
     public static class NodeOutputMirror<T extends Mirror> extends MirrorImpl<T> {
@@ -163,8 +172,8 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
         }
     }
 
+    // FIXME we could potentially make a ShaderInputMirror that works for both vertex and fragment shaders?
     public static class VertexInputMirror<T extends Mirror> extends MirrorImpl<T> {
-
         private VertexInputMirror(Class<T> type, String name) {
             super(type, name);
         }
@@ -189,6 +198,40 @@ class MirrorImpl<T extends Mirror> implements InvocationHandler {
         @Override
         public String toString() {
             return "vertex attribute (" + getTypeName() + " " + name + ")";
+        }
+    }
+
+    public static class ShaderOutputMirror<T extends Mirror> extends MirrorImpl<T> {
+        final T output;
+        final boolean fromVertexStage;
+
+        private ShaderOutputMirror(Class<T> type, T vertexOutput, boolean fromVertexStage) {
+            super(type, getImpl(vertexOutput).name);
+            this.output = vertexOutput;
+            this.fromVertexStage = fromVertexStage;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ShaderOutputMirror)) {
+                return false;
+            }
+            ShaderOutputMirror<?> m = (ShaderOutputMirror<?>) o;
+            return m.output.equals(output) && m.fromVertexStage == fromVertexStage;
+        }
+
+        @Override
+        public int hashCode() {
+            return output.hashCode() + (fromVertexStage ? 1 : 0);
+        }
+
+        @Override
+        public String toString() {
+            if (fromVertexStage) {
+                return "vertex output (" + output + ")";
+            } else {
+                return "fragment output (" + output + ")";
+            }
         }
     }
 }

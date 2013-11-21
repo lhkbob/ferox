@@ -125,7 +125,7 @@ public final class GLSL {
     }
 
     public ShaderProgram generate() {
-        // FIXME whooo boy
+        return ShaderAccumulator.generate(glslVersion, vertexPosition, fragmentOutputs);
     }
 
     public static GLSL newShader(int version) {

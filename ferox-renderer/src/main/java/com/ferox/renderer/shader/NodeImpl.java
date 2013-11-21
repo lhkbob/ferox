@@ -28,6 +28,7 @@ class NodeImpl<T extends Node> implements InvocationHandler {
         // that the Node type is an interface itself, and that it has a @Function annotation
         this.type = type;
         this.name = name;
+        // FIXME the valid inputs and outputs need to be made available via static method, when we only have a class
 
         Map<String, Class<? extends Mirror>> in = new HashMap<>();
         Map<String, Class<? extends Mirror>> out = new HashMap<>();
