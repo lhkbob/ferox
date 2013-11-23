@@ -12,23 +12,24 @@ class ShaderAccumulator {
         Stage vertexStage = new Stage();
         LinkedHashSet<Mirror> pushedToVertex = new LinkedHashSet<>();
 
+        Set<Mirror> visited = new HashSet<>();
         for (Map.Entry<String, Mirror> output : fragmentOutputs.entrySet()) {
-            Mirror wrappedOutput = MirrorImpl.createShaderOutput(output.getValue(), false);
-            sortForFragmentShader(wrappedOutput, fragmentStage, pushedToVertex);
-            fragmentStage.add(wrappedOutput, output.getKey()); // force variable name to be output.getKey()
+            Mirror wrappedOutput = MirrorImpl.createShaderOutput(output.getValue(), output.getKey());
+            sortForFragmentShader(wrappedOutput, fragmentStage, visited, pushedToVertex);
+            fragmentStage.add(wrappedOutput, output.getKey()); // force variable name to be value.getKey()
         }
 
-        // these mirrors are already wrapped in the shader output mirror type
+        // these mirrors are already wrapped in the shader value mirror type
+        visited.clear();
         for (Mirror vertOut : pushedToVertex) {
-            sortForVertexShader(vertOut, vertexStage);
+            sortForVertexShader(vertOut, vertexStage, visited);
         }
-        Mirror wrappedPosition = MirrorImpl.createShaderOutput(position, false);
-        sortForVertexShader(wrappedPosition, vertexStage);
-        vertexStage.add(wrappedPosition, "gl_Position"); // force variable name to be gl_Position
+        Mirror wrappedPosition = MirrorImpl.createShaderOutput(position, "gl_Position");
+        sortForVertexShader(wrappedPosition, vertexStage, visited);
+        vertexStage.add(wrappedPosition, "gl_Position"); // force variable to be gl_Position
 
-
-        String vertexGLSL = toGLSL(version, vertexStage, true);
-        String fragmentGLSL = toGLSL(version, fragmentStage, false);
+        String vertexGLSL = toGLSL(version, vertexStage);
+        String fragmentGLSL = toGLSL(version, fragmentStage);
 
         // FIXME we may want this to be a map from Mirror to String because of the name mangling performed
         // in the generated source, so we can have the programmer hold onto the mirror and then use that to
@@ -36,12 +37,12 @@ class ShaderAccumulator {
         Set<String> uniforms = new HashSet<>();
         uniforms.addAll(getMirrorNames(MirrorImpl.UniformMirror.class, vertexStage));
         uniforms.addAll(getMirrorNames(MirrorImpl.UniformMirror.class, fragmentStage));
-        Set<String> attributes = getMirrorNames(MirrorImpl.VertexInputMirror.class, vertexStage);
+        Set<String> attributes = getMirrorNames(MirrorImpl.ShaderInputMirror.class, vertexStage);
 
         return new ShaderProgram(vertexGLSL, fragmentGLSL, uniforms, attributes, fragmentOutputs.keySet());
     }
 
-    private static String toGLSL(int version, Stage shader, boolean vertexShader) {
+    private static String toGLSL(int version, Stage shader) {
         StringBuilder finalShader = new StringBuilder();
         finalShader.append("#version ").append(version).append("\n\n");
 
@@ -69,59 +70,30 @@ class ShaderAccumulator {
         finalShader.append('\n');
 
         List<Mirror> bodyOutputs = new ArrayList<>(); // will only hold ShaderOutputMirrors
-        if (vertexShader) {
-            // shader inputs
-            for (Mirror input : shader.ordering) {
-                MirrorImpl<?> im = MirrorImpl.getImpl(input);
-                if (im instanceof MirrorImpl.VertexInputMirror) {
-                    finalShader.append("in ").append(im.getTypeName()).append(" ")
-                               .append(shader.getName(input)).append(";\n");
-                }
+        // shader inputs
+        for (Mirror input : shader.ordering) {
+            MirrorImpl<?> im = MirrorImpl.getImpl(input);
+            if (im instanceof MirrorImpl.ShaderInputMirror) {
+                finalShader.append("in ").append(im.getTypeName()).append(" ").append(shader.getName(input))
+                           .append(";\n");
             }
-            finalShader.append('\n');
-
-            // shader outputs
-            for (Mirror output : shader.ordering) {
-                MirrorImpl<?> im = MirrorImpl.getImpl(output);
-                if (im instanceof MirrorImpl.ShaderOutputMirror) {
-                    String name = shader.getName(output);
-                    if (!name.startsWith("gl_")) {
-                        finalShader.append("out ").append(im.getTypeName()).append(" ").append(name)
-                                   .append(";\n");
-                    }
-
-                    bodyOutputs.add(output);
-                }
-            }
-            finalShader.append('\n');
-        } else {
-            // shader inputs
-            for (Mirror input : shader.ordering) {
-                MirrorImpl<?> im = MirrorImpl.getImpl(input);
-                if (im instanceof MirrorImpl.ShaderOutputMirror &&
-                    ((MirrorImpl.ShaderOutputMirror<?>) im).fromVertexStage) {
-                    finalShader.append("in ").append(im.getTypeName()).append(" ")
-                               .append(shader.getName(input)).append(";\n");
-                }
-            }
-            finalShader.append('\n');
-
-            // shader outputs
-            for (Mirror output : shader.ordering) {
-                MirrorImpl<?> im = MirrorImpl.getImpl(output);
-                if (im instanceof MirrorImpl.ShaderOutputMirror &&
-                    !((MirrorImpl.ShaderOutputMirror<?>) im).fromVertexStage) {
-                    String name = shader.getName(output);
-                    if (!name.startsWith("gl_")) {
-                        finalShader.append("out ").append(im.getTypeName()).append(" ").append(name)
-                                   .append(";\n");
-                    }
-
-                    bodyOutputs.add(output);
-                }
-            }
-            finalShader.append('\n');
         }
+        finalShader.append('\n');
+
+        // shader outputs
+        for (Mirror output : shader.ordering) {
+            MirrorImpl<?> im = MirrorImpl.getImpl(output);
+            if (im instanceof MirrorImpl.ShaderOutputMirror) {
+                String name = shader.getName(output);
+                if (!name.startsWith("gl_")) {
+                    finalShader.append("out ").append(im.getTypeName()).append(" ").append(name)
+                               .append(";\n");
+                }
+
+                bodyOutputs.add(output);
+            }
+        }
+        finalShader.append('\n');
 
         // function declarations
         Map<Class<? extends Node>, Function> declaredFunctions = new HashMap<>();
@@ -133,6 +105,7 @@ class ShaderAccumulator {
                 if (!declaredFunctions.containsKey(node.type)) {
                     Function f = new Function(node);
                     declaredFunctions.put(node.type, f);
+
                     f.appendFunction(finalShader);
                     finalShader.append('\n');
                 }
@@ -169,7 +142,7 @@ class ShaderAccumulator {
                 }
                 finalShader.append(");\n");
             } else {
-                // declare output variables and then invoke function on its own line
+                // declare value variables and then invoke function on its own line
                 for (Mirror output : call.outputs.values()) {
                     finalShader.append("   ").append(MirrorImpl.getImpl(output).getTypeName()).append(' ')
                                .append(shader.getName(output)).append(";");
@@ -199,7 +172,7 @@ class ShaderAccumulator {
 
             // variable already declared
             finalShader.append("   ").append(shader.getName(output)).append(" = ")
-                       .append(shader.getName(im.output)).append(";\n");
+                       .append(shader.getName(im.value)).append(";\n");
         }
         finalShader.append("}\n");
 
@@ -217,75 +190,72 @@ class ShaderAccumulator {
         return mirrors;
     }
 
-    private static void sortForFragmentShader(Mirror m, Stage stage, LinkedHashSet<Mirror> forVertexStage) {
-        if (!stage.ordering.contains(m)) {
-            // FIXME I don't like wastefully creating this when it is meaingless
-            Mirror wrapped = MirrorImpl.createShaderOutput(m, true);
-            if (forVertexStage.contains(wrapped)) {
-                return;
-            }
-
+    private static void sortForFragmentShader(Mirror m, Stage stage, Set<Mirror> visited,
+                                              LinkedHashSet<Mirror> forVertexStage) {
+        if (!visited.contains(m)) {
             NodeImpl<?> n = fromMirror(m);
             if (n != null) {
                 if (n.forceToVertexShader) {
                     // wrap the mirror with a fragment input reference
-                    forVertexStage.add(wrapped);
-                    m = wrapped;
+                    Mirror vertex = MirrorImpl.createShaderOutput(m);
+                    forVertexStage.add(vertex);
+                    stage.add(MirrorImpl.createFragmentInput(m));
                 } else {
                     // visit incoming edges
                     for (Mirror in : n.assignedInputs.values()) {
-                        sortForFragmentShader(in, stage, forVertexStage);
+                        sortForFragmentShader(in, stage, visited, forVertexStage);
                     }
+                    stage.add(m);
                 }
             } else {
                 // m is a simple mirror, but check if it's a vertex attribute and configure a pass-through
                 MirrorImpl<?> im = MirrorImpl.getImpl(m);
-                if (im instanceof MirrorImpl.VertexInputMirror) {
-                    // wrap the mirror with a fragment input reference
-                    // FIXME this is actually a problem because we can't update the fragment output variable
-                    // to wrap the correct and expected shader output var we just created.  Thus the name
-                    // gets added for the wrapper, but then the assignment code doesn't know how to get that name
-                    //
-                    // We could make something where we dynamically rebuild the connections as we walk the graph
-                    // to form a new graph that has the proper type and instance relationships; this problem
-                    // will show up when a function in the fragment shader takes in a vertex attr as well
-                    // or when a node is forced into the fragment shader
-                    //
-                    // The other way is to lazily create the names, and if we can't find the name for a mirror
-                    // we try to look up using various shader output wrappers. This could work but it seems
-                    // less well specified.
-                    forVertexStage.add(wrapped);
-                    m = wrapped;
+                if (im instanceof MirrorImpl.ShaderInputMirror) {
+                    // the only scenario where we visit a shader input is if the user attached a vertex input
+                    // mirror to the fragment node, since we don't visit a fragment input node that gets
+                    // pushed to the vertex shader output
+                    MirrorImpl.ShaderInputMirror<?> si = (MirrorImpl.ShaderInputMirror<?>) im;
+
+                    // to handle it correctly, we record it as both an output for the vertex stage
+                    // and then as an input here
+                    Mirror vertex = MirrorImpl.createShaderOutput(m);
+                    forVertexStage.add(vertex);
+                    stage.add(MirrorImpl.createFragmentInput(m));
                 } else if (im instanceof MirrorImpl.ShaderOutputMirror) {
-                    // depend on the wrapped mirror only if this is not an input mirror from the vertex stage
+                    // shader output mirrors are not visited directly, so this can only have come from
+                    // one of the declared fragment outputs.
+                    // we must visit it to ensure the value's dependencies are met
                     MirrorImpl.ShaderOutputMirror<?> w = (MirrorImpl.ShaderOutputMirror<?>) im;
-                    if (!w.fromVertexStage) {
-                        sortForFragmentShader(w.output, stage, forVertexStage);
-                    }
+                    sortForFragmentShader(w.value, stage, visited, forVertexStage);
+                } else {
+                    // regular mirror of some flavor, like a constant or uniform
+                    stage.add(m);
                 }
             }
 
-            stage.add(m);
+            // add m to visited regardless of whether or not it ended up in the stage ordering
+            visited.add(m);
         }
     }
 
-    private static void sortForVertexShader(Mirror m, Stage stage) {
-        if (!stage.ordering.contains(m)) {
+    private static void sortForVertexShader(Mirror m, Stage stage, Set<Mirror> visited) {
+        if (!visited.contains(m)) {
             NodeImpl<?> n = fromMirror(m);
             if (n != null) {
                 // visit incoming edges
                 for (Mirror in : n.assignedInputs.values()) {
-                    sortForVertexShader(in, stage);
+                    sortForVertexShader(in, stage, visited);
                 }
             } else {
                 // m is a simple mirror, but check if it's a fragment attribute and configure wrapped
                 MirrorImpl<?> im = MirrorImpl.getImpl(m);
                 if (im instanceof MirrorImpl.ShaderOutputMirror) {
                     // depend on the wrapped mirror
-                    sortForVertexShader(((MirrorImpl.ShaderOutputMirror<?>) im).output, stage);
+                    sortForVertexShader(((MirrorImpl.ShaderOutputMirror<?>) im).value, stage, visited);
                 }
             }
             stage.add(m);
+            visited.add(m);
         }
     }
 
@@ -305,7 +275,10 @@ class ShaderAccumulator {
             Map<Class<? extends MirrorImpl>, String> prefixes = new HashMap<>();
             prefixes.put(MirrorImpl.UniformMirror.class, "u");
             prefixes.put(MirrorImpl.ConstantMirror.class, "c");
-            prefixes.put(MirrorImpl.VertexInputMirror.class, "v");
+
+            // 'v' is the valid prefix for vertex inputs, and we use special logic for fragment inputs
+            // to recompute the actual name based on the associated vertex output
+            prefixes.put(MirrorImpl.ShaderInputMirror.class, "v");
 
             // 'f' is the valid prefix for auto-generated names because gl_Position and fragment outputs
             // have explicit names
@@ -334,21 +307,25 @@ class ShaderAccumulator {
             MirrorImpl<T> im = MirrorImpl.getImpl(m);
             NodeImpl<?> node = fromMirror(m);
 
-            String uniquePostfix = getUniquePostfix(m);
-            Map<Mirror, String> store;
-            if (node != null) {
-                if (name == null) {
-                    name = NAME_PREFIX.get(im.getClass()) + node.name + "_" + im.name + "_" + uniquePostfix;
-                }
-                store = localNames;
-            } else {
-                if (name == null) {
-                    name = NAME_PREFIX.get(im.getClass()) + im.name + "_" + uniquePostfix;
-                }
-                store = globalNames;
+            Map<Mirror, String> store = (node != null ? localNames : globalNames);
+            if (name == null) {
+                name = computeName(im);
             }
 
             store.put(m, name);
+        }
+
+        private static <T extends Mirror> String computeName(MirrorImpl<T> m) {
+            if (m instanceof MirrorImpl.ShaderInputMirror) {
+                // check for source
+                MirrorImpl.ShaderInputMirror<T> si = (MirrorImpl.ShaderInputMirror<T>) m;
+                if (si.source != null) {
+                    return computeName(MirrorImpl.getImpl(si.source));
+                }
+            }
+
+            // otherwise build the name
+            return NAME_PREFIX.get(m.getClass()) + m.name + "_" + getUniquePostfix(m);
         }
 
         public <T extends Mirror> void add(T m) {
@@ -366,21 +343,27 @@ class ShaderAccumulator {
             }
 
             // now check if it's an input to the fragment stage
-            Mirror wrap = MirrorImpl.createShaderOutput(m, true);
-            n = globalNames.get(wrap);
-            if (n != null) {
-                globalNames.put(m, n);
-                return n;
+            for (Mirror in : globalNames.keySet()) {
+                MirrorImpl<?> inImpl = MirrorImpl.getImpl(in);
+                if (inImpl instanceof MirrorImpl.ShaderInputMirror) {
+                    MirrorImpl.ShaderInputMirror<?> si = (MirrorImpl.ShaderInputMirror<?>) inImpl;
+                    if (si.source != null && si.source.equals(m)) {
+                        // it is indeed an input
+                        n = globalNames.get(in);
+                        globalNames.put(m, n); // make sure we don't search more than once
+                        return n;
+                    }
+                }
             }
 
-            // otherwise it's an unused node output mirror
+            // otherwise it's an unused node value mirror
             n = NAME_PREFIX.get(MirrorImpl.NodeOutputMirror.class) + "Unused_" + MirrorImpl.getImpl(m).name +
                 "_" + getUniquePostfix(m);
             localNames.put(m, n);
             return n;
         }
 
-        private String getUniquePostfix(Mirror m) {
+        private static String getUniquePostfix(Object m) {
             int hash = 0xffff & ((m.hashCode() >> 16) ^ m.hashCode());
             return Integer.toHexString(hash);
         }

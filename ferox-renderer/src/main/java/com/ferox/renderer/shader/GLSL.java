@@ -120,6 +120,10 @@ public final class GLSL {
         }
     }
 
+    public void setFragmentData(int index, Mirror.Vec4 data) {
+        setFragmentOutput("gl_FragData[" + index + "]", data);
+    }
+
     public void setFragmentOutput(String name, Mirror output) {
         fragmentOutputs.put(name, output);
     }
