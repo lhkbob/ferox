@@ -177,7 +177,7 @@ public class LifeCycleManager implements Comparable<LifeCycleManager> {
      *                    additional code
      *
      * @return A Future that completes when all managed threads have stopped and postDestroy has been invoked
-     *         and returned. Null is returned if the
+     * and returned. Null is returned if the
      */
     public Future<Void> stop(final Runnable postDestroy) {
         lock.writeLock().lock();
@@ -291,8 +291,7 @@ public class LifeCycleManager implements Comparable<LifeCycleManager> {
             throw new NullPointerException("Thread cannot be null");
         }
         if (!managedThreadGroup.parentOf(thread.getThreadGroup())) {
-            throw new IllegalArgumentException(
-                    "Managed thread must be in the ThreadGroup provided by this LifeCycleManager");
+            throw new IllegalArgumentException("Managed thread must be in the ThreadGroup provided by this LifeCycleManager");
         }
 
         lock.readLock().lock();

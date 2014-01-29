@@ -178,7 +178,7 @@ public final class OnscreenSurfaceOptions {
 
     /**
      * @return The requested DisplayMode. If null then the surface will initially be windowed, else it will be
-     *         fullscreen with a supported DisplayMode closest to the requested
+     * fullscreen with a supported DisplayMode closest to the requested
      */
     public DisplayMode getFullscreenMode() {
         return fullMode;

@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public abstract class AbstractSurface implements Surface {
     /**
      * @return The OpenGLContext tied to the surface, or null for surfaces that depend on others to provide
-     *         the context (such as FBOs)
+     * the context (such as FBOs)
      */
     public OpenGLContext getContext() {
         return getSurfaceDestructible().getContext();
@@ -51,7 +51,7 @@ public abstract class AbstractSurface implements Surface {
 
     /**
      * @return Get the managed destructible that stores the context and handles actual destruction of the
-     *         surface
+     * surface
      */
     public abstract SurfaceDestructible getSurfaceDestructible();
 

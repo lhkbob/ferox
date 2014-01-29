@@ -47,10 +47,9 @@ public interface Builder<T extends Resource> {
      *
      * @return The new resource
      *
-     * @throws com.ferox.renderer.ResourceException
-     *                               if the resource is unsupported or cannot be created in the current
-     *                               configuration
-     * @throws IllegalStateException if build() is called a second time
+     * @throws com.ferox.renderer.ResourceException if the resource is unsupported or cannot be created in the
+     *                                              current configuration
+     * @throws IllegalStateException                if build() is called a second time
      */
     public T build();
 }

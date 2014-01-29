@@ -363,28 +363,23 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             switch (attribute.getType().getPrimitiveType()) {
             case FLOAT:
                 if (!attr.getVBO().getDataType().isDecimalNumber()) {
-                    throw new IllegalArgumentException(
-                            "Floating point attributes must use buffers with decimal data");
+                    throw new IllegalArgumentException("Floating point attributes must use buffers with decimal data");
                 }
                 break;
             case UNSIGNED_INT:
                 if (attr.getVBO().getDataType().isDecimalNumber()) {
-                    throw new IllegalArgumentException(
-                            "Unsigned integer attributes cannot use buffers with decimal data");
+                    throw new IllegalArgumentException("Unsigned integer attributes cannot use buffers with decimal data");
                 }
                 if (attr.getVBO().getDataType().isSigned()) {
-                    throw new IllegalArgumentException(
-                            "Unsigned integer attributes cannot use buffers with signed data");
+                    throw new IllegalArgumentException("Unsigned integer attributes cannot use buffers with signed data");
                 }
                 break;
             default: // INT
                 if (attr.getVBO().getDataType().isDecimalNumber()) {
-                    throw new IllegalArgumentException(
-                            "Signed integer attributes cannot use buffers with decimal data");
+                    throw new IllegalArgumentException("Signed integer attributes cannot use buffers with decimal data");
                 }
                 if (!attr.getVBO().getDataType().isSigned()) {
-                    throw new IllegalArgumentException(
-                            "Signed integer attributes cannot use buffers with unsigned data");
+                    throw new IllegalArgumentException("Signed integer attributes cannot use buffers with unsigned data");
                 }
                 break;
             }
@@ -1022,12 +1017,10 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (!(texture instanceof Texture2D)) {
                 if (texture instanceof DepthMap2D) {
                     if (((DepthMap2D) texture).getDepthComparison() != null) {
-                        throw new IllegalArgumentException(
-                                "Depth textures cannot have a depth comparison with SAMPLER_2D");
+                        throw new IllegalArgumentException("Depth textures cannot have a depth comparison with SAMPLER_2D");
                     }
                 } else {
-                    throw new IllegalArgumentException(
-                            "SAMPLER_2D can only be used with Texture2D or DepthMap2D");
+                    throw new IllegalArgumentException("SAMPLER_2D can only be used with Texture2D or DepthMap2D");
                 }
             }
             if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
@@ -1062,12 +1055,10 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (!(texture instanceof TextureCubeMap)) {
                 if (texture instanceof DepthCubeMap) {
                     if (((DepthCubeMap) texture).getDepthComparison() != null) {
-                        throw new IllegalArgumentException(
-                                "Depth textures cannot have a depth comparison with SAMPLER_CUBE");
+                        throw new IllegalArgumentException("Depth textures cannot have a depth comparison with SAMPLER_CUBE");
                     }
                 } else {
-                    throw new IllegalArgumentException(
-                            "SAMPLER_CUBE can only be used with TextureCubeMap or DepthMapCubeMap");
+                    throw new IllegalArgumentException("SAMPLER_CUBE can only be used with TextureCubeMap or DepthMapCubeMap");
                 }
             }
             if (!texture.getDataType().isDecimalNumber() && texture.getDataType() != DataType.INT_BIT_FIELD) {
@@ -1101,8 +1092,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_1D_ARRAY expects signed integer texture formats");
+                throw new IllegalArgumentException("ISAMPLER_1D_ARRAY expects signed integer texture formats");
             }
             break;
         case ISAMPLER_2D:
@@ -1122,8 +1112,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (texture.getDataType().isDecimalNumber() ||
                 !texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "ISAMPLER_2D_ARRAY expects signed integer texture formats");
+                throw new IllegalArgumentException("ISAMPLER_2D_ARRAY expects signed integer texture formats");
             }
             break;
         case ISAMPLER_3D:
@@ -1163,8 +1152,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_1D_ARRAY expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_1D_ARRAY expects unsigned integer texture formats");
             }
             break;
         case USAMPLER_2D:
@@ -1184,8 +1172,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             if (texture.getDataType().isDecimalNumber() ||
                 texture.getDataType().isSigned() ||
                 texture.getDataType() == DataType.INT_BIT_FIELD) {
-                throw new IllegalArgumentException(
-                        "USAMPLER_2D_ARRAY expects unsigned integer texture formats");
+                throw new IllegalArgumentException("USAMPLER_2D_ARRAY expects unsigned integer texture formats");
             }
             break;
         case USAMPLER_3D:

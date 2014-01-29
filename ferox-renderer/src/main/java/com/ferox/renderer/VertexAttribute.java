@@ -93,8 +93,8 @@ public class VertexAttribute {
             throw new NullPointerException("Buffer cannot be null");
         }
         if (elementSize < 1 || elementSize > 4) {
-            throw new IllegalArgumentException(
-                    "Illegal element size, must be in [1, 4], not: " + elementSize);
+            throw new IllegalArgumentException("Illegal element size, must be in [1, 4], not: " +
+                                               elementSize);
         }
         if (offset < 0 || offset >= buffer.getLength()) {
             throw new IllegalArgumentException("Illegal offset, must be in [0, " + buffer.getLength() +
@@ -120,7 +120,7 @@ public class VertexAttribute {
      * @param component The component within the attribute to look up
      *
      * @return An array index that can be used with the data array backing this VertexAttribute to lookup the
-     *         attribute value for the given vertex and component
+     * attribute value for the given vertex and component
      *
      * @throws IndexOutOfBoundsException if vertex is not in [0, {@link #getMaximumNumVertices()} - 1], or if
      *                                   component is not in [0, {@link #getElementSize()} - 1]

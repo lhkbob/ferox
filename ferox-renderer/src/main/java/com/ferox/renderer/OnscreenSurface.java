@@ -38,7 +38,7 @@ import com.ferox.input.MouseKeyEventSource;
 public interface OnscreenSurface extends Surface, MouseKeyEventSource {
     /**
      * @return The display mode of the surface, which is either the default display mode for windowed
-     *         surfaces, or the activated fullscreen mode
+     * surfaces, or the activated fullscreen mode
      */
     public DisplayMode getDisplayMode();
 

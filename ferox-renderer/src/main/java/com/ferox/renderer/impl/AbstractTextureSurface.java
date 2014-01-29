@@ -42,11 +42,12 @@ import java.util.EnumSet;
  * @author Michael Ludwig
  */
 public abstract class AbstractTextureSurface extends AbstractSurface implements TextureSurface {
-    private static final EnumSet<Sampler.TexelFormat> VALID_COLOR_FORMATS = EnumSet
-            .of(Sampler.TexelFormat.R, Sampler.TexelFormat.RG, Sampler.TexelFormat.RGB,
-                Sampler.TexelFormat.RGBA);
-    private static final EnumSet<Sampler.TexelFormat> VALID_DEPTH_FORMATS = EnumSet
-            .of(Sampler.TexelFormat.DEPTH, Sampler.TexelFormat.DEPTH_STENCIL);
+    private static final EnumSet<Sampler.TexelFormat> VALID_COLOR_FORMATS = EnumSet.of(Sampler.TexelFormat.R,
+                                                                                       Sampler.TexelFormat.RG,
+                                                                                       Sampler.TexelFormat.RGB,
+                                                                                       Sampler.TexelFormat.RGBA);
+    private static final EnumSet<Sampler.TexelFormat> VALID_DEPTH_FORMATS = EnumSet.of(Sampler.TexelFormat.DEPTH,
+                                                                                       Sampler.TexelFormat.DEPTH_STENCIL);
     private final int width;
     private final int height;
 
@@ -64,8 +65,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
     public AbstractTextureSurface(FrameworkImpl framework, TextureSurfaceOptions options) {
         int maxDimension = framework.getCapabilities().getMaxTextureSurfaceSize();
         if (options.getWidth() > maxDimension || options.getHeight() > maxDimension) {
-            throw new SurfaceCreationException(
-                    "Cannot create texture surface of requested size: beyond max supported dimension");
+            throw new SurfaceCreationException("Cannot create texture surface of requested size: beyond max supported dimension");
         }
 
         this.width = options.getWidth();
@@ -132,8 +132,7 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
         // first validate new targets, before delegating to the subclass to perform the OpenGL
         // operations necessary
         if (depthRenderBuffer != null && depthTarget != null) {
-            throw new IllegalArgumentException(
-                    "Cannot specify a depth render target when a depth renderbuffer is used");
+            throw new IllegalArgumentException("Cannot specify a depth render target when a depth renderbuffer is used");
         }
 
         TextureImpl.FullFormat colorFormat = null;
@@ -142,22 +141,22 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
                 TextureImpl t = (TextureImpl) colorTargets[i].getSampler();
                 int m = t.getBaseMipmap();
                 if (mipDim(t.getWidth(), m) != width || mipDim(t.getHeight(), m) != height) {
-                    throw new IllegalArgumentException(String.format(
-                            "Color buffer %d does not match surface dimensions, expected %d x %d but was %d x %d",
-                            i, width, height, mipDim(t.getWidth(), m), mipDim(t.getHeight(), m)));
+                    throw new IllegalArgumentException(String.format("Color buffer %d does not match surface dimensions, expected %d x %d but was %d x %d",
+                                                                     i, width, height,
+                                                                     mipDim(t.getWidth(), m),
+                                                                     mipDim(t.getHeight(), m)));
                 }
                 if (!VALID_COLOR_FORMATS.contains(t.getFormat())) {
-                    throw new IllegalArgumentException(
-                            "Texture format is not valid for color target, was: " + t.getFormat() +
-                            ", but must be one of: " + VALID_COLOR_FORMATS);
+                    throw new IllegalArgumentException("Texture format is not valid for color target, was: " +
+                                                       t.getFormat() +
+                                                       ", but must be one of: " + VALID_COLOR_FORMATS);
                 }
 
                 if (colorFormat == null) {
                     colorFormat = t.getFullFormat();
                 } else if (t.getFullFormat() != colorFormat) {
-                    throw new IllegalArgumentException(String.format(
-                            "Color buffer %d uses different color format, expected %s but was %s", i,
-                            colorFormat, t.getFullFormat()));
+                    throw new IllegalArgumentException(String.format("Color buffer %d uses different color format, expected %s but was %s",
+                                                                     i, colorFormat, t.getFullFormat()));
                 }
             }
         }
@@ -170,10 +169,10 @@ public abstract class AbstractTextureSurface extends AbstractSurface implements 
             int m = depthTarget.getSampler().getBaseMipmap();
             if (mipDim(depthTarget.getSampler().getWidth(), m) != width ||
                 mipDim(depthTarget.getSampler().getHeight(), m) != height) {
-                throw new IllegalArgumentException(String.format(
-                        "Depth buffer does not match surface dimensions, expected %d x %d but was %d x %d",
-                        width, height, depthTarget.getSampler().getWidth(),
-                        depthTarget.getSampler().getHeight()));
+                throw new IllegalArgumentException(String.format("Depth buffer does not match surface dimensions, expected %d x %d but was %d x %d",
+                                                                 width, height,
+                                                                 depthTarget.getSampler().getWidth(),
+                                                                 depthTarget.getSampler().getHeight()));
             }
         }
 

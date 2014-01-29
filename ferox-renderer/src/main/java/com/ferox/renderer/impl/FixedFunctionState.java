@@ -203,16 +203,20 @@ public class FixedFunctionState {
             alphaFunc = CombineFunction.MODULATE;
 
             opRgb = new CombineOperand[] {
-                    CombineOperand.COLOR, CombineOperand.COLOR, CombineOperand.ALPHA
+                                                 CombineOperand.COLOR, CombineOperand.COLOR,
+                                                 CombineOperand.ALPHA
             };
             opAlpha = new CombineOperand[] {
-                    CombineOperand.ALPHA, CombineOperand.ALPHA, CombineOperand.ALPHA
+                                                   CombineOperand.ALPHA, CombineOperand.ALPHA,
+                                                   CombineOperand.ALPHA
             };
             srcRgb = new CombineSource[] {
-                    CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR
+                                                 CombineSource.CURR_TEX, CombineSource.PREV_TEX,
+                                                 CombineSource.CONST_COLOR
             };
             srcAlpha = new CombineSource[] {
-                    CombineSource.CURR_TEX, CombineSource.PREV_TEX, CombineSource.CONST_COLOR
+                                                   CombineSource.CURR_TEX, CombineSource.PREV_TEX,
+                                                   CombineSource.CONST_COLOR
             };
         }
 

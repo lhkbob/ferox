@@ -87,7 +87,7 @@ public abstract class Capabilities {
 
     /**
      * @return True if multiple non-fullscreen onscreen surfaces can exist at the same time with this
-     *         framework
+     * framework
      */
     public boolean getMultipleOnscreenSurfaceSupport() {
         return supportsMultipleOnscreenSurfaces;
@@ -343,7 +343,7 @@ public abstract class Capabilities {
 
     /**
      * @return True if the GlslRenderer can support shaders with a geometry shader. Shaders always support
-     *         vertex and fragment shaders.
+     * vertex and fragment shaders.
      */
     public boolean hasGeometryShaderSupport() {
         return geometryShaderSupport;

@@ -260,8 +260,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     protected void validate() {
         // verify texture target support
         if (!framework.getCapabilities().getSupportedTextureTargets().contains(textureType)) {
-            throw new ResourceException(
-                    String.format("%s textures are not supported on current hardware", textureType));
+            throw new ResourceException(String.format("%s textures are not supported on current hardware",
+                                                      textureType));
         }
         if (imageFormats == null) {
             throw new ResourceException("No texel format selected");
@@ -272,8 +272,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             for (int j = 0; j < imageFormats[i].length; j++) {
                 if (imageFormats[i][j] != null) {
                     if (detectedFormat != null && detectedFormat != imageFormats[i][j]) {
-                        throw new ResourceException(
-                                "Inconsistent data specification, every image and mipmap must use same format and type");
+                        throw new ResourceException("Inconsistent data specification, every image and mipmap must use same format and type");
                     }
                     detectedFormat = imageFormats[i][j];
                 }
@@ -302,8 +301,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             !detectedFormat.getType().isDecimalNumber()) {
             // check for integer texture support
             if (!framework.getCapabilities().getIntegerTextureSupport()) {
-                throw new ResourceException(
-                        "Unnormalized signed and unsigned integer textures are not supported");
+                throw new ResourceException("Unnormalized signed and unsigned integer textures are not supported");
             }
         }
 
@@ -330,8 +328,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         if (detectedFormat.getFormat() == Sampler.TexelFormat.COMPRESSED_RGB ||
             detectedFormat.getFormat() == Sampler.TexelFormat.COMPRESSED_RGBA) {
             if (width % 4 != 0 || height % 4 != 0) {
-                throw new ResourceException(
-                        "DXT compressed textures must have dimensions that are multiples of 4");
+                throw new ResourceException("DXT compressed textures must have dimensions that are multiples of 4");
             }
         }
 
@@ -372,9 +369,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
                 if (imageData[i][j] != null) {
                     int actualSize = BufferUtil.getArrayLength(imageData[i][j]);
                     if (actualSize != expectedSize) {
-                        throw new ResourceException(
-                                String.format("Expected %d elements but got %d (mipmap: %d, image: %d)",
-                                              expectedSize, actualSize, j, i));
+                        throw new ResourceException(String.format("Expected %d elements but got %d (mipmap: %d, image: %d)",
+                                                                  expectedSize, actualSize, j, i));
                     }
                 }
             }

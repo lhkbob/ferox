@@ -334,8 +334,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     @Override
     public void setLightPosition(int light, @Const Vector4 pos) {
         if (pos.w != 0 && pos.w != 1.0) {
-            throw new IllegalArgumentException(
-                    "Light position must have a w component of 0 or 1, not: " + pos.w);
+            throw new IllegalArgumentException("Light position must have a w component of 0 or 1, not: " +
+                                               pos.w);
         }
         temp4.mul(modelview, pos);
         glsl.setUniformArray(lightPosition, light, temp4);
@@ -421,8 +421,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
                 glsl.setUniformArray(texConfig, tex, 4);
             }
         } else if (image != null) {
-            throw new UnsupportedOperationException(
-                    image.getClass() + " not supported in FixedFunctionRenderer");
+            throw new UnsupportedOperationException(image.getClass() +
+                                                    " not supported in FixedFunctionRenderer");
         } else {
             glsl.setUniformArray(texConfig, tex, -1);
         }
@@ -515,8 +515,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
         if (shader == null) {
             ShaderBuilder shaderBuilder = surface.getFramework().newShader();
 
-            try (BufferedReader vertIn = new BufferedReader(
-                    new InputStreamReader(getClass().getResourceAsStream(VERTEX_SHADER)))) {
+            try (BufferedReader vertIn = new BufferedReader(new InputStreamReader(getClass()
+                                                                                          .getResourceAsStream(VERTEX_SHADER)))) {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = vertIn.readLine()) != null) {
@@ -527,8 +527,8 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
                 throw new FrameworkException("Unable to load vertex shader for FFP emulation", e);
             }
 
-            try (BufferedReader fragIn = new BufferedReader(
-                    new InputStreamReader(getClass().getResourceAsStream(FRAGMENT_SHADER)))) {
+            try (BufferedReader fragIn = new BufferedReader(new InputStreamReader(getClass()
+                                                                                          .getResourceAsStream(FRAGMENT_SHADER)))) {
                 StringBuilder sb = new StringBuilder();
                 String line;
                 while ((line = fragIn.readLine()) != null) {

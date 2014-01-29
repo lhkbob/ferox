@@ -38,7 +38,7 @@ package com.ferox.renderer;
  *
  * @author Michael Ludwig
  * @see HardwareAccessLayer#setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
- *      com.ferox.renderer.Sampler.RenderTarget)
+ * com.ferox.renderer.Sampler.RenderTarget)
  */
 public interface TextureSurface extends Surface {
     /**
@@ -52,7 +52,7 @@ public interface TextureSurface extends Surface {
 
     /**
      * @return The last configured depth render target, or null if no target was activated, or when a depth
-     *         renderbuffer is used
+     * renderbuffer is used
      */
     public Sampler.RenderTarget getDepthBuffer();
 
@@ -64,7 +64,7 @@ public interface TextureSurface extends Surface {
      * @param buffer The color buffer to lookup
      *
      * @return The last configured color render target for the given buffer, or null if that draw buffer is
-     *         disabled for this surface
+     * disabled for this surface
      *
      * @throws IndexOutOfBoundsException if buffer refers to an unsupported or illegal buffer
      * @see com.ferox.renderer.Capabilities#getMaxColorBuffers()

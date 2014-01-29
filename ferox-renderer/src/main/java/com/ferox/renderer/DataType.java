@@ -137,7 +137,7 @@ public enum DataType {
 
     /**
      * @return True if the data type can represent both positive and negative numbers, false implies positive
-     *         only
+     * only
      */
     public boolean isSigned() {
         return signed;
@@ -152,7 +152,7 @@ public enum DataType {
 
     /**
      * @return True if the decimal number is a normalized integer. This is always false if {@link
-     *         #isDecimalNumber()} returns false.
+     * #isDecimalNumber()} returns false.
      */
     public boolean isNormalized() {
         return normalized;

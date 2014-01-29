@@ -267,8 +267,8 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
 
         if (getHandle().target == Target.TEX_3D) {
             if (layer >= depth) {
-                throw new IndexOutOfBoundsException(
-                        "Target index must be less than depth (" + depth + "): " + layer);
+                throw new IndexOutOfBoundsException("Target index must be less than depth (" + depth + "): " +
+                                                    layer);
             }
         } else {
             if (layer >= dataArrays.length) {

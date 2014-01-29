@@ -132,7 +132,7 @@ public final class TextureSurfaceOptions {
      * @param colorBuffer The color buffer to lookup
      *
      * @return The render target attached by default to the color buffer, or null if none was specified for
-     *         the buffer
+     * the buffer
      *
      * @throws IndexOutOfBoundsException if colorBuffer is less than 0
      */
@@ -142,7 +142,7 @@ public final class TextureSurfaceOptions {
 
     /**
      * @return Get the number of specified color buffers (will include null targets if there are gaps in color
-     *         buffer indices provided)
+     * buffer indices provided)
      */
     public int getColorBufferCount() {
         return colorTargets.length;

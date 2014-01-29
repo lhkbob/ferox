@@ -240,8 +240,8 @@ public abstract class RendererDelegate {
 
     public void setBlendModeAlpha(BlendFunction function, BlendFactor src, BlendFactor dst) {
         if (function == null || src == null || dst == null) {
-            throw new NullPointerException(
-                    "Cannot use null arguments: " + function + ", " + src + ", " + dst);
+            throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " +
+                                           dst);
         }
         if (dst == BlendFactor.SRC_ALPHA_SATURATE) {
             throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
@@ -261,8 +261,8 @@ public abstract class RendererDelegate {
 
     public void setBlendModeRgb(BlendFunction function, BlendFactor src, BlendFactor dst) {
         if (function == null || src == null || dst == null) {
-            throw new NullPointerException(
-                    "Cannot use null arguments: " + function + ", " + src + ", " + dst);
+            throw new NullPointerException("Cannot use null arguments: " + function + ", " + src + ", " +
+                                           dst);
         }
         if (dst == BlendFactor.SRC_ALPHA_SATURATE) {
             throw new IllegalArgumentException("Cannot use SRC_ALPHA_SATURATE for dest BlendFactor");
@@ -500,9 +500,9 @@ public abstract class RendererDelegate {
 
     public void setViewport(int x, int y, int width, int height) {
         if (x < 0 || y < 0 || width < 0 || height < 0) {
-            throw new IllegalArgumentException(
-                    "Invalid arguments, all must be positive: " + x + ", " + y + ", " +
-                    width + ", " + height);
+            throw new IllegalArgumentException("Invalid arguments, all must be positive: " + x + ", " + y +
+                                               ", " +
+                                               width + ", " + height);
         }
         if (x != state.viewX || y != state.viewY || width != state.viewWidth ||
             height != state.viewHeight) {
@@ -542,8 +542,8 @@ public abstract class RendererDelegate {
             throw new NullPointerException("PolygonType cannot be null");
         }
         if (offset < 0 || count < 0) {
-            throw new IllegalArgumentException(
-                    "First and count must be at least 0, not: " + offset + ", " + count);
+            throw new IllegalArgumentException("First and count must be at least 0, not: " + offset + ", " +
+                                               count);
         }
 
         if (state.elementVBO != null) {

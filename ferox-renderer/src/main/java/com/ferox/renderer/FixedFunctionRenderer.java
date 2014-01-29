@@ -502,7 +502,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException if diff is null
      * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4, com.ferox.math.Vector4,
-     *      com.ferox.math.Vector4)
+     * com.ferox.math.Vector4)
      */
     public void setMaterialDiffuse(@Const Vector4 diff);
 
@@ -514,7 +514,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException if amb is null
      * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4, com.ferox.math.Vector4,
-     *      com.ferox.math.Vector4)
+     * com.ferox.math.Vector4)
      */
     public void setMaterialAmbient(@Const Vector4 amb);
 
@@ -526,7 +526,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException if spec is null
      * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4, com.ferox.math.Vector4,
-     *      com.ferox.math.Vector4)
+     * com.ferox.math.Vector4)
      */
     public void setMaterialSpecular(@Const Vector4 spec);
 
@@ -538,7 +538,7 @@ public interface FixedFunctionRenderer extends Renderer {
      *
      * @throws NullPointerException if emm is null
      * @see #setMaterial(com.ferox.math.Vector4, com.ferox.math.Vector4, com.ferox.math.Vector4,
-     *      com.ferox.math.Vector4)
+     * com.ferox.math.Vector4)
      */
     public void setMaterialEmissive(@Const Vector4 emm);
 

@@ -106,8 +106,8 @@ public class DestructibleManager {
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
         if (lifecycle.getStatus() != com.ferox.renderer.impl.LifeCycleManager.Status.STARTING) {
-            throw new IllegalStateException(
-                    "LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
+            throw new IllegalStateException("LifeCycleManager must have status STARTING, not: " +
+                                            lifecycle.getStatus());
         }
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading

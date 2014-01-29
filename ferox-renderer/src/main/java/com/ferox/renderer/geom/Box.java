@@ -113,9 +113,9 @@ public final class Box {
             }
 
             if (min.x > max.x || min.y > max.y || min.z > max.z) {
-                throw new IllegalArgumentException(
-                        "Min vertex has coordinate greater than 'max': " + min + " - " +
-                        max);
+                throw new IllegalArgumentException("Min vertex has coordinate greater than 'max': " + min +
+                                                   " - " +
+                                                   max);
             }
 
             float maxX = (float) max.x;
@@ -130,12 +130,12 @@ public final class Box {
 
             // 3 verts per triangle, 2 triangles per face, 6 faces = 36
             int[] indices = new int[] {
-                    0, 1, 2, 2, 3, 0, // BACK
-                    4, 5, 6, 6, 7, 4, // RIGHT
-                    8, 9, 10, 10, 11, 8, // FRONT
-                    12, 13, 14, 14, 15, 12, // LEFT
-                    16, 17, 18, 18, 19, 16, // TOP
-                    20, 21, 22, 22, 23, 20, // BOTTOM
+                                              0, 1, 2, 2, 3, 0, // BACK
+                                              4, 5, 6, 6, 7, 4, // RIGHT
+                                              8, 9, 10, 10, 11, 8, // FRONT
+                                              12, 13, 14, 14, 15, 12, // LEFT
+                                              16, 17, 18, 18, 19, 16, // TOP
+                                              20, 21, 22, 22, 23, 20, // BOTTOM
             };
             this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
 

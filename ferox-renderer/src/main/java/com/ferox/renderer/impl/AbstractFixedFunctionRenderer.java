@@ -616,8 +616,8 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
             }
             if (!(image instanceof Texture1D) && !(image instanceof Texture2D) &&
                 !(image instanceof TextureCubeMap) && !(image instanceof DepthMap2D)) {
-                throw new UnsupportedOperationException(
-                        image.getClass() + " cannot be used in a FixedFunctionRenderer");
+                throw new UnsupportedOperationException(image.getClass() +
+                                                        " cannot be used in a FixedFunctionRenderer");
             }
 
             TextureImpl.TextureHandle newImage = ((TextureImpl) image).getHandle();
@@ -946,8 +946,7 @@ public abstract class AbstractFixedFunctionRenderer extends AbstractRenderer
                 throw new IllegalArgumentException("Texture coordinates do not accept normalized types");
             }
             if (texCoords.getVBO().getDataType().getJavaPrimitive().equals(byte.class)) {
-                throw new IllegalArgumentException(
-                        "Texture coordinates cannot be specified with byte values");
+                throw new IllegalArgumentException("Texture coordinates cannot be specified with byte values");
             }
             setAttribute(state.texCoordBindings[tex], ((BufferImpl) texCoords.getVBO()).getHandle(),
                          texCoords.getOffset(), texCoords.getStride(), texCoords.getElementSize());

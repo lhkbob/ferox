@@ -284,8 +284,8 @@ public class FrameworkImpl implements Framework {
             if (ctx != null) {
                 String error = ctx.checkGLErrors();
                 if (error != null) {
-                    throw new FrameworkException(
-                            "OpenGL error produced after running " + task + ": " + error);
+                    throw new FrameworkException("OpenGL error produced after running " + task + ": " +
+                                                 error);
                 }
             }
             return value;
@@ -307,8 +307,7 @@ public class FrameworkImpl implements Framework {
             // fullscreenSurface is only ever written by the GL thread, so this is safe
             if (options.getFullscreenMode() != null && fullscreenSurface != null &&
                 fullscreenSurface.get() != null) {
-                throw new SurfaceCreationException(
-                        "Cannot create fullscreen surface when an existing surface is fullscreen");
+                throw new SurfaceCreationException("Cannot create fullscreen surface when an existing surface is fullscreen");
             }
             // minor cleanup
             if (fullscreenSurface != null && fullscreenSurface.get() == null) {
@@ -329,8 +328,8 @@ public class FrameworkImpl implements Framework {
             if (ctx != null) {
                 String error = ctx.checkGLErrors();
                 if (error != null) {
-                    throw new FrameworkException(
-                            "OpenGL error produced after creating onscreen surface: " + error);
+                    throw new FrameworkException("OpenGL error produced after creating onscreen surface: " +
+                                                 error);
                 }
             }
             return created;
@@ -359,8 +358,8 @@ public class FrameworkImpl implements Framework {
             if (ctx != null) {
                 String error = ctx.checkGLErrors();
                 if (error != null) {
-                    throw new FrameworkException(
-                            "OpenGL error produced after creating texture surface: " + error);
+                    throw new FrameworkException("OpenGL error produced after creating texture surface: " +
+                                                 error);
                 }
             }
 

@@ -427,34 +427,49 @@ public class DDSTexture {
 
     // Supported RGB types
     private static final DDPFMap[] pfRGB = new DDPFMap[] {
-            new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0, DataType.UNSIGNED_NORMALIZED_BYTE,
-                        DDPFMap.Swizzle.RGB),
-            new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0, DataType.UNSIGNED_NORMALIZED_BYTE,
-                        DDPFMap.Swizzle.BGR),
+                                                                 new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0,
+                                                                             DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                             DDPFMap.Swizzle.RGB),
+                                                                 new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0,
+                                                                             DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                             DDPFMap.Swizzle.BGR),
     };
 
     // Supported RGBA types
     private static final DDPFMap[] pfRGBA = new DDPFMap[] {
-            new DDPFMap(32, 0xff0000, 0xff00, 0xff, 0xff000000, DataType.INT_BIT_FIELD, DDPFMap.Swizzle.ARGB),
-            new DDPFMap(32, 0xff000000, 0xff0000, 0xff00, 0x000000ff, DataType.UNSIGNED_NORMALIZED_BYTE,
-                        DDPFMap.Swizzle.RGBA),
-            new DDPFMap(32, 0xff00, 0xff0000, 0xff000000, 0xff, DataType.UNSIGNED_NORMALIZED_BYTE,
-                        DDPFMap.Swizzle.BGRA)
+                                                                  new DDPFMap(32, 0xff0000, 0xff00, 0xff,
+                                                                              0xff000000,
+                                                                              DataType.INT_BIT_FIELD,
+                                                                              DDPFMap.Swizzle.ARGB),
+                                                                  new DDPFMap(32, 0xff000000, 0xff0000,
+                                                                              0xff00, 0x000000ff,
+                                                                              DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                              DDPFMap.Swizzle.RGBA),
+                                                                  new DDPFMap(32, 0xff00, 0xff0000,
+                                                                              0xff000000, 0xff,
+                                                                              DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                              DDPFMap.Swizzle.BGRA)
     };
 
     // Supported Luminance types
     private static final DDPFMap[] pfL = new DDPFMap[] {
-            new DDPFMap(8, 0xff, 0, 0, 0, DataType.UNSIGNED_NORMALIZED_BYTE, DDPFMap.Swizzle.R)
+                                                               new DDPFMap(8, 0xff, 0, 0, 0,
+                                                                           DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                           DDPFMap.Swizzle.R)
     };
 
     // Supported Luminance/Alpha types
     private static final DDPFMap[] pfLA = new DDPFMap[] {
-            new DDPFMap(16, 0xff, 0, 0, 0xff00, DataType.UNSIGNED_NORMALIZED_BYTE, DDPFMap.Swizzle.RG)
+                                                                new DDPFMap(16, 0xff, 0, 0, 0xff00,
+                                                                            DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                            DDPFMap.Swizzle.RG)
     };
 
     // Supported Alpha types
     private static final DDPFMap[] pfA = new DDPFMap[] {
-            new DDPFMap(8, 0, 0, 0, 0xff, DataType.UNSIGNED_NORMALIZED_BYTE, DDPFMap.Swizzle.R)
+                                                               new DDPFMap(8, 0, 0, 0, 0xff,
+                                                                           DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                           DDPFMap.Swizzle.R)
     };
 
     /*
@@ -816,7 +831,9 @@ public class DDSTexture {
             h.headerDX10 = new DDSHeader_DX10();
             int dxgi = readLEInt(in);
             h.headerDX10.dxgiFormat = (dxgi < 0 || dxgi >= DXGIPixelFormat.values().length ? DXGIPixelFormat
-                    .values()[0] : DXGIPixelFormat.values()[dxgi]);
+                                                                                                     .values()[0]
+                                                                                           : DXGIPixelFormat
+                                                                                                     .values()[dxgi]);
             h.headerDX10.resourceDimension = readLEInt(in);
             h.headerDX10.miscFlag = readLEInt(in);
             h.headerDX10.arraySize = readLEInt(in);

@@ -146,7 +146,7 @@ public class TextureLoader {
      * @param stream    The InputStream to read the texture from
      *
      * @return The read Texture, will be a Texture1D, Texture2D, TextureCubeMap or Texture3D (2d images use
-     *         Texture2D by default, see convertToRectangle())
+     * Texture2D by default, see convertToRectangle())
      *
      * @throws IOException if the stream can't be read from, it represents an invalid or unsupported texture
      *                     type, etc.
@@ -191,9 +191,8 @@ public class TextureLoader {
             throw new NullPointerException("Cannot convert a null BufferedImage");
         }
         if (image.getHeight() != 1) {
-            throw new IllegalArgumentException(
-                    "A BufferedImage can only be converted to a Texture1D with height == 1, not: " +
-                    image.getHeight());
+            throw new IllegalArgumentException("A BufferedImage can only be converted to a Texture1D with height == 1, not: " +
+                                               image.getHeight());
         }
 
         // draw the image into a known color model
@@ -311,8 +310,7 @@ public class TextureLoader {
 
         int side = image.getWidth() / 4;
         if (side * 4 != image.getWidth() || side * 3 != image.getHeight()) {
-            throw new IllegalArgumentException(
-                    "Base image doesn't have the 4x3 aspect ration necessary for a cube map");
+            throw new IllegalArgumentException("Base image doesn't have the 4x3 aspect ration necessary for a cube map");
         }
 
         RasterImage im = new RasterImage(image.getType(), side, side);

@@ -82,8 +82,8 @@ public class ContextManager {
         // We are assuming that we're in the right threading situation, so this is safe.
         // If this is called outside of the manager's lock then all bets are off, but that's their fault.
         if (lifecycle.getStatus() != Status.STARTING) {
-            throw new IllegalStateException(
-                    "LifeCycleManager must have status STARTING, not: " + lifecycle.getStatus());
+            throw new IllegalStateException("LifeCycleManager must have status STARTING, not: " +
+                                            lifecycle.getStatus());
         }
 
         // Do a simple exclusive lock to check for double-init attempts. This won't hurt threading
@@ -138,7 +138,7 @@ public class ContextManager {
      * @param acceptOnShutdown True if the task should be queued even while shutting down
      *
      * @return A Future linked to the queued task, will be cancelled if the ContextManager has been shutdown
-     *         or is shutting down
+     * or is shutting down
      *
      * @throws NullPointerException if task is null
      */

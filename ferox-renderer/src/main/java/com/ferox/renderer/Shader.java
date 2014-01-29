@@ -124,8 +124,8 @@ public interface Shader extends Resource {
 
         /**
          * @return Get the number of columns required to hold the complete data. Each column of a matrix gets
-         *         its own vertex attribute when used for shader attribute inputs. Uniforms only use one
-         *         uniform index regardless of the number of columns.
+         * its own vertex attribute when used for shader attribute inputs. Uniforms only use one uniform index
+         * regardless of the number of columns.
          */
         public int getColumnCount() {
             return col;
@@ -176,7 +176,7 @@ public interface Shader extends Resource {
 
         /**
          * @return True if the variable starts with 'gl_' and represents one of the special variables declared
-         *         in the (older) GLSL specs
+         * in the (older) GLSL specs
          */
         public boolean isReserved();
     }

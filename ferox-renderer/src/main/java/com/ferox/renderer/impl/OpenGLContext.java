@@ -64,7 +64,7 @@ public interface OpenGLContext {
 
     /**
      * @return Get the FFP renderer for this context. If the underlying OpenGL hardware no longer supports the
-     *         deprecated FFP pipeline, a shader implementation must be provided to emulate this interface
+     * deprecated FFP pipeline, a shader implementation must be provided to emulate this interface
      */
     public FixedFunctionRenderer getFixedFunctionRenderer();
 

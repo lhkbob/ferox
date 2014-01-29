@@ -207,8 +207,8 @@ public class CharacterSet {
 
         // pack all the glyphs
         RectanglePacker<GlyphMetrics> rp = new RectanglePacker<>(64, 64);
-        GlyphVector v = font
-                .layoutGlyphVector(context, characters, 0, characters.length, Font.LAYOUT_LEFT_TO_RIGHT);
+        GlyphVector v = font.layoutGlyphVector(context, characters, 0, characters.length,
+                                               Font.LAYOUT_LEFT_TO_RIGHT);
 
         GlyphMetrics g;
         Rectangle2D bounds;

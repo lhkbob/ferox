@@ -67,7 +67,7 @@ public interface HardwareAccessLayer {
      * @param surface The Surface to activate, or null to deactivate the current surface
      *
      * @return A Context to use for the activation lifetime of the given Surface, or null if surface was null
-     *         was or destroyed
+     * was or destroyed
      *
      * @throws IllegalArgumentException if the surface was created by another Framework
      */
@@ -86,7 +86,7 @@ public interface HardwareAccessLayer {
      * @throws IllegalArgumentException if the surface was created by another Framework, or if the dimensions
      *                                  of the surface and target don't match
      * @see #setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
-     *      com.ferox.renderer.Sampler.RenderTarget)
+     * com.ferox.renderer.Sampler.RenderTarget)
      */
     public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget singleColorBuffer);
 
@@ -109,7 +109,7 @@ public interface HardwareAccessLayer {
      *                                  the surface and target don't match, or if the surface has a depth
      *                                  render buffer but the depth target is non-null
      * @see #setActiveSurface(TextureSurface, com.ferox.renderer.Sampler.RenderTarget[],
-     *      com.ferox.renderer.Sampler.RenderTarget)
+     * com.ferox.renderer.Sampler.RenderTarget)
      */
     public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget singleColorBuffer,
                                     Sampler.RenderTarget depthBuffer);

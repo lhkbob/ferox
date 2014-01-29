@@ -95,11 +95,9 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
             throw new NullPointerException("Name cannot be null");
         }
         if (variableName.equals("gl_FragColor")) {
-            throw new IllegalArgumentException(
-                    "Cannot specify color buffer for gl_FragColor, it is implicit");
+            throw new IllegalArgumentException("Cannot specify color buffer for gl_FragColor, it is implicit");
         } else if (variableName.startsWith("gl_FragData[")) {
-            throw new IllegalArgumentException(
-                    "Cannot specify color buffer for gl_FragData[n], it is implicit");
+            throw new IllegalArgumentException("Cannot specify color buffer for gl_FragData[n], it is implicit");
         }
         mappedBuffers.put(variableName, buffer);
         return this;
@@ -142,8 +140,7 @@ public abstract class AbstractShaderBuilder extends AbstractBuilder<Shader, Shad
 
             // FIXME is this the right version? is this even a valid check to perform?
             if (geometryVersion < 140) {
-                throw new ResourceException(
-                        "GLSL version detected is below minimum required for geometry shader");
+                throw new ResourceException("GLSL version detected is below minimum required for geometry shader");
             }
         }
 
