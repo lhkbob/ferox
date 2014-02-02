@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.geom.text;
+package com.ferox.renderer.geom;
 
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
@@ -34,7 +34,6 @@ import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.BlendFactor;
 import com.ferox.renderer.Renderer.BlendFunction;
 import com.ferox.renderer.Renderer.Comparison;
-import com.ferox.renderer.geom.Geometry;
 
 import java.util.Arrays;
 import java.util.HashMap;

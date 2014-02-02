@@ -24,12 +24,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.geom.text;
+package com.ferox.renderer.geom;
 
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.Texture2D;
 import com.ferox.renderer.builder.Texture2DBuilder;
-import com.ferox.renderer.geom.text.RectanglePacker.Rectangle;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -213,7 +212,7 @@ public class CharacterSet {
         GlyphMetrics g;
         Rectangle2D bounds;
         GlyphMetrics[] glyphs = new GlyphMetrics[characters.length];
-        Rectangle[] glyphRectangles = new Rectangle[characters.length];
+        RectanglePacker.Rectangle[] glyphRectangles = new RectanglePacker.Rectangle[characters.length];
         for (int i = 0; i < characters.length; i++) {
             g = v.getGlyphMetrics(i);
             bounds = g.getBounds2D();
@@ -245,7 +244,7 @@ public class CharacterSet {
         g2d.scale(1, -1);
         g2d.translate(0, -height);
 
-        Rectangle r;
+        RectanglePacker.Rectangle r;
         Rectangle2D glyphBounds;
         Glyph glyph;
         // create an actual Glyph and render the char into the buffered image
