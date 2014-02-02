@@ -404,7 +404,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             }
         } else {
             // pass in everything in the block that's already been allocated
-            // for 1D, 2D, 3D there's only one image, and for cube maps it'6 and
+            // for 1D, 2D, 3D there's only one image, and for cube maps it's 6 and
             // will gracefully look like a call for glTexture2D
             for (int i = 0; i < imageFormats.length; i++) {
                 for (int j = 0; j < imageFormats[i].length; j++) {
