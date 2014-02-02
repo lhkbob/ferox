@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.texture;
+package com.ferox.renderer.loader;
 
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.ArrayImageData;
@@ -426,51 +426,40 @@ public class DDSTexture {
      */
 
     // Supported RGB types
-    private static final DDPFMap[] pfRGB = new DDPFMap[] {
-                                                                 new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0,
-                                                                             DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                             DDPFMap.Swizzle.RGB),
-                                                                 new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0,
-                                                                             DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                             DDPFMap.Swizzle.BGR),
-    };
+    private static final DDPFMap[] pfRGB = new DDPFMap[] { new DDPFMap(24, 0xff0000, 0xff00, 0xff, 0,
+                                                                       DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                       DDPFMap.Swizzle.RGB),
+                                                           new DDPFMap(24, 0xff, 0xff00, 0xff0000, 0,
+                                                                       DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                       DDPFMap.Swizzle.BGR), };
 
     // Supported RGBA types
-    private static final DDPFMap[] pfRGBA = new DDPFMap[] {
-                                                                  new DDPFMap(32, 0xff0000, 0xff00, 0xff,
-                                                                              0xff000000,
-                                                                              DataType.INT_BIT_FIELD,
-                                                                              DDPFMap.Swizzle.ARGB),
-                                                                  new DDPFMap(32, 0xff000000, 0xff0000,
-                                                                              0xff00, 0x000000ff,
-                                                                              DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                              DDPFMap.Swizzle.RGBA),
-                                                                  new DDPFMap(32, 0xff00, 0xff0000,
-                                                                              0xff000000, 0xff,
-                                                                              DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                              DDPFMap.Swizzle.BGRA)
-    };
+    private static final DDPFMap[] pfRGBA = new DDPFMap[] { new DDPFMap(32, 0xff0000, 0xff00, 0xff,
+                                                                        0xff000000, DataType.INT_BIT_FIELD,
+                                                                        DDPFMap.Swizzle.ARGB),
+                                                            new DDPFMap(32, 0xff000000, 0xff0000, 0xff00,
+                                                                        0x000000ff,
+                                                                        DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                        DDPFMap.Swizzle.RGBA),
+                                                            new DDPFMap(32, 0xff00, 0xff0000, 0xff000000,
+                                                                        0xff,
+                                                                        DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                        DDPFMap.Swizzle.BGRA) };
 
     // Supported Luminance types
-    private static final DDPFMap[] pfL = new DDPFMap[] {
-                                                               new DDPFMap(8, 0xff, 0, 0, 0,
-                                                                           DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                           DDPFMap.Swizzle.R)
-    };
+    private static final DDPFMap[] pfL = new DDPFMap[] { new DDPFMap(8, 0xff, 0, 0, 0,
+                                                                     DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                     DDPFMap.Swizzle.R) };
 
     // Supported Luminance/Alpha types
-    private static final DDPFMap[] pfLA = new DDPFMap[] {
-                                                                new DDPFMap(16, 0xff, 0, 0, 0xff00,
-                                                                            DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                            DDPFMap.Swizzle.RG)
-    };
+    private static final DDPFMap[] pfLA = new DDPFMap[] { new DDPFMap(16, 0xff, 0, 0, 0xff00,
+                                                                      DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                      DDPFMap.Swizzle.RG) };
 
     // Supported Alpha types
-    private static final DDPFMap[] pfA = new DDPFMap[] {
-                                                               new DDPFMap(8, 0, 0, 0, 0xff,
-                                                                           DataType.UNSIGNED_NORMALIZED_BYTE,
-                                                                           DDPFMap.Swizzle.R)
-    };
+    private static final DDPFMap[] pfA = new DDPFMap[] { new DDPFMap(8, 0, 0, 0, 0xff,
+                                                                     DataType.UNSIGNED_NORMALIZED_BYTE,
+                                                                     DDPFMap.Swizzle.R) };
 
     /*
      * More constants for the DDS header

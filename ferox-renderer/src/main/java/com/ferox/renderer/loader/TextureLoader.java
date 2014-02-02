@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.texture;
+package com.ferox.renderer.loader;
 
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.*;
@@ -47,13 +47,16 @@ import java.util.List;
  *
  * @author Michael Ludwig
  */
-public class TextureLoader {
+public final class TextureLoader {
     private static final List<ImageFileLoader> loaders = new ArrayList<>();
 
     // register some default loaders
     static {
         registerLoader(new ImageIOImageFileLoader());
         registerLoader(new DDSImageFileLoader());
+    }
+
+    private TextureLoader() {
     }
 
     /**
@@ -136,9 +139,9 @@ public class TextureLoader {
      * Read a texture from the given stream. This assumes that the texture begins with the next bytes read
      * from the stream, and that the stream is already opened.
      * <p/>
-     * <p/>
-     * For standard images (e.g. jpg, png, gif, etc.) Texture2D is used. If a TextureRectangle is desired, use
-     * convertToRectangle().
+     * For standard images (e.g. jpg, png, gif, etc.) Texture2D or Texture1D is used. If the file has a height
+     * of 1 pixel then it is a Texture1D otherwise it's 2D. DDS formats contain the type of texture within it,
+     * such as 1D, 2D, cube map, or array and the Sampler implementation is appropriately selected.
      * <p/>
      * This method does not close the stream, in case it's to be used later on.
      *
@@ -163,7 +166,8 @@ public class TextureLoader {
 
         synchronized (loaders) {
             for (int i = loaders.size() - 1; i >= 0; i--) {
-                t = loaders.get(i).readImage(framework, stream);
+                stream.reset();
+                t = loaders.get(i).read(framework, stream);
                 if (t != null) {
                     return t; // we've loaded it
                 }

@@ -24,32 +24,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.texture;
+package com.ferox.renderer.loader;
 
 import com.ferox.renderer.Framework;
-import com.ferox.renderer.Texture2D;
+import com.ferox.renderer.Sampler;
 import com.ferox.renderer.builder.Builder;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this depends on the ImageIO
- * loaders present on a given system).
+ * An implementation of ImageFileLoader that relies on DDSTexture to load .dds files.
  *
  * @author Michael Ludwig
  */
-public class ImageIOImageFileLoader implements ImageFileLoader {
+public class DDSImageFileLoader implements ImageFileLoader {
     @Override
-    public Builder<Texture2D> readImage(Framework framework, InputStream stream) throws IOException {
-        // I'm assuming that read() will restore the stream's position
-        // if no reader is found
-
-        BufferedImage b = ImageIO.read(stream);
-        if (b != null) {
-            return TextureLoader.createTexture2D(framework, b);
+    public Builder<? extends Sampler> read(Framework framework, InputStream stream) throws IOException {
+        if (DDSTexture.isDDSTexture(stream)) {
+            return DDSTexture.readTexture(framework, stream);
         } else {
             return null;
         }

@@ -24,42 +24,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ferox.renderer.texture;
+package com.ferox.renderer.loader;
 
 import com.ferox.renderer.Framework;
-import com.ferox.renderer.Sampler;
+import com.ferox.renderer.Texture;
 import com.ferox.renderer.builder.Builder;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * <p/>
- * ImageFileLoader is a simple interface that provides loading capabilities for various types of image data,
- * to then convert them into TextureProxies.
- * <p/>
- * To keep the interface simple, it only deals in streams, if a file format cannot be determined using just
- * streams, then this interface is not suitable for that type.
+ * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this depends on the ImageIO
+ * loaders present on a given system).
  *
  * @author Michael Ludwig
  */
-public interface ImageFileLoader {
-    /**
-     * <p/>
-     * Process the data from the given stream and return a TextureProxy representing its contents.
-     * <p/>
-     * Return null if the stream doesn't represent an image of any supported format. If it is an image of the
-     * expected type, but is otherwise invalid or unsupported, then throw an exception.
-     * <p/>
-     * If null is returned, the stream should not have its position modified. <br> <i>The stream should not be
-     * closed</i>
-     *
-     * @param framework The framework that will use the built texture
-     * @param stream    The InputStream to attempt to read an image from
-     *
-     * @return The read TextureProxy, or null if this stream doesn't match the expected format
-     *
-     * @throws IOException if there are any problems reading the texture
-     */
-    public Builder<? extends Sampler> readImage(Framework framework, InputStream stream) throws IOException;
+public class ImageIOImageFileLoader implements ImageFileLoader {
+    @Override
+    public Builder<? extends Texture> read(Framework framework, InputStream stream) throws IOException {
+        // I'm assuming that read() will restore the stream's position
+        // if no reader is found
+
+        BufferedImage b = ImageIO.read(stream);
+        if (b != null) {
+            if (b.getHeight() == 1) {
+                return TextureLoader.createTexture1D(framework, b);
+            } else {
+                return TextureLoader.createTexture2D(framework, b);
+            }
+        } else {
+            return null;
+        }
+    }
 }
