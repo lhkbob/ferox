@@ -87,13 +87,14 @@ public final class Rectangle {
     }
 
     private static class RectangleImpl implements Geometry {
-        // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+        // Holds vertices, normals, texture coordinates packed as V3F_N3F_TC2F_T4F
         // ordered in such a way as to not need indices
         private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
         private final VertexAttribute texCoords;
+        private final VertexAttribute tangents;
 
         private final AxisAlignedBox bounds;
 
@@ -159,10 +160,17 @@ public final class Rectangle {
             va[i++] = 1f;
             va[i++] = 1f;
 
+
+            TriangleIterator ti = TriangleIterator.Builder.newBuilder().vertices(va, 0, 9).normals(va, 3, 9)
+                                                          .textureCoordinates(va, 6, 10).tangents(va, 8, 8)
+                                                          .fromStripArray(0, 4).build();
+            Tangents.compute(ti);
+
             vertexAttributes = framework.newVertexBuffer().from(va).build();
-            vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
-            normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
-            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+            vertices = new VertexAttribute(vertexAttributes, 3, 0, 9);
+            normals = new VertexAttribute(vertexAttributes, 3, 3, 9);
+            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 10);
+            tangents = new VertexAttribute(vertexAttributes, 4, 8, 8);
 
             bounds = new AxisAlignedBox(va, 0, 5, 4);
         }
@@ -204,7 +212,7 @@ public final class Rectangle {
 
         @Override
         public VertexAttribute getTangents() {
-            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+            return tangents;
         }
 
         @Override

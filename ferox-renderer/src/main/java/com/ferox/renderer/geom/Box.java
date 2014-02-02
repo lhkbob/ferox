@@ -96,13 +96,14 @@ public final class Box {
     }
 
     private static class BoxImpl implements Geometry {
-        // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+        // Holds vertices, normals, texture coordinates packed as V3F_N3F_TC2F_T4F
         private final VertexBuffer vertexAttributes;
         private final ElementBuffer indices;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
         private final VertexAttribute texCoords;
+        private final VertexAttribute tangents;
 
         private final AxisAlignedBox bounds;
 
@@ -126,16 +127,15 @@ public final class Box {
             float minZ = (float) min.z;
 
             int i = 0;
-            float[] va = new float[192]; // 72v + 72n + 48t
+            float[] va = new float[288]; // 72v + 72n + 48tc + 96t
 
             // 3 verts per triangle, 2 triangles per face, 6 faces = 36
-            int[] indices = new int[] {
-                                              0, 1, 2, 2, 3, 0, // BACK
-                                              4, 5, 6, 6, 7, 4, // RIGHT
-                                              8, 9, 10, 10, 11, 8, // FRONT
-                                              12, 13, 14, 14, 15, 12, // LEFT
-                                              16, 17, 18, 18, 19, 16, // TOP
-                                              20, 21, 22, 22, 23, 20, // BOTTOM
+            int[] indices = new int[] { 0, 1, 2, 2, 3, 0, // BACK
+                                        4, 5, 6, 6, 7, 4, // RIGHT
+                                        8, 9, 10, 10, 11, 8, // FRONT
+                                        12, 13, 14, 14, 15, 12, // LEFT
+                                        16, 17, 18, 18, 19, 16, // TOP
+                                        20, 21, 22, 22, 23, 20, // BOTTOM
             };
             this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
 
@@ -151,6 +151,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
@@ -162,6 +165,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -173,6 +179,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = minY;
@@ -184,6 +193,8 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
 
             // right
             /* v */
@@ -197,6 +208,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
@@ -208,6 +222,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -219,6 +236,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -230,6 +250,8 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
 
             // front
             /* v */
@@ -243,6 +265,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
@@ -254,6 +279,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = minY;
@@ -265,6 +293,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -276,6 +307,8 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
 
             // left
             /* v */
@@ -289,6 +322,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
@@ -300,6 +336,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = minY;
@@ -311,6 +350,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = minY;
@@ -322,6 +364,8 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
 
             // top
             /* v */
@@ -335,6 +379,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
@@ -346,6 +393,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = maxY;
@@ -357,6 +407,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = maxY;
@@ -368,6 +421,8 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
 
             // bottom
             /* v */
@@ -381,6 +436,9 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -392,6 +450,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 1f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = maxX;
             va[i++] = minY;
@@ -403,6 +464,9 @@ public final class Box {
             /* t */
             va[i++] = 0f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
             /* v */
             va[i++] = minX;
             va[i++] = minY;
@@ -414,11 +478,19 @@ public final class Box {
             /* t */
             va[i++] = 1f;
             va[i++] = 0f;
+            // skip tangent
+            i += 4;
+
+            TriangleIterator ti = TriangleIterator.Builder.newBuilder().vertices(va, 0, 9).normals(va, 3, 9)
+                                                          .textureCoordinates(va, 6, 10).tangents(va, 8, 8)
+                                                          .fromElements(indices, 0, indices.length).build();
+            Tangents.compute(ti);
 
             vertexAttributes = framework.newVertexBuffer().from(va).build();
-            vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
-            normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
-            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+            vertices = new VertexAttribute(vertexAttributes, 3, 0, 9);
+            normals = new VertexAttribute(vertexAttributes, 3, 3, 9);
+            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 10);
+            tangents = new VertexAttribute(vertexAttributes, 4, 8, 8);
 
             bounds = new AxisAlignedBox(new Vector3(minX, minY, minZ), new Vector3(maxX, maxY, maxZ));
         }
@@ -460,7 +532,7 @@ public final class Box {
 
         @Override
         public VertexAttribute getTangents() {
-            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+            return tangents;
         }
 
         @Override

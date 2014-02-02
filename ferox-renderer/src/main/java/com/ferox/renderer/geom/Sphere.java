@@ -83,11 +83,12 @@ public final class Sphere {
     }
 
     private static class SphereImpl implements Geometry {
-        // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+        // Holds vertices, normals, tangents, texture coordinates packed as V3F_N3F_TC2F_T4F
         private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
+        private final VertexAttribute tangents;
         private final VertexAttribute texCoords;
 
         private final ElementBuffer indices;
@@ -123,7 +124,7 @@ public final class Sphere {
             zCoord[res] = zCoord[0];
             u[res] = 1f;
 
-            float[] va = new float[vertexCount * 8]; // 3v + 3n + 2tc
+            float[] va = new float[vertexCount * 12]; // 3v + 3n + 2tc + 4t
 
             float floatRadius = (float) radius;
             float yAngle = PI;
@@ -149,6 +150,12 @@ public final class Sphere {
 
                     va[index++] = u[du]; // tx
                     va[index++] = tv; // ty
+
+                    // calculate ideal tangent vectors
+                    va[index++] = -zCoord[du];
+                    va[index++] = 0.0f;
+                    va[index++] = xCoord[du];
+                    va[index++] = 1.0f;
                 }
             }
 
@@ -169,11 +176,16 @@ public final class Sphere {
                 }
             }
 
+            if (index != indices.length) {
+                throw new RuntimeException("bad length computation");
+            }
+
             this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
             vertexAttributes = framework.newVertexBuffer().from(va).build();
-            vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
-            normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
-            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+            vertices = new VertexAttribute(vertexAttributes, 3, 0, 9);
+            normals = new VertexAttribute(vertexAttributes, 3, 3, 9);
+            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 10);
+            tangents = new VertexAttribute(vertexAttributes, 4, 8, 8);
 
             bounds = new AxisAlignedBox(new Vector3(-radius, -radius, -radius),
                                         new Vector3(radius, radius, radius));
@@ -216,7 +228,7 @@ public final class Sphere {
 
         @Override
         public VertexAttribute getTangents() {
-            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+            return tangents;
         }
 
         @Override

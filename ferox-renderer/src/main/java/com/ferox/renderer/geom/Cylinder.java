@@ -105,12 +105,13 @@ public final class Cylinder {
     }
 
     private static class CylinderImpl implements Geometry {
-        // Holds vertices, normals, texture coordinates packed as V3F_N3F_T2F
+        // Holds vertices, normals, texture coordinates packed as V3F_N3F_TC2F_T4F
         private final VertexBuffer vertexAttributes;
 
         private final VertexAttribute vertices;
         private final VertexAttribute normals;
         private final VertexAttribute texCoords;
+        private final VertexAttribute tangents;
 
         private final ElementBuffer indices;
 
@@ -152,8 +153,8 @@ public final class Cylinder {
             // center points (for different TCs) in the center of the caps
             int vertexCount = 6 * (res + 1);
 
-            float[] va = new float[vertexCount * 8]; // 3v + 3n + 2tc
-            int[] indices = new int[18 * res];
+            float[] va = new float[vertexCount * 12]; // 3v + 3n + 2tc + 4t
+            int[] indices = new int[12 * res]; // 4 sections of res tris
 
             int vi = 0;
             int ii = 0;
@@ -172,6 +173,12 @@ public final class Cylinder {
                 va[vi++] = uCoord[i]; // tx
                 va[vi++] = 1; // ty
 
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
+
                 // center
                 va[vi++] = 0; // vx
                 va[vi++] = (float) (.5 * height); // vy
@@ -184,6 +191,12 @@ public final class Cylinder {
                 va[vi++] = uCoord[i]; // tx
                 va[vi++] = 1; // ty
 
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
+
                 if (i != res) {
                     // form triangle with proper winding
                     indices[ii++] = i * 2;
@@ -193,7 +206,7 @@ public final class Cylinder {
             }
 
             // second cap
-            int offset = vi / 8;
+            int offset = vi / 12;
             for (int i = 0; i <= res; i++) {
                 // outer point
                 va[vi++] = xCoord[i]; // vx
@@ -207,6 +220,12 @@ public final class Cylinder {
                 va[vi++] = uCoord[i]; // tx
                 va[vi++] = 0; // ty
 
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
+
                 // center
                 va[vi++] = 0; // vx
                 va[vi++] = (float) (-.5 * height); // vy
@@ -219,6 +238,12 @@ public final class Cylinder {
                 va[vi++] = uCoord[i]; // tx
                 va[vi++] = 0; // ty
 
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
+
                 if (i != res) {
                     // form a triangle with proper winding
                     indices[ii++] = offset + i * 2;
@@ -228,20 +253,9 @@ public final class Cylinder {
             }
 
             // tube
-            offset = vi / 8;
+            offset = vi / 12;
             for (int i = 0; i <= res; i++) {
                 // place two vertices in panel
-                va[vi++] = xCoord[i];
-                va[vi++] = (float) (.5 * height);
-                va[vi++] = zCoord[i];
-
-                va[vi++] = xCoord[i];
-                va[vi++] = 0;
-                va[vi++] = zCoord[i];
-
-                va[vi++] = uCoord[i];
-                va[vi++] = 1;
-
                 va[vi++] = xCoord[i];
                 va[vi++] = (float) (-.5 * height);
                 va[vi++] = zCoord[i];
@@ -251,17 +265,40 @@ public final class Cylinder {
                 va[vi++] = zCoord[i];
 
                 va[vi++] = uCoord[i];
+                va[vi++] = 1;
+
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
+
+                va[vi++] = xCoord[i];
+                va[vi++] = (float) (.5 * height);
+                va[vi++] = zCoord[i];
+
+                va[vi++] = xCoord[i];
                 va[vi++] = 0;
+                va[vi++] = zCoord[i];
+
+                va[vi++] = uCoord[i];
+                va[vi++] = 0;
+
+                // calculate ideal normalized tangent vector
+                va[vi++] = (float) (zCoord[i] / radius);
+                va[vi++] = 0.0f;
+                va[vi++] = (float) (-xCoord[i] / radius);
+                va[vi++] = 1.0f;
 
                 if (i != res) {
                     // form two triangles with proper winding
                     indices[ii++] = offset + i * 2;
-                    indices[ii++] = offset + i * 2 + 2; // (i + 1) * 2
                     indices[ii++] = offset + i * 2 + 1;
+                    indices[ii++] = offset + i * 2 + 2;
 
-                    indices[ii++] = offset + i * 2 + 2; // (i + 1) * 2 + 1
-                    indices[ii++] = offset + i * 2 + 3;
+                    indices[ii++] = offset + i * 2 + 2;
                     indices[ii++] = offset + i * 2 + 1;
+                    indices[ii++] = offset + i * 2 + 3;
                 }
             }
 
@@ -287,7 +324,7 @@ public final class Cylinder {
 
             Matrix3 n = new Matrix3(m).inverse();
 
-            for (int i = 0; i < va.length; i += 8) {
+            for (int i = 0; i < va.length; i += 12) {
                 // vertex
                 u.set(va, i);
                 u.mul(m, u).add(origin);
@@ -297,13 +334,19 @@ public final class Cylinder {
                 u.set(va, i + 3);
                 u.mul(u, n);
                 u.get(va, i + 3);
+
+                // tangent
+                u.set(va, i + 8);
+                u.mul(u, n);
+                u.get(va, i + 8);
             }
 
             this.indices = framework.newElementBuffer().fromUnsigned(indices).build();
             vertexAttributes = framework.newVertexBuffer().from(va).build();
-            vertices = new VertexAttribute(vertexAttributes, 3, 0, 5);
-            normals = new VertexAttribute(vertexAttributes, 3, 3, 5);
-            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 6);
+            vertices = new VertexAttribute(vertexAttributes, 3, 0, 9);
+            normals = new VertexAttribute(vertexAttributes, 3, 3, 9);
+            texCoords = new VertexAttribute(vertexAttributes, 2, 6, 10);
+            tangents = new VertexAttribute(vertexAttributes, 4, 8, 8);
 
             bounds = new AxisAlignedBox(new Vector3(-radius, -height, -radius),
                                         new Vector3(radius, height, radius));
@@ -346,7 +389,7 @@ public final class Cylinder {
 
         @Override
         public VertexAttribute getTangents() {
-            throw new UnsupportedOperationException("NOT IMPLEMENTED YET");
+            return tangents;
         }
 
         @Override
