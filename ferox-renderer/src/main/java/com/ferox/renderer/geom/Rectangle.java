@@ -107,9 +107,9 @@ public final class Rectangle {
                 throw new NullPointerException("Axis cannot be null");
             }
 
-            Vector3 normal = new Vector3().cross(xAxis, yAxis);
+            Vector3 normal = new Vector3().cross(xAxis, yAxis).normalize();
 
-            float[] va = new float[32];
+            float[] va = new float[48];
             int i = 0;
 
             // upper-left
@@ -124,6 +124,11 @@ public final class Rectangle {
             va[i++] = 0f;
             va[i++] = 1f;
 
+            va[i++] = (float) xAxis.x;
+            va[i++] = (float) xAxis.y;
+            va[i++] = (float) xAxis.z;
+            va[i++] = 1.0f;
+
             // lower-left
             va[i++] = (float) (xAxis.x * left + yAxis.x * bottom);
             va[i++] = (float) (xAxis.y * left + yAxis.y * bottom);
@@ -135,6 +140,11 @@ public final class Rectangle {
 
             va[i++] = 0f;
             va[i++] = 0f;
+
+            va[i++] = (float) xAxis.x;
+            va[i++] = (float) xAxis.y;
+            va[i++] = (float) xAxis.z;
+            va[i++] = 1.0f;
 
             // lower-right
             va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
@@ -148,6 +158,11 @@ public final class Rectangle {
             va[i++] = 1f;
             va[i++] = 0f;
 
+            va[i++] = (float) xAxis.x;
+            va[i++] = (float) xAxis.y;
+            va[i++] = (float) xAxis.z;
+            va[i++] = 1.0f;
+
             // upper-right
             va[i++] = (float) (xAxis.x * right + yAxis.x * top);
             va[i++] = (float) (xAxis.y * right + yAxis.y * top);
@@ -160,11 +175,10 @@ public final class Rectangle {
             va[i++] = 1f;
             va[i++] = 1f;
 
-
-            TriangleIterator ti = TriangleIterator.Builder.newBuilder().vertices(va, 0, 9).normals(va, 3, 9)
-                                                          .textureCoordinates(va, 6, 10).tangents(va, 8, 8)
-                                                          .fromStripArray(0, 4).build();
-            Tangents.compute(ti);
+            va[i++] = (float) xAxis.x;
+            va[i++] = (float) xAxis.y;
+            va[i++] = (float) xAxis.z;
+            va[i++] = 1.0f;
 
             vertexAttributes = framework.newVertexBuffer().from(va).build();
             vertices = new VertexAttribute(vertexAttributes, 3, 0, 9);
