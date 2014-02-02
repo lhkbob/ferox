@@ -32,6 +32,10 @@ package com.ferox.renderer;
  * interpretations are specified in this enum to map from Java's primitives to the majority of types needed.
  * If the GPU requires a more complex type, the {@link DataType#INT_BIT_FIELD} value represents arbitrary
  * 32-bit patterns.
+ * <p/>
+ * Byte ordering for multi-byte data types is always assumed to be big-Endian (e.g. Java's).  They are
+ * converted to native byte order as necessary by the Framework implementation when the input data is being
+ * processed.
  *
  * @author Michael Ludwig
  */
