@@ -86,55 +86,57 @@ public interface Sampler extends Resource {
          * The sampler has a single component per pixel that stores depth data. This will only ever be used by
          * samplers that extend {@link DepthMap}.
          */
-        DEPTH(1),
+        DEPTH(1, false),
         /**
          * The sampler has two components per pixel, holding depth and stencil information. In this case, the
          * sampler can provide a stencil buffer when doing render-to-texture. This will only ever be used by
          * samplers that extend {@link DepthMap}.
          */
-        DEPTH_STENCIL(2),
+        DEPTH_STENCIL(2, false),
         /**
          * The sampler provides only the red component values per pixel. When used in a shader, the green and
          * blue components default to 0 and the alpha defaults to 1. On older hardware, the old LUMINANCE
          * OpenGL format may be used to approximate support. This will only ever be used by samplers that
          * extend {@link Texture}.
          */
-        R(1),
+        R(1, false),
         /**
          * The sampler provides the red and green component values. When used in a shader, the blue component
          * defaults to 0 and alpha to 1. On older hardware, the old LUMINANCE_ALPHA OpenGL format may be used
          * to approximate support. This will only ever be used by samplers that extend {@link Texture}.
          */
-        RG(2),
+        RG(2, false),
         /**
          * The sampler provides red, green, and blue component values. The alpha value defaults to 1. This
          * will only ever be used by samplers that extend {@link Texture}.
          */
-        RGB(3),
+        RGB(3, false),
         /**
          * The sampler provides values for all four color components. This will only be used by samplers that
          * extend {@link Texture}.
          */
-        RGBA(4),
+        RGBA(4, false),
         /**
          * The sampler provides RGB components and a default alpha 1 but the internal data is compressed in a
          * manner supported by the hardware. Compressed formats cannot be used as render targets for a
          * TextureSurface and exceptions will be thrown if attempted. This will only be used by samplers that
          * extend {@link Texture}.
          */
-        COMPRESSED_RGB(3),
+        COMPRESSED_RGB(3, true),
         /**
          * The sampler provides RGBA component data but the internal data is compressed in a manner supported
          * by the hardware. Compressed formats cannot be used as render targets for a TextureSurface and
          * exceptions will be thrown if attempted. This will only be used by samplers that extend {@link
          * Texture}.
          */
-        COMPRESSED_RGBA(4);
+        COMPRESSED_RGBA(4, true);
 
-        private int componentCount;
+        private final int componentCount;
+        private final boolean compressed;
 
-        private TexelFormat(int count) {
+        private TexelFormat(int count, boolean compressed) {
             componentCount = count;
+            this.compressed = compressed;
         }
 
         /**
@@ -142,6 +144,13 @@ public interface Sampler extends Resource {
          */
         public int getComponentCount() {
             return componentCount;
+        }
+
+        /**
+         * @return True if the format is compressed data
+         */
+        public boolean isCompressed() {
+            return compressed;
         }
     }
 
