@@ -9,9 +9,9 @@ import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Tangents;
 import com.ferox.renderer.geom.TriangleIterator;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -20,7 +20,7 @@ import java.util.*;
  */
 public class ASCIIPLYFileLoader implements GeometryFileLoader {
     @Override
-    public Geometry read(Framework framework, InputStream input) throws IOException {
+    public Geometry read(Framework framework, BufferedInputStream input) throws IOException {
         try (BufferedReader in = new BufferedReader(new InputStreamReader(input))) {
             VertexElementDefinition vertices = null;
             FaceElementDefinition faces = null;
@@ -30,11 +30,17 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
             int currentElement = 0;
             int elementCount = 0;
 
+            // FIXME if this file is total hocum, then a new line could read way more than 32 bytes
+            // and then mark is hosed, should handle the whole parsing more like how it's done in Radiance or DDS loaders
+            input.mark(32);
             String line = in.readLine();
             if (!"ply".equalsIgnoreCase(line)) {
+                input.reset();
                 return null;
             }
+            line = in.readLine();
             if (!"format ascii 1.0".equalsIgnoreCase(line)) {
+                input.reset();
                 return null;
             }
 
@@ -99,15 +105,22 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
 
             // compute additional vector attributes
             // FIXME compute normals here as well, if they're not provided
-            TriangleIterator ti = TriangleIterator.Builder.newBuilder().vertices(v.pos).normals(v.norm)
-                                                          .textureCoordinates(v.tc).tangents(v.tan)
-                                                          .fromElements(i, 0, i.length).build();
-            Tangents.compute(ti);
+            if (v.hasTexCoords()) {
+                TriangleIterator ti = TriangleIterator.Builder.newBuilder().vertices(v.pos).normals(v.norm)
+                                                              .textureCoordinates(v.tc).tangents(v.tan)
+                                                              .fromElements(i, 0, i.length).build();
+                Tangents.compute(ti);
+            }
 
             vertices = new VertexAttribute(framework.newVertexBuffer().from(v.pos).build(), 3);
             normals = new VertexAttribute(framework.newVertexBuffer().from(v.norm).build(), 3);
-            texCoords = new VertexAttribute(framework.newVertexBuffer().from(v.tc).build(), 2);
-            tangents = new VertexAttribute(framework.newVertexBuffer().from(v.tan).build(), 4);
+            if (v.hasTexCoords()) {
+                texCoords = new VertexAttribute(framework.newVertexBuffer().from(v.tc).build(), 2);
+                tangents = new VertexAttribute(framework.newVertexBuffer().from(v.tan).build(), 4);
+            } else {
+                texCoords = null;
+                tangents = null;
+            }
 
 
             indices = framework.newElementBuffer().fromUnsigned(i).build();
@@ -183,7 +196,8 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
     }
 
     private static class VertexElementDefinition extends ElementDefinition {
-        private static final List<String> SPECIAL = Arrays.asList("x", "y", "z", "nx", "ny", "nz", "u", "v");
+        private static final List<String> SPECIAL = Arrays.asList("x", "y", "z", "nx", "ny", "nz", "u", "v",
+                                                                  "s", "t");
 
         final float[] pos;
         final float[] norm;
@@ -208,7 +222,8 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
         }
 
         boolean hasTexCoords() {
-            return properties.containsKey("u") && properties.containsKey("v");
+            return (properties.containsKey("u") && properties.containsKey("v")) ||
+                   (properties.containsKey("s") && properties.containsKey("t"));
         }
 
         // TODO add support for vertex colors and the red, green, blue properties
@@ -240,8 +255,13 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
                 norm[i * 3 + 2] = Float.parseFloat(line[properties.get("nz")]);
             }
             if (hasTexCoords()) {
-                pos[i * 2] = Float.parseFloat(line[properties.get("u")]);
-                pos[i * 2 + 1] = Float.parseFloat(line[properties.get("v")]);
+                if (properties.containsKey("u") && properties.containsKey("v")) {
+                    tc[i * 2] = Float.parseFloat(line[properties.get("u")]);
+                    tc[i * 2 + 1] = Float.parseFloat(line[properties.get("v")]);
+                } else {
+                    tc[i * 2] = Float.parseFloat(line[properties.get("s")]);
+                    tc[i * 2 + 1] = Float.parseFloat(line[properties.get("t")]);
+                }
             }
         }
     }
@@ -256,10 +276,11 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
 
         @Override
         void addProperty(String[] line) throws IOException {
-            if (line[line.length - 1].equalsIgnoreCase("vertex_index")) {
-                if (line.length != 5 || line[1].equalsIgnoreCase("list") ||
-                    !line[2].equalsIgnoreCase("uchar") || !line[3].equalsIgnoreCase("int")) {
-                    throw new IOException("Face vertex_index property must be list uchar int, any other type is unsupported");
+            if (line[line.length - 1].equalsIgnoreCase("vertex_index") ||
+                line[line.length - 1].equalsIgnoreCase("vertex_indices")) {
+                if (line.length != 5 || !line[1].equalsIgnoreCase("list") ||
+                    line[2].equalsIgnoreCase("float") || line[3].equalsIgnoreCase("float")) {
+                    throw new IOException("Face vertex_index property must be list with integer params, any other type is unsupported");
                 }
             }
             super.addProperty(line);
@@ -268,11 +289,15 @@ public class ASCIIPLYFileLoader implements GeometryFileLoader {
         @Override
         void processElement(String[] line, int i) {
             // skip if we don't have the conventional vertex_index list defined
-            if (!properties.containsKey("vertex_index")) {
+            int base;
+            if (properties.containsKey("vertex_index")) {
+                base = properties.get("vertex_index");
+            } else if (properties.containsKey("vertex_indices")) {
+                base = properties.get("vertex_indices");
+            } else {
                 return;
             }
 
-            int base = properties.get("vertex_index");
             int ct = Integer.parseInt(line[base]);
             if (ct == 3) {
                 // plain triangle

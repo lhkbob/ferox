@@ -117,8 +117,11 @@ public final class GeometryLoader {
      */
     public static Geometry readGeometry(Framework framework, InputStream stream) throws IOException {
         // make sure we're buffered
-        if (!(stream instanceof BufferedInputStream)) {
-            stream = new BufferedInputStream(stream);
+        BufferedInputStream in;
+        if (stream instanceof BufferedInputStream) {
+            in = (BufferedInputStream) stream;
+        } else {
+            in = new BufferedInputStream(stream);
         }
 
         // load the file
@@ -126,8 +129,7 @@ public final class GeometryLoader {
 
         synchronized (loaders) {
             for (int i = loaders.size() - 1; i >= 0; i--) {
-                stream.reset();
-                t = loaders.get(i).read(framework, stream);
+                t = loaders.get(i).read(framework, in);
                 if (t != null) {
                     return t; // we've loaded it
                 }
