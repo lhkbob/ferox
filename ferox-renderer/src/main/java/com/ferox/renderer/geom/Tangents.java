@@ -32,6 +32,11 @@ public final class Tangents {
             double t1 = ti.getTextureCoordinateV(1) - ti.getTextureCoordinateV(0);
             double t2 = ti.getTextureCoordinateV(2) - ti.getTextureCoordinateV(0);
 
+            //            double s1 = d1.x;
+            //            double s2 = d2.x;
+            //            double t1 = d1.y;
+            //            double t2 = d2.y;
+
             double r = 1.0 / (s1 * t2 - s2 * t1);
             // primary tangent direction and accumulate
             dTan.scale(d1, t2).addScaled(-t1, d2).scale(r);
@@ -65,7 +70,7 @@ public final class Tangents {
                     ti.setTangent(0, t);
                 } else {
                     // degenerate triangle
-                    ti.setTangent(0, t.set(0.0, 0.0, 0.0, 0.0));
+                    ti.setTangent(0, t.set(1.0, 1.0, 1.0, 1.0));
                 }
             } // else already been processed
 

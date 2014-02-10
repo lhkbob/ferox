@@ -81,11 +81,7 @@ abstract class AbstractTriangleIterator implements TriangleIterator {
             throw new IllegalStateException("No texture coordinate attribute defined");
         }
         int idx = t.getDataIndex(getVertexIndex(p));
-        float tc = t.data[idx];
-        //        if (tc > 1.0)
-        //            return 2.0 - tc;
-        //        else
-        return tc;
+        return t.data[idx];
     }
 
     @Override
@@ -96,11 +92,7 @@ abstract class AbstractTriangleIterator implements TriangleIterator {
             throw new IllegalStateException("No texture coordinate attribute defined");
         }
         int idx = t.getDataIndex(getVertexIndex(p));
-        float tc = t.data[idx + 1];
-        //        if (tc > 1.0)
-        //            return 2.0 - tc;
-        //        else
-        return tc;
+        return t.data[idx + 1];
     }
 
     @Override

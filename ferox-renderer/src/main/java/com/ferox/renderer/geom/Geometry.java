@@ -40,6 +40,21 @@ import com.ferox.renderer.VertexAttribute;
  *
  * @author Michael Ludwig
  */
+// FIXME I would still like a more flexible geometry representation that supports more dynamic interaction
+// This may be possible with the iterator like interfaces, especially if they support adding and removing triangles
+// but then we need access to iterating over vertices directly and all their attributes.
+// Ideally also it wouldn't need to produce the VBOs immediately tied to a framework, but could be processed etc
+// and then pushed to the framework when desired.
+// This is similar to the desire to have access to texture data and mutate it as well.  With all the
+// available formats this becomes a challenge.  But maybe there's a way where we can have dynamic
+// non-GPU resources that have a more well-defined and restricted format for programmatic access and the
+// GPU resources are the data-hidden ones.
+//
+// Another thought is that texture mutation is far less critical, but geometry info gets used in many
+// contexts.  It might make sense to define the more mathematical geometry model in the math project
+// and have the loaders there, and then the renderer module has support to convert them into VBOs.
+// We may even be able to move the scene components to the math model and cache the VBOs for the particular
+// framework that's rendering it...
 public interface Geometry {
     /**
      * Return a reasonably tight-fitting bounds over the vertices of this Geometry. The returned bounds should
