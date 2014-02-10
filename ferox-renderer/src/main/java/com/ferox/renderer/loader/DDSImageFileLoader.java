@@ -30,8 +30,8 @@ import com.ferox.renderer.Framework;
 import com.ferox.renderer.Sampler;
 import com.ferox.renderer.builder.Builder;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * An implementation of ImageFileLoader that relies on DDSTexture to load .dds files.
@@ -40,7 +40,8 @@ import java.io.InputStream;
  */
 public class DDSImageFileLoader implements ImageFileLoader {
     @Override
-    public Builder<? extends Sampler> read(Framework framework, InputStream stream) throws IOException {
+    public Builder<? extends Sampler> read(Framework framework, BufferedInputStream stream)
+            throws IOException {
         if (DDSTexture.isDDSTexture(stream)) {
             return DDSTexture.readTexture(framework, stream);
         } else {

@@ -54,6 +54,7 @@ public final class TextureLoader {
     static {
         registerLoader(new ImageIOImageFileLoader());
         registerLoader(new DDSImageFileLoader());
+        registerLoader(new RadianceImageLoader());
     }
 
     private TextureLoader() {
@@ -105,6 +106,8 @@ public final class TextureLoader {
      *
      * @throws IOException if the file can't be read, if it's unsupported, etc.
      */
+    // FIXME returning builders does not let you configure the texture parameters, we need a better option
+    // consider the geometry approach, where we don't load directly to the GPU resource?
     public static Builder<? extends Sampler> readTexture(Framework framework, File file) throws IOException {
         if (file == null) {
             throw new IOException("Cannot load a texture image from a null file");
@@ -157,8 +160,11 @@ public final class TextureLoader {
     public static Builder<? extends Sampler> readTexture(Framework framework, InputStream stream)
             throws IOException {
         // make sure we're buffered
-        if (!(stream instanceof BufferedInputStream)) {
-            stream = new BufferedInputStream(stream);
+        BufferedInputStream in;
+        if (stream instanceof BufferedInputStream) {
+            in = (BufferedInputStream) stream;
+        } else {
+            in = new BufferedInputStream(stream);
         }
 
         // load the file
@@ -166,8 +172,7 @@ public final class TextureLoader {
 
         synchronized (loaders) {
             for (int i = loaders.size() - 1; i >= 0; i--) {
-                stream.reset();
-                t = loaders.get(i).read(framework, stream);
+                t = loaders.get(i).read(framework, in);
                 if (t != null) {
                     return t; // we've loaded it
                 }

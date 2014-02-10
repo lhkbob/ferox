@@ -83,7 +83,7 @@ public class DDSTexture {
      * @throws IOException if an IOException occurs while reading, or if the stream is an invalid or
      *                     unsupported DDS texture
      */
-    public static Builder<? extends Sampler> readTexture(Framework framework, InputStream stream)
+    public static Builder<? extends Sampler> readTexture(Framework framework, BufferedInputStream stream)
             throws IOException {
         if (stream == null) {
             throw new IOException("Cannot read a texture from a null stream");
@@ -110,14 +110,11 @@ public class DDSTexture {
      *
      * @throws NullPointerException if stream is null
      */
-    public static boolean isDDSTexture(InputStream stream) {
+    public static boolean isDDSTexture(BufferedInputStream stream) {
         if (stream == null) {
             throw new NullPointerException("Cannot test a null stream");
         }
 
-        if (!(stream instanceof BufferedInputStream)) {
-            stream = new BufferedInputStream(stream); // this way marking is supported
-        }
         try {
             DDSHeader header;
             try {
@@ -258,6 +255,7 @@ public class DDSTexture {
      * Also keeps track of byte size of the glType primitive and the number of
      * primitives required to store a color element.
      */
+    // FIXME handle sRGB correctly somehow
     private static enum DXGIPixelFormat {
         DXGI_FORMAT_UNKNOWN,
         DXGI_FORMAT_R32G32B32A32_TYPELESS,
@@ -330,23 +328,23 @@ public class DDSTexture {
         DXGI_FORMAT_R8G8_B8G8_UNORM,
         DXGI_FORMAT_G8R8_G8B8_UNORM,
         // DXT1
-        DXGI_FORMAT_BC1_TYPELESS(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
+        DXGI_FORMAT_BC1_TYPELESS(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
         // DXT1
-        DXGI_FORMAT_BC1_UNORM(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
+        DXGI_FORMAT_BC1_UNORM(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
         // DXT1
-        DXGI_FORMAT_BC1_UNORM_SRGB(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
+        DXGI_FORMAT_BC1_UNORM_SRGB(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGB),
         // DXT3
-        DXGI_FORMAT_BC2_TYPELESS(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC2_TYPELESS(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         // DXT3
-        DXGI_FORMAT_BC2_UNORM(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC2_UNORM(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         // DXT3
-        DXGI_FORMAT_BC2_UNORM_SRGB(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC2_UNORM_SRGB(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         // DXT5
-        DXGI_FORMAT_BC3_TYPELESS(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC3_TYPELESS(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         // DXT5
-        DXGI_FORMAT_BC3_UNORM(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC3_UNORM(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         // DXT5
-        DXGI_FORMAT_BC3_UNORM_SRGB(DataType.UNSIGNED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
+        DXGI_FORMAT_BC3_UNORM_SRGB(DataType.UNSIGNED_NORMALIZED_BYTE, Sampler.TexelFormat.COMPRESSED_RGBA),
         DXGI_FORMAT_BC4_TYPELESS,
         DXGI_FORMAT_BC4_UNORM,
         DXGI_FORMAT_BC4_SNORM,
@@ -931,6 +929,7 @@ public class DDSTexture {
         try {
             Class<?> arrayType = data.getClass();
             Method m = layer.getClass().getMethod(methodName, arrayType);
+            m.setAccessible(true);
             m.invoke(layer, data);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException("Bug in format method selection", e);
@@ -953,7 +952,7 @@ public class DDSTexture {
             case DXGI_FORMAT_BC1_UNORM:
             case DXGI_FORMAT_BC1_UNORM_SRGB:
                 // DXT1 buffer size
-                return (int) (8 * Math.ceil(w / 4.0) * Math.ceil(4.0));
+                return (int) (8 * Math.ceil(w / 4.0) * Math.ceil(h / 4.0));
             case DXGI_FORMAT_BC2_TYPELESS:
             case DXGI_FORMAT_BC2_UNORM:
             case DXGI_FORMAT_BC2_UNORM_SRGB:
@@ -961,7 +960,7 @@ public class DDSTexture {
             case DXGI_FORMAT_BC3_UNORM:
             case DXGI_FORMAT_BC3_UNORM_SRGB:
                 // DXT3 and DXT5 buffer size
-                return (int) (16 * Math.ceil(w / 4.0) * Math.ceil(4.0));
+                return (int) (16 * Math.ceil(w / 4.0) * Math.ceil(h / 4.0));
             default:
                 return format.format.getComponentCount() * format.type.getByteCount() * w * h * d;
             }

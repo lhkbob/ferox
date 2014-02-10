@@ -32,8 +32,8 @@ import com.ferox.renderer.builder.Builder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * An ImageFileLoader that uses ImageIO to load files in gif, png, or jpg files (this depends on the ImageIO
@@ -43,7 +43,8 @@ import java.io.InputStream;
  */
 public class ImageIOImageFileLoader implements ImageFileLoader {
     @Override
-    public Builder<? extends Texture> read(Framework framework, InputStream stream) throws IOException {
+    public Builder<? extends Texture> read(Framework framework, BufferedInputStream stream)
+            throws IOException {
         // I'm assuming that read() will restore the stream's position
         // if no reader is found
 
