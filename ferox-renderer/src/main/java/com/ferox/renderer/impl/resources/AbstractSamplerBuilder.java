@@ -325,8 +325,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
         }
 
         // validate dimension requirements if it's a compressed texture
-        if (detectedFormat.getFormat() == Sampler.TexelFormat.COMPRESSED_RGB ||
-            detectedFormat.getFormat() == Sampler.TexelFormat.COMPRESSED_RGBA) {
+        if (detectedFormat.getFormat().isCompressed()) {
             if (width % 4 != 0 || height % 4 != 0) {
                 throw new ResourceException("DXT compressed textures must have dimensions that are multiples of 4");
             }

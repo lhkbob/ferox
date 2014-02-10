@@ -82,7 +82,7 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         RGB_NORMALIZED_UINT(Sampler.TexelFormat.RGB, DataType.UNSIGNED_NORMALIZED_INT),
         RGB_HALF_FLOAT(Sampler.TexelFormat.RGB, DataType.HALF_FLOAT),
         RGB_PACKED_FLOAT(Sampler.TexelFormat.RGB, DataType.INT_BIT_FIELD),
-        RGB_DXT1(Sampler.TexelFormat.COMPRESSED_RGB, DataType.UNSIGNED_BYTE),
+        RGB_DXT1(Sampler.TexelFormat.COMPRESSED_RGB, DataType.UNSIGNED_NORMALIZED_BYTE),
 
         BGR_FLOAT(Sampler.TexelFormat.RGB, DataType.FLOAT),
         BGR_BYTE(Sampler.TexelFormat.RGB, DataType.BYTE),
@@ -107,9 +107,9 @@ public abstract class TextureImpl extends AbstractResource<TextureImpl.TextureHa
         RGBA_NORMALIZED_USHORT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_SHORT),
         RGBA_NORMALIZED_UINT(Sampler.TexelFormat.RGBA, DataType.UNSIGNED_NORMALIZED_INT),
         RGBA_HALF_FLOAT(Sampler.TexelFormat.RGBA, DataType.HALF_FLOAT),
-        RGBA_DXT1(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_BYTE),
-        RGBA_DXT3(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_BYTE),
-        RGBA_DXT5(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_BYTE),
+        RGBA_DXT1(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_NORMALIZED_BYTE),
+        RGBA_DXT3(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_NORMALIZED_BYTE),
+        RGBA_DXT5(Sampler.TexelFormat.COMPRESSED_RGBA, DataType.UNSIGNED_NORMALIZED_BYTE),
 
         BGRA_FLOAT(Sampler.TexelFormat.RGBA, DataType.FLOAT),
         BGRA_BYTE(Sampler.TexelFormat.RGBA, DataType.BYTE),
