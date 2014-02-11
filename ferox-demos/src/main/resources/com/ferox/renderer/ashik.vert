@@ -6,6 +6,8 @@ uniform mat4 uProjection;
 
 uniform vec4 uLightPos; // in eye space already
 
+uniform vec2 uTCScale;
+
 in vec4 aPos;
 in vec3 aNorm;
 in vec2 aTC;
@@ -34,6 +36,6 @@ void main() {
         vL = (eyeToTan * vec4(normalize(uLightPos.xyz - ePos.xyz), 0.0)).xyz;
     }
 
-    vTC = aTC;
+    vTC = uTCScale * aTC;
     gl_Position = uProjection * ePos;
 }

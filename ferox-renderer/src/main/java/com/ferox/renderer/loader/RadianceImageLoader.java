@@ -1,6 +1,7 @@
 package com.ferox.renderer.loader;
 
 import com.ferox.renderer.Framework;
+import com.ferox.renderer.Sampler;
 import com.ferox.renderer.Texture2D;
 import com.ferox.renderer.builder.Builder;
 import com.ferox.renderer.builder.Texture2DBuilder;
@@ -37,7 +38,8 @@ public class RadianceImageLoader implements ImageFileLoader {
 
         int width = Integer.parseInt(vars.get("WIDTH"));
         int height = Integer.parseInt(vars.get("HEIGHT"));
-        Texture2DBuilder builder = framework.newTexture2D().width(width).height(height).interpolated();
+        Texture2DBuilder builder = framework.newTexture2D().width(width).height(height).interpolated()
+                                            .wrap(Sampler.WrapMode.MIRROR);
         TextureBuilder.CompressedRGBData data = builder.rgb().mipmap(0);
         data.from(readImage(width, height, true, true, stream));
         return builder;
