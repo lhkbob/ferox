@@ -79,12 +79,11 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     @Override
     public Context setActiveSurface(TextureSurface surface, Sampler.RenderTarget[] colorBuffers,
                                     Sampler.RenderTarget depthBuffer) {
-        Context ctx = setActiveSurface(surface);
-        if (ctx != null) {
+        if (surface != null) {
             ((AbstractTextureSurface) surface).setRenderTargets(colorBuffers, depthBuffer);
         }
 
-        return ctx;
+        return setActiveSurface(surface);
     }
 
     @Override
