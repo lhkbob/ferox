@@ -67,19 +67,22 @@ public class PhysicsApplicationStub extends ApplicationStub {
     protected static final int BOUNDS = 50;
     protected static final double MARGIN = .05;
 
-    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(
-            new Vector3(-2 * BOUNDS - 1, -2 * BOUNDS - 1, -2 * BOUNDS - 1),
-            new Vector3(2 * BOUNDS + 1, 2 * BOUNDS + 1, 2 * BOUNDS + 1));
+    protected static final AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-2 * BOUNDS - 1,
+                                                                                       -2 * BOUNDS - 1,
+                                                                                       -2 * BOUNDS - 1),
+                                                                           new Vector3(2 * BOUNDS + 1,
+                                                                                       2 * BOUNDS + 1,
+                                                                                       2 * BOUNDS + 1));
 
     // positive half-circle
-    private static final double MAX_THETA = Math.PI;
-    private static final double MIN_THETA = 0;
+    private static final double MAX_THETA = 10000;
+    private static final double MIN_THETA = -10000;
 
     // positive octant
     private static final double MAX_PHI = Math.PI / 2.0;
     private static final double MIN_PHI = Math.PI / 12.0;
 
-    private static final double MIN_ZOOM = 1.0;
+    private static final double MIN_ZOOM = .2;
     private static final double MAX_ZOOM = BOUNDS;
 
     private static final double ANGLE_RATE = Math.PI / 4.0;
@@ -95,8 +98,8 @@ public class PhysicsApplicationStub extends ApplicationStub {
     private double zoom; // distance from origin
 
     protected final EntitySystem system;
-    private Job physicsJob;
-    private Job renderJob;
+    protected Job physicsJob;
+    protected Job renderJob;
 
     public PhysicsApplicationStub() {
         super(Framework.Factory.create());
@@ -230,7 +233,7 @@ public class PhysicsApplicationStub extends ApplicationStub {
         zoom = (MAX_ZOOM + MIN_ZOOM) / 2.0;
 
         camera = system.addEntity();
-        camera.add(Camera.class).setSurface(surface).setZDistances(1.0, BOUNDS);
+        camera.add(Camera.class).setSurface(surface).setZDistances(.1, BOUNDS);
         updateCameraOrientation();
     }
 

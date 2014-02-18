@@ -31,12 +31,14 @@ import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.collision.Shape;
+import com.ferox.physics.collision.shape.Box;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.Shapes;
 import com.ferox.scene.*;
 import com.ferox.scene.AtmosphericFog.Falloff;
 import com.lhkbob.entreri.Entity;
@@ -60,13 +62,14 @@ public class PhysicsTest extends PhysicsApplicationStub {
         super.init(surface);
 
         // shapes
-        Geometry box = Box.create(getFramework(), 2 + 2 * MARGIN);
-        //        Geometry sphere = Sphere.create(1 + MARGIN, 32, COMPILE_TYPE);
+        Geometry box = Shapes.createBox(getFramework(), 2 + 2 * MARGIN);
+        //                Geometry sphere = Shapes.createSphere(getFramework(), 1 + MARGIN, 32);
+        //        Geometry box = Shapes.createCylinder(getFramework(), 1 + MARGIN, 2 + 2 * MARGIN);
 
-        com.ferox.physics.collision.Shape boxShape = new com.ferox.physics.collision.shape.Box(2, 2, 2);
-        //        com.ferox.physics.collision.Shape sphereShape = new com.ferox.physics.collision.shape.Sphere(1);
+        Shape boxShape = new Box(2, 2, 2);
+        //        Shape sphereShape = new Sphere(1);
         boxShape.setMargin(MARGIN);
-        //        sphereShape.setMargin(MARGIN);
+        //                sphereShape.setMargin(MARGIN);
 
         double startX = START_POS_X - NUM_X / 2.0;
         double startY = START_POS_Y;
@@ -96,23 +99,34 @@ public class PhysicsTest extends PhysicsApplicationStub {
                      .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
                     e.add(LambertianDiffuseModel.class).setColor(color);
 
-                    e.add(CollisionBody.class).setShape(physShape).setTransform(
-                            new Matrix4().setIdentity().setCol(3, new Vector4((SCALE_X + 2 * MARGIN) * x +
-                                                                              rx +
-                                                                              startX,
-                                                                              (SCALE_Y + 2 * MARGIN) * y +
-                                                                              ry +
-                                                                              startY,
-                                                                              (SCALE_Z + 2 * MARGIN) * z +
-                                                                              rz +
-                                                                              startZ, 1)));
+                    e.add(CollisionBody.class).setShape(physShape).setTransform(new Matrix4().setIdentity()
+                                                                                             .setCol(3,
+                                                                                                     new Vector4((SCALE_X +
+                                                                                                                  2 *
+                                                                                                                  MARGIN) *
+                                                                                                                 x +
+                                                                                                                 rx +
+                                                                                                                 startX,
+                                                                                                                 (SCALE_Y +
+                                                                                                                  2 *
+                                                                                                                  MARGIN) *
+                                                                                                                 y +
+                                                                                                                 ry +
+                                                                                                                 startY,
+                                                                                                                 (SCALE_Z +
+                                                                                                                  2 *
+                                                                                                                  MARGIN) *
+                                                                                                                 z +
+                                                                                                                 rz +
+                                                                                                                 startZ,
+                                                                                                                 1)));
                     e.add(RigidBody.class).setMass(1.0);
                 }
             }
         }
 
         // some walls
-        Geometry bottomWall = Box.create(getFramework(), BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN);
+        Geometry bottomWall = Shapes.createBox(getFramework(), BOUNDS + 2 * MARGIN, 1, BOUNDS + 2 * MARGIN);
         Entity wall = system.addEntity();
         wall.add(Renderable.class).setGeometry(bottomWall)
             .setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.NONE);
@@ -132,13 +146,14 @@ public class PhysicsTest extends PhysicsApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(Light.class).setColor(new ColorRGB(0.5, 0.5, 0.5)).setCutoffAngle(180.0);
-        point.get(Transform.class).setMatrix(
-                new Matrix4().setIdentity().setCol(3, new Vector4(BOUNDS / 2, BOUNDS / 2, BOUNDS / 2, 1)));
+        point.get(Transform.class).setMatrix(new Matrix4().setIdentity().setCol(3, new Vector4(BOUNDS / 2,
+                                                                                               BOUNDS / 2,
+                                                                                               BOUNDS / 2,
+                                                                                               1)));
 
         // a directed light, which casts shadows
         Entity inf = system.addEntity();
-        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(true)
-           .setCutoffAngle(Double.NaN);
+        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setShadowCaster(true).setCutoffAngle(Double.NaN);
         inf.get(Transform.class)
            .setMatrix(new Matrix4().lookAt(new Vector3(), new Vector3(15, 15, 15), new Vector3(0, 1, 0)));
     }

@@ -5,7 +5,6 @@ import com.ferox.renderer.Sampler;
 import com.ferox.renderer.Texture2D;
 import com.ferox.renderer.builder.Builder;
 import com.ferox.renderer.builder.Texture2DBuilder;
-import com.ferox.renderer.builder.TextureBuilder;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -23,8 +22,34 @@ public class RadianceImageLoader implements ImageFileLoader {
     private static final Pattern COMMON_RES = Pattern.compile("-Y (\\d+) \\+X (\\d+)");
     private static final Pattern ANY_RES = Pattern.compile("[-\\+]Y \\d+ [-\\+]X \\d+");
 
+    public static class Image {
+        public final int width;
+        public final int height;
+        public final float[] data;
+
+        public Image(int width, int height, float[] data) {
+            this.width = width;
+            this.height = height;
+            this.data = data;
+        }
+    }
+
     @Override
     public Builder<Texture2D> read(Framework framework, BufferedInputStream stream) throws IOException {
+        Image img = read(stream);
+        if (img == null) {
+            return null;
+        }
+
+        Texture2DBuilder builder = framework.newTexture2D().width(img.width).height(img.height).interpolated()
+                                            .wrap(Sampler.WrapMode.REPEAT);
+        builder.rgb().mipmap(0).from(img.data);
+        return builder;
+    }
+
+    public static boolean PRINT_NEGATIVES = false;
+
+    public Image read(BufferedInputStream stream) throws IOException {
         stream.mark(128);
         if (!processMagicNumber(stream)) {
             stream.reset();
@@ -38,11 +63,16 @@ public class RadianceImageLoader implements ImageFileLoader {
 
         int width = Integer.parseInt(vars.get("WIDTH"));
         int height = Integer.parseInt(vars.get("HEIGHT"));
-        Texture2DBuilder builder = framework.newTexture2D().width(width).height(height).interpolated()
-                                            .wrap(Sampler.WrapMode.MIRROR);
-        TextureBuilder.CompressedRGBData data = builder.rgb().mipmap(0);
-        data.from(readImage(width, height, true, true, stream));
-        return builder;
+        float[] data = readImage(width, height, true, true, stream);
+
+        if (PRINT_NEGATIVES) {
+            for (int i = 0; i < data.length; i++) {
+                if (data[i] < 0.0) {
+                    System.out.println("Negative values: " + data[i]);
+                }
+            }
+        }
+        return new Image(width, height, data);
     }
 
     private float[] readImage(int width, int height, boolean topToBottom, boolean leftToRight, InputStream in)
@@ -72,7 +102,9 @@ public class RadianceImageLoader implements ImageFileLoader {
         }
 
         if (rle) {
-            int scanWidth = (scan[2] << 8) | scan[3];
+            // since we know scan[2]'s 8th bit is a 0, we don't need to mask it to properly preserve unsigned byte-ness
+            // this is not the case for scan[3]
+            int scanWidth = (scan[2] << 8) | (0xff & scan[3]);
             if (scanWidth != imgWidth) {
                 throw new IOException("Wrong scanline width: " + scanWidth);
             }
@@ -120,17 +152,10 @@ public class RadianceImageLoader implements ImageFileLoader {
         }
     }
 
-    // TODO This doesn't work
-    // FIXME test case: create a simple PNG image that's like 10 pixels across
-    // and with a well-defined color, convert it to HDR and then load it in and see what happens
     private void convertRGBE(float[] image, int imgOffset, byte[] rgbe, int offset) {
         if (rgbe[offset + 3] != 0) {
             // real pixel
-            //            float v = (float) Math.pow(1.0 / 256.0, rgbe[offset + 3]);
-            //            float v = (1 << rgbe[offset + 3]) / 256.0f;
-            //            int e = (0xff & rgbe[offset + 3]);
             float v = (float) Math.pow(2.0, (0xff & rgbe[offset + 3]) - 128) / 256f;
-            //            float v = (float) (1.0 * Math.pow(2, (int) (rgbe[offset + 3]) - 8));
             // these are meant to be unsigned bytes
             image[imgOffset] = v * ((0xff & rgbe[offset]));
             image[imgOffset + 1] = v * ((0xff & rgbe[offset + 1]));

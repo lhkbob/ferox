@@ -35,9 +35,9 @@ import com.ferox.math.ColorRGB;
 import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
-import com.ferox.renderer.geom.text.CharacterSet;
-import com.ferox.renderer.geom.text.TextRenderer;
-import com.ferox.renderer.geom.text.TextRenderer.Anchor;
+import com.ferox.renderer.geom.CharacterSet;
+import com.ferox.renderer.geom.TextRenderer;
+import com.ferox.renderer.geom.TextRenderer.Anchor;
 
 public abstract class ApplicationStub {
     private final Framework framework;
@@ -76,8 +76,7 @@ public abstract class ApplicationStub {
         int numFrames = 0;
         long last = System.currentTimeMillis();
         try {
-            while (!surface.isDestroyed()) {
-                io.process();
+            while (!surface.isDestroyed() && !framework.isDestroyed()) {
                 renderFrame(surface);
                 numFrames++;
 
@@ -109,6 +108,7 @@ public abstract class ApplicationStub {
                     last = now;
                     numFrames = 0;
                 }
+                io.process();
             }
         } finally {
             framework.destroy();

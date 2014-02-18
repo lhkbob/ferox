@@ -30,10 +30,13 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Matrix4;
 import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionBody;
+import com.ferox.physics.collision.Shape;
+import com.ferox.physics.collision.shape.Box;
 import com.ferox.physics.dynamics.Gravity;
 import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.Shapes;
 import com.ferox.scene.*;
 import com.lhkbob.entreri.Entity;
 
@@ -49,11 +52,11 @@ public class GravityTest extends PhysicsApplicationStub {
               .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, .75 * BOUNDS, 0, 0, 0, 1));
 
         // shapes
-        Geometry geomShape1 = com.ferox.renderer.geom.Box.create(getFramework(), 2 + 2 * MARGIN);
-        com.ferox.physics.collision.Shape physShape1 = new com.ferox.physics.collision.shape.Box(2, 2, 2);
+        Geometry geomShape1 = Shapes.createBox(getFramework(), 2 + 2 * MARGIN);
+        Shape physShape1 = new Box(2, 2, 2);
 
-        Geometry geomShape2 = com.ferox.renderer.geom.Box.create(getFramework(), 2 + 2 * MARGIN);
-        com.ferox.physics.collision.Shape physShape2 = new com.ferox.physics.collision.shape.Box(2, 2, 2);
+        Geometry geomShape2 = Shapes.createBox(getFramework(), 2 + 2 * MARGIN);
+        Shape physShape2 = new Box(2, 2, 2);
 
         physShape1.setMargin(MARGIN);
         physShape2.setMargin(MARGIN);
@@ -84,8 +87,9 @@ public class GravityTest extends PhysicsApplicationStub {
         // a point light
         Entity point = system.addEntity();
         point.add(Light.class).setColor(new ColorRGB(0.5, 0.5, 0.5)).setCutoffAngle(180.0);
-        point.add(Transform.class).setMatrix(
-                new Matrix4().set(1, 0, 0, BOUNDS / 2, 0, 1, 0, BOUNDS / 2, 0, 0, 1, BOUNDS / 2, 0, 0, 0, 1));
+        point.add(Transform.class).setMatrix(new Matrix4()
+                                                     .set(1, 0, 0, BOUNDS / 2, 0, 1, 0, BOUNDS / 2, 0, 0, 1,
+                                                          BOUNDS / 2, 0, 0, 0, 1));
     }
 
     public static void main(String[] args) throws Exception {

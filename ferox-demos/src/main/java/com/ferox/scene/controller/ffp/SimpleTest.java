@@ -35,10 +35,8 @@ import com.ferox.renderer.Framework;
 import com.ferox.renderer.OnscreenSurface;
 import com.ferox.renderer.OnscreenSurfaceOptions;
 import com.ferox.renderer.Renderer;
-import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
-import com.ferox.renderer.geom.Sphere;
-import com.ferox.renderer.geom.Teapot;
+import com.ferox.renderer.geom.Shapes;
 import com.ferox.scene.*;
 import com.ferox.scene.task.BuildVisibilityIndexTask;
 import com.ferox.scene.task.ComputeCameraFrustumTask;
@@ -65,9 +63,9 @@ public class SimpleTest {
 
     public static void main(String[] args) {
         Framework framework = Framework.Factory.create();
-        OnscreenSurface surface = framework
-                .createSurface(new OnscreenSurfaceOptions().windowed(800, 600).fixedSize());
-        surface.setVSyncEnabled(true);
+        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().windowed(800, 600)
+                                                                                      .fixedSize());
+        //        surface.setVSyncEnabled(true);
 
         EntitySystem system = EntitySystem.Factory.create();
 
@@ -76,9 +74,9 @@ public class SimpleTest {
               .setMatrix(new Matrix4().set(-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, .9 * BOUNDS, 0, 0, 0, 1));
         camera.add(Camera.class).setSurface(surface).setZDistances(0.1, 1200).setFieldOfView(75);
 
-        Geometry b1 = Sphere.create(framework, 2f, 16);
-        Geometry b2 = Box.create(framework, 2f);
-        Geometry b3 = Teapot.create(framework, 1f);
+        Geometry b1 = Shapes.createSphere(framework, 2f, 16);
+        Geometry b2 = Shapes.createBox(framework, 2f);
+        Geometry b3 = Shapes.createTeapot(framework);
 
         ColorRGB c1 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
         ColorRGB c2 = new ColorRGB(Math.random() + 0.2, Math.random() + 0.2, Math.random() + 0.2);
@@ -146,9 +144,10 @@ public class SimpleTest {
                                                                             .3 * BOUNDS),
                                                                 new Vector3(0, 1, 0)));
 
-        AxisAlignedBox worldBounds = new AxisAlignedBox(
-                new Vector3(-1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2),
-                new Vector3(1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2));
+        AxisAlignedBox worldBounds = new AxisAlignedBox(new Vector3(-1.5 * BOUNDS / 2, -1.5 * BOUNDS / 2,
+                                                                    -1.5 * BOUNDS / 2),
+                                                        new Vector3(1.5 * BOUNDS / 2, 1.5 * BOUNDS / 2,
+                                                                    1.5 * BOUNDS / 2));
 
         Job renderJob = system.getScheduler()
                               .createJob("render", Timers.measuredDelta(), new AnimationController(),
