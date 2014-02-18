@@ -595,7 +595,7 @@ public class Utils {
             if (!caps.getUnclampedFloatTextureSupport()) {
                 return GL2GL3.GL_RGBA16;
             } else {
-                return GL2GL3.GL_RGB32F;
+                return GL2GL3.GL_RGBA32F;
             }
         case RGBA_BYTE:
         case BGRA_BYTE:

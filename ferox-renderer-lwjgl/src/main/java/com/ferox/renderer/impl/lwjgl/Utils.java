@@ -631,7 +631,7 @@ public class Utils {
             } else if (caps.getMajorVersion() < 3) {
                 return ARBTextureFloat.GL_RGBA32F_ARB;
             } else {
-                return GL30.GL_RGB32F;
+                return GL30.GL_RGBA32F;
             }
         case RGBA_BYTE:
         case BGRA_BYTE:
