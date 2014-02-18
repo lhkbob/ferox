@@ -84,10 +84,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * Specify the image data array, will use a data type of {@link com.ferox.renderer.DataType#UNSIGNED_NORMALIZED_BYTE}.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsignedNormalized(byte[] data);
 
@@ -95,10 +91,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * Specify the image data array, will use a data type of {@link com.ferox.renderer.DataType#UNSIGNED_NORMALIZED_SHORT}.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsignedNormalized(short[] data);
 
@@ -106,10 +98,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * Specify the image data array, will use a data type of {@link com.ferox.renderer.DataType#UNSIGNED_NORMALIZED_INT}.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsignedNormalized(int[] data);
 
@@ -119,10 +107,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * type must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsigned(byte[] data);
 
@@ -132,10 +116,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * type must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsigned(short[] data);
 
@@ -145,10 +125,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * type must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsigned(int[] data);
 
@@ -157,10 +133,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * supported, the values will not be clamped to the [-1, 1] range.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void from(float[] data);
 
@@ -170,10 +142,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void from(byte[] data);
 
@@ -183,10 +151,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void from(short[] data);
 
@@ -196,10 +160,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * must be used.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void from(int[] data);
 
@@ -208,10 +168,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * If supported, the values will not be clamped to the [-1, 1] range.
          *
          * @param data The data for the configured mipmap and image
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromHalfFloats(short[] data);
     }
@@ -230,10 +186,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * floating point number storing the blue component.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromPackedFloats(int[] data);
     }
@@ -250,10 +202,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * COMPRESSED_RGB.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromDXT1(byte[] data);
     }
@@ -270,10 +218,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * COMPRESSED_RGBA.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromDXT1(byte[] data);
 
@@ -283,10 +227,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * base format will switch from RGBA to COMPRESSED_RGBA.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromDXT3(byte[] data);
 
@@ -296,10 +236,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * base format will switch from RGBA to COMPRESSED_RGBA.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromDXT5(byte[] data);
     }
@@ -312,10 +248,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * Specify the image data array, it will use a data type of {@link com.ferox.renderer.DataType#UNSIGNED_NORMALIZED_BYTE}.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromUnsignedNormalized(byte[] data);
 
@@ -327,10 +259,6 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
          * normalized bytes.
          *
          * @param data The data array
-         *
-         * @throws IllegalArgumentException if data's length doesn't equal the expected size given the
-         *                                  dimensions and format
-         * @throws NullPointerException     if data is null
          */
         public void fromPackedBytes(int[] data);
     }
