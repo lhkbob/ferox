@@ -68,23 +68,6 @@ class RectangleImpl implements Geometry {
         va[i++] = (float) xAxis.z;
         va[i++] = 1.0f;
 
-        // lower-right
-        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
-        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
-        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
-
-        va[i++] = (float) normal.x;
-        va[i++] = (float) normal.y;
-        va[i++] = (float) normal.z;
-
-        va[i++] = 1f;
-        va[i++] = 0f;
-
-        va[i++] = (float) xAxis.x;
-        va[i++] = (float) xAxis.y;
-        va[i++] = (float) xAxis.z;
-        va[i++] = 1.0f;
-
         // upper-right
         va[i++] = (float) (xAxis.x * right + yAxis.x * top);
         va[i++] = (float) (xAxis.y * right + yAxis.y * top);
@@ -96,6 +79,23 @@ class RectangleImpl implements Geometry {
 
         va[i++] = 1f;
         va[i++] = 1f;
+
+        va[i++] = (float) xAxis.x;
+        va[i++] = (float) xAxis.y;
+        va[i++] = (float) xAxis.z;
+        va[i++] = 1.0f;
+
+        // lower-right
+        va[i++] = (float) (xAxis.x * right + yAxis.x * bottom);
+        va[i++] = (float) (xAxis.y * right + yAxis.y * bottom);
+        va[i++] = (float) (xAxis.z * right + yAxis.z * bottom);
+
+        va[i++] = (float) normal.x;
+        va[i++] = (float) normal.y;
+        va[i++] = (float) normal.z;
+
+        va[i++] = 1f;
+        va[i++] = 0f;
 
         va[i++] = (float) xAxis.x;
         va[i++] = (float) xAxis.y;
