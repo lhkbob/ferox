@@ -7,13 +7,14 @@ import com.ferox.renderer.builder.TextureBuilder;
 import com.ferox.renderer.builder.TextureCubeMapBuilder;
 import com.ferox.renderer.loader.RadianceImageLoader;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -21,58 +22,216 @@ import java.util.List;
 public class EnvironmentMap {
     private static final int DIR_SIDE = 32;
 
-    private final RadianceImageLoader.Image cross;
     private final int side;
     private final float[][] env;
+    private final float[][] solidAngle;
 
     private final float[][] diff;
 
-    private final List<Vector3> samples;
+    private final List<Sample> samples;
 
-    public EnvironmentMap(File verticalCrossHDR) throws IOException {
+    private EnvironmentMap(int side) {
+        this.side = side;
+        env = new float[6][side * side * 3];
+
+        diff = new float[6][DIR_SIDE * DIR_SIDE * 3];
+        solidAngle = new float[6][side * side];
+        samples = new ArrayList<>();
+    }
+
+    public static BufferedImage resize(BufferedImage image, int width, int height) {
+        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
+        Graphics2D g2d = bi.createGraphics();
+        g2d.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING,
+                                                 RenderingHints.VALUE_RENDER_QUALITY));
+        g2d.drawImage(image, 0, 0, width, height, null);
+        g2d.dispose();
+        return bi;
+    }
+
+    public static void main(String[] args) throws IOException {
+        EnvironmentMap toCache = createFromCubeMap(new File("/Users/mludwig/Desktop/grace_cross.hdr"));
+
+        JFrame window = new JFrame("final samples");
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout());
+        window.add(panel);
+
+        Vector3 max = new Vector3();
+        Vector3 min = new Vector3();
+        for (Sample s : toCache.samples) {
+            max.set(Math.max(s.illumination.x, max.x), Math.max(s.illumination.y, max.y),
+                    Math.max(s.illumination.z, max.z));
+            min.set(Math.min(s.illumination.x, min.x), Math.min(s.illumination.y, min.y),
+                    Math.min(s.illumination.z, min.z));
+        }
+
+        Map<Sample, Color> colors = new HashMap<>();
+        for (Sample s : toCache.samples) {
+            Color c = new Color((float) ((s.illumination.x - min.x) / (max.x - min.x)),
+                                (float) ((s.illumination.y - min.y) / (max.y - min.y)),
+                                (float) ((s.illumination.z - min.z) / (max.z - min.z)));
+            colors.put(s, c);
+        }
+
+        for (int i = 0; i < 6; i++) {
+            BufferedImage img = new BufferedImage(toCache.side, toCache.side, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = img.createGraphics();
+            g.setColor(Color.black);
+
+            for (int y = 0; y < toCache.side; y++) {
+                for (int x = 0; x < toCache.side; x++) {
+                    double minD2 = Double.POSITIVE_INFINITY;
+                    Sample closest = null;
+                    for (Sample c : toCache.samples) {
+                        if (c.face == i) {
+                            double d2 = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y);
+                            if (closest == null || d2 < minD2) {
+                                minD2 = d2;
+                                closest = c;
+                            }
+                        }
+                    }
+
+                    g.setColor(colors.get(closest));
+                    g.fillRect(x, y, 1, 1);
+                }
+            }
+
+            g.setColor(Color.RED);
+            for (Sample s : toCache.samples) {
+                if (s.face == i) {
+                    g.fillRect(s.x - 1, s.y - 1, 2, 2);
+                }
+            }
+            g.dispose();
+
+            panel.add(new JLabel(new ImageIcon(resize(img, 300, 300))));
+        }
+        window.setVisible(true);
+        window.pack();
+
+        toCache.write(new File("/Users/mludwig/Desktop/grace.env"));
+    }
+
+    public static EnvironmentMap createFromCubeMap(File verticalCrossHDR) throws IOException {
+        RadianceImageLoader.Image cross;
         try (BufferedInputStream stream = new BufferedInputStream(new FileInputStream(verticalCrossHDR))) {
             cross = new RadianceImageLoader().read(stream);
         }
 
-        side = cross.width / 3;
-        env = new float[6][side * side * 3];
+        EnvironmentMap map = new EnvironmentMap(cross.width / 3);
+        convertCross(map.side, map.env, cross);
 
-        diff = new float[6][DIR_SIDE * DIR_SIDE * 3];
-        samples = new ArrayList<>();
+        map.computeSolidAngles();
+        map.computeDiffuseIrradiance();
+        map.computeSamples();
+        return map;
+    }
 
-        convertCross();
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < env[i].length; j++) {
-                env[i][j] /= 10000.0; // FIXME WHY???? is it 256*256? definitely not 256*256*6, is it 32 * 32 * 6?
+    public static EnvironmentMap loadFromFile(File cachedData) throws IOException {
+        try (DataInputStream in = new DataInputStream(new FileInputStream(cachedData))) {
+            int side = in.readInt();
+            System.out.println(side);
+            EnvironmentMap map = new EnvironmentMap(side);
+            int ct = 0;
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < map.env[i].length; j++) {
+                    map.env[i][j] = in.readFloat();
+                    ct++;
+                }
+            }
+            System.out.println("Read " + ct + " floats for env");
+            ct = 0;
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < map.solidAngle[i].length; j++) {
+                    map.solidAngle[i][j] = in.readFloat();
+                    ct++;
+                }
+            }
+            System.out.println("Read " + ct + " floats for solid angles");
+
+            int dirSide = in.readInt();
+            if (dirSide != DIR_SIDE) {
+                throw new IOException("Unexpected diffuse irradiance size: " + dirSide);
+            }
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < map.diff[i].length; j++) {
+                    map.diff[i][j] = in.readFloat();
+                }
+            }
+
+            int numSamples = in.readInt();
+            for (int i = 0; i < numSamples; i++) {
+                int face = in.readInt();
+                int x = in.readInt();
+                int y = in.readInt();
+
+                double dx = in.readDouble();
+                double dy = in.readDouble();
+                double dz = in.readDouble();
+                double ix = in.readDouble();
+                double iy = in.readDouble();
+                double iz = in.readDouble();
+
+                map.samples.add(new Sample(face, x, y, new Vector3(dx, dy, dz), new Vector3(ix, iy, iz)));
+            }
+
+            return map;
+        }
+    }
+
+    public void write(File data) throws IOException {
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(data))) {
+            out.writeInt(side);
+            int ct = 0;
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < env[i].length; j++) {
+                    out.writeFloat(env[i][j]);
+                    ct++;
+                }
+            }
+            System.out.println("Wrote " + ct + " floats for env");
+            ct = 0;
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < solidAngle[i].length; j++) {
+                    out.writeFloat(solidAngle[i][j]);
+                    ct++;
+                }
+            }
+            System.out.println("Wrote " + ct + " floats for solid angles");
+
+            out.writeInt(DIR_SIDE);
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < diff[i].length; j++) {
+                    out.writeFloat(diff[i][j]);
+                }
+            }
+
+            out.writeInt(samples.size());
+            for (Sample s : samples) {
+                out.writeInt(s.face);
+                out.writeInt(s.x);
+                out.writeInt(s.y);
+
+                out.writeDouble(s.direction.x);
+                out.writeDouble(s.direction.y);
+                out.writeDouble(s.direction.z);
+
+                out.writeDouble(s.illumination.x);
+                out.writeDouble(s.illumination.y);
+                out.writeDouble(s.illumination.z);
             }
         }
-        computeDiffuseIrradiance();
-        computeSamples();
     }
 
     private void computeSamples() {
-        List<Sample> withIntensity = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            for (int y = 0; y < side; y++) {
-                for (int x = 0; x < side; x++) {
-                    Vector3 n = new Vector3();
-                    n.set(env[i], 3 * y * side + 3 * x);
-                    double intensity = n.length();
-                    toVector(i, x, y, side, side, n);
-                    withIntensity.add(new Sample(n, intensity));
-                }
-            }
-        }
-
-        Collections.sort(withIntensity);
-        System.out.println(withIntensity.get(0).intensity);
-        System.out.println(withIntensity.get(withIntensity.size() - 1).intensity);
-        for (Sample s : withIntensity) {
-            samples.add(s.direction);
-        }
+        StructuredImportanceSampler sampler = new StructuredImportanceSampler(env, solidAngle, side, 6);
+        samples.clear();
+        samples.addAll(sampler.computeSamples(40));
     }
 
-    public List<Vector3> getSamples() {
+    public List<Sample> getSamples() {
         return samples;
     }
 
@@ -102,6 +261,20 @@ public class EnvironmentMap {
         return cmb.build();
     }
 
+    /*
+    public TextureCubeMap createSolidAngleMap(Framework framework) {
+        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
+        cmb.side(side).interpolated();
+        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.r();
+        data.positiveX(0).from(solidAngle[0]);
+        data.positiveY(0).from(solidAngle[1]);
+        data.positiveZ(0).from(solidAngle[2]);
+        data.negativeX(0).from(solidAngle[3]);
+        data.negativeY(0).from(solidAngle[4]);
+        data.negativeZ(0).from(solidAngle[5]);
+        return cmb.build();
+    }
+*/
     private void computeDiffuseIrradiance() {
         maxIrradiance = 0.0f;
         List<Thread> threads = new ArrayList<>();
@@ -123,27 +296,28 @@ public class EnvironmentMap {
             }
         }
 
-        System.out.println("Tonemapping, max irradiance = " + maxIrradiance);
-        //        for (int i = 0; i < 6; i++) {
-        //            float[] d = diff[i];
-        //            for (int j = 0; j < d.length; j++) {
-        //                d[j] = d[j] / maxIrradiance;
-        //            }
-        //        }
+        System.out.println("Max irradiance = " + maxIrradiance);
     }
 
-    private static class Sample implements Comparable<Sample> {
-        private final Vector3 direction;
-        private final double intensity;
+    public static class Sample implements Comparable<Sample> {
+        public final Vector3 direction;
+        public final Vector3 illumination;
 
-        public Sample(Vector3 direction, double intensity) {
+        public final int face;
+        public final int x;
+        public final int y;
+
+        public Sample(int face, int x, int y, Vector3 direction, Vector3 illumination) {
+            this.face = face;
+            this.x = x;
+            this.y = y;
             this.direction = direction;
-            this.intensity = intensity;
+            this.illumination = illumination;
         }
 
         @Override
         public int compareTo(Sample o) {
-            return Double.compare(intensity, o.intensity);
+            return Double.compare(illumination.lengthSquared(), o.illumination.lengthSquared());
         }
     }
 
@@ -186,13 +360,14 @@ public class EnvironmentMap {
         for (int i = 0; i < 6; i++) {
             for (int y = 0; y < side; y++) {
                 for (int x = 0; x < side; x++) {
-                    color.set(env[i], 3 * y * side + 3 * x);//.scale(1.0 / 393216);
+                    color.set(env[i], 3 * y * side + 3 * x);
                     toVector(i, x, y, side, side, light);
                     double pd = normal.dot(light);
                     if (pd > 0) {
+                        double dSA = solidAngle[i][y * side + x];
                         // NOTE this does not include the (1 - vn/2)^5 term that depends on the viewing angle to normal
                         pd = 28.0 / (23.0 * Math.PI) * (1.0 - Math.pow(1.0 - pd / 2.0, 5.0));
-                        irradiance.addScaled(pd, color);
+                        irradiance.addScaled(pd * dSA, color);
                     }
                 }
             }
@@ -228,7 +403,39 @@ public class EnvironmentMap {
         v.normalize();
     }
 
-    private void convertCross() {
+    // from AMD CubeMapGen
+    private static double areaElement(double x, double y) {
+        return Math.atan2(x * y, Math.sqrt(x * x + y * y + 1));
+    }
+
+    private static double texelCoordSolidAngle(int face, int tx, int ty, int size) {
+        // scale up to [-1, 1] range (inclusive), offset by 0.5 to point to texel center.
+        double u = 2.0 * ((tx + 0.5) / (double) size) - 1.0;
+        double v = 2.0 * ((ty + 0.5) / (double) size) - 1.0;
+
+        double invResolution = 1.0 / size;
+
+        // U and V are the -1..1 texture coordinate on the current face.
+        // Get projected area for this texel
+        double x0 = u - invResolution;
+        double y0 = v - invResolution;
+        double x1 = u + invResolution;
+        double y1 = v + invResolution;
+
+        return areaElement(x0, y0) - areaElement(x0, y1) - areaElement(x1, y0) + areaElement(x1, y1);
+    }
+
+    private void computeSolidAngles() {
+        for (int i = 0; i < 6; i++) {
+            for (int y = 0; y < side; y++) {
+                for (int x = 0; x < side; x++) {
+                    solidAngle[i][y * side + x] = (float) texelCoordSolidAngle(i, x, y, side);
+                }
+            }
+        }
+    }
+
+    private static void convertCross(int side, float[][] env, RadianceImageLoader.Image cross) {
         // px
         for (int y = 0; y < side; y++) {
             for (int x = 0; x < side; x++) {
@@ -288,8 +495,8 @@ public class EnvironmentMap {
         // ny
         for (int y = 0; y < side; y++) {
             for (int x = 0; x < side; x++) {
-                int crossX = 2 * side - x - 1;
-                int crossY = 2 * side - y - 1;
+                int crossX = side + x;
+                int crossY = side + y;
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;

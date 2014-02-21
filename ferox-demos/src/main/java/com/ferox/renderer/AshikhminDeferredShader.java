@@ -17,6 +17,7 @@ import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Shapes;
 import com.ferox.renderer.loader.RadianceImageLoader;
 import com.ferox.renderer.loader.TextureLoader;
+import com.ferox.util.profile.Profiler;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -38,8 +39,7 @@ public class AshikhminDeferredShader implements Task<Void> {
     private static enum MoveState {
         NONE,
         CAMERA,
-        OBJECT,
-        LIGHT
+        OBJECT
     }
 
     private static final int WIDTH = 800;
@@ -90,10 +90,6 @@ public class AshikhminDeferredShader implements Task<Void> {
     private final Geometry yAxis;
     private final Geometry zAxis;
     private boolean showAxis;
-
-    private final Geometry lightCube;
-    private boolean showLight;
-    private final Vector4 light;
 
     private final Geometry envCube;
 
@@ -184,14 +180,13 @@ public class AshikhminDeferredShader implements Task<Void> {
         texCoordAScale = 1.0;
         texCoordBScale = 1.0;
 
-        light = new Vector4(1, 1, 0, 1);
         moveState = MoveState.NONE;
 
         this.framework = f;
         OnscreenSurfaceOptions opts = new OnscreenSurfaceOptions().withDepthBuffer(24).windowed(WIDTH, HEIGHT)
                                                                   .fixedSize();
         window = framework.createSurface(opts);
-        //        window.setVSyncEnabled(true);
+        //                window.setVSyncEnabled(true);
         window.setLocation(0, 0);
 
         camera = new Frustum(60, window.getWidth() / (float) window.getHeight(), 0.1, 25);
@@ -216,7 +211,7 @@ public class AshikhminDeferredShader implements Task<Void> {
         fullscreenQuad = Shapes.createRectangle(framework, 0, WIDTH, 0, HEIGHT);
         fullscreenProjection = new Frustum(true, 0, WIDTH, 0, HEIGHT, -1.0, 1.0);
 
-        envMap = new EnvironmentMap(new File("/Users/mludwig/Desktop/grace_cross.hdr"));
+        envMap = EnvironmentMap.loadFromFile(new File("/Users/mludwig/Desktop/grace.env"));
         envCubeMap = envMap.createEnvironmentMap(framework);
         envDiffMap = envMap.createDiffuseMap(framework);
         envCube = Shapes.createBox(framework, 6.0);
@@ -245,32 +240,10 @@ public class AshikhminDeferredShader implements Task<Void> {
                                         getNormalizedDeviceY(next.getMouseState().getY()));
             }
         });
-        input.on(and(and(mousePress(MouseEvent.MouseButton.LEFT), keyHeld(KeyEvent.KeyCode.LEFT_META)),
-                     not(keyHeld(KeyEvent.KeyCode.LEFT_CONTROL)))).trigger(new Action() {
-            @Override
-            public void perform(InputState prev, InputState next) {
-                moveState = MoveState.LIGHT;
-            }
-        });
         input.on(mouseMove(true)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
-                if (moveState == MoveState.LIGHT) {
-                    Vector4 projectedLight = new Vector4();
-                    projectedLight.mul(camera.getViewMatrix(), light);
-                    projectedLight.mul(camera.getProjectionMatrix(), projectedLight);
-                    double w = projectedLight.w;
-                    projectedLight.scale(1.0 / w);
-
-                    projectedLight.x += (getNormalizedDeviceX(next.getMouseState().getX()) -
-                                         getNormalizedDeviceX(prev.getMouseState().getX()));
-                    projectedLight.y += (getNormalizedDeviceY(next.getMouseState().getY()) -
-                                         getNormalizedDeviceY(prev.getMouseState().getY()));
-
-                    Matrix4 inv = new Matrix4();
-                    light.mul(inv.inverse(camera.getProjectionMatrix()), projectedLight.scale(w));
-                    light.mul(inv.inverse(camera.getViewMatrix()), light);
-                } else if (moveState == MoveState.CAMERA) {
+                if (moveState == MoveState.CAMERA) {
                     viewTrackBall.drag(getNormalizedDeviceX(next.getMouseState().getX()),
                                        getNormalizedDeviceY(next.getMouseState().getY()),
                                        viewTrackBall.getRotation());
@@ -312,7 +285,6 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void perform(InputState prev, InputState next) {
                 showAxis = !showAxis;
-                showLight = !showLight;
             }
         });
         input.on(keyPress(KeyEvent.KeyCode.E)).trigger(new Action() {
@@ -331,6 +303,7 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void perform(InputState prev, InputState next) {
                 System.out.println("Samples left: " + specularSamplesLeft);
+                Profiler.getDataSnapshot().get(Thread.currentThread()).print(System.out);
             }
         });
 
@@ -341,9 +314,6 @@ public class AshikhminDeferredShader implements Task<Void> {
         xAxis = Shapes.createCylinder(framework, new Vector3(1, 0, 0), new Vector3(1, 0, 0), 0.01, 0.5, 4);
         yAxis = Shapes.createCylinder(framework, new Vector3(0, 1, 0), new Vector3(0, 1, 0), 0.01, 0.5, 4);
         zAxis = Shapes.createCylinder(framework, new Vector3(0, 0, 1), new Vector3(0, 0, 1), 0.01, 0.5, 4);
-
-        showLight = true;
-        lightCube = Shapes.createBox(framework, 0.1);
 
         simpleShader = loadShader(framework, "simple").bindColorBuffer("fColor", 0).build();
         specularGbufferShader = loadShader(framework, "ashik-specular").bindColorBuffer("fColor", 0).build();
@@ -536,7 +506,6 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void stateChanged(ChangeEvent e) {
                 sensitivity = (Double) sensitivitySlider.getValue();
-                updateGBuffer();
             }
         });
         JLabel exposureLabel = new JLabel("Shutter Speed");
@@ -545,7 +514,6 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void stateChanged(ChangeEvent e) {
                 exposure = (Double) exposureSlider.getValue();
-                updateGBuffer();
             }
         });
         JLabel fstopLabel = new JLabel("F-Stop");
@@ -554,7 +522,6 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void stateChanged(ChangeEvent e) {
                 fstop = (Double) fstopSlider.getValue();
-                updateGBuffer();
             }
         });
         JLabel gammaLabel = new JLabel("Gamma");
@@ -563,7 +530,6 @@ public class AshikhminDeferredShader implements Task<Void> {
             @Override
             public void stateChanged(ChangeEvent e) {
                 gamma = (Double) gammaSlider.getValue();
-                updateGBuffer();
             }
         });
 
@@ -759,9 +725,11 @@ public class AshikhminDeferredShader implements Task<Void> {
         Context ctx;
         GlslRenderer r;
 
+        Profiler.push("render");
         // if we've moved the camera or modelview, then the gbuffer is invalidated, so
         // fill in the gbuffer and the diffuse lighting buffer
         if (invalidateGbuffer) {
+            Profiler.push("fill-gbuffer");
             ctx = access.setActiveSurface(gbuffer);
             if (ctx == null) {
                 return null;
@@ -802,7 +770,9 @@ public class AshikhminDeferredShader implements Task<Void> {
             r.setIndices(shape.getIndices());
             r.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
             ctx.flush();
+            Profiler.pop();
 
+            Profiler.push("diffuse");
             // accumulate lighting into another texture (linear pre gamma correction)
             ctx = access.setActiveSurface(accumulateBuffer, accumulateDiff.getRenderTarget());
             if (ctx == null) {
@@ -833,11 +803,12 @@ public class AshikhminDeferredShader implements Task<Void> {
             r.setIndices(fullscreenQuad.getIndices());
             r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                      fullscreenQuad.getIndexCount());
-
+            Profiler.pop();
         }
 
-        //        if (envMap.getSamples().size() - specularSamplesLeft < 30) {
-        if (specularSamplesLeft > 0) {
+        if (envMap.getSamples().size() - specularSamplesLeft < 40) {
+            //        if (specularSamplesLeft > 0) {
+            Profiler.push("specular");
             ctx = access.setActiveSurface(accumulateBuffer, accumulateSpec.getRenderTarget());
             if (ctx == null) {
                 return null;
@@ -862,7 +833,7 @@ public class AshikhminDeferredShader implements Task<Void> {
             r.setUniform(specularGbufferShader.getUniform("uNormal"), normalGBuffer);
             r.setUniform(specularGbufferShader.getUniform("uTangent"), tangentGBuffer);
             r.setUniform(specularGbufferShader.getUniform("uDepth"), depthGBuffer);
-            r.setUniform(specularGbufferShader.getUniform("uEnvMap"), envCubeMap);
+            //            r.setUniform(specularGbufferShader.getUniform("uEnvMap"), envCubeMap);
 
             Matrix4 inv = new Matrix4();
             r.setUniform(specularGbufferShader.getUniform("uInvProjection"),
@@ -878,19 +849,25 @@ public class AshikhminDeferredShader implements Task<Void> {
                             fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
 
-            for (int i = 0; i < 30 && specularSamplesLeft > 0; i++) {
-                //                Vector3 rand = new Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-                r.setUniform(specularGbufferShader.getUniform("uLightDirection"),
-                             //                             rand);
-                             envMap.getSamples().get(specularSamplesLeft - 1));
+            for (int i = 0; i < 120 && specularSamplesLeft > 0; i++) {
+                //        for (int i = envMap.getSamples().size() - 1; i >= 5; i--) {
+                Profiler.push("specular-sample");
+                EnvironmentMap.Sample s = envMap.getSamples().get(specularSamplesLeft - 1);
+                //            EnvironmentMap.Sample s = envMap.getSamples().get(i);
+                r.setUniform(specularGbufferShader.getUniform("uLightDirection"), s.direction);
+                r.setUniform(specularGbufferShader.getUniform("uLightRadiance"), s.illumination);
                 r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                          fullscreenQuad.getIndexCount());
                 specularSamplesLeft--;
+                Profiler.pop();
             }
+            ctx.flush();
+            Profiler.pop();
         }
 
         invalidateGbuffer = false;
 
+        Profiler.push("window");
         // display everything to the window
         ctx = access.setActiveSurface(window);
         if (ctx == null) {
@@ -920,17 +897,6 @@ public class AshikhminDeferredShader implements Task<Void> {
         r.setUniform(simpleShader.getUniform("uView"), camera.getViewMatrix());
         r.setUniform(simpleShader.getUniform("uUseEnvMap"), false);
 
-        // draw light
-        if (showLight) {
-            r.setUniform(simpleShader.getUniform("uModel"), new Matrix4().setIdentity().setCol(3, light));
-            r.setUniform(simpleShader.getUniform("uSolidColor"), new Vector4(1, 1, 0, 1));
-
-            r.bindAttribute(simpleShader.getAttribute("aPos"), lightCube.getVertices());
-
-            r.setIndices(lightCube.getIndices());
-            r.render(lightCube.getPolygonType(), lightCube.getIndexOffset(), lightCube.getIndexCount());
-        }
-
         // axis rendering
         if (showAxis) {
             r.setUniform(simpleShader.getUniform("uModel"), new Matrix4().setIdentity());
@@ -958,6 +924,11 @@ public class AshikhminDeferredShader implements Task<Void> {
             // draw environment map
             r.setShader(simpleShader);
             r.setDrawStyle(Renderer.DrawStyle.NONE, Renderer.DrawStyle.SOLID);
+            r.setUniform(simpleShader.getUniform("uGamma"), gamma);
+            r.setUniform(simpleShader.getUniform("uSensitivity"), sensitivity);
+            r.setUniform(simpleShader.getUniform("uExposure"), exposure);
+            r.setUniform(simpleShader.getUniform("uFstop"), fstop);
+
             r.setUniform(simpleShader.getUniform("uModel"), new Matrix4().setIdentity());
             r.setUniform(simpleShader.getUniform("uUseEnvMap"), true);
             r.setUniform(simpleShader.getUniform("uEnvMap"), (showDiffMap ? envDiffMap : envCubeMap));
@@ -969,6 +940,8 @@ public class AshikhminDeferredShader implements Task<Void> {
         }
 
         ctx.flush();
+        Profiler.pop();
+        Profiler.pop();
         return null;
     }
 }

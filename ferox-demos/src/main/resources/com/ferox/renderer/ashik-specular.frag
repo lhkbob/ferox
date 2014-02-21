@@ -8,9 +8,11 @@ uniform sampler2D uSpecularAlbedoDiffuseB;
 uniform sampler2D uShininessXYDiffuseRG;
 uniform sampler2D uDepth;
 
-uniform samplerCube uEnvMap;
+//uniform samplerCube uEnvMap;
+//uniform samplerCube uSolidAngle;
 
 uniform vec3 uLightDirection;
+uniform vec3 uLightRadiance;
 uniform vec3 uCamPos;
 
 uniform mat4 uInvProjection;
@@ -46,12 +48,15 @@ void main() {
         float bh = dot(fB, fH);
         float nh = dot(fN, fH);
 
+//        float solidAngle = texture(uSolidAngle, fL).r;
+
         spec = texture(uSpecularAlbedoDiffuseB, vTC).rgb; // Rs
         spec = spec + (vec3(1.0) - spec) * vec3(pow(1.0 - lh, 5)); // fresnel
         float exp = (shine.x * th * th + shine.y * bh * bh) / (1.0 - nh * nh);
         float denom = lh * max(lightToNorm, viewToNorm);
         float pS = sqrt((shine.x + 1.0) * (shine.y + 1.0)) / (8.0 * PI) * pow(nh, exp) / denom;
-        spec = pS * spec * texture(uEnvMap, fL).rgb;
+//        spec = pS * spec * solidAngle * texture(uEnvMap, fL).rgb;
+        spec = pS * spec * uLightRadiance;
     }
 
     fColor = vec4(spec, 1.0);
