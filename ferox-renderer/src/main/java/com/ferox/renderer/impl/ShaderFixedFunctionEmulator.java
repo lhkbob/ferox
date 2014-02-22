@@ -613,6 +613,7 @@ public class ShaderFixedFunctionEmulator implements FixedFunctionRenderer, Activ
     }
 
     private void loadDefaultState() {
+        glsl.reset();
         glsl.setShader(shader);
         FixedFunctionState defaults = new FixedFunctionState();
 
