@@ -39,9 +39,12 @@ import com.ferox.renderer.geom.CharacterSet;
 import com.ferox.renderer.geom.TextRenderer;
 import com.ferox.renderer.geom.TextRenderer.Anchor;
 
+import java.util.concurrent.CancellationException;
+
 public abstract class ApplicationStub {
     private final Framework framework;
     private final OnscreenSurfaceOptions opts;
+    private final boolean processInputAutomatically;
 
     private boolean showFPS;
     private boolean showProfiling;
@@ -49,10 +52,12 @@ public abstract class ApplicationStub {
     protected CharacterSet charSet;
 
     public ApplicationStub(Framework framework) {
-        this(framework, new OnscreenSurfaceOptions().windowed(800, 600).withDepthBuffer(24));
+        this(framework, new OnscreenSurfaceOptions().windowed(800, 600).withDepthBuffer(24), true);
     }
 
-    public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts) {
+    public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts,
+                           boolean processInputAutomatically) {
+        this.processInputAutomatically = processInputAutomatically;
         this.framework = framework;
         this.opts = opts;
         showFPS = true;
@@ -108,8 +113,12 @@ public abstract class ApplicationStub {
                     last = now;
                     numFrames = 0;
                 }
-                io.process();
+                if (processInputAutomatically) {
+                    io.process();
+                }
             }
+        } catch (CancellationException e) {
+            // do nothing
         } finally {
             framework.destroy();
         }
