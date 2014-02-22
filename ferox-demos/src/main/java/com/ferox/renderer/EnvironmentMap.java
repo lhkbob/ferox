@@ -20,6 +20,7 @@ import java.util.Map;
  *
  */
 public class EnvironmentMap {
+    private static final int SAMPLE_COUNT = 40;
     private static final int DIR_SIDE = 32;
 
     private final int side;
@@ -50,7 +51,8 @@ public class EnvironmentMap {
     }
 
     public static void main(String[] args) throws IOException {
-        EnvironmentMap toCache = createFromCubeMap(new File("/Users/mludwig/Desktop/grace_cross.hdr"));
+        File in = new File("/Users/mludwig/Desktop/SingleSpot.hdr");
+        EnvironmentMap toCache = createFromCubeMap(in);
 
         JFrame window = new JFrame("final samples");
         JPanel panel = new JPanel();
@@ -111,7 +113,10 @@ public class EnvironmentMap {
         window.setVisible(true);
         window.pack();
 
-        toCache.write(new File("/Users/mludwig/Desktop/grace.env"));
+        File out = new File(in.getParent() + File.separator +
+                            in.getName().substring(0, in.getName().length() - 4) + "_" + SAMPLE_COUNT +
+                            ".env");
+        toCache.write(out);
     }
 
     public static EnvironmentMap createFromCubeMap(File verticalCrossHDR) throws IOException {
@@ -228,7 +233,7 @@ public class EnvironmentMap {
     private void computeSamples() {
         StructuredImportanceSampler sampler = new StructuredImportanceSampler(env, solidAngle, side, 6);
         samples.clear();
-        samples.addAll(sampler.computeSamples(40));
+        samples.addAll(sampler.computeSamples(SAMPLE_COUNT));
     }
 
     public List<Sample> getSamples() {

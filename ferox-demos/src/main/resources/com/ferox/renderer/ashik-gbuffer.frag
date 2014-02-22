@@ -25,6 +25,8 @@ in vec3 vN;
 in vec3 vT;
 in vec3 vB;
 
+in vec3 vEyeDir; // world space vector to camera
+
 in vec2 vTCa;
 in vec2 vTCb;
 
@@ -60,6 +62,9 @@ void main() {
 
     vec2 shine = shininess();
     vec3 tN = specularNormal();
+    float factor = 1.0 - pow(1.0 - max(0.0, dot(normalize(vEyeDir), tanToWorld[2])), 3);
+    tN = factor * tN + (1.0 - factor) * vec3(0.0, 0.0, 1.0);
+
     vec3 tT = normalize(cross(vec3(0.0, 1.0, 0.0), tN));
 
     vec3 diff = diffuseAlbedo();

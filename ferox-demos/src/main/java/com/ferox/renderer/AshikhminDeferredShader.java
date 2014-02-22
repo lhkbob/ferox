@@ -186,7 +186,7 @@ public class AshikhminDeferredShader implements Task<Void> {
         OnscreenSurfaceOptions opts = new OnscreenSurfaceOptions().withDepthBuffer(24).windowed(WIDTH, HEIGHT)
                                                                   .fixedSize();
         window = framework.createSurface(opts);
-        //                window.setVSyncEnabled(true);
+        window.setVSyncEnabled(true);
         window.setLocation(0, 0);
 
         camera = new Frustum(60, window.getWidth() / (float) window.getHeight(), 0.1, 25);
@@ -211,7 +211,7 @@ public class AshikhminDeferredShader implements Task<Void> {
         fullscreenQuad = Shapes.createRectangle(framework, 0, WIDTH, 0, HEIGHT);
         fullscreenProjection = new Frustum(true, 0, WIDTH, 0, HEIGHT, -1.0, 1.0);
 
-        envMap = EnvironmentMap.loadFromFile(new File("/Users/mludwig/Desktop/grace.env"));
+        envMap = EnvironmentMap.loadFromFile(new File("/Users/mludwig/Desktop/grace_cross_1000.env"));
         envCubeMap = envMap.createEnvironmentMap(framework);
         envDiffMap = envMap.createDiffuseMap(framework);
         envCube = Shapes.createBox(framework, 6.0);
@@ -762,6 +762,8 @@ public class AshikhminDeferredShader implements Task<Void> {
             r.setUniform(fillGbufferShader.getUniform("uShininessScale"), shininessXScale, shininessYScale);
             r.setUniform(fillGbufferShader.getUniform("uTCScale"), texCoordAScale, texCoordBScale);
 
+            r.setUniform(fillGbufferShader.getUniform("uCamPos"), camera.getLocation());
+
             r.bindAttribute(fillGbufferShader.getAttribute("aPos"), shape.getVertices());
             r.bindAttribute(fillGbufferShader.getAttribute("aNorm"), shape.getNormals());
             r.bindAttribute(fillGbufferShader.getAttribute("aTan"), shape.getTangents());
@@ -806,8 +808,7 @@ public class AshikhminDeferredShader implements Task<Void> {
             Profiler.pop();
         }
 
-        if (envMap.getSamples().size() - specularSamplesLeft < 40) {
-            //        if (specularSamplesLeft > 0) {
+        if (specularSamplesLeft > 0) {
             Profiler.push("specular");
             ctx = access.setActiveSurface(accumulateBuffer, accumulateSpec.getRenderTarget());
             if (ctx == null) {
@@ -849,8 +850,7 @@ public class AshikhminDeferredShader implements Task<Void> {
                             fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
 
-            for (int i = 0; i < 120 && specularSamplesLeft > 0; i++) {
-                //        for (int i = envMap.getSamples().size() - 1; i >= 5; i--) {
+            for (int i = 0; i < 30 && specularSamplesLeft > 0; i++) {
                 Profiler.push("specular-sample");
                 EnvironmentMap.Sample s = envMap.getSamples().get(specularSamplesLeft - 1);
                 //            EnvironmentMap.Sample s = envMap.getSamples().get(i);

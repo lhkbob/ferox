@@ -223,12 +223,16 @@ public class StructuredImportanceSampler {
 
         Set<Center> computeStrataForComponent(int component) {
             Set<Center> centers = new HashSet<>();
+
             BitSet children = componentChildren.get(component);
             for (int k = children.nextSetBit(0); k >= 0; k = children.nextSetBit(k + 1)) {
                 centers.addAll(thresholds.get(threshold + 1).strata.get(k));
             }
 
             int sampleCount = componentSamples.get(component);
+            if (sampleCount == 0) {
+                return centers;
+            }
 
             if (centers.isEmpty()) {
                 // add arbitrary point
@@ -331,9 +335,9 @@ public class StructuredImportanceSampler {
             componentSamples.clear();
             int totalForThreshold = 0;
             for (Integer c : componentChildren.keySet()) {
-                int totalForComponent = (int) Math.ceil(totalSamples * sumL.get(c) *
-                                                        Math.pow(Math.min(sumSA.get(c), sa0), 0.25) /
-                                                        maxWeight);
+                int totalForComponent = (int) Math.floor(totalSamples * sumL.get(c) *
+                                                         Math.pow(Math.min(sumSA.get(c), sa0), 0.25) /
+                                                         maxWeight);
                 BitSet current = new BitSet();
                 BitSet next = new BitSet();
                 current.or(componentChildren.get(c));
@@ -403,7 +407,6 @@ public class StructuredImportanceSampler {
                     }
                 }
             } // else leaf so don't have any children
-            System.out.println(componentChildren);
         }
 
         void label() {
