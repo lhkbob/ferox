@@ -1,3 +1,29 @@
+/*
+ * Ferox, a graphics and game library in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.ferox.renderer;
 
 import com.ferox.math.Const;
@@ -7,20 +33,17 @@ import com.ferox.renderer.builder.TextureBuilder;
 import com.ferox.renderer.builder.TextureCubeMapBuilder;
 import com.ferox.renderer.loader.RadianceImageLoader;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
  */
 public class EnvironmentMap {
-    private static final int SAMPLE_COUNT = 40;
+    private static final int SAMPLE_COUNT = 1000;
     private static final int DIR_SIDE = 32;
 
     private final int side;
@@ -51,67 +74,8 @@ public class EnvironmentMap {
     }
 
     public static void main(String[] args) throws IOException {
-        File in = new File("/Users/mludwig/Desktop/SingleSpot.hdr");
+        File in = new File("/Users/mludwig/Desktop/FordStudio.hdr");
         EnvironmentMap toCache = createFromCubeMap(in);
-
-        JFrame window = new JFrame("final samples");
-        JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout());
-        window.add(panel);
-
-        Vector3 max = new Vector3();
-        Vector3 min = new Vector3();
-        for (Sample s : toCache.samples) {
-            max.set(Math.max(s.illumination.x, max.x), Math.max(s.illumination.y, max.y),
-                    Math.max(s.illumination.z, max.z));
-            min.set(Math.min(s.illumination.x, min.x), Math.min(s.illumination.y, min.y),
-                    Math.min(s.illumination.z, min.z));
-        }
-
-        Map<Sample, Color> colors = new HashMap<>();
-        for (Sample s : toCache.samples) {
-            Color c = new Color((float) ((s.illumination.x - min.x) / (max.x - min.x)),
-                                (float) ((s.illumination.y - min.y) / (max.y - min.y)),
-                                (float) ((s.illumination.z - min.z) / (max.z - min.z)));
-            colors.put(s, c);
-        }
-
-        for (int i = 0; i < 6; i++) {
-            BufferedImage img = new BufferedImage(toCache.side, toCache.side, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = img.createGraphics();
-            g.setColor(Color.black);
-
-            for (int y = 0; y < toCache.side; y++) {
-                for (int x = 0; x < toCache.side; x++) {
-                    double minD2 = Double.POSITIVE_INFINITY;
-                    Sample closest = null;
-                    for (Sample c : toCache.samples) {
-                        if (c.face == i) {
-                            double d2 = (c.x - x) * (c.x - x) + (c.y - y) * (c.y - y);
-                            if (closest == null || d2 < minD2) {
-                                minD2 = d2;
-                                closest = c;
-                            }
-                        }
-                    }
-
-                    g.setColor(colors.get(closest));
-                    g.fillRect(x, y, 1, 1);
-                }
-            }
-
-            g.setColor(Color.RED);
-            for (Sample s : toCache.samples) {
-                if (s.face == i) {
-                    g.fillRect(s.x - 1, s.y - 1, 2, 2);
-                }
-            }
-            g.dispose();
-
-            panel.add(new JLabel(new ImageIcon(resize(img, 300, 300))));
-        }
-        window.setVisible(true);
-        window.pack();
 
         File out = new File(in.getParent() + File.separator +
                             in.getName().substring(0, in.getName().length() - 4) + "_" + SAMPLE_COUNT +
@@ -371,7 +335,7 @@ public class EnvironmentMap {
                     if (pd > 0) {
                         double dSA = solidAngle[i][y * side + x];
                         // NOTE this does not include the (1 - vn/2)^5 term that depends on the viewing angle to normal
-                        pd = 28.0 / (23.0 * Math.PI) * (1.0 - Math.pow(1.0 - pd / 2.0, 5.0));
+                        pd = pd * (28.0 / (23.0 * Math.PI) * (1.0 - Math.pow(1.0 - pd / 2.0, 5.0)));
                         irradiance.addScaled(pd * dSA, color);
                     }
                 }

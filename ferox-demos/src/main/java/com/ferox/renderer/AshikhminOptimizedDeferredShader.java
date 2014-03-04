@@ -1,3 +1,29 @@
+/*
+ * Ferox, a graphics and game library in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.ferox.renderer;
 
 import com.ferox.input.KeyEvent;
@@ -72,8 +98,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
     private boolean showDiffMap = false;
 
     // tone mapping
-    private volatile double exposure = 1.0 / 1000.0;
-    private volatile double sensitivity = 100;
+    private volatile double exposure = 0.1;
+    private volatile double sensitivity = 500;
     private volatile double fstop = 2.8;
     private volatile double gamma = 2.2;
 
@@ -106,6 +132,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     private volatile boolean invalidateGbuffer;
     private int specularSamplesLeft;
+
+    private volatile int samplesPerFrame = 40;
 
     // input textures
     private volatile Material matA;
@@ -318,15 +346,26 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setIndices(fullscreenQuad.getIndices());
 
             Vector3 lightDir = new Vector3();
-            for (int i = 0; i < SAMPLES_PER_FRAME && specularSamplesLeft > 0; i++) {
+            int numPasses = samplesPerFrame / 40;
+            for (int i = 0; i < numPasses; i++) {
                 Profiler.push("specular-sample");
-                EnvironmentMap.Sample s = environment.samples.get(specularSamplesLeft - 1);
-                r.setUniform(lightingShader.getUniform("uLightDirection"),
-                             lightDir.transform(camera.getViewMatrix(), s.direction, 0).normalize());
-                r.setUniform(lightingShader.getUniform("uLightRadiance"), s.illumination);
+                for (int j = 0; j < 40; j++) {
+                    if (specularSamplesLeft >= 1) {
+                        EnvironmentMap.Sample s = environment.samples.get(specularSamplesLeft - 1);
+                        r.setUniformArray(lightingShader.getUniform("uLightDirection"), j,
+                                          lightDir.transform(camera.getViewMatrix(), s.direction, 0)
+                                                  .normalize());
+                        r.setUniformArray(lightingShader.getUniform("uLightRadiance"), j, s.illumination);
+                        specularSamplesLeft--;
+                    } else {
+                        // fill in with black
+                        r.setUniformArray(lightingShader.getUniform("uLightDirection"), j, new Vector3());
+                        r.setUniformArray(lightingShader.getUniform("uLightRadiance"), j, new Vector3());
+                    }
+                }
+
                 r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                          fullscreenQuad.getIndexCount());
-                specularSamplesLeft--;
                 Profiler.pop();
             }
             ctx.flush();
@@ -635,7 +674,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         });
 
         JLabel tcALabel = new JLabel("TC A Scale");
-        final JSlider tcASlider = createSlider(100, 10000);
+        final JSlider tcASlider = createSlider(100, 100000);
         tcASlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -644,7 +683,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             }
         });
         JLabel tcBLabel = new JLabel("TC B Scale");
-        final JSlider tcBSlider = createSlider(100, 10000);
+        final JSlider tcBSlider = createSlider(100, 100000);
         tcBSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -686,6 +725,16 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             }
         });
 
+        JLabel samplesLabel = new JLabel("Samples");
+        final JSpinner samplesSlider = new JSpinner(new SpinnerNumberModel(samplesPerFrame, 10, 1000, 10));
+        samplesSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                samplesPerFrame = (Integer) samplesSlider.getValue();
+                updateGBuffer();
+            }
+        });
+
         layout.setHorizontalGroup(layout.createSequentialGroup()
                                         .addGroup(layout.createParallelGroup().addComponent(loadEnv)
                                                         .addComponent(loadTexturesA).addComponent(tcASlider)
@@ -697,7 +746,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                                         .addComponent(expUSlider).addComponent(expVSlider)
                                                         .addComponent(sensitivitySlider)
                                                         .addComponent(exposureSlider)
-                                                        .addComponent(fstopSlider).addComponent(gammaSlider))
+                                                        .addComponent(fstopSlider).addComponent(gammaSlider)
+                                                        .addComponent(samplesSlider))
                                         .addGroup(layout.createParallelGroup().addComponent(envLabel)
                                                         .addComponent(texLabelA).addComponent(tcALabel)
                                                         .addComponent(texLabelB).addComponent(tcBLabel)
@@ -707,7 +757,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                                         .addComponent(expVLabel)
                                                         .addComponent(sensitivityLabel)
                                                         .addComponent(exposureLabel).addComponent(fstopLabel)
-                                                        .addComponent(gammaLabel)));
+                                                        .addComponent(gammaLabel)
+                                                        .addComponent(samplesLabel)));
         layout.setVerticalGroup(layout.createSequentialGroup()
                                       .addGroup(layout.createParallelGroup().addComponent(loadEnv)
                                                       .addComponent(envLabel))
@@ -740,7 +791,9 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                       .addGroup(layout.createParallelGroup().addComponent(fstopSlider)
                                                       .addComponent(fstopLabel))
                                       .addGroup(layout.createParallelGroup().addComponent(gammaSlider)
-                                                      .addComponent(gammaLabel)));
+                                                      .addComponent(gammaLabel)).addGap(15)
+                                      .addGroup(layout.createParallelGroup().addComponent(samplesSlider)
+                                                      .addComponent(samplesLabel)));
 
         properties.pack();
         properties.setLocation(810, 0);

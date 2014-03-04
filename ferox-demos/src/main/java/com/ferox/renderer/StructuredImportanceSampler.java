@@ -1,8 +1,33 @@
+/*
+ * Ferox, a graphics and game library in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.ferox.renderer;
 
 import com.ferox.math.Vector3;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -79,42 +104,6 @@ public class StructuredImportanceSampler {
             t.computeHierarchy();
         }
         System.out.println("Connected components completed");
-
-        JFrame window = new JFrame("connected components");
-        JPanel panel = new JPanel();
-        panel.setLayout(new FlowLayout());
-        window.add(panel);
-
-        Map<Integer, Color> colors = new HashMap<>();
-
-        for (int i = 0; i < 6; i++) {
-            for (int k = 0; k < numThresholds; k++) {
-                BufferedImage img = new BufferedImage(side, side, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g = img.createGraphics();
-                g.setColor(Color.black);
-                g.fillRect(0, 0, side, side);
-
-                for (int y = 0; y < side; y++) {
-                    for (int x = 0; x < side; x++) {
-                        int label = thresholds.get(k).components[i][y * side + x];
-                        if (label >= 0) {
-                            Color c = colors.get(label);
-                            if (c == null) {
-                                c = new Color(label * 100000);
-                                colors.put(label, c);
-                            }
-
-                            g.setColor(c);
-                            g.fillRect(x, y, 1, 1);
-                        }
-                    }
-                }
-
-                g.dispose();
-                panel.add(new JLabel(new ImageIcon(resize(img, 100, 100))));
-            }
-        }
-        window.setVisible(true);
     }
 
     public static BufferedImage resize(BufferedImage image, int width, int height) {
