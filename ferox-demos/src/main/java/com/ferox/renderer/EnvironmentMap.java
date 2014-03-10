@@ -26,60 +26,80 @@
  */
 package com.ferox.renderer;
 
-import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.renderer.builder.CubeImageData;
 import com.ferox.renderer.builder.TextureBuilder;
 import com.ferox.renderer.builder.TextureCubeMapBuilder;
 import com.ferox.renderer.loader.RadianceImageLoader;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  *
  */
 public class EnvironmentMap {
-    private static final int SAMPLE_COUNT = 1000;
+    public static final double[] SPEC_EXP = { -1.0,
+                                              1.0,
+                                              10.0,
+                                              50.0,
+                                              150.0,
+                                              300.0,
+                                              600.0,
+                                              1200.0,
+                                              2400.0,
+                                              4800.0,
+                                              6400.0,
+                                              8000.0,
+                                              12000.0,
+                                              -1.0 };
+    public static final int[] SPEC_SIDE = { 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64, -1 };
+    public static final int SPEC_COUNT = SPEC_EXP.length;
+
+    public static final int PX = 0;
+    public static final int PY = 1;
+    public static final int PZ = 2;
+    public static final int NX = 3;
+    public static final int NY = 4;
+    public static final int NZ = 5;
+
     private static final int DIR_SIDE = 32;
 
     private final int side;
     private final float[][] env;
-    private final float[][] solidAngle;
 
     private final float[][] diff;
+    private final float[][][] spec;
 
-    private final List<Sample> samples;
+    private final transient List<Sample> samples;
 
     private EnvironmentMap(int side) {
         this.side = side;
-        env = new float[6][side * side * 3];
+        //        int numMips = (int) Math.floor(Math.log(side) / Math.log(2)) + 1;
 
+        env = new float[6][side * side * 3];
         diff = new float[6][DIR_SIDE * DIR_SIDE * 3];
-        solidAngle = new float[6][side * side];
+        spec = new float[SPEC_COUNT][6][];
+        for (int m = 0; m < SPEC_COUNT; m++) {
+            //            int s = Math.max(side >> m, 1);
+            int s = (SPEC_SIDE[m] < 0 ? side : SPEC_SIDE[m]);
+
+            for (int i = 0; i < 6; i++) {
+                spec[m][i] = new float[s * s * 3];
+            }
+        }
+
         samples = new ArrayList<>();
     }
 
-    public static BufferedImage resize(BufferedImage image, int width, int height) {
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
-        Graphics2D g2d = bi.createGraphics();
-        g2d.addRenderingHints(new RenderingHints(RenderingHints.KEY_RENDERING,
-                                                 RenderingHints.VALUE_RENDER_QUALITY));
-        g2d.drawImage(image, 0, 0, width, height, null);
-        g2d.dispose();
-        return bi;
-    }
-
     public static void main(String[] args) throws IOException {
-        File in = new File("/Users/mludwig/Desktop/FordStudio.hdr");
+        File in = new File("/Users/mludwig/Desktop/FordStudio_scaled.hdr");
         EnvironmentMap toCache = createFromCubeMap(in);
 
         File out = new File(in.getParent() + File.separator +
-                            in.getName().substring(0, in.getName().length() - 4) + "_" + SAMPLE_COUNT +
-                            ".env");
+                            in.getName().substring(0, in.getName().length() - 4) + ".env2");
         toCache.write(out);
     }
 
@@ -92,14 +112,14 @@ public class EnvironmentMap {
         EnvironmentMap map = new EnvironmentMap(cross.width / 3);
         convertCross(map.side, map.env, cross);
 
-        map.computeSolidAngles();
         map.computeDiffuseIrradiance();
+        map.computeSpecularIrradiance();
         map.computeSamples();
         return map;
     }
 
     public static EnvironmentMap loadFromFile(File cachedData) throws IOException {
-        try (DataInputStream in = new DataInputStream(new FileInputStream(cachedData))) {
+        try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(cachedData)))) {
             int side = in.readInt();
             System.out.println(side);
             EnvironmentMap map = new EnvironmentMap(side);
@@ -111,14 +131,6 @@ public class EnvironmentMap {
                 }
             }
             System.out.println("Read " + ct + " floats for env");
-            ct = 0;
-            for (int i = 0; i < 6; i++) {
-                for (int j = 0; j < map.solidAngle[i].length; j++) {
-                    map.solidAngle[i][j] = in.readFloat();
-                    ct++;
-                }
-            }
-            System.out.println("Read " + ct + " floats for solid angles");
 
             int dirSide = in.readInt();
             if (dirSide != DIR_SIDE) {
@@ -130,28 +142,24 @@ public class EnvironmentMap {
                 }
             }
 
-            int numSamples = in.readInt();
-            for (int i = 0; i < numSamples; i++) {
-                int face = in.readInt();
-                int x = in.readInt();
-                int y = in.readInt();
-
-                double dx = in.readDouble();
-                double dy = in.readDouble();
-                double dz = in.readDouble();
-                double ix = in.readDouble();
-                double iy = in.readDouble();
-                double iz = in.readDouble();
-
-                map.samples.add(new Sample(face, x, y, new Vector3(dx, dy, dz), new Vector3(ix, iy, iz)));
+            ct = 0;
+            for (int m = 0; m < map.spec.length; m++) {
+                for (int i = 0; i < 6; i++) {
+                    for (int j = 0; j < map.spec[m][i].length; j++) {
+                        map.spec[m][i][j] = in.readFloat();
+                        ct++;
+                    }
+                }
             }
+            System.out.println("Read " + ct + " floats for spec");
 
+            map.computeSamples();
             return map;
         }
     }
 
     public void write(File data) throws IOException {
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(data))) {
+        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(data)))) {
             out.writeInt(side);
             int ct = 0;
             for (int i = 0; i < 6; i++) {
@@ -161,14 +169,6 @@ public class EnvironmentMap {
                 }
             }
             System.out.println("Wrote " + ct + " floats for env");
-            ct = 0;
-            for (int i = 0; i < 6; i++) {
-                for (int j = 0; j < solidAngle[i].length; j++) {
-                    out.writeFloat(solidAngle[i][j]);
-                    ct++;
-                }
-            }
-            System.out.println("Wrote " + ct + " floats for solid angles");
 
             out.writeInt(DIR_SIDE);
             for (int i = 0; i < 6; i++) {
@@ -177,95 +177,122 @@ public class EnvironmentMap {
                 }
             }
 
-            out.writeInt(samples.size());
-            for (Sample s : samples) {
-                out.writeInt(s.face);
-                out.writeInt(s.x);
-                out.writeInt(s.y);
-
-                out.writeDouble(s.direction.x);
-                out.writeDouble(s.direction.y);
-                out.writeDouble(s.direction.z);
-
-                out.writeDouble(s.illumination.x);
-                out.writeDouble(s.illumination.y);
-                out.writeDouble(s.illumination.z);
+            ct++;
+            for (int m = 0; m < spec.length; m++) {
+                for (int i = 0; i < 6; i++) {
+                    for (int j = 0; j < spec[m][i].length; j++) {
+                        out.writeFloat(spec[m][i][j]);
+                        ct++;
+                    }
+                }
             }
+            System.out.println("Wrote " + ct + " floats for spec");
         }
     }
 
-    private void computeSamples() {
-        StructuredImportanceSampler sampler = new StructuredImportanceSampler(env, solidAngle, side, 6);
-        samples.clear();
-        samples.addAll(sampler.computeSamples(SAMPLE_COUNT));
+    public TextureCubeMap createEnvironmentMap(Framework framework) {
+        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
+        cmb.side(side).wrap(Sampler.WrapMode.CLAMP).interpolated();
+        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
+        data.positiveX(0).from(env[PX]);
+        data.positiveY(0).from(env[PY]);
+        data.positiveZ(0).from(env[PZ]);
+        data.negativeX(0).from(env[NX]);
+        data.negativeY(0).from(env[NY]);
+        data.negativeZ(0).from(env[NZ]);
+        return cmb.build();
+    }
+
+    public TextureCubeMap createDiffuseMap(Framework framework) {
+        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
+        cmb.side(DIR_SIDE).wrap(Sampler.WrapMode.CLAMP).interpolated();
+        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
+        data.positiveX(0).from(diff[PX]);
+        data.positiveY(0).from(diff[PY]);
+        data.positiveZ(0).from(diff[PZ]);
+        data.negativeX(0).from(diff[NX]);
+        data.negativeY(0).from(diff[NY]);
+        data.negativeZ(0).from(diff[NZ]);
+        return cmb.build();
+    }
+
+    public TextureCubeMap[] createSpecularMaps(Framework framework) {
+        TextureCubeMap[] cubes = new TextureCubeMap[SPEC_COUNT];
+        for (int m = 0; m < SPEC_COUNT; m++) {
+            TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
+            int s = (SPEC_SIDE[m] < 0 ? side : SPEC_SIDE[m]);
+            cmb.side(s).wrap(Sampler.WrapMode.CLAMP).interpolated();
+            CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
+            data.positiveX(0).from(spec[m][PX]);
+            data.positiveY(0).from(spec[m][PY]);
+            data.positiveZ(0).from(spec[m][PZ]);
+            data.negativeX(0).from(spec[m][NX]);
+            data.negativeY(0).from(spec[m][NY]);
+            data.negativeZ(0).from(spec[m][NZ]);
+            cubes[m] = cmb.build();
+        }
+
+        return cubes;
     }
 
     public List<Sample> getSamples() {
         return samples;
     }
 
-    public TextureCubeMap createEnvironmentMap(Framework framework) {
-        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
-        cmb.side(side).interpolated();
-        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
-        data.positiveX(0).from(env[0]);
-        data.positiveY(0).from(env[1]);
-        data.positiveZ(0).from(env[2]);
-        data.negativeX(0).from(env[3]);
-        data.negativeY(0).from(env[4]);
-        data.negativeZ(0).from(env[5]);
-        return cmb.build();
-    }
-
-    public TextureCubeMap createDiffuseMap(Framework framework) {
-        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
-        cmb.side(DIR_SIDE).interpolated();
-        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
-        data.positiveX(0).from(diff[0]);
-        data.positiveY(0).from(diff[1]);
-        data.positiveZ(0).from(diff[2]);
-        data.negativeX(0).from(diff[3]);
-        data.negativeY(0).from(diff[4]);
-        data.negativeZ(0).from(diff[5]);
-        return cmb.build();
-    }
-
-    /*
-    public TextureCubeMap createSolidAngleMap(Framework framework) {
-        TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
-        cmb.side(side).interpolated();
-        CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.r();
-        data.positiveX(0).from(solidAngle[0]);
-        data.positiveY(0).from(solidAngle[1]);
-        data.positiveZ(0).from(solidAngle[2]);
-        data.negativeX(0).from(solidAngle[3]);
-        data.negativeY(0).from(solidAngle[4]);
-        data.negativeZ(0).from(solidAngle[5]);
-        return cmb.build();
-    }
-*/
-    private void computeDiffuseIrradiance() {
-        maxIrradiance = 0.0f;
-        List<Thread> threads = new ArrayList<>();
+    private void computeSamples() {
+        samples.clear();
         for (int i = 0; i < 6; i++) {
-            System.out.println("Starting face " + i);
-            threads.add(integrateFace(i));
-        }
+            for (int y = 0; y < side; y++) {
+                for (int x = 0; x < side; x++) {
+                    Vector3 r = new Vector3();
+                    r.set(env[i], y * side * 3 + x * 3);
+                    r.scale(texelCoordSolidAngle(x, y, side));
 
-        while (!threads.isEmpty()) {
-            Thread t = threads.get(threads.size() - 1);
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                // do nothing
-            }
-            if (!t.isAlive()) {
-                System.out.println("Face " + (threads.size() - 1) + " completed");
-                threads.remove(threads.size() - 1);
+                    Vector3 d = new Vector3();
+                    toVector(i, x, y, side, side, d);
+                    samples.add(new Sample(i, x, y, d, r));
+                }
             }
         }
 
-        System.out.println("Max irradiance = " + maxIrradiance);
+        Collections.sort(samples);
+        Collections.reverse(samples);
+    }
+
+    private void computeDiffuseIrradiance() {
+        Convolution conv = new Convolution(new Convolution.AshikhminDiffuse(), DIR_SIDE, diff);
+        conv.convolve(env, side);
+    }
+
+    private void computeSpecularIrradiance() {
+        for (int i = 1; i < spec.length - 1; i++) {
+            //            double exp = 10 * Math.pow(4, spec.length - i - 1) - 9;
+            //            double exp = 50 * (spec.length - i - 1);
+            double exp = SPEC_EXP[i];
+            //            int side = Math.max(this.side >> i, 1);
+            int s = SPEC_SIDE[i];
+            System.out.printf("level %d, side = %d, exp = %.2f\n", i, s, exp);
+            Convolution conv = new Convolution(new Convolution.AshikhminIsotropicSpecular(exp), s, spec[i]);
+            conv.convolve(env, this.side);
+        }
+
+        // compute environment map scaled by solid angle, which approximates the highest specularity
+        float[][] scaled = spec[SPEC_COUNT - 1];
+        for (int i = 0; i < 6; i++) {
+            for (int y = 0; y < side; y++) {
+                for (int x = 0; x < side; x++) {
+                    float dsa = (float) texelCoordSolidAngle(x, y, side);
+                    scaled[i][y * side * 3 + x * 3] = dsa * env[i][y * side * 3 + x * 3];
+                    scaled[i][y * side * 3 + x * 3 + 1] = dsa * env[i][y * side * 3 + x * 3 + 1];
+                    scaled[i][y * side * 3 + x * 3 + 2] = dsa * env[i][y * side * 3 + x * 3 + 2];
+                }
+            }
+        }
+
+        // duplicate 0th level from 1st
+        for (int i = 0; i < 6; i++) {
+            System.arraycopy(spec[1][i], 0, spec[0][i], 0, spec[1][i].length);
+        }
     }
 
     public static class Sample implements Comparable<Sample> {
@@ -290,82 +317,28 @@ public class EnvironmentMap {
         }
     }
 
-    private float maxIrradiance = 0.0f;
-
-    private Thread integrateFace(final int face) {
-        Thread t = new Thread("integrate-face-" + face) {
-            @Override
-            public void run() {
-                Vector3 normal = new Vector3();
-                float faceMax = 0;
-                for (int y = 0; y < DIR_SIDE; y++) {
-                    for (int x = 0; x < DIR_SIDE; x++) {
-                        toVector(face, x, y, DIR_SIDE, DIR_SIDE, normal);
-                        Vector3 irradiance = integrate(normal);
-                        irradiance.get(diff[face], 3 * y * DIR_SIDE + 3 * x);
-
-                        float irradLen = (float) irradiance.length();
-                        if (irradLen > faceMax) {
-                            faceMax = irradLen;
-                        }
-                    }
-                }
-
-                synchronized (EnvironmentMap.this) {
-                    if (faceMax > maxIrradiance) {
-                        maxIrradiance = faceMax;
-                    }
-                }
-            }
-        };
-        t.start();
-        return t;
-    }
-
-    private Vector3 integrate(@Const Vector3 normal) {
-        Vector3 light = new Vector3();
-        Vector3 color = new Vector3();
-        Vector3 irradiance = new Vector3();
-        for (int i = 0; i < 6; i++) {
-            for (int y = 0; y < side; y++) {
-                for (int x = 0; x < side; x++) {
-                    color.set(env[i], 3 * y * side + 3 * x);
-                    toVector(i, x, y, side, side, light);
-                    double pd = normal.dot(light);
-                    if (pd > 0) {
-                        double dSA = solidAngle[i][y * side + x];
-                        // NOTE this does not include the (1 - vn/2)^5 term that depends on the viewing angle to normal
-                        pd = pd * (28.0 / (23.0 * Math.PI) * (1.0 - Math.pow(1.0 - pd / 2.0, 5.0)));
-                        irradiance.addScaled(pd * dSA, color);
-                    }
-                }
-            }
-        }
-        return irradiance;
-    }
-
     public static void toVector(int face, int tx, int ty, int w, int h, Vector3 v) {
         // technically these are sc / |ma| and tc / |ma| but we assert
         // that |ma| = 1
-        float sc = 2f * tx / (float) w - 1f;
-        float tc = 2f * ty / (float) h - 1f;
+        float sc = 2f * (tx + 0.5f) / (float) w - 1f;
+        float tc = 2f * (ty + 0.5f) / (float) h - 1f;
         switch (face) {
-        case 0: // px
+        case PX: // px
             v.set(1.0, -tc, -sc);
             break;
-        case 1: // py
+        case PY: // py
             v.set(sc, 1.0, tc);
             break;
-        case 2: // pz
+        case PZ: // pz
             v.set(sc, -tc, 1.0);
             break;
-        case 3: // nx
+        case NX: // nx
             v.set(-1.0, -tc, sc);
             break;
-        case 4: // ny
+        case NY: // ny
             v.set(sc, -1.0, -tc);
             break;
-        case 5: // nz
+        case NZ: // nz
             v.set(-sc, -tc, -1.0);
             break;
         }
@@ -377,7 +350,7 @@ public class EnvironmentMap {
         return Math.atan2(x * y, Math.sqrt(x * x + y * y + 1));
     }
 
-    private static double texelCoordSolidAngle(int face, int tx, int ty, int size) {
+    public static double texelCoordSolidAngle(int tx, int ty, int size) {
         // scale up to [-1, 1] range (inclusive), offset by 0.5 to point to texel center.
         double u = 2.0 * ((tx + 0.5) / (double) size) - 1.0;
         double v = 2.0 * ((ty + 0.5) / (double) size) - 1.0;
@@ -394,16 +367,6 @@ public class EnvironmentMap {
         return areaElement(x0, y0) - areaElement(x0, y1) - areaElement(x1, y0) + areaElement(x1, y1);
     }
 
-    private void computeSolidAngles() {
-        for (int i = 0; i < 6; i++) {
-            for (int y = 0; y < side; y++) {
-                for (int x = 0; x < side; x++) {
-                    solidAngle[i][y * side + x] = (float) texelCoordSolidAngle(i, x, y, side);
-                }
-            }
-        }
-    }
-
     private static void convertCross(int side, float[][] env, RadianceImageLoader.Image cross) {
         // px
         for (int y = 0; y < side; y++) {
@@ -413,9 +376,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[0][faceOffset] = cross.data[crossOffset];
-                env[0][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[0][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[PX][faceOffset] = cross.data[crossOffset];
+                env[PX][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[PX][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
 
@@ -427,9 +390,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[1][faceOffset] = cross.data[crossOffset];
-                env[1][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[1][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[PY][faceOffset] = cross.data[crossOffset];
+                env[PY][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[PY][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
 
@@ -441,9 +404,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[2][faceOffset] = cross.data[crossOffset];
-                env[2][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[2][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[PZ][faceOffset] = cross.data[crossOffset];
+                env[PZ][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[PZ][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
 
@@ -455,9 +418,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[3][faceOffset] = cross.data[crossOffset];
-                env[3][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[3][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[NX][faceOffset] = cross.data[crossOffset];
+                env[NX][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[NX][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
 
@@ -469,9 +432,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[4][faceOffset] = cross.data[crossOffset];
-                env[4][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[4][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[NY][faceOffset] = cross.data[crossOffset];
+                env[NY][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[NY][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
 
@@ -483,9 +446,9 @@ public class EnvironmentMap {
 
                 int faceOffset = 3 * y * side + 3 * x;
                 int crossOffset = 3 * crossY * cross.width + 3 * crossX;
-                env[5][faceOffset] = cross.data[crossOffset];
-                env[5][faceOffset + 1] = cross.data[crossOffset + 1];
-                env[5][faceOffset + 2] = cross.data[crossOffset + 2];
+                env[NZ][faceOffset] = cross.data[crossOffset];
+                env[NZ][faceOffset + 1] = cross.data[crossOffset + 1];
+                env[NZ][faceOffset + 2] = cross.data[crossOffset + 2];
             }
         }
     }
