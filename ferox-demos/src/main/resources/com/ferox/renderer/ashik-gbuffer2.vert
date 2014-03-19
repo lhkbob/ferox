@@ -4,23 +4,19 @@ uniform mat4 uView; // transform from world to eye space
 uniform mat4 uModel; // transform from obj to world space
 uniform mat4 uProjection;
 
-uniform vec3 uCamPos;
-
 in vec4 aPos;
 in vec3 aNorm;
 in vec2 aTC;
 in vec4 aTan;
 
-out mat3 vTanToWorld;
-out vec3 vViewDir;
+out mat3 vTanToView;
 out vec2 vTC;
 
 void main() {
-    vec4 worldPos = uModel * aPos;
+    vec4 eyePos = uView * uModel * aPos;
 
-    vTanToWorld = mat3(uModel) * mat3(aTan.w * cross(aNorm, aTan.xyz), aTan.xyz, aNorm);
-    vViewDir = normalize(uCamPos - worldPos.xyz);
+    vTanToView = mat3(uView) * mat3(uModel) * mat3(aTan.w * cross(aNorm, aTan.xyz), aTan.xyz, aNorm);
 
     vTC = aTC;
-    gl_Position = uProjection * uView * worldPos;
+    gl_Position = uProjection * eyePos;
 }

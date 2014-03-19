@@ -43,19 +43,16 @@ import java.util.List;
 public class EnvironmentMap {
     public static final double[] SPEC_EXP = { -1.0,
                                               1.0,
-                                              10.0,
+                                              10.0, 20.0,
                                               50.0,
                                               150.0,
                                               300.0,
                                               600.0,
                                               1200.0,
-                                              2400.0,
-                                              4800.0,
-                                              6400.0,
-                                              8000.0,
-                                              12000.0,
+                                              2400.0, 5000.0,
+                                              8000.0, 10000.0,
                                               -1.0 };
-    public static final int[] SPEC_SIDE = { 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 64, 64, -1 };
+    public static final int[] SPEC_SIDE = { 64, 64, 64, 64, 64, 64, 64, 128, 128, 128, 256, 256, 256, -1 };
     public static final int SPEC_COUNT = SPEC_EXP.length;
 
     public static final int PX = 0;
@@ -95,7 +92,7 @@ public class EnvironmentMap {
     }
 
     public static void main(String[] args) throws IOException {
-        File in = new File("/Users/mludwig/Desktop/FordStudio_scaled.hdr");
+        File in = new File("/Users/mludwig/Desktop/Congress_hall_default_zvc_scaled.hdr");
         EnvironmentMap toCache = createFromCubeMap(in);
 
         File out = new File(in.getParent() + File.separator +

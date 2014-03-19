@@ -155,7 +155,7 @@ public abstract class ApplicationStub {
         return new String[0];
     }
 
-    protected final Framework getFramework() {
+    public final Framework getFramework() {
         return framework;
     }
 
