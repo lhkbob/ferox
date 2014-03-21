@@ -44,6 +44,8 @@ import com.ferox.renderer.loader.TextureLoader;
 import com.ferox.util.ApplicationStub;
 import com.ferox.util.profile.Profiler;
 
+import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +77,14 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
     private final GBuffer gbuffer;
 
     private final TextureSurface lightingSurface;
-    private final Texture2D lighting;
+    private final Texture2D specularLighting;
+    private final Texture2D diffuseLighting;
+
+    private final Texture2D noise;
 
     private final Shader simpleShader;
     private final Shader gbufferShader;
+    private final Shader diffuseShader;
     private final Shader lightingShader;
     private final Shader completeShader;
     private final Shader sampleShader;
@@ -142,7 +148,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         moveState = MoveState.NONE;
 
         camera = new Frustum(60, WIDTH / (float) HEIGHT, 0.1, 25);
-        cameraDist = 1.5;
+        cameraDist = 2.5;
 
         gbuffer = new GBuffer(framework);
 
@@ -151,10 +157,11 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
         envCube = Shapes.createBox(framework, 6.0);
 
-        //        shape = Shapes.createSphere(framework, 0.5, 128);
-        //        shape = Shapes.createTeapot(framework);
+        //                shape = Shapes.createSphere(framework, 0.5, 128);
+        //                shape = Shapes.createTeapot(framework);
         shape = GeometryLoader.readGeometry(framework, AshikhminOptimizedDeferredShader.class
                                                                .getResource("suitcase.ply"));
+        //        shape = Shapes.createBox(framework, 1.0);
 
         showAxis = false;
         xAxis = Shapes.createCylinder(framework, new Vector3(1, 0, 0), new Vector3(1, 0, 0), 0.01, 0.5, 4);
@@ -162,6 +169,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         zAxis = Shapes.createCylinder(framework, new Vector3(0, 0, 1), new Vector3(0, 0, 1), 0.01, 0.5, 4);
 
         simpleShader = loadShader(framework, "simple").bindColorBuffer("fColor", 0).build();
+        diffuseShader = loadShader(framework, "ashik-diffuse").bindColorBuffer("fColor", 0).build();
         lightingShader = loadShader(framework, "ashik-lighting").bindColorBuffer("fColor", 0).build();
         completeShader = loadShader(framework, "ashik-complete").bindColorBuffer("fColor", 0).build();
         sampleShader = loadShader(framework, "ashik-sample").bindColorBuffer("fColor", 0).build();
@@ -229,11 +237,25 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         probeIndices = framework.newElementBuffer().fromUnsigned(indices).build();
 
         Texture2DBuilder b = framework.newTexture2D();
-        b.width(WIDTH).height(HEIGHT).rgb().mipmap(0).from((float[]) null);
-        lighting = b.build();
+        b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
+        specularLighting = b.build();
+
+        b = framework.newTexture2D();
+        b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
+        diffuseLighting = b.build();
         TextureSurfaceOptions gOpts = new TextureSurfaceOptions().size(WIDTH, HEIGHT)
-                                                                 .colorBuffers(lighting.getRenderTarget());
+                                                                 .colorBuffers(specularLighting
+                                                                                       .getRenderTarget());
         lightingSurface = framework.createSurface(gOpts);
+
+        float[] noiseData = new float[WIDTH * HEIGHT * 4];
+        for (int i = 0; i < noiseData.length; i++) {
+            noiseData[i] = (float) Math.random();
+        }
+        b = framework.newTexture2D();
+        b.width(WIDTH).height(HEIGHT).interpolated().wrap(Sampler.WrapMode.REPEAT).rgba().mipmap(0)
+         .from(noiseData);
+        noise = b.build();
 
         settings = new Properties();
         properties = new ControlPanel(this);
@@ -381,13 +403,26 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     @Override
     public void run() {
-        loadPreferences();
         updateCamera();
-        properties.pack();
-        properties.setVisible(true);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                loadPreferences();
+                properties.setMinimumSize(new Dimension(400, 400));
+                properties.setMaximumSize(new Dimension(600, 800));
+                properties.setSize(new Dimension(400, 800));
+                properties.setVisible(true);
+            }
+        });
         super.run();
-        properties.setVisible(false);
-        properties.dispose();
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                properties.setVisible(false);
+                properties.dispose();
+            }
+        });
     }
 
     @Override
@@ -411,6 +446,17 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         Material matA = properties.getMatATab().getMaterial();
         Material matB = properties.getMatBTab().getMaterial();
         Environment environment = properties.getEnvTab().getEnvironment();
+
+        Matrix4 invProj = new Matrix4().inverse(camera.getProjectionMatrix());
+        Matrix3 view = new Matrix3().setUpper(camera.getViewMatrix());
+        Matrix3 invView = new Matrix3().inverse(view);
+
+        Matrix3 envTrans = new Matrix3();
+        if (properties.getEnvTab().isZAxisFlipped()) {
+            envTrans.set(1, 0, 0, 0, 1, 0, 0, 0, -1);
+        } else {
+            envTrans.setIdentity();
+        }
 
         // if we've moved the camera or modelview, then the gbuffer is invalidated, so
         // fill in the gbuffer and the diffuse lighting
@@ -463,7 +509,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setUniform(gbufferShader.getUniform("uShinyOverride"),
                          properties.getMatATab().getShininessOverride());
 
-            r.setUniform(gbufferShader.getUniform("uTCScale"), properties.getMatATab().getTexCoordScale());
+            r.setUniform(gbufferShader.getUniform("uTCScale"), properties.getMatATab().getTexCoordXScale(),
+                         properties.getMatATab().getTexCoordYScale());
             r.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
 
             r.setBlendMode(Renderer.BlendFunction.ADD, Renderer.BlendFactor.ONE, Renderer.BlendFactor.ONE);
@@ -484,7 +531,6 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setUniform(gbufferShader.getUniform("uSpecularAlbedo"), matB.specularAlbedo);
             r.setUniform(gbufferShader.getUniform("uSpecularScale"),
                          properties.getMatBTab().getSpecularScale());
-
             r.setUniform(gbufferShader.getUniform("uSpecularAlbedoWeight"),
                          properties.getMorphTab().getSpecularAlpha());
 
@@ -497,33 +543,15 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setUniform(gbufferShader.getUniform("uShinyOverride"),
                          properties.getMatBTab().getShininessOverride());
 
-            r.setUniform(gbufferShader.getUniform("uTCScale"), properties.getMatBTab().getTexCoordScale());
+            r.setUniform(gbufferShader.getUniform("uTCScale"), properties.getMatBTab().getTexCoordXScale(),
+                         properties.getMatBTab().getTexCoordYScale());
 
 
             r.render(shape.getPolygonType(), shape.getIndexOffset(), shape.getIndexCount());
             ctx.flush();
-            Profiler.pop();
 
-            invalidateGbuffer = false;
-            gbufferTimeStamp = System.currentTimeMillis();
-            renderApproximation = true;
-        } else {
-            if (System.currentTimeMillis() - gbufferTimeStamp > 2000) {
-                if (renderApproximation) {
-                    renderApproximation = false;
-                    sample = 0;
-                }
-            }
-        }
-
-        Matrix4 invProj = new Matrix4().inverse(camera.getProjectionMatrix());
-        Matrix3 view = new Matrix3().setUpper(camera.getViewMatrix());
-        Matrix3 invView = new Matrix3().inverse(view);
-
-        if (renderSampledMethod) {
-            Profiler.push("sampled");
-            // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface);
+            // now prepare diffuse light source
+            ctx = access.setActiveSurface(lightingSurface, diffuseLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -532,18 +560,70 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setDepthTest(Renderer.Comparison.ALWAYS);
             r.setDepthWriteMask(false);
 
+            r.setShader(diffuseShader);
+            r.setUniform(diffuseShader.getUniform("uInvView"), invView);
+            r.setUniform(diffuseShader.getUniform("uInvProj"), invProj);
+            r.setUniform(diffuseShader.getUniform("uDiffuseIrradiance"), environment.diffuseMap);
+            r.setUniform(diffuseShader.getUniform("uEnvTransform"), envTrans);
+
+            r.setUniform(diffuseShader.getUniform("uNormalAndTangent"), gbuffer.normalTangentXY);
+            r.setUniform(diffuseShader.getUniform("uShininessAndNTZ"), gbuffer.shininessAndNTZ);
+            r.setUniform(diffuseShader.getUniform("uDiffuseAlbedo"), gbuffer.diffuseAlbedo);
+            r.setUniform(diffuseShader.getUniform("uSpecularAlbedo"), gbuffer.specularAlbedo);
+            r.setUniform(diffuseShader.getUniform("uDepth"), gbuffer.depth);
+
+            r.setUniform(diffuseShader.getUniform("uProjection"), fullscreenProjection.getProjectionMatrix());
+            r.bindAttribute(diffuseShader.getAttribute("aPos"), fullscreenQuad.getVertices());
+            r.bindAttribute(diffuseShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
+            r.setIndices(fullscreenQuad.getIndices());
+            r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
+                     fullscreenQuad.getIndexCount());
+
+            Profiler.pop();
+
+            invalidateGbuffer = false;
+            gbufferTimeStamp = System.currentTimeMillis();
+            renderApproximation = true;
+            sample = 0;
+        } else {
+            if (System.currentTimeMillis() - gbufferTimeStamp > 2000) {
+                if (renderApproximation) {
+                    renderApproximation = false;
+                }
+            }
+        }
+
+        if (renderSampledMethod) {
+            Profiler.push("sampled");
+            // accumulate lighting into another texture (linear pre gamma correction)
+            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
+            if (ctx == null) {
+                return null;
+            }
+            r = ctx.getGlslRenderer();
+            if (sample == 0) {
+                // must clear the first time
+                r.clear(true, true, false);
+            }
+
+            r.setDepthTest(Renderer.Comparison.ALWAYS);
+            r.setDepthWriteMask(false);
+            // always blend
+            r.setBlendingEnabled(true);
+            r.setBlendMode(Renderer.BlendFunction.ADD, Renderer.BlendFactor.ONE, Renderer.BlendFactor.ONE);
+
             r.setShader(sampleShader);
 
             r.setUniform(sampleShader.getUniform("uInvProj"), invProj);
             r.setUniform(sampleShader.getUniform("uInvView"), invView);
+            r.setUniform(sampleShader.getUniform("uEnvTransform"), envTrans);
 
-            r.setUniform(sampleShader.getUniform("uDiffuseIrradiance"), environment.diffuseMap);
             r.setUniform(sampleShader.getUniform("uSpecularRadiance"),
                          environment.envMap); //environment.specularMaps[environment.specularMaps.length - 1]);
+            r.setUniform(sampleShader.getUniform("uNoise"), noise);
 
             r.setUniform(sampleShader.getUniform("uNormalAndTangent"), gbuffer.normalTangentXY);
             r.setUniform(sampleShader.getUniform("uShininessAndNTZ"), gbuffer.shininessAndNTZ);
-            r.setUniform(sampleShader.getUniform("uDiffuseAlbedo"), gbuffer.diffuseAlbedo);
             r.setUniform(sampleShader.getUniform("uSpecularAlbedo"), gbuffer.specularAlbedo);
             r.setUniform(sampleShader.getUniform("uDepth"), gbuffer.depth);
 
@@ -551,20 +631,22 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.bindAttribute(sampleShader.getAttribute("aPos"), fullscreenQuad.getVertices());
             r.bindAttribute(sampleShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
-            Random rand = new Random(24545243L);
-            //            for (int i = 0; i < 64; i++) {
-            //                r.setUniformArray(sampleShader.getUniform("u1"), i, rand.nextDouble());
-            //                r.setUniformArray(sampleShader.getUniform("u2"), i, rand.nextDouble());
-            //            }
+
+            Vector3 rand = new Vector3();
+            for (int i = 0; i < 32; i++) {
+                rand.set(Math.random(), Math.random(), Math.random());
+                r.setUniformArray(sampleShader.getUniform("uSample"), i, rand);
+            }
             r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                      fullscreenQuad.getIndexCount());
+            sample += 32;
 
             ctx.flush();
             Profiler.pop();
         } else if (renderApproximation) {
-            Profiler.push("diffuse");
+            Profiler.push("approx");
             // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface);
+            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -577,13 +659,10 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
             r.setUniform(lightingShader.getUniform("uInvProj"), invProj);
             r.setUniform(lightingShader.getUniform("uInvView"), invView);
-
-            r.setUniform(lightingShader.getUniform("uDiffuseMode"), true);
-            r.setUniform(lightingShader.getUniform("uIrradianceMin"), environment.diffuseMap);
+            r.setUniform(lightingShader.getUniform("uEnvTransform"), envTrans);
 
             r.setUniform(lightingShader.getUniform("uNormalAndTangent"), gbuffer.normalTangentXY);
             r.setUniform(lightingShader.getUniform("uShininessAndNTZ"), gbuffer.shininessAndNTZ);
-            r.setUniform(lightingShader.getUniform("uDiffuseAlbedo"), gbuffer.diffuseAlbedo);
             r.setUniform(lightingShader.getUniform("uSpecularAlbedo"), gbuffer.specularAlbedo);
             r.setUniform(lightingShader.getUniform("uDepth"), gbuffer.depth);
 
@@ -592,17 +671,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.bindAttribute(lightingShader.getAttribute("aPos"), fullscreenQuad.getVertices());
             r.bindAttribute(lightingShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
-            r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
-                     fullscreenQuad.getIndexCount());
-            Profiler.pop();
 
-            Profiler.push("specular");
-
-            r.setBlendingEnabled(true);
             r.setBlendMode(Renderer.BlendFunction.ADD, Renderer.BlendFactor.ONE, Renderer.BlendFactor.ONE);
-
-            r.setShader(lightingShader);
-            r.setUniform(lightingShader.getUniform("uDiffuseMode"), false);
             for (int i = 0; i < environment.specularMaps.length - 1; i++) {
                 r.setUniform(lightingShader.getUniform("uShininessMin"), EnvironmentMap.SPEC_EXP[i]);
                 r.setUniform(lightingShader.getUniform("uShininessMax"), EnvironmentMap.SPEC_EXP[i + 1]);
@@ -611,6 +681,9 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
                 r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                          fullscreenQuad.getIndexCount());
+
+                // blend in future iterations (but not first one)
+                r.setBlendingEnabled(true);
             }
 
             ctx.flush();
@@ -618,7 +691,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         } else if (sample < environment.samples.size()) {
             Profiler.push("complete");
             // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface);
+            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -630,14 +703,15 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
             r.setDepthTest(Renderer.Comparison.ALWAYS);
             r.setDepthWriteMask(false);
+            // always blend
+            r.setBlendingEnabled(true);
+            r.setBlendMode(Renderer.BlendFunction.ADD, Renderer.BlendFactor.ONE, Renderer.BlendFactor.ONE);
 
             r.setShader(completeShader);
-
             r.setUniform(completeShader.getUniform("uInvProj"), invProj);
 
             r.setUniform(completeShader.getUniform("uNormalAndTangent"), gbuffer.normalTangentXY);
             r.setUniform(completeShader.getUniform("uShininessAndNTZ"), gbuffer.shininessAndNTZ);
-            r.setUniform(completeShader.getUniform("uDiffuseAlbedo"), gbuffer.diffuseAlbedo);
             r.setUniform(completeShader.getUniform("uSpecularAlbedo"), gbuffer.specularAlbedo);
             r.setUniform(completeShader.getUniform("uDepth"), gbuffer.depth);
 
@@ -647,15 +721,14 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.bindAttribute(completeShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
 
-            r.setBlendingEnabled(true);
-            r.setBlendMode(Renderer.BlendFunction.ADD, Renderer.BlendFactor.ONE, Renderer.BlendFactor.ONE);
-
+            Matrix3 invEnv = new Matrix3(envTrans).inverse();
             Vector3 l = new Vector3();
             for (int p = 0; p < 1; p++) {
                 for (int s = 0; s < 40; s++) {
                     if (sample + s < environment.samples.size()) {
                         EnvironmentMap.Sample smp = environment.samples.get(sample + s);
-                        l.mul(view, smp.direction);
+                        l.mul(invEnv, smp.direction);
+                        l.mul(view, l);
                         r.setUniformArray(completeShader.getUniform("uLightDirection"), s, l);
                         r.setUniformArray(completeShader.getUniform("uLightRadiance"), s, smp.illumination);
                     } else {
@@ -669,7 +742,6 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                          fullscreenQuad.getIndexCount());
             }
 
-            System.out.println("Samples left: " + Math.max(0, (environment.samples.size() - sample)));
             ctx.flush();
             Profiler.pop();
         }
@@ -686,7 +758,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         if (!showProbe) {
             r.setShader(tonemapShader);
             r.setUniform(tonemapShader.getUniform("uProjection"), fullscreenProjection.getProjectionMatrix());
-            r.setUniform(tonemapShader.getUniform("uHighRange"), lighting);
+            r.setUniform(tonemapShader.getUniform("uDiffuse"), diffuseLighting);
+            r.setUniform(tonemapShader.getUniform("uSpecular"), specularLighting);
             r.setUniform(tonemapShader.getUniform("uDepth"), gbuffer.depth);
             r.setUniform(tonemapShader.getUniform("uGamma"), properties.getEnvTab().getGamma());
             r.setUniform(tonemapShader.getUniform("uSensitivity"), properties.getEnvTab().getSensitivity());
@@ -765,6 +838,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setUniform(simpleShader.getUniform("uModel"), new Matrix4().setIdentity());
             r.setUniform(simpleShader.getUniform("uUseEnvMap"), true);
 
+            r.setUniform(simpleShader.getUniform("uEnvTransform"), envTrans);
+
             int totalEnv = 2 + environment.specularMaps.length; // env + diff + spec
             int realMode = envMode % totalEnv;
             if (realMode == 0) {
@@ -816,6 +891,20 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                     l.get(probeLines, t * SPHERE_PHI_RES * 3 + p * 3 + SPEC_VECTOR_COUNT * 3);
                 }
             }
+        }
+    }
+
+    @Override
+    protected String[] getExtraFPSMessages() {
+        if (renderSampledMethod) {
+            return new String[] { String.format("Samples per pixel: %d", sample) };
+        } else if (renderApproximation) {
+            return new String[] { "Rendering with convolutions" };
+        } else {
+            return new String[] { String.format("Texels remaining: %d",
+                                                properties.getEnvTab().getEnvironment().samples.size() -
+                                                sample
+                                               ) };
         }
     }
 
@@ -1113,7 +1202,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                                                                diffuseAlbedo
                                                                                        .getRenderTarget(),
                                                                                specularAlbedo
-                                                                                       .getRenderTarget())
+                                                                                       .getRenderTarget()
+                                                                              )
                                                                  .depthBuffer(depth.getRenderTarget());
             gbuffer = f.createSurface(o);
         }
@@ -1154,7 +1244,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
         public static class Settings {
             public final double exposureOverride;
-            public final double texCoordScale;
+            public final double texCoordXScale;
+            public final double texCoordYScale;
             public final double shinyXScale;
             public final double shinyYScale;
 
@@ -1166,12 +1257,13 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             public final double specularGScale;
             public final double specularBScale;
 
-            public Settings(double exposureOverride, double texCoordScale, double shinyXScale,
-                            double shinyYScale, double diffuseRScale, double diffuseGScale,
-                            double diffuseBScale, double specularRScale, double specularGScale,
-                            double specularBScale) {
+            public Settings(double exposureOverride, double texCoordXScale, double texCoordYScale,
+                            double shinyXScale, double shinyYScale, double diffuseRScale,
+                            double diffuseGScale, double diffuseBScale, double specularRScale,
+                            double specularGScale, double specularBScale) {
                 this.exposureOverride = exposureOverride;
-                this.texCoordScale = texCoordScale;
+                this.texCoordXScale = texCoordXScale;
+                this.texCoordYScale = texCoordYScale;
                 this.shinyXScale = shinyXScale;
                 this.shinyYScale = shinyYScale;
                 this.diffuseRScale = diffuseRScale;
@@ -1185,7 +1277,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             public Settings(String matFolder, Properties props) {
                 exposureOverride = Double.parseDouble(props.getProperty(matFolder + "_exposureOverride",
                                                                         "-1.0"));
-                texCoordScale = Double.parseDouble(props.getProperty(matFolder + "_texCoordScale", "1.0"));
+                texCoordXScale = Double.parseDouble(props.getProperty(matFolder + "_texCoordXScale", "1.0"));
+                texCoordYScale = Double.parseDouble(props.getProperty(matFolder + "_texCoordYScale", "1.0"));
                 shinyXScale = Double.parseDouble(props.getProperty(matFolder + "_shinyXScale", "14.15"));
                 shinyYScale = Double.parseDouble(props.getProperty(matFolder + "_shinyYScale", "14.15"));
                 diffuseRScale = Double.parseDouble(props.getProperty(matFolder + "_diffuseRScale", "1.0"));
@@ -1198,7 +1291,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
             private void store(String envFile, Properties props) {
                 props.setProperty(envFile + "_exposureOverride", Double.toString(exposureOverride));
-                props.setProperty(envFile + "_texCoordScale", Double.toString(texCoordScale));
+                props.setProperty(envFile + "_texCoordXScale", Double.toString(texCoordXScale));
+                props.setProperty(envFile + "_texCoordYScale", Double.toString(texCoordYScale));
                 props.setProperty(envFile + "_shinyXScale", Double.toString(shinyXScale));
                 props.setProperty(envFile + "_shinyYScale", Double.toString(shinyYScale));
                 props.setProperty(envFile + "_diffuseRScale", Double.toString(diffuseRScale));
@@ -1238,19 +1332,23 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             public final double fstop;
             public final double exposure;
             public final double sensitivity;
+            public final boolean flipZAxis;
 
-            public Settings(double gamma, double fstop, double exposure, double sensitivity) {
+            public Settings(double gamma, double fstop, double exposure, double sensitivity,
+                            boolean flipZAxis) {
                 this.gamma = gamma;
                 this.fstop = fstop;
                 this.exposure = exposure;
                 this.sensitivity = sensitivity;
+                this.flipZAxis = flipZAxis;
             }
 
             public Settings(String envFile, Properties props) {
                 gamma = Double.parseDouble(props.getProperty(envFile + "_gamma", "2.2"));
                 fstop = Double.parseDouble(props.getProperty(envFile + "_fstop", "2.0"));
-                exposure = Double.parseDouble(props.getProperty(envFile + "_exposure", "0.5"));
-                sensitivity = Double.parseDouble(props.getProperty(envFile + "_sensitivity", "500"));
+                exposure = Double.parseDouble(props.getProperty(envFile + "_exposure", "1.0"));
+                sensitivity = Double.parseDouble(props.getProperty(envFile + "_sensitivity", "700"));
+                flipZAxis = Boolean.parseBoolean(props.getProperty(envFile + "_flipZAxis", "false"));
             }
 
             private void store(String envFile, Properties props) {
@@ -1258,6 +1356,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                 props.setProperty(envFile + "_fstop", Double.toString(fstop));
                 props.setProperty(envFile + "_exposure", Double.toString(exposure));
                 props.setProperty(envFile + "_sensitivity", Double.toString(sensitivity));
+                props.setProperty(envFile + "_flipZAxis", Boolean.toString(flipZAxis));
             }
         }
     }

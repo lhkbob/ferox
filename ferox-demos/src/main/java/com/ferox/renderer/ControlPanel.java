@@ -11,9 +11,9 @@ import java.awt.*;
 public class ControlPanel extends JFrame {
     public static enum Tab {
         ENV,
-        MORPH,
         MATA,
-        MATB
+        MATB,
+        MORPH
     }
 
 
@@ -32,30 +32,39 @@ public class ControlPanel extends JFrame {
         matBTab = new MaterialTab(app, false);
 
         final JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("Environment", envTab);
-        tabbedPane.addTab("Material A", matATab);
-        tabbedPane.addTab("Material B", matBTab);
-        tabbedPane.addTab("Morph", morphTab);
+        // NOTE: order must match Tab enum values
+        tabbedPane.addTab("Environment", makeTab(envTab));
+        tabbedPane.addTab("Material A", makeTab(matATab));
+        tabbedPane.addTab("Material B", makeTab(matBTab));
+        tabbedPane.addTab("Morph", makeTab(morphTab));
 
         tabbedPane.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                Component tab = tabbedPane.getSelectedComponent();
-                if (tab == envTab) {
-                    morphTab.setActiveTab(Tab.ENV);
-                } else if (tab == morphTab) {
-                    morphTab.setActiveTab(Tab.MORPH);
-                } else if (tab == matATab) {
-                    morphTab.setActiveTab(Tab.MATA);
-                } else {
-                    morphTab.setActiveTab(Tab.MATB);
-                }
+                int tab = tabbedPane.getSelectedIndex();
+                morphTab.setActiveTab(Tab.values()[tab]);
 
                 app.updateGBuffer();
             }
         });
 
         add(tabbedPane);
+    }
+
+    private static JComponent makeTab(JComponent content) {
+        ScrollabelPanel view = new ScrollabelPanel();
+        view.setLayout(new BorderLayout());
+        view.add(content);
+
+        JScrollPane scroll = new JScrollPane(view, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        scroll.setBackground(new Color(0, 0, 0, 0));
+        scroll.getViewport().setBackground(new Color(0, 0, 0, 0));
+
+        scroll.setBorder(null);
+        scroll.getViewport().setBorder(null);
+        return scroll;
     }
 
     public EnvironmentTab getEnvTab() {
@@ -72,5 +81,32 @@ public class ControlPanel extends JFrame {
 
     public MaterialTab getMatBTab() {
         return matBTab;
+    }
+
+    private static class ScrollabelPanel extends JPanel implements Scrollable {
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 10;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return (orientation == SwingConstants.VERTICAL ? visibleRect.height : visibleRect.width) - 10;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
 }

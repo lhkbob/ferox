@@ -2,6 +2,8 @@
 
 const float PI = 3.1415927;
 
+uniform samplerCube uDiffuseIrradiance;
+
 uniform sampler2D uNormalTex;
 uniform float uNormalWeight;
 
@@ -19,7 +21,7 @@ uniform vec2 uShininessScale;
 uniform vec3 uDiffuseScale;
 uniform vec3 uSpecularScale;
 
-uniform float uTCScale;
+uniform vec2 uTCScale;
 
 in mat3 vTanToView;
 in vec2 vTC;
@@ -31,12 +33,12 @@ out vec4 fSpecularAlbedo;
 
 vec3 diffuseAlbedo() {
     vec3 c1 = texture(uDiffuseAlbedo, vTC * uTCScale).rgb;
-    return uDiffuseAlbedoWeight * uDiffuseScale * c1;
+    return uDiffuseAlbedoWeight * min(uDiffuseScale * (c1 + vec3(0.001)), 1.0);
 }
 
 vec3 specularAlbedo() {
     vec3 c1 = texture(uSpecularAlbedo, vTC * uTCScale).rgb;
-    return uSpecularAlbedoWeight * uSpecularScale * c1;
+    return uSpecularAlbedoWeight * min(uSpecularScale * (c1 + vec3(0.001)), 1.0);
 }
 
 vec2 shininess() {

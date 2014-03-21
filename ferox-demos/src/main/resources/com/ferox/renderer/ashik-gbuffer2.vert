@@ -15,7 +15,7 @@ out vec2 vTC;
 void main() {
     vec4 eyePos = uView * uModel * aPos;
 
-    vTanToView = mat3(uView) * mat3(uModel) * mat3(aTan.w * cross(aNorm, aTan.xyz), aTan.xyz, aNorm);
+    vTanToView = mat3(uView) * mat3(uModel) * mat3(aTan.xyz, aTan.w * cross(aNorm, aTan.xyz), aNorm);
 
     vTC = aTC;
     gl_Position = uProjection * eyePos;

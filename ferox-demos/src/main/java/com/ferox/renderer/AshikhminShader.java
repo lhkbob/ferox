@@ -237,8 +237,9 @@ public class AshikhminShader implements Task<Void> {
             }
         });
 
-        //        shape = Shapes.createSphere(framework, 0.5, 128);
-        shape = Shapes.createTeapot(framework);
+        shape = Shapes.createSphere(framework, 0.5, 128);
+        //        shape = Shapes.createTeapot(framework);
+        //        shape = Shapes.createBox(framework, 1.0);
 
         showAxis = true;
         xAxis = Shapes.createCylinder(framework, new Vector3(1, 0, 0), new Vector3(1, 0, 0), 0.01, 0.5, 4);
@@ -506,23 +507,28 @@ public class AshikhminShader implements Task<Void> {
                     Builder<? extends Sampler> diffNormal = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "diffuseNormal.hdr"));
+                                                                                               "diffuseNormal.hdr")
+                                                                                     );
                     Builder<? extends Sampler> diffAlbedo = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "diffuseAlbedo.hdr"));
+                                                                                               "diffuseAlbedo.hdr")
+                                                                                     );
                     Builder<? extends Sampler> specNormal = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "specularNormal.hdr"));
+                                                                                               "specularNormal.hdr")
+                                                                                     );
                     Builder<? extends Sampler> specAlbedo = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "specularAlbedo.hdr"));
+                                                                                               "specularAlbedo.hdr")
+                                                                                     );
                     Builder<? extends Sampler> shininess = TextureLoader.readTexture(framework,
                                                                                      new File(directory +
                                                                                               File.separator +
-                                                                                              "shininessXY.hdr"));
+                                                                                              "shininessXY.hdr")
+                                                                                    );
 
                     diffuseNormalTexA = diffNormal.build();
                     diffuseAlbedoTexA = diffAlbedo.build();
@@ -545,23 +551,28 @@ public class AshikhminShader implements Task<Void> {
                     Builder<? extends Sampler> diffNormal = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "diffuseNormal.hdr"));
+                                                                                               "diffuseNormal.hdr")
+                                                                                     );
                     Builder<? extends Sampler> diffAlbedo = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "diffuseAlbedo.hdr"));
+                                                                                               "diffuseAlbedo.hdr")
+                                                                                     );
                     Builder<? extends Sampler> specNormal = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "specularNormal.hdr"));
+                                                                                               "specularNormal.hdr")
+                                                                                     );
                     Builder<? extends Sampler> specAlbedo = TextureLoader.readTexture(framework,
                                                                                       new File(directory +
                                                                                                File.separator +
-                                                                                               "specularAlbedo.hdr"));
+                                                                                               "specularAlbedo.hdr")
+                                                                                     );
                     Builder<? extends Sampler> shininess = TextureLoader.readTexture(framework,
                                                                                      new File(directory +
                                                                                               File.separator +
-                                                                                              "shininessXY.hdr"));
+                                                                                              "shininessXY.hdr")
+                                                                                    );
 
                     diffuseNormalTexB = diffNormal.build();
                     diffuseAlbedoTexB = diffAlbedo.build();

@@ -5,6 +5,7 @@ import com.ferox.math.Vector3;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -17,7 +18,8 @@ public class MaterialTab extends JPanel {
     // appearance tweaks
     private volatile double shininessXScale = 1.0;
     private volatile double shininessYScale = 1.0;
-    private volatile double texCoordScale = 1.0;
+    private volatile double texCoordXScale = 1.0;
+    private volatile double texCoordYScale = 1.0;
     private volatile double shininessOverride = -1.0;
 
     private volatile double diffuseRScale = 1.0;
@@ -35,17 +37,26 @@ public class MaterialTab extends JPanel {
     private final JLabel texLabel;
     private final JSlider expUSlider;
     private final JSlider expVSlider;
+    private final JCheckBox expLocked;
+
     private final JSpinner shinyOverSlider;
-    private final JSlider tcSlider;
+    private final JSlider tcXSlider;
+    private final JSlider tcYSlider;
+    private final JCheckBox tcLocked;
 
     private final JSlider drSlider;
     private final JSlider dgSlider;
     private final JSlider dbSlider;
+    private final JCheckBox dLocked;
+
     private final JSlider srSlider;
     private final JSlider sgSlider;
     private final JSlider sbSlider;
+    private final JCheckBox sLocked;
 
     private final JCheckBox defaultTex;
+    private final JButton loadTextures;
+    private final JButton saveTex;
 
     private final boolean isMatA;
 
@@ -54,16 +65,7 @@ public class MaterialTab extends JPanel {
         mat = new AshikhminOptimizedDeferredShader.Material();
         this.isMatA = matA;
 
-        GroupLayout layout = new GroupLayout(this);
-        setLayout(layout);
-        GroupLayout.ParallelGroup leftCol = layout.createParallelGroup();
-        GroupLayout.ParallelGroup rightCol = layout.createParallelGroup();
-        GroupLayout.SequentialGroup rows = layout.createSequentialGroup();
-
-        layout.setVerticalGroup(rows);
-        layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(leftCol).addGroup(rightCol));
-
-        JButton loadTextures = new JButton("Load Material");
+        loadTextures = new JButton("Load Material");
         texLabel = new JLabel("None");
         loadTextures.addActionListener(new ActionListener() {
             @Override
@@ -79,25 +81,38 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        JLabel expULabel = new JLabel("Exponent X Scale");
-        expUSlider = createSlider(10, 1000);
+        expUSlider = createSlider(10, 1000, 10);
         expUSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                shininessXScale = expUSlider.getValue() / 10.0;
+                double newShinyX = sliderToExponent(expUSlider.getValue());
+                if (expLocked.isSelected()) {
+                    double ratio = shininessYScale / shininessXScale;
+                    double newShinyY = ratio * newShinyX;
+                    expVSlider.setValue(exponentToSlider(newShinyY));
+                }
+                shininessXScale = newShinyX;
                 app.updateGBuffer();
             }
         });
-        JLabel expVLabel = new JLabel("Exponent Y Scale");
-        expVSlider = createSlider(10, 1000);
+        expVSlider = createSlider(10, 1000, 10);
         expVSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                shininessYScale = expVSlider.getValue() / 10.0;
+                shininessYScale = sliderToExponent(expVSlider.getValue());
                 app.updateGBuffer();
             }
         });
-        JLabel shinyOverLabel = new JLabel("Exponent Override");
+        expVSlider.setEnabled(false);
+        expLocked = new JCheckBox("Constrain", true);
+        expLocked.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                expVSlider.setEnabled(!expLocked.isSelected());
+            }
+        });
+
+
         shinyOverSlider = new JSpinner(new SpinnerNumberModel(shininessOverride, -1.0, 100000.0, 1.0));
         shinyOverSlider.addChangeListener(new ChangeListener() {
             @Override
@@ -107,74 +122,118 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        JLabel tcLabel = new JLabel("Texture Coordinate Scale");
-        tcSlider = createSlider(100, 2400);
-        tcSlider.addChangeListener(new ChangeListener() {
+        tcXSlider = createSlider(100, 2400, 100);
+        tcXSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                texCoordScale = Math.pow(1.3, tcSlider.getValue() / 100.0);
+                double newTCX = sliderToTC(tcXSlider.getValue());
+                if (tcLocked.isSelected()) {
+                    double ratio = texCoordYScale / texCoordXScale;
+                    double newTCY = ratio * newTCX;
+                    tcYSlider.setValue(tcToSlider(newTCY));
+                }
+                texCoordXScale = newTCX;
                 app.updateGBuffer();
             }
         });
+        tcYSlider = createSlider(100, 2400, 100);
+        tcYSlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                texCoordYScale = sliderToTC(tcYSlider.getValue());
+                app.updateGBuffer();
+            }
+        });
+        tcYSlider.setEnabled(false);
+        tcLocked = new JCheckBox("Constrain", true);
+        tcLocked.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tcYSlider.setEnabled(!tcLocked.isSelected());
+            }
+        });
 
-
-        JLabel drLabel = new JLabel("Diffuse R");
-        drSlider = createSlider(0, 100);
+        drSlider = createSlider(1, 100, 50);
         drSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseRScale = drSlider.getValue() / 100.0;
+                double newDR = sliderToColor(drSlider.getValue());
+                if (dLocked.isSelected()) {
+                    dgSlider.setValue(colorToSlider((diffuseGScale / diffuseRScale) * newDR));
+                    dbSlider.setValue(colorToSlider((diffuseBScale / diffuseRScale) * newDR));
+                }
+                diffuseRScale = newDR;
                 app.updateGBuffer();
             }
         });
-        JLabel dgLabel = new JLabel("Diffuse G");
-        dgSlider = createSlider(0, 100);
+        dgSlider = createSlider(1, 100, 50);
         dgSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseGScale = dgSlider.getValue() / 100.0;
+                diffuseGScale = sliderToColor(dgSlider.getValue());
                 app.updateGBuffer();
             }
         });
-        JLabel dbLabel = new JLabel("Diffuse B");
-        dbSlider = createSlider(0, 100);
+        dgSlider.setEnabled(false);
+        dbSlider = createSlider(1, 100, 50);
         dbSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseBScale = dbSlider.getValue() / 100.0;
+                diffuseBScale = sliderToColor(dbSlider.getValue());
                 app.updateGBuffer();
             }
         });
+        dbSlider.setEnabled(false);
+        dLocked = new JCheckBox("Constrain", true);
+        dLocked.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dgSlider.setEnabled(!dLocked.isSelected());
+                dbSlider.setEnabled(!dLocked.isSelected());
+            }
+        });
 
-        JLabel srLabel = new JLabel("Specular R");
-        srSlider = createSlider(0, 100);
+        srSlider = createSlider(1, 100, 50);
         srSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularRScale = srSlider.getValue() / 100.0;
+                double newSR = sliderToColor(srSlider.getValue());
+                if (sLocked.isSelected()) {
+                    sgSlider.setValue(colorToSlider((specularGScale / specularRScale) * newSR));
+                    sbSlider.setValue(colorToSlider((specularBScale / specularRScale) * newSR));
+                }
+                specularRScale = newSR;
                 app.updateGBuffer();
             }
         });
-        JLabel sgLabel = new JLabel("Specular G");
-        sgSlider = createSlider(0, 100);
+        sgSlider = createSlider(1, 100, 50);
         sgSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularGScale = sgSlider.getValue() / 100.0;
+                specularGScale = sliderToColor(sgSlider.getValue());
                 app.updateGBuffer();
             }
         });
-        JLabel sbLabel = new JLabel("Specular B");
-        sbSlider = createSlider(0, 100);
+        sgSlider.setEnabled(false);
+        sbSlider = createSlider(1, 100, 50);
         sbSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularBScale = sbSlider.getValue() / 100.0;
+                specularBScale = sliderToColor(sbSlider.getValue());
                 app.updateGBuffer();
             }
         });
+        sbSlider.setEnabled(false);
+        sLocked = new JCheckBox("Constrain", true);
+        sLocked.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sgSlider.setEnabled(!sLocked.isSelected());
+                sbSlider.setEnabled(!sLocked.isSelected());
+            }
+        });
 
-        JButton saveTex = new JButton("Save Settings");
+        saveTex = new JButton("Save Settings");
         saveTex.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -209,34 +268,100 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        layout(loadTextures, texLabel, leftCol, rightCol, rows, layout);
-        layout(defaultTex, saveTex, leftCol, rightCol, rows, layout);
-        layout(tcSlider, tcLabel, leftCol, rightCol, rows, layout);
-        layout(drSlider, drLabel, leftCol, rightCol, rows, layout);
-        layout(dgSlider, dgLabel, leftCol, rightCol, rows, layout);
-        layout(dbSlider, dbLabel, leftCol, rightCol, rows, layout);
-        layout(srSlider, srLabel, leftCol, rightCol, rows, layout);
-        layout(sgSlider, sgLabel, leftCol, rightCol, rows, layout);
-        layout(sbSlider, sbLabel, leftCol, rightCol, rows, layout);
-        layout(expUSlider, expULabel, leftCol, rightCol, rows, layout);
-        layout(expVSlider, expVLabel, leftCol, rightCol, rows, layout);
-        layout(shinyOverSlider, shinyOverLabel, leftCol, rightCol, rows, layout);
+        GridBagBuilder b = GridBagBuilder.newGridBag(this);
+        b.cell(0, 0).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutSettingsBlock());
+        b.cell(0, 1).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutTextureBlock());
+        b.cell(0, 2).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutDiffuseBlock());
+        b.cell(0, 3).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutSpecularBlock());
+        b.cell(0, 4).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutExponentBlock());
     }
 
-    private static void layout(JComponent left, JComponent right, GroupLayout.ParallelGroup leftColumn,
-                               GroupLayout.ParallelGroup rightColumn, GroupLayout.SequentialGroup rows,
-                               GroupLayout layout) {
-        leftColumn.addComponent(left);
-        rightColumn.addComponent(right);
-        rows.addGroup(layout.createParallelGroup().addComponent(left).addComponent(right));
+    private JPanel layoutSettingsBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory
+                                .createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Settings"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().fillWidth().add(loadTextures);
+        b.nextCell().weight(1.0, 0.0).spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(texLabel);
+        b.nextCell().fillWidth().add(saveTex);
+        b.nextCell().weight(1.0, 0.0).spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(defaultTex);
+
+        return block;
     }
 
-    private static JSlider createSlider(int min, int max) {
+    private JPanel layoutTextureBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Texture Coordinate Scale"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().add(new JLabel("X"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(tcXSlider);
+        b.nextCell().add(new JLabel("Y"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(tcYSlider);
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(tcLocked);
+        return block;
+    }
+
+    private JPanel layoutDiffuseBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Diffuse Scale"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().add(new JLabel("R"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(drSlider);
+        b.nextCell().add(new JLabel("G"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(dgSlider);
+        b.nextCell().add(new JLabel("B"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(dbSlider);
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(dLocked);
+
+        return block;
+    }
+
+    private JPanel layoutSpecularBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Specular Scale"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().add(new JLabel("R"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(srSlider);
+        b.nextCell().add(new JLabel("G"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(sgSlider);
+        b.nextCell().add(new JLabel("B"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(sbSlider);
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(sLocked);
+
+        return block;
+    }
+
+    private JPanel layoutExponentBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Exponent Scale"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().add(new JLabel("U"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(expUSlider);
+        b.nextCell().add(new JLabel("V"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(expVSlider);
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(expLocked);
+        b.nextCell().spanRows(2).anchor(GridBagBuilder.Anchor.WEST).add(new JLabel("Exponent Override"));
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).weight(1.0, 0.0).add(shinyOverSlider);
+        ((JSpinner.DefaultEditor) shinyOverSlider.getEditor()).getTextField().setColumns(5);
+
+        return block;
+    }
+
+    private static JSlider createSlider(int min, int max, int value) {
         JSlider slider = new JSlider(min, max);
         slider.setPaintLabels(false);
         slider.setPaintTicks(false);
         slider.setSnapToTicks(true);
-        slider.setValue(0);
+        slider.setValue(value);
         return slider;
     }
 
@@ -245,11 +370,12 @@ public class MaterialTab extends JPanel {
     }
 
     public AshikhminOptimizedDeferredShader.Material.Settings getAsSettings() {
-        return new AshikhminOptimizedDeferredShader.Material.Settings(shininessOverride, texCoordScale,
-                                                                      shininessXScale, shininessYScale,
-                                                                      diffuseRScale, diffuseGScale,
-                                                                      diffuseBScale, specularRScale,
-                                                                      specularGScale, specularBScale);
+        return new AshikhminOptimizedDeferredShader.Material.Settings(shininessOverride, texCoordXScale,
+                                                                      texCoordYScale, shininessXScale,
+                                                                      shininessYScale, diffuseRScale,
+                                                                      diffuseGScale, diffuseBScale,
+                                                                      specularRScale, specularGScale,
+                                                                      specularBScale);
     }
 
     public double getShininessXScale() {
@@ -260,8 +386,12 @@ public class MaterialTab extends JPanel {
         return shininessYScale;
     }
 
-    public double getTexCoordScale() {
-        return texCoordScale;
+    public double getTexCoordXScale() {
+        return texCoordXScale;
+    }
+
+    public double getTexCoordYScale() {
+        return texCoordYScale;
     }
 
     public double getShininessOverride() {
@@ -278,6 +408,41 @@ public class MaterialTab extends JPanel {
 
     public AshikhminOptimizedDeferredShader.Material getMaterial() {
         return mat;
+    }
+
+    private static int exponentToSlider(double exp) {
+        return (int) Math.round((exp * 10));
+    }
+
+    private static double sliderToExponent(int value) {
+        return value / 10.0;
+    }
+
+    private static int tcToSlider(double tc) {
+        return (int) Math.round((100 * Math.log(tc) / Math.log(1.3)));
+    }
+
+    private static double sliderToTC(int value) {
+        return Math.pow(1.3, value / 100.0);
+    }
+
+    private static int colorToSlider(double color) {
+        double v;
+        if (color < 1.0) {
+            v = Math.sqrt(color);
+        } else {
+            v = Math.pow(color, 1.0 / 3.0); // cubed root
+        }
+        return (int) Math.round(v * 50);
+    }
+
+    private static double sliderToColor(int value) {
+        double v = value / 50.0;
+        if (v < 1.0) {
+            return v * v;
+        } else {
+            return v * v * v;
+        }
     }
 
     public void loadTexturesA(final String directory,
@@ -301,18 +466,19 @@ public class MaterialTab extends JPanel {
             public void run() {
                 texLabel.setText(new File(directory).getName());
 
-                drSlider.setValue((int) (settings.diffuseRScale * 100));
-                dgSlider.setValue((int) (settings.diffuseGScale * 100));
-                dbSlider.setValue((int) (settings.diffuseBScale * 100));
-                srSlider.setValue((int) (settings.specularRScale * 100));
-                sgSlider.setValue((int) (settings.specularGScale * 100));
-                sbSlider.setValue((int) (settings.specularBScale * 100));
+                drSlider.setValue(colorToSlider(settings.diffuseRScale));
+                dgSlider.setValue(colorToSlider(settings.diffuseGScale));
+                dbSlider.setValue(colorToSlider(settings.diffuseBScale));
+                srSlider.setValue(colorToSlider(settings.diffuseRScale));
+                sgSlider.setValue(colorToSlider(settings.diffuseGScale));
+                sbSlider.setValue(colorToSlider(settings.diffuseBScale));
 
-                expUSlider.setValue((int) (settings.shinyXScale * 10));
-                expVSlider.setValue((int) (settings.shinyYScale * 10));
+                expUSlider.setValue(exponentToSlider(settings.shinyXScale));
+                expVSlider.setValue(exponentToSlider(settings.shinyYScale));
                 shinyOverSlider.setValue(settings.exposureOverride);
 
-                tcSlider.setValue((int) (100 * Math.log(settings.texCoordScale) / Math.log(1.3)));
+                tcXSlider.setValue(tcToSlider(settings.texCoordXScale));
+                tcYSlider.setValue(tcToSlider(settings.texCoordYScale));
 
                 if (isMatA) {
                     defaultTex.setSelected(directory.equals(app.getDefaultMatA()));

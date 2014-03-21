@@ -36,8 +36,8 @@ vec3 lightSample(vec3 fN, vec3 fT, vec3 fB, vec3 fV, vec3 fL, vec3 light, vec3 d
         float bh = dot(fB, fH);
         float nh = dot(fN, fH);
 
-        float pD = 28.0 / (23.0 * PI) * (1.0 - pow(1.0 - lightToNorm / 2.0, 5.0)) * (1.0 - pow(1.0 - viewToNorm / 2.0, 5.0));
-        vec3 diff = pD * (1.0 - specular) * diffuse;
+//        float pD = 28.0 / (23.0 * PI) * (1.0 - pow(1.0 - lightToNorm / 2.0, 5.0)) * (1.0 - pow(1.0 - viewToNorm / 2.0, 5.0));
+//        vec3 diff = pD * (1.0 - specular) * diffuse;
 
         if (specular.r > 0.0 || specular.g > 0.0 || specular.b > 0.0) {
             spec = specular;
@@ -48,7 +48,7 @@ vec3 lightSample(vec3 fN, vec3 fT, vec3 fB, vec3 fV, vec3 fL, vec3 light, vec3 d
             spec = pS * spec;
         }
 
-        spec = lightToNorm * (diff + spec) * light;
+        spec = lightToNorm * spec * light;
     }
     return spec;
 }
@@ -76,5 +76,5 @@ void main() {
         illum = illum + lightSample(fN, fT, fB, fV, uLightDirection[i], uLightRadiance[i], diff, spec, sz.xy);
     }
 
-    fColor = vec4(illum, 1.0);
+    fColor = vec4(illum, 0.0);
 }

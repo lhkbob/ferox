@@ -3,6 +3,7 @@ package com.ferox.renderer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Properties;
@@ -30,18 +31,12 @@ public class MorphTab extends JPanel {
     private final JSlider specAlbedoSlider;
     private final JSlider shininessSlider;
 
+    private final JButton saveMorph;
+    private final JButton loadMorph;
+
     public MorphTab(AshikhminOptimizedDeferredShader a) {
         this.app = a;
         activeTab = ControlPanel.Tab.ENV;
-
-        GroupLayout layout = new GroupLayout(this);
-        setLayout(layout);
-        GroupLayout.ParallelGroup leftCol = layout.createParallelGroup();
-        GroupLayout.ParallelGroup rightCol = layout.createParallelGroup();
-        GroupLayout.SequentialGroup rows = layout.createSequentialGroup();
-
-        layout.setVerticalGroup(rows);
-        layout.setHorizontalGroup(layout.createSequentialGroup().addGroup(leftCol).addGroup(rightCol));
 
         fullSlider = createSlider(0, 1000, 0);
         normalSlider = createSlider(0, 1000, 500);
@@ -49,7 +44,6 @@ public class MorphTab extends JPanel {
         diffAlbedoSlider = createSlider(0, 1000, 500);
         shininessSlider = createSlider(0, 1000, 500);
 
-        JLabel fullLabel = new JLabel("Alpha");
         fullSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -57,7 +51,6 @@ public class MorphTab extends JPanel {
                 app.updateGBuffer();
             }
         });
-        JLabel normalLabel = new JLabel("Normal Weight");
         normalSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -65,7 +58,6 @@ public class MorphTab extends JPanel {
                 app.updateGBuffer();
             }
         });
-        JLabel specLabel = new JLabel("Specular Weight");
         specAlbedoSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -73,7 +65,6 @@ public class MorphTab extends JPanel {
                 app.updateGBuffer();
             }
         });
-        JLabel diffLabel = new JLabel("Diffuse Weight");
         diffAlbedoSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -81,7 +72,6 @@ public class MorphTab extends JPanel {
                 app.updateGBuffer();
             }
         });
-        JLabel shinyLabel = new JLabel("Shininess Weight");
         shininessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
@@ -90,7 +80,7 @@ public class MorphTab extends JPanel {
             }
         });
 
-        JButton loadMorph = new JButton("Load Morph");
+        loadMorph = new JButton("Load Morph");
         loadMorph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -103,7 +93,7 @@ public class MorphTab extends JPanel {
                 }
             }
         });
-        JButton saveMorph = new JButton("Save Morph");
+        saveMorph = new JButton("Save Morph");
         saveMorph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -117,12 +107,53 @@ public class MorphTab extends JPanel {
             }
         });
 
-        layout(fullSlider, fullLabel, leftCol, rightCol, rows, layout);
-        layout(normalSlider, normalLabel, leftCol, rightCol, rows, layout);
-        layout(specAlbedoSlider, specLabel, leftCol, rightCol, rows, layout);
-        layout(diffAlbedoSlider, diffLabel, leftCol, rightCol, rows, layout);
-        layout(shininessSlider, shinyLabel, leftCol, rightCol, rows, layout);
-        layout(saveMorph, loadMorph, leftCol, rightCol, rows, layout);
+        GridBagBuilder b = GridBagBuilder.newGridBag(this);
+        b.cell(0, 0).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutSettingsBlock());
+        b.cell(0, 1).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutAlphaBlock());
+        b.cell(0, 2).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutWeightsBlock());
+    }
+
+    private JPanel layoutSettingsBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory
+                                .createTitledBorder(BorderFactory.createLineBorder(Color.BLACK), "Settings"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().fillWidth().add(loadMorph);
+        b.nextCell().fillWidth().spanUpToEndRow().weight(1.0, 0.0).add(new JPanel());
+        b.nextCell().fillWidth().add(saveMorph);
+
+        return block;
+    }
+
+    private JPanel layoutAlphaBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Morph Alpha"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().add(new JLabel("A"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanUpToEndRow().add(fullSlider);
+        b.nextCell().add(new JLabel("B"));
+
+        return block;
+    }
+
+    private JPanel layoutWeightsBlock() {
+        JPanel block = new JPanel();
+        block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
+                                                         "Property Weights"));
+
+        GridBagBuilder b = GridBagBuilder.newGridBag(block);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Normal"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(normalSlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Specular"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(specAlbedoSlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Diffuse"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(diffAlbedoSlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Shininess"));
+        b.nextCell().fillWidth().weight(1.0, 0.0).spanToEndRow().add(shininessSlider);
+        return block;
     }
 
     private static JSlider createSlider(int min, int max, int value) {
@@ -132,14 +163,6 @@ public class MorphTab extends JPanel {
         slider.setSnapToTicks(true);
         slider.setValue(value);
         return slider;
-    }
-
-    private static void layout(JComponent left, JComponent right, GroupLayout.ParallelGroup leftColumn,
-                               GroupLayout.ParallelGroup rightColumn, GroupLayout.SequentialGroup rows,
-                               GroupLayout layout) {
-        leftColumn.addComponent(left);
-        rightColumn.addComponent(right);
-        rows.addGroup(layout.createParallelGroup().addComponent(left).addComponent(right));
     }
 
     public void updateFromSettings(Properties props) {
