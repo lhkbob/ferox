@@ -109,7 +109,6 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         }
     }
 
-    // FIXME do we really have to bind/unbind fully?
     @Override
     public void onSurfaceActivate(OpenGLContext context) {
         super.onSurfaceActivate(context);
@@ -122,17 +121,6 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         }
 
         fbo.bind(this, jctx);
-    }
-
-    @Override
-    public void onSurfaceDeactivate(OpenGLContext context) {
-        LwjglContext jctx = (LwjglContext) context;
-        FBODestructible.FrameBufferObject fbo = impl.fbos.get(jctx);
-        if (fbo != null) {
-            jctx.bindFbo(0);
-        }
-
-        super.onSurfaceDeactivate(context);
     }
 
     private static class FBODestructible extends SurfaceDestructible {

@@ -74,16 +74,6 @@ public abstract class AbstractSurface implements Surface {
     public void onSurfaceActivate(OpenGLContext context) {
     }
 
-    /**
-     * onSurfaceDeactivate() is a listener method that is invoked by ContextManager when a surface is
-     * deactivated. The provided context is the current context on the calling thread and will not be null.
-     * This method can be overridden by subclasses to perform more actions.
-     *
-     * @param context The current context
-     */
-    public void onSurfaceDeactivate(OpenGLContext context) {
-    }
-
     @Override
     public Future<Void> destroy() {
         return getSurfaceDestructible().destroy();

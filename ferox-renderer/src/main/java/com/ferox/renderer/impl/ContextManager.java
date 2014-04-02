@@ -364,9 +364,9 @@ public class ContextManager {
                 activeSurface = surface;
                 surface.onSurfaceActivate(currentContext);
             } else {
-                // This is already the active surface, but cycle deactivate/activate
-                // to make it notice the switch
-                surface.onSurfaceDeactivate(currentContext);
+                //                // This is already the active surface, but cycle deactivate/activate
+                //                // to make it notice the switch
+                //                surface.onSurfaceDeactivate(currentContext);
                 surface.onSurfaceActivate(currentContext);
             }
 
@@ -386,7 +386,6 @@ public class ContextManager {
         private void deactivateSurface() {
             if (activeSurface != null) {
                 // Since activeSurface is not null, a currentContext won't be null
-                activeSurface.onSurfaceDeactivate(currentContext);
                 activeSurface = null;
 
                 // we do not release the current context, even if

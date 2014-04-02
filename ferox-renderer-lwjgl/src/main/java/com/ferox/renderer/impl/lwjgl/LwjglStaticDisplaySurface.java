@@ -251,6 +251,9 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     public void onSurfaceActivate(OpenGLContext context) {
         super.onSurfaceActivate(context);
 
+        // FBO surfaces never unbind their framebuffer object, so make sure we're on the window this time
+        ((LwjglContext) context).bindFbo(0);
+
         synchronized (impl) {
             if (vsyncNeedsUpdate && !emulateVSync) {
                 Display.setSwapInterval(vsync ? 1 : 0);

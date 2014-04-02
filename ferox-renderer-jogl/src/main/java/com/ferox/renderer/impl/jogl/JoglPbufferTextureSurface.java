@@ -97,6 +97,11 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
     }
 
     @Override
+    public void onSurfaceActivate(OpenGLContext context) {
+        ((JoglContext) context).bindFbo(0);
+    }
+
+    @Override
     public void flush(OpenGLContext context) {
         try {
             impl.pbuffer.swapBuffers();

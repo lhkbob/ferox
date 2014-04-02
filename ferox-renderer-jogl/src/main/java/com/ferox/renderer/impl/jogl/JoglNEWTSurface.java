@@ -205,6 +205,9 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
     public void onSurfaceActivate(OpenGLContext context) {
         super.onSurfaceActivate(context);
 
+        // FBO surfaces don't unbind their FBO so make sure we use the actual window
+        ((JoglContext) context).bindFbo(0);
+
         synchronized (impl) {
             if (vsyncNeedsUpdate) {
                 GL gl = ((JoglContext) context).getGLContext().getGL();
