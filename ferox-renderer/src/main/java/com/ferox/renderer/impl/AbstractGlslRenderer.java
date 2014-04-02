@@ -205,10 +205,13 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         throw new RuntimeException("Missing uniform, shouldn't happen!");
     }
 
+    // FIXME attribute state is not reset as the documentation declares
     @Override
     public void setShader(Shader shader) {
+        boolean wipeAttrs = false;
         if (shader == null) {
             context.bindShader(null);
+            wipeAttrs = true;
         } else {
             if (shader.isDestroyed()) {
                 throw new ResourceException("Cannot use a destroyed resource");
@@ -217,6 +220,7 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
             ShaderImpl.ShaderHandle handle = ((ShaderImpl) shader).getHandle();
             if (handle != delegate.state.shader) {
                 context.bindShader(handle);
+                wipeAttrs = true;
 
                 // perform maintenance on bound texture state to make it line up with
                 // what the texture uniforms are expecting
@@ -267,6 +271,20 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
                     }
 
                     u.initialized = true;
+                }
+            }
+        }
+
+        if (wipeAttrs) {
+            if (delegate.state.shader == null) {
+                // mostly serves to unbind prior attribute buffers
+                for (int a = 0; a < state.attributes.length; a++) {
+                    bindAttribute(state.attributes[a], 4, 0f, 0f, 0f, 0f);
+                }
+            } else {
+                // use the attribute definitions of the shader to keep data well defined
+                for (ShaderImpl.AttributeImpl a : delegate.state.shader.attributes) {
+                    bindAttribute(a, null);
                 }
             }
         }
