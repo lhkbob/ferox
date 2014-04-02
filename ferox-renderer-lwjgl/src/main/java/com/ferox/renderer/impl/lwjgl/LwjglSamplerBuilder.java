@@ -180,7 +180,7 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
         case TEX_CUBEMAP:
         case TEX_1D_ARRAY:
             if (srcFormat > 0) {
-                // uncompressed (height is automatically set to image length for 1D-arrays
+                // uncompressed (height is automatically set to image length for 1D-arrays)
                 GL11.glTexImage2D(target, mipmap, dstFormat, width, height, 0, srcFormat, type, imageData);
             } else {
                 // compressed - always a ByteBuffer

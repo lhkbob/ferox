@@ -73,8 +73,7 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
     public LwjglStaticDisplaySurface(final FrameworkImpl framework, final LwjglSurfaceFactory factory,
                                      final OnscreenSurfaceOptions options, LwjglContext shareWith) {
         if (Display.isCreated()) {
-            throw new SurfaceCreationException(
-                    "Static LWJGL Display is already in use, cannot create another surface");
+            throw new SurfaceCreationException("Static LWJGL Display is already in use, cannot create another surface");
         }
 
         final org.lwjgl.opengl.PixelFormat format = choosePixelFormat(options, factory);
@@ -94,8 +93,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             }
 
             if (!validDisplay) {
-                throw new SurfaceCreationException(
-                        "Display mode is not available: " + options.getFullscreenMode());
+                throw new SurfaceCreationException("Display mode is not available: " +
+                                                   options.getFullscreenMode());
             }
 
             org.lwjgl.opengl.DisplayMode lwjglMode = factory.getLWJGLDisplayMode(options.getFullscreenMode());
@@ -132,8 +131,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                 if (glCanvas != null) {
                     Display.setParent(glCanvas);
                 } else {
-                    Display.setDisplayMode(
-                            new org.lwjgl.opengl.DisplayMode(options.getWidth(), options.getHeight()));
+                    Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(options.getWidth(),
+                                                                            options.getHeight()));
                 }
 
                 Display.create(format, realShare, factory.getContextAttribs());
@@ -209,8 +208,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             }
         }
         if (!depthValid) {
-            throw new SurfaceCreationException(
-                    "Invalid depth buffer bit count: " + request.getDepthBufferBits());
+            throw new SurfaceCreationException("Invalid depth buffer bit count: " +
+                                               request.getDepthBufferBits());
         }
 
         boolean stencilValid = false;
@@ -221,8 +220,8 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             }
         }
         if (!stencilValid) {
-            throw new SurfaceCreationException(
-                    "Invalid stencil buffer bit count: " + request.getStencilBufferBits());
+            throw new SurfaceCreationException("Invalid stencil buffer bit count: " +
+                                               request.getStencilBufferBits());
         }
 
         boolean samplesValid = false;

@@ -60,7 +60,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
             LWJGLUtil.isMacOSXEqualsOrBetterThan(10, 7)) {
             // for mac we need to explicitly select this context profile to get 3+
             attribs = new ContextAttribs(3, 2).withProfileCore(true);
-//                        attribs = null;
+            //            attribs = null;
         } else {
             // for everyone else, it should just automatically select the highest opengl version
             // FIXME I think we should have better profile support because the presence of the compatibility
@@ -94,8 +94,9 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         }
         defaultMode = convert(Display.getDesktopDisplayMode());
 
-        caps = LwjglCapabilities.computeCapabilities(attribs, convertMap.keySet().toArray(
-                new DisplayMode[convertMap.size()]));
+        caps = LwjglCapabilities.computeCapabilities(attribs, convertMap.keySet()
+                                                                        .toArray(new DisplayMode[convertMap
+                                                                                                         .size()]));
     }
 
     /**
@@ -112,7 +113,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
 
     /**
      * @return Get the selected ContextAttribs that must be specified when creating any context or surface
-     *         used by this factory.
+     * used by this factory.
      */
     public ContextAttribs getContextAttribs() {
         return attribs;
@@ -150,8 +151,7 @@ public class LwjglSurfaceFactory implements SurfaceFactory {
         if (caps.getPBufferSupport()) {
             return PbufferShadowContext.create(this, (LwjglContext) sharedContext);
         } else {
-            throw new FrameworkException(
-                    "No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
+            throw new FrameworkException("No Pbuffer support, and LWJGL framework cannot do onscreen shadow contexts");
         }
     }
 

@@ -85,8 +85,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
     public int getDepthBufferBits() {
         TextureImpl.RenderTargetImpl depth = getDepthBuffer();
         if (depth != null) {
-            int dstFormat = Utils
-                    .getGLDstFormat(depth.getSampler().getFullFormat(), getFramework().getCapabilities());
+            int dstFormat = Utils.getGLDstFormat(depth.getSampler().getFullFormat(),
+                                                 getFramework().getCapabilities());
             if (dstFormat == GL30.GL_DEPTH24_STENCIL8 || dstFormat == GL14.GL_DEPTH_COMPONENT24) {
                 return 24;
             } else if (dstFormat == GL14.GL_DEPTH_COMPONENT16) {
@@ -109,6 +109,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
         }
     }
 
+    // FIXME do we really have to bind/unbind fully?
     @Override
     public void onSurfaceActivate(OpenGLContext context) {
         super.onSurfaceActivate(context);
@@ -253,7 +254,11 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                         if (numMips > 1) {
                             TextureImpl.TextureHandle t = colorBuffers[i].getSampler().getHandle();
                             ctx.bindTexture(0, t);
-                            GL30.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                            if (useEXT) {
+                                EXTFramebufferObject.glGenerateMipmapEXT(Utils.getGLTextureTarget(t.target));
+                            } else {
+                                GL30.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                            }
                         }
                     }
                 }
@@ -264,7 +269,11 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     if (numMips > 1) {
                         TextureImpl.TextureHandle t = depthBuffer.getSampler().getHandle();
                         ctx.bindTexture(0, t);
-                        GL30.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                        if (useEXT) {
+                            EXTFramebufferObject.glGenerateMipmapEXT(Utils.getGLTextureTarget(t.target));
+                        } else {
+                            GL30.glGenerateMipmap(Utils.getGLTextureTarget(t.target));
+                        }
                     }
                 }
             }
@@ -293,7 +302,7 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
             private void checkFBOStatus() {
                 if (useEXT) {
                     int complete = EXTFramebufferObject
-                            .glCheckFramebufferStatusEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
+                                           .glCheckFramebufferStatusEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
                     if (complete != EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT) {
                         String msg = "FBO failed completion test, unable to render";
                         switch (complete) {
@@ -373,7 +382,8 @@ public class LwjglFboTextureSurface extends AbstractTextureSurface {
                     if (newDepth == null && depthBuffer != null) {
                         attachImage(null, 0, 0,
                                     (depthBuffer.getSampler().getFormat() == Sampler.TexelFormat.DEPTH
-                                     ? GL30.GL_DEPTH_ATTACHMENT : GL30.GL_DEPTH_STENCIL_ATTACHMENT));
+                                     ? GL30.GL_DEPTH_ATTACHMENT : GL30.GL_DEPTH_STENCIL_ATTACHMENT)
+                                   );
                         depthBuffer = null;
                     } else if (newDepth != null) {
                         if (depthBuffer == null || depthBuffer.getSampler() != newDepth.getSampler() ||

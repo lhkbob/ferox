@@ -89,8 +89,8 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
                                         " shader failed to compile: " +
                                         GL20.glGetShaderInfoLog(shaderID, maxLogLength));
         } else {
-            throw new ResourceException(
-                    type.name().toLowerCase() + " shader failed to compile without providing info log");
+            throw new ResourceException(type.name().toLowerCase() +
+                                        " shader failed to compile without providing info log");
         }
     }
 
@@ -112,8 +112,8 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         // link failed, read the log and return it
         int maxLogLength = GL20.glGetProgrami(programID, GL20.GL_INFO_LOG_LENGTH);
         if (maxLogLength > 0) {
-            throw new ResourceException(
-                    "program failed to link: " + GL20.glGetProgramInfoLog(programID, maxLogLength));
+            throw new ResourceException("program failed to link: " +
+                                        GL20.glGetProgramInfoLog(programID, maxLogLength));
         } else {
             throw new ResourceException("program failed to link without providing info log");
         }

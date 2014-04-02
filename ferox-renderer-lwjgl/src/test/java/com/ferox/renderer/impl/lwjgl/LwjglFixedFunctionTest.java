@@ -31,10 +31,9 @@ import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
-import com.ferox.renderer.builder.DepthMap2DBuilder;
 import com.ferox.renderer.builder.Texture2DBuilder;
-import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.Shapes;
 
 /**
  *
@@ -44,15 +43,15 @@ public class LwjglFixedFunctionTest {
 
     public static void main(String[] args) throws Exception {
         final Framework framework = Framework.Factory.create();
-        final OnscreenSurface s = framework
-                .createSurface(new OnscreenSurfaceOptions().withDepthBuffer(24).fixedSize());
+        final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().withDepthBuffer(24)
+                                                                                      .fixedSize());
         s.setTitle("Hello World");
         s.setVSyncEnabled(true);
 
         //                final Geometry box = Sphere.create(framework, 1.5, 16);
-        final Geometry box = Box.create(framework, 3.0);
+        final Geometry box = Shapes.createBox(framework, 3.0);
 
-        float[] texData = new float[256*256*3];
+        float[] texData = new float[256 * 256 * 3];
         for (int y = 0; y < 256; y++) {
             for (int x = 0; x < 256; x++) {
                 texData[y * 256 * 3 + x * 3] = x / 255f;
@@ -84,7 +83,7 @@ public class LwjglFixedFunctionTest {
 
                         r.setModelViewMatrix(view.getViewMatrix());
 
-//                        r.setLightingEnabled(true);
+                        //                        r.setLightingEnabled(true);
                         r.setLightEnabled(0, true);
                         //                        r.setGlobalAmbientLight(new Vector4(.3, .3, .3, 1.0));
 
@@ -104,7 +103,7 @@ public class LwjglFixedFunctionTest {
 
                         r.setNormals(box.getNormals());
                         r.setVertices(box.getVertices());
-//                        r.setTextureCoordinates(1, box.getTextureCoordinates());
+                        //                        r.setTextureCoordinates(1, box.getTextureCoordinates());
                         r.setIndices(box.getIndices());
 
                         r.setDrawStyle(Renderer.DrawStyle.SOLID, Renderer.DrawStyle.LINE);

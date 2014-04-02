@@ -76,8 +76,8 @@ public class LwjglInputEventAdapter {
 
             if (x != lastMouseX || y != lastMouseY) {
                 // push a mouse-moved event
-                dispatcher.dispatchEvent(
-                        new MouseEvent(MouseEvent.Type.MOVE, source, x, y, 0, MouseEvent.MouseButton.NONE));
+                dispatcher.dispatchEvent(new MouseEvent(MouseEvent.Type.MOVE, source, x, y, 0,
+                                                        MouseEvent.MouseButton.NONE));
                 lastMouseX = x;
                 lastMouseY = y;
             }

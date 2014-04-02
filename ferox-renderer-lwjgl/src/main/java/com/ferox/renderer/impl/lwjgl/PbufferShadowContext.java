@@ -57,8 +57,7 @@ public class PbufferShadowContext extends LwjglContext {
      */
     public static PbufferShadowContext create(LwjglSurfaceFactory creator, LwjglContext shareWith) {
         if (creator == null) {
-            throw new NullPointerException(
-                    "Cannot create a PbufferShadowContext with a null LwjglSurfaceFactory");
+            throw new NullPointerException("Cannot create a PbufferShadowContext with a null LwjglSurfaceFactory");
         }
 
         Drawable realShare = (shareWith == null ? null : shareWith.getDrawable());
