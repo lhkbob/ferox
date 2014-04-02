@@ -34,8 +34,9 @@ public class JoglSelfDestructTest {
     public static void main(String[] args) throws Exception {
         final Framework f = Framework.Factory.create();
         System.out.println("framework created");
-        final OnscreenSurface surface = f
-                .createSurface(new OnscreenSurfaceOptions().windowed(800, 800).fixedSize().undecorated());
+        final OnscreenSurface surface = f.createSurface(new OnscreenSurfaceOptions().windowed(800, 800)
+                                                                                    .fixedSize()
+                                                                                    .undecorated());
 
         System.out.println("surface created");
         Thread.sleep(5000);

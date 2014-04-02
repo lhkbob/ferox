@@ -85,8 +85,8 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
     public int getDepthBufferBits() {
         TextureImpl.RenderTargetImpl depth = getDepthBuffer();
         if (depth != null) {
-            int dstFormat = Utils
-                    .getGLDstFormat(depth.getSampler().getFullFormat(), getFramework().getCapabilities());
+            int dstFormat = Utils.getGLDstFormat(depth.getSampler().getFullFormat(),
+                                                 getFramework().getCapabilities());
             if (dstFormat == GL2GL3.GL_DEPTH24_STENCIL8 || dstFormat == GL2GL3.GL_DEPTH_COMPONENT24) {
                 return 24;
             } else if (dstFormat == GL2GL3.GL_DEPTH_COMPONENT16) {

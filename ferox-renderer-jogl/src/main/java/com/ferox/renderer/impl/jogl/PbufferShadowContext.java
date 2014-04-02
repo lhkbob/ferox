@@ -64,8 +64,7 @@ public class PbufferShadowContext extends JoglContext {
      */
     public static PbufferShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith) {
         if (creator == null) {
-            throw new NullPointerException(
-                    "Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
+            throw new NullPointerException("Cannot create a PbufferShadowContext with a null JoglSurfaceFactory");
         }
 
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());

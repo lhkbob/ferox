@@ -92,8 +92,8 @@ public class JoglShaderBuilder extends AbstractShaderBuilder {
             String msg = new String(log, 0, query[0]);
             throw new ResourceException(type.name().toLowerCase() + " shader failed to compile: " + msg);
         } else {
-            throw new ResourceException(
-                    type.name().toLowerCase() + " shader unit failed to compile without providing info log");
+            throw new ResourceException(type.name().toLowerCase() +
+                                        " shader unit failed to compile without providing info log");
         }
     }
 

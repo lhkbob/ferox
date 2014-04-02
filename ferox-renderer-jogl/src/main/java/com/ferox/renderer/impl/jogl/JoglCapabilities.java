@@ -137,9 +137,10 @@ public class JoglCapabilities extends Capabilities {
                 format.setPBuffer(caps.pbuffersSupported);
                 format.setOnscreen(false);
 
-                GLOffscreenAutoDrawable offscreen = factory
-                        .createOffscreenAutoDrawable(factory.getDefaultDevice(), format,
-                                                     new DefaultGLCapabilitiesChooser(), 1, 1, null);
+                GLOffscreenAutoDrawable offscreen = factory.createOffscreenAutoDrawable(factory.getDefaultDevice(),
+                                                                                        format,
+                                                                                        new DefaultGLCapabilitiesChooser(),
+                                                                                        1, 1, null);
                 offscreen.getContext().makeCurrent();
                 if (!caps.queried) {
                     caps.queryWithContext(offscreen.getContext().getGL(), forceNoFBOs);

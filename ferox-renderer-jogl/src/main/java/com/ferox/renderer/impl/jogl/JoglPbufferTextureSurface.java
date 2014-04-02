@@ -67,10 +67,12 @@ public class JoglPbufferTextureSurface extends AbstractTextureSurface {
         GLContext realShare = (shareWith == null ? null : shareWith.getGLContext());
         try {
             GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
-            GLOffscreenAutoDrawable pbuffer = factory
-                    .createOffscreenAutoDrawable(factory.getDefaultDevice(), format,
-                                                 new DefaultGLCapabilitiesChooser(), options.getWidth(),
-                                                 options.getHeight(), realShare);
+            GLOffscreenAutoDrawable pbuffer = factory.createOffscreenAutoDrawable(factory.getDefaultDevice(),
+                                                                                  format,
+                                                                                  new DefaultGLCapabilitiesChooser(),
+                                                                                  options.getWidth(),
+                                                                                  options.getHeight(),
+                                                                                  realShare);
             impl = new PbufferDestructible(framework, pbuffer, new JoglContext(framework.getCapabilities(),
                                                                                pbuffer.getContext()));
         } catch (GLException e) {

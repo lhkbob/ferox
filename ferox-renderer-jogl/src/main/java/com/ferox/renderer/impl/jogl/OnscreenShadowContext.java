@@ -73,8 +73,7 @@ public class OnscreenShadowContext extends JoglContext {
      */
     public static OnscreenShadowContext create(JoglSurfaceFactory creator, JoglContext shareWith) {
         if (creator == null) {
-            throw new NullPointerException(
-                    "Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
+            throw new NullPointerException("Cannot create an OnscreenShadowContext with a null JoglSurfaceFactory");
         }
 
         GLCapabilities caps = new GLCapabilities(creator.getGLProfile());

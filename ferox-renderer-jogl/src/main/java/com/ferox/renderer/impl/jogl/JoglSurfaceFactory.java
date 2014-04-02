@@ -95,8 +95,9 @@ public class JoglSurfaceFactory implements SurfaceFactory {
         }
 
         defaultMode = convert(device.getOriginalMode());
-        caps = JoglCapabilities.computeCapabilities(profile, convertMap.keySet().toArray(
-                new DisplayMode[convertMap.size()]));
+        caps = JoglCapabilities.computeCapabilities(profile, convertMap.keySet()
+                                                                       .toArray(new DisplayMode[convertMap
+                                                                                                        .size()]));
     }
 
     @Override

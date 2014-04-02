@@ -64,8 +64,7 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
         Window window = NewtFactory.createWindow(factory.getScreen(), caps);
         window.setUndecorated(options.isUndecorated());
         window.setSize(options.getWidth(), options.getHeight());
-        window.setDefaultCloseOperation(
-                WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
+        window.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE); // we manage this ourselves
         window.setTitle("");
         window.setPosition(0, 0);
         window.setVisible(true);
@@ -140,8 +139,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
             }
         }
         if (!depthValid) {
-            throw new SurfaceCreationException(
-                    "Invalid depth buffer bit count: " + request.getDepthBufferBits());
+            throw new SurfaceCreationException("Invalid depth buffer bit count: " +
+                                               request.getDepthBufferBits());
         }
 
         boolean stencilValid = false;
@@ -152,8 +151,8 @@ public class JoglNEWTSurface extends AbstractOnscreenSurface {
             }
         }
         if (!stencilValid) {
-            throw new SurfaceCreationException(
-                    "Invalid stencil buffer bit count: " + request.getStencilBufferBits());
+            throw new SurfaceCreationException("Invalid stencil buffer bit count: " +
+                                               request.getStencilBufferBits());
         }
 
         boolean samplesValid = false;

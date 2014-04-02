@@ -32,8 +32,8 @@ import com.ferox.math.Vector4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
 import com.ferox.renderer.builder.Texture2DBuilder;
-import com.ferox.renderer.geom.Box;
 import com.ferox.renderer.geom.Geometry;
+import com.ferox.renderer.geom.Shapes;
 
 /**
  *
@@ -43,13 +43,13 @@ public class JoglFixedFunctionTest {
 
     public static void main(String[] args) throws Exception {
         final Framework framework = Framework.Factory.create();
-        final OnscreenSurface s = framework
-                .createSurface(new OnscreenSurfaceOptions().windowed(500, 500).withDepthBuffer(24));
+        final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().windowed(500, 500)
+                                                                                      .withDepthBuffer(24));
         s.setTitle("Hello World");
         s.setVSyncEnabled(true);
 
         //                final Geometry box = Sphere.create(framework, 1.5, 16);
-        final Geometry box = Box.create(framework, 3.0);
+        final Geometry box = Shapes.createBox(framework, 3.0);
 
         float[] texData = new float[4 * 3];
         texData[0] = 1f;
