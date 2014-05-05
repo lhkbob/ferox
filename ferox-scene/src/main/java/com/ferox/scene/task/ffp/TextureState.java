@@ -92,9 +92,8 @@ public class TextureState implements State {
             r.setTexture(FixedFunctionRenderTask.EMISSIVE_TEXTURE_UNIT, null);
         }
 
-        currentNode.visitChildren(
-                effects.applyTexturing(diffuseTexture != null, decalTexture != null, emittedTexture != null),
-                access);
+        currentNode.visitChildren(effects.applyTexturing(diffuseTexture != null, decalTexture != null,
+                                                         emittedTexture != null), access);
     }
 
     @Override

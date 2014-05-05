@@ -184,10 +184,9 @@ public class EPA {
     private static double edgeDistance(@Const Vector3 va, @Const Vector3 vb, @Const Vector3 normal) {
         Vector3 ba = new Vector3().sub(vb, va);
         Vector3 nab = new Vector3()
-                .cross(ba, normal); // outward facing edge normal direction on triangle plane
+                              .cross(ba, normal); // outward facing edge normal direction on triangle plane
 
-        double aDotNAB = va
-                .dot(nab); // only care about sign to determine inside/outside, no normalization required
+        double aDotNAB = va.dot(nab); // only care about sign to determine inside/outside, no normalization required
 
         if (aDotNAB < 0) {
             // outside of edge a->b

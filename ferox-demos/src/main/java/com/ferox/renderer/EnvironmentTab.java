@@ -8,16 +8,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Hashtable;
 
 /**
  *
  */
 public class EnvironmentTab extends JPanel {
     // tone mapping
-    private volatile double exposure = 1.0;
-    private volatile double sensitivity = 700;
-    private volatile double fstop = 2.0;
-    private volatile double gamma = 2.2;
+    private volatile double preScale = 1.0;
+    private volatile double postScale = 1.0;
+    private volatile double burn = 8.0;
+    private volatile double avgLuminance = 20.0;
+
+    private volatile boolean adaptive = true;
+    private volatile double locality = 10.0;
 
     private volatile boolean flipZAxis;
 
@@ -28,10 +32,13 @@ public class EnvironmentTab extends JPanel {
     private final JLabel envLabel;
     private final JButton loadEnv;
     private final JButton saveEnv;
-    private final JSpinner sensitivitySlider;
-    private final JSpinner exposureSlider;
-    private final JSpinner fstopSlider;
-    private final JSpinner gammaSlider;
+
+    private final JSlider preScaleSlider;
+    private final JSlider postScaleSlider;
+    private final JSlider burnSlider;
+    private final JSlider avgLumSlider;
+    private final JSlider localitySlider;
+    private final JCheckBox adaptiveCheckbox;
 
     private final JCheckBox flipZAxisCheckbox;
 
@@ -57,32 +64,62 @@ public class EnvironmentTab extends JPanel {
             }
         });
 
-        sensitivitySlider = new JSpinner(new SpinnerNumberModel(sensitivity, 20, 8000, 10));
-        sensitivitySlider.addChangeListener(new ChangeListener() {
+        preScaleSlider = createSlider(0, 40, 10, sliderToScale(0), sliderToScale(20), sliderToScale(40));
+        preScaleSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                sensitivity = (Double) sensitivitySlider.getValue();
+                if (preScaleSlider.getValueIsAdjusting()) {
+                    preScale = sliderToScale(preScaleSlider.getValue());
+                }
             }
         });
-        exposureSlider = new JSpinner(new SpinnerNumberModel(exposure, 0.00001, 30, 0.001));
-        exposureSlider.addChangeListener(new ChangeListener() {
+        postScaleSlider = createSlider(0, 40, 10, sliderToScale(0), sliderToScale(20), sliderToScale(40));
+        postScaleSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                exposure = (Double) exposureSlider.getValue();
+                if (postScaleSlider.getValueIsAdjusting()) {
+                    postScale = sliderToScale(postScaleSlider.getValue());
+                }
             }
         });
-        fstopSlider = new JSpinner(new SpinnerNumberModel(fstop, 0.5, 128, 0.1));
-        fstopSlider.addChangeListener(new ChangeListener() {
+        burnSlider = createSlider(0, 40, 10, sliderToScale(0), sliderToScale(20), sliderToScale(40));
+        burnSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                fstop = (Double) fstopSlider.getValue();
+                if (burnSlider.getValueIsAdjusting()) {
+                    burn = sliderToScale(burnSlider.getValue());
+                }
             }
         });
-        gammaSlider = new JSpinner(new SpinnerNumberModel(gamma, 0.0, 5, 0.01));
-        gammaSlider.addChangeListener(new ChangeListener() {
+
+        avgLumSlider = createSlider(0, 2400, 0, sliderToLuminance(0), sliderToLuminance(1200), sliderToLuminance(2400));
+        avgLumSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                gamma = (Double) gammaSlider.getValue();
+                if (avgLumSlider.getValueIsAdjusting()) {
+                    avgLuminance = sliderToLuminance(avgLumSlider.getValue());
+                }
+            }
+        });
+        avgLumSlider.setEnabled(false);
+
+        localitySlider = createSlider(0, 100, 100, sliderToLocality(0), sliderToLocality(50), sliderToLocality(100));
+        localitySlider.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                if (localitySlider.getValueIsAdjusting()) {
+                    locality = sliderToLocality(localitySlider.getValue());
+                }
+            }
+        });
+
+        adaptiveCheckbox = new JCheckBox("Adaptive", true);
+        adaptiveCheckbox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                adaptive = adaptiveCheckbox.isSelected();
+                localitySlider.setEnabled(adaptive);
+                avgLumSlider.setEnabled(!adaptive);
             }
         });
 
@@ -91,10 +128,12 @@ public class EnvironmentTab extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (envFile != null) {
-                    AshikhminOptimizedDeferredShader.Environment.Settings tone = new AshikhminOptimizedDeferredShader.Environment.Settings(gamma,
-                                                                                                                                           fstop,
-                                                                                                                                           exposure,
-                                                                                                                                           sensitivity,
+                    AshikhminOptimizedDeferredShader.Environment.Settings tone = new AshikhminOptimizedDeferredShader.Environment.Settings(preScale,
+                                                                                                                                           postScale,
+                                                                                                                                           burn,
+                                                                                                                                           avgLuminance,
+                                                                                                                                           locality,
+                                                                                                                                           adaptive,
                                                                                                                                            flipZAxis);
                     app.setDefaultTonemapping(envFile, tone);
                 } else {
@@ -133,6 +172,22 @@ public class EnvironmentTab extends JPanel {
         b.cell(0, 2).weight(1.0, 0.0).fillWidth().spanToEndRow().add(layoutTonemappingBlock());
     }
 
+    private static JSlider createSlider(int min, int max, int startValue, double minValue, double middleValue,
+                                        double maxValue) {
+        JSlider slider = new JSlider(min, max);
+        slider.setPaintLabels(true);
+        slider.setPaintTicks(true);
+        slider.setValue(startValue);
+
+        Hashtable<Integer, JComponent> labels = new Hashtable<>();
+        labels.put(min, new JLabel(String.format("%.1f", minValue)));
+        labels.put(max, new JLabel(String.format("%.1f", maxValue)));
+        labels.put((min + max) / 2, new JLabel(String.format("%.1f", middleValue)));
+        slider.setLabelTable(labels);
+        slider.setMajorTickSpacing((min + max) / 2 - min);
+        return slider;
+    }
+
     private JPanel layoutOrientationBlock() {
         JPanel block = new JPanel();
         block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
@@ -165,22 +220,18 @@ public class EnvironmentTab extends JPanel {
                                                          "Tone-mapping"));
 
         GridBagBuilder b = GridBagBuilder.newGridBag(block);
-        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Film ISO"));
-        b.nextCell().anchor(GridBagBuilder.Anchor.WEST).spanToEndRow().weight(1.0, 0.0)
-         .add(sensitivitySlider);
-        ((JSpinner.DefaultEditor) sensitivitySlider.getEditor()).getTextField().setColumns(5);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Pre-scale"));
+        b.nextCell().fillWidth().spanToEndRow().weight(1.0, 0.0).add(preScaleSlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Burn"));
+        b.nextCell().fillWidth().spanToEndRow().weight(1.0, 0.0).add(burnSlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Post-scale"));
+        b.nextCell().fillWidth().spanToEndRow().weight(1.0, 0.0).add(postScaleSlider);
 
-        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Shutter Speed"));
-        b.nextCell().anchor(GridBagBuilder.Anchor.WEST).spanToEndRow().weight(1.0, 0.0).add(exposureSlider);
-        ((JSpinner.DefaultEditor) exposureSlider.getEditor()).getTextField().setColumns(5);
-
-        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("F-Stop"));
-        b.nextCell().anchor(GridBagBuilder.Anchor.WEST).spanToEndRow().weight(1.0, 0.0).add(fstopSlider);
-        ((JSpinner.DefaultEditor) fstopSlider.getEditor()).getTextField().setColumns(5);
-
-        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Gamma"));
-        b.nextCell().anchor(GridBagBuilder.Anchor.WEST).spanToEndRow().weight(1.0, 0.0).add(gammaSlider);
-        ((JSpinner.DefaultEditor) gammaSlider.getEditor()).getTextField().setColumns(5);
+        b.nextCell().spanToEndRow().anchor(GridBagBuilder.Anchor.WEST).add(adaptiveCheckbox);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Locality"));
+        b.nextCell().fillWidth().spanToEndRow().weight(1.0, 0.0).add(localitySlider);
+        b.nextCell().anchor(GridBagBuilder.Anchor.EAST).add(new JLabel("Average Luminance"));
+        b.nextCell().fillWidth().spanToEndRow().weight(1.0, 0.0).add(avgLumSlider);
 
         return block;
     }
@@ -189,25 +240,61 @@ public class EnvironmentTab extends JPanel {
         return environment;
     }
 
-    public double getExposure() {
-        return exposure;
+    public double getPreScale() {
+        return preScale;
     }
 
-    public double getSensitivity() {
-        return sensitivity;
+    public double getPostScale() {
+        return postScale;
     }
 
-    public double getFStop() {
-        return fstop;
+    public double getBurn() {
+        return burn;
     }
 
-    public double getGamma() {
-        return gamma;
+    public double getAvgLuminance() {
+        return avgLuminance;
+    }
+
+    public double getLocality() {
+        return locality;
+    }
+
+    public boolean isAdaptive() {
+        return adaptive;
     }
 
     public boolean isZAxisFlipped() {
         return flipZAxis;
     }
+
+
+    private static int localityToSlider(double locality) {
+        return (int) Math.round(locality * 10);
+    }
+
+    private static double sliderToLocality(int slider) {
+        return slider / 10.0;
+    }
+
+    private static int scaleToSlider(double scale) {
+        double v = Math.pow(scale, 1.0 / 3.0);
+        return (int) Math.round(v * 10);
+    }
+
+    private static double sliderToScale(int slider) {
+        double v = slider / 10.0;
+        return v * v * v;
+    }
+
+    private static int luminanceToSlider(double lum) {
+        return (int) Math.round((100 * Math.log(lum) / Math.log(1.3)));
+    }
+
+    private static double sliderToLuminance(int slider) {
+        return Math.pow(1.3, slider / 100.0);
+    }
+
 
     public void loadEnvironment(final String file) {
         envFile = file;
@@ -230,14 +317,26 @@ public class EnvironmentTab extends JPanel {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                exposureSlider.setValue(tone.exposure);
-                sensitivitySlider.setValue(tone.sensitivity);
-                fstopSlider.setValue(tone.fstop);
-                gammaSlider.setValue(tone.gamma);
+                preScale = tone.preScale;
+                postScale = tone.postScale;
+                burn = tone.burn;
+                avgLuminance = tone.avgLuminance;
+                locality = tone.locality;
+
+                preScaleSlider.setValue(scaleToSlider(preScale));
+                postScaleSlider.setValue(scaleToSlider(postScale));
+                burnSlider.setValue(scaleToSlider(burn));
+                localitySlider.setValue(localityToSlider(locality));
+                avgLumSlider.setValue(luminanceToSlider(avgLuminance));
+
 
                 defaultEnv.setSelected(file.equals(app.getDefaultEnv()));
                 flipZAxis = tone.flipZAxis; // check box doesn't fire an event, so keep things in sync
                 flipZAxisCheckbox.setSelected(flipZAxis);
+
+                adaptive = tone.adaptive;
+                adaptiveCheckbox.setSelected(adaptive);
+
                 envLabel.setText(new File(file).getName());
             }
         });

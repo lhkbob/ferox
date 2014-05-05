@@ -196,8 +196,8 @@ public final class ColorRGB implements Cloneable {
      */
     public ColorRGB darker(@Const ColorRGB color, double factor) {
         if (factor <= 0.0 || factor > 1.0) {
-            throw new IllegalArgumentException(
-                    "Darkening factor must be in the range (0, 1], not: " + factor);
+            throw new IllegalArgumentException("Darkening factor must be in the range (0, 1], not: " +
+                                               factor);
         }
 
         return set(Math.max(0, factor * color.redHDR()), Math.max(0, factor * color.greenHDR()),

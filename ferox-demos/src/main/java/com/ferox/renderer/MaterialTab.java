@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 /**
  *
@@ -81,26 +83,29 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        expUSlider = createSlider(10, 1000, 10);
+        expUSlider = createSlider(10, 1000, 10, sliderToExponent(10), sliderToExponent(505), sliderToExponent(1000));
         expUSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                double newShinyX = sliderToExponent(expUSlider.getValue());
-                if (expLocked.isSelected()) {
-                    double ratio = shininessYScale / shininessXScale;
-                    double newShinyY = ratio * newShinyX;
-                    expVSlider.setValue(exponentToSlider(newShinyY));
+                if (expUSlider.getValueIsAdjusting()) {
+                    double newShinyX = sliderToExponent(expUSlider.getValue());
+                    if (expLocked.isSelected()) {
+                        shininessYScale = shininessYScale / shininessXScale * newShinyX;
+                        expVSlider.setValue(exponentToSlider(shininessYScale));
+                    }
+                    shininessXScale = newShinyX;
                 }
-                shininessXScale = newShinyX;
                 app.updateGBuffer();
             }
         });
-        expVSlider = createSlider(10, 1000, 10);
+        expVSlider = createSlider(10, 1000, 10, sliderToExponent(10), sliderToExponent(505), sliderToExponent(1000));
         expVSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                shininessYScale = sliderToExponent(expVSlider.getValue());
-                app.updateGBuffer();
+                if (expVSlider.getValueIsAdjusting()) {
+                    shininessYScale = sliderToExponent(expVSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         expVSlider.setEnabled(false);
@@ -112,7 +117,6 @@ public class MaterialTab extends JPanel {
             }
         });
 
-
         shinyOverSlider = new JSpinner(new SpinnerNumberModel(shininessOverride, -1.0, 100000.0, 1.0));
         shinyOverSlider.addChangeListener(new ChangeListener() {
             @Override
@@ -122,26 +126,30 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        tcXSlider = createSlider(100, 2400, 100);
+        tcXSlider = createSlider(0, 2400, 0, sliderToTC(0), sliderToTC(1200), sliderToTC(2400));
         tcXSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                double newTCX = sliderToTC(tcXSlider.getValue());
-                if (tcLocked.isSelected()) {
-                    double ratio = texCoordYScale / texCoordXScale;
-                    double newTCY = ratio * newTCX;
-                    tcYSlider.setValue(tcToSlider(newTCY));
+                if (tcXSlider.getValueIsAdjusting()) {
+                    double newTCX = sliderToTC(tcXSlider.getValue());
+                    if (tcLocked.isSelected()) {
+                        double ratio = texCoordYScale / texCoordXScale;
+                        texCoordYScale = ratio * newTCX;
+                        tcYSlider.setValue(tcToSlider(texCoordYScale));
+                    }
+                    texCoordXScale = newTCX;
                 }
-                texCoordXScale = newTCX;
                 app.updateGBuffer();
             }
         });
-        tcYSlider = createSlider(100, 2400, 100);
+        tcYSlider = createSlider(0, 2400, 0, sliderToTC(0), sliderToTC(1200), sliderToTC(2400));
         tcYSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                texCoordYScale = sliderToTC(tcYSlider.getValue());
-                app.updateGBuffer();
+                if (tcYSlider.getValueIsAdjusting()) {
+                    texCoordYScale = sliderToTC(tcYSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         tcYSlider.setEnabled(false);
@@ -153,34 +161,42 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        drSlider = createSlider(1, 100, 50);
+        drSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         drSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                double newDR = sliderToColor(drSlider.getValue());
-                if (dLocked.isSelected()) {
-                    dgSlider.setValue(colorToSlider((diffuseGScale / diffuseRScale) * newDR));
-                    dbSlider.setValue(colorToSlider((diffuseBScale / diffuseRScale) * newDR));
+                if (drSlider.getValueIsAdjusting()) {
+                    double newDR = sliderToColor(drSlider.getValue());
+                    if (dLocked.isSelected()) {
+                        diffuseGScale = (diffuseGScale / diffuseRScale) * newDR;
+                        diffuseBScale = (diffuseBScale / diffuseRScale) * newDR;
+                        dgSlider.setValue(colorToSlider(diffuseGScale));
+                        dbSlider.setValue(colorToSlider(diffuseBScale));
+                    }
+                    diffuseRScale = newDR;
                 }
-                diffuseRScale = newDR;
                 app.updateGBuffer();
             }
         });
-        dgSlider = createSlider(1, 100, 50);
+        dgSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         dgSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseGScale = sliderToColor(dgSlider.getValue());
-                app.updateGBuffer();
+                if (dgSlider.getValueIsAdjusting()) {
+                    diffuseGScale = sliderToColor(dgSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         dgSlider.setEnabled(false);
-        dbSlider = createSlider(1, 100, 50);
+        dbSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         dbSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseBScale = sliderToColor(dbSlider.getValue());
-                app.updateGBuffer();
+                if (dbSlider.getValueIsAdjusting()) {
+                    diffuseBScale = sliderToColor(dbSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         dbSlider.setEnabled(false);
@@ -193,34 +209,42 @@ public class MaterialTab extends JPanel {
             }
         });
 
-        srSlider = createSlider(1, 100, 50);
+        srSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         srSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                double newSR = sliderToColor(srSlider.getValue());
-                if (sLocked.isSelected()) {
-                    sgSlider.setValue(colorToSlider((specularGScale / specularRScale) * newSR));
-                    sbSlider.setValue(colorToSlider((specularBScale / specularRScale) * newSR));
+                if (srSlider.getValueIsAdjusting()) {
+                    double newSR = sliderToColor(srSlider.getValue());
+                    if (sLocked.isSelected()) {
+                        specularGScale = (specularGScale / specularRScale) * newSR;
+                        specularBScale = (specularBScale / specularRScale) * newSR;
+                        sgSlider.setValue(colorToSlider(specularGScale));
+                        sbSlider.setValue(colorToSlider(specularBScale));
+                    }
+                    specularRScale = newSR;
                 }
-                specularRScale = newSR;
                 app.updateGBuffer();
             }
         });
-        sgSlider = createSlider(1, 100, 50);
+        sgSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         sgSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularGScale = sliderToColor(sgSlider.getValue());
-                app.updateGBuffer();
+                if (sgSlider.getValueIsAdjusting()) {
+                    specularGScale = sliderToColor(sgSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         sgSlider.setEnabled(false);
-        sbSlider = createSlider(1, 100, 50);
+        sbSlider = createSlider(1, 100, 50, sliderToColor(1), sliderToColor(50), sliderToColor(100));
         sbSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularBScale = sliderToColor(sbSlider.getValue());
-                app.updateGBuffer();
+                if (sbSlider.getValueIsAdjusting()) {
+                    specularBScale = sliderToColor(sbSlider.getValue());
+                    app.updateGBuffer();
+                }
             }
         });
         sbSlider.setEnabled(false);
@@ -307,7 +331,7 @@ public class MaterialTab extends JPanel {
     private JPanel layoutDiffuseBlock() {
         JPanel block = new JPanel();
         block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
-                                                         "Diffuse Scale"));
+                                                         "Diffuse Adjust"));
 
         GridBagBuilder b = GridBagBuilder.newGridBag(block);
         b.nextCell().add(new JLabel("R"));
@@ -324,7 +348,7 @@ public class MaterialTab extends JPanel {
     private JPanel layoutSpecularBlock() {
         JPanel block = new JPanel();
         block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
-                                                         "Specular Scale"));
+                                                         "Specular Adjust"));
 
         GridBagBuilder b = GridBagBuilder.newGridBag(block);
         b.nextCell().add(new JLabel("R"));
@@ -341,7 +365,7 @@ public class MaterialTab extends JPanel {
     private JPanel layoutExponentBlock() {
         JPanel block = new JPanel();
         block.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.BLACK),
-                                                         "Exponent Scale"));
+                                                         "Exponent Adjust"));
 
         GridBagBuilder b = GridBagBuilder.newGridBag(block);
         b.nextCell().add(new JLabel("U"));
@@ -356,12 +380,18 @@ public class MaterialTab extends JPanel {
         return block;
     }
 
-    private static JSlider createSlider(int min, int max, int value) {
+    private static JSlider createSlider(int min, int max, int startValue, double minValue, double middleValue, double maxValue) {
         JSlider slider = new JSlider(min, max);
-        slider.setPaintLabels(false);
-        slider.setPaintTicks(false);
-        slider.setSnapToTicks(true);
-        slider.setValue(value);
+        slider.setPaintLabels(true);
+        slider.setPaintTicks(true);
+        slider.setValue(startValue);
+
+        Hashtable<Integer, JComponent> labels = new Hashtable<>();
+        labels.put(min, new JLabel(String.format("%.1f", minValue)));
+        labels.put(max, new JLabel(String.format("%.1f", maxValue)));
+        labels.put((min + max) / 2, new JLabel(String.format("%.1f", middleValue)));
+        slider.setLabelTable(labels);
+        slider.setMajorTickSpacing((min + max) / 2 - min);
         return slider;
     }
 
@@ -466,17 +496,28 @@ public class MaterialTab extends JPanel {
             public void run() {
                 texLabel.setText(new File(directory).getName());
 
+                diffuseRScale = settings.diffuseRScale;
+                diffuseGScale = settings.diffuseGScale;
+                diffuseBScale = settings.diffuseBScale;
                 drSlider.setValue(colorToSlider(settings.diffuseRScale));
                 dgSlider.setValue(colorToSlider(settings.diffuseGScale));
                 dbSlider.setValue(colorToSlider(settings.diffuseBScale));
-                srSlider.setValue(colorToSlider(settings.diffuseRScale));
-                sgSlider.setValue(colorToSlider(settings.diffuseGScale));
-                sbSlider.setValue(colorToSlider(settings.diffuseBScale));
 
+                specularRScale = settings.specularRScale;
+                specularGScale = settings.specularGScale;
+                specularBScale = settings.specularBScale;
+                srSlider.setValue(colorToSlider(settings.specularRScale));
+                sgSlider.setValue(colorToSlider(settings.specularGScale));
+                sbSlider.setValue(colorToSlider(settings.specularBScale));
+
+                shininessXScale = settings.shinyXScale;
+                shininessYScale = settings.shinyYScale;
                 expUSlider.setValue(exponentToSlider(settings.shinyXScale));
                 expVSlider.setValue(exponentToSlider(settings.shinyYScale));
                 shinyOverSlider.setValue(settings.exposureOverride);
 
+                texCoordXScale = settings.texCoordXScale;
+                texCoordYScale = settings.texCoordYScale;
                 tcXSlider.setValue(tcToSlider(settings.texCoordXScale));
                 tcYSlider.setValue(tcToSlider(settings.texCoordYScale));
 

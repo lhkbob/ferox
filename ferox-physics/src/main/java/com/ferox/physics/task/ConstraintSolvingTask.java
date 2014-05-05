@@ -76,8 +76,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             rigidBody = iterator.addRequired(RigidBody.class);
 
             deltaLinearImpulse = system.decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
-            deltaAngularImpulse = system
-                    .decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
+            deltaAngularImpulse = system.decorate(RigidBody.class,
+                                                  new Vector3Property.Factory(new Vector3()));
 
             solver.setDeltaLinearImpulseProperty(deltaLinearImpulse);
             solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);

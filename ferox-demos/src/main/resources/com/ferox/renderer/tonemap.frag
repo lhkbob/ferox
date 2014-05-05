@@ -15,15 +15,15 @@ const mat3 RGB_TO_XYZ = mat3(0.4124, 0.2126, 0.0193, 0.3576, 0.7152, 0.1192, 0.1
 const mat3 XYZ_TO_RGB = mat3(3.2406, -0.9689, 0.0557, -1.5372, 1.8758, -0.2040, -0.4986, 0.0415, 1.0570);
 uniform sampler2D uDiffuse;
 uniform sampler2D uSpecular;
+uniform sampler2D uLuminance;
 
 uniform sampler2D uDepth;
 
-uniform float uExposure; // shutter
-uniform float uSensitivity; // ISO
-uniform float uFstop;
-uniform float uGamma;
-
-
+uniform float uPreScale;
+uniform float uPostScale;
+uniform float uBurn;
+uniform float uAvgLuminance;
+uniform float uLocality;
 
 in vec2 vTC;
 out vec4 fColor;
@@ -60,9 +60,20 @@ void main() {
     mnmx3(v[3], v[4], v[8]);
 
     vec3 high = texture(uDiffuse, vTC).rgb + v[4];
-    float factor = uExposure / (uFstop * uFstop) * uSensitivity * 0.65 / 10.0 * pow(118.0 / 255.0, uGamma);
     vec3 color = RGB_TO_XYZ * high;
-    color = XYZ_TO_RGB * (factor * color);
+
+    float Ywa = uAvgLuminance;
+    if (Ywa < 0.0)
+        Ywa = textureLod(uLuminance, vTC, uLocality).r;
+
+    float alpha = 0.1;
+
+    float Yw = uPreScale * alpha * uBurn;
+    float invY2 = 1.0 / (Yw * Yw);
+    float pScale = uPostScale * uPreScale * alpha / Ywa;
+
+    color = color * (pScale * (1.0 + color.g * invY2) / (1.0 + color.g));
+    color = XYZ_TO_RGB * color;
 
     fColor = vec4(pow(color, vec3(1.0 / 2.2)), 1.0);
     gl_FragDepth = texture(uDepth, vTC).r;

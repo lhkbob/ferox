@@ -6,6 +6,7 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Hashtable;
 import java.util.Properties;
 
 /**
@@ -38,44 +39,54 @@ public class MorphTab extends JPanel {
         this.app = a;
         activeTab = ControlPanel.Tab.ENV;
 
-        fullSlider = createSlider(0, 1000, 0);
-        normalSlider = createSlider(0, 1000, 500);
-        specAlbedoSlider = createSlider(0, 1000, 500);
-        diffAlbedoSlider = createSlider(0, 1000, 500);
-        shininessSlider = createSlider(0, 1000, 500);
+        fullSlider = createSlider(0, 1000, 0, sliderToAlpha(0), sliderToAlpha(500), sliderToAlpha(1000));
+        normalSlider = createSlider(0, 1000, 500, sliderToWeight(0), sliderToWeight(500), sliderToWeight(1000));
+        specAlbedoSlider = createSlider(0, 1000, 500, sliderToWeight(0), sliderToWeight(500), sliderToWeight(1000));
+        diffAlbedoSlider = createSlider(0, 1000, 500, sliderToWeight(0), sliderToWeight(500), sliderToWeight(1000));
+        shininessSlider = createSlider(0, 1000, 500, sliderToWeight(0), sliderToWeight(500), sliderToWeight(1000));
 
         fullSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                blendAlpha = fullSlider.getValue() / 1000.0;
+                if (fullSlider.getValueIsAdjusting()) {
+                    blendAlpha = sliderToAlpha(fullSlider.getValue());
+                }
                 app.updateGBuffer();
             }
         });
         normalSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                normalWeight = 2.0 * normalSlider.getValue() / 1000.0 - 1.0;
+                if (normalSlider.getValueIsAdjusting()) {
+                    normalWeight = sliderToWeight(normalSlider.getValue());
+                }
                 app.updateGBuffer();
             }
         });
         specAlbedoSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                specularAlbedoWeight = 2.0 * specAlbedoSlider.getValue() / 1000.0 - 1.0;
+                if (specAlbedoSlider.getValueIsAdjusting()) {
+                    specularAlbedoWeight = sliderToWeight(specAlbedoSlider.getValue());
+                }
                 app.updateGBuffer();
             }
         });
         diffAlbedoSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                diffuseAlbedoWeight = 2.0 * diffAlbedoSlider.getValue() / 1000.0 - 1.0;
+                if (diffAlbedoSlider.getValueIsAdjusting()) {
+                    diffuseAlbedoWeight = sliderToWeight(diffAlbedoSlider.getValue());
+                }
                 app.updateGBuffer();
             }
         });
         shininessSlider.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                shininessWeight = 2.0 * shininessSlider.getValue() / 1000.0 - 1.0;
+                if (shininessSlider.getValueIsAdjusting()) {
+                    shininessWeight = sliderToWeight(shininessSlider.getValue());
+                }
                 app.updateGBuffer();
             }
         });
@@ -156,32 +167,61 @@ public class MorphTab extends JPanel {
         return block;
     }
 
-    private static JSlider createSlider(int min, int max, int value) {
+    private static JSlider createSlider(int min, int max, int startValue, double minValue, double middleValue,
+                                        double maxValue) {
         JSlider slider = new JSlider(min, max);
-        slider.setPaintLabels(false);
-        slider.setPaintTicks(false);
-        slider.setSnapToTicks(true);
-        slider.setValue(value);
+        slider.setPaintLabels(true);
+        slider.setPaintTicks(true);
+        slider.setValue(startValue);
+
+        Hashtable<Integer, JComponent> labels = new Hashtable<>();
+        labels.put(min, new JLabel(String.format("%.1f", minValue)));
+        labels.put(max, new JLabel(String.format("%.1f", maxValue)));
+        labels.put((min + max) / 2, new JLabel(String.format("%.1f", middleValue)));
+        slider.setLabelTable(labels);
+        slider.setMajorTickSpacing((min + max) / 2 - min);
         return slider;
     }
 
     public void updateFromSettings(Properties props) {
-        final double blendAlpha = Double.parseDouble(props.getProperty("blend_alpha", "0.0"));
-        final double normalWeight = Double.parseDouble(props.getProperty("normal_weight", "0.0"));
-        final double diffuseWeight = Double.parseDouble(props.getProperty("diffuse_weight", "0.0"));
-        final double specularWeight = Double.parseDouble(props.getProperty("specular_weight", "0.0"));
-        final double shininessWeight = Double.parseDouble(props.getProperty("shininess_weight", "0.0"));
+        final double alpha = Double.parseDouble(props.getProperty("blend_alpha", "0.0"));
+        final double normW = Double.parseDouble(props.getProperty("normal_weight", "0.0"));
+        final double diffW = Double.parseDouble(props.getProperty("diffuse_weight", "0.0"));
+        final double specW = Double.parseDouble(props.getProperty("specular_weight", "0.0"));
+        final double shinyW = Double.parseDouble(props.getProperty("shininess_weight", "0.0"));
 
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                fullSlider.setValue((int) (blendAlpha * 1000));
-                normalSlider.setValue((int) ((normalWeight + 1.0) * 500));
-                diffAlbedoSlider.setValue((int) ((diffuseWeight + 1.0) * 500));
-                specAlbedoSlider.setValue((int) ((specularWeight + 1.0) * 500));
-                shininessSlider.setValue((int) ((shininessWeight + 1.0) * 500));
+                blendAlpha = alpha;
+                fullSlider.setValue(alphaToSlider(alpha));
+
+                normalWeight = normW;
+                diffuseAlbedoWeight = diffW;
+                specularAlbedoWeight = specW;
+                shininessWeight = shinyW;
+                normalSlider.setValue(weightToSlider(normW));
+                diffAlbedoSlider.setValue(weightToSlider(diffW));
+                specAlbedoSlider.setValue(weightToSlider(specW));
+                shininessSlider.setValue(weightToSlider(shinyW));
             }
         });
+    }
+
+    private static int alphaToSlider(double alpha) {
+        return (int) Math.round(alpha * 1000);
+    }
+
+    private static double sliderToAlpha(int slider) {
+        return slider / 1000.0;
+    }
+
+    private static int weightToSlider(double weight) {
+        return (int) Math.round((weight + 1.0) * 500);
+    }
+
+    private static double sliderToWeight(int slider) {
+        return slider / 500.0 - 1.0;
     }
 
     public void saveToSettings(Properties props) {

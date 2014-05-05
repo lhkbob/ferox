@@ -237,8 +237,8 @@ public class AshikhminShader implements Task<Void> {
             }
         });
 
-        shape = Shapes.createSphere(framework, 0.5, 128);
-        //        shape = Shapes.createTeapot(framework);
+//        shape = Shapes.createSphere(framework, 0.5, 30);
+                shape = Shapes.createTeapot(framework);
         //        shape = Shapes.createBox(framework, 1.0);
 
         showAxis = true;
@@ -602,32 +602,35 @@ public class AshikhminShader implements Task<Void> {
         r.setShader(shader);
 
         // Main object rendering
-        r.setUniform(shader.getUniform("uUseSolidColor"), false);
+//        r.setUniform(shader.getUniform("uUseSolidColor"), false);
+        r.setUniform(shader.getUniform("uUseSolidColor"), true);
+        r.setUniform(shader.getUniform("uSolidColor"), new Vector4(1, 1, 1, 1));
+
         r.setUniform(shader.getUniform("uLightPos"), light);
         r.setUniform(shader.getUniform("uProjection"), camera.getProjectionMatrix());
         r.setUniform(shader.getUniform("uView"), camera.getViewMatrix());
         r.setUniform(shader.getUniform("uCamPos"), camera.getLocation());
 
         r.setUniform(shader.getUniform("uSpecularNormalTexA"), specularNormalTexA);
-        r.setUniform(shader.getUniform("uSpecularAlbedoTexA"), specularAlbedoTexA);
-        r.setUniform(shader.getUniform("uDiffuseNormalTexA"), diffuseNormalTexA);
-        r.setUniform(shader.getUniform("uDiffuseAlbedoTexA"), diffuseAlbedoTexA);
-        r.setUniform(shader.getUniform("uShininessTexA"), shininessTexA);
-
+//        r.setUniform(shader.getUniform("uSpecularAlbedoTexA"), specularAlbedoTexA);
+//        r.setUniform(shader.getUniform("uDiffuseNormalTexA"), diffuseNormalTexA);
+//        r.setUniform(shader.getUniform("uDiffuseAlbedoTexA"), diffuseAlbedoTexA);
+//        r.setUniform(shader.getUniform("uShininessTexA"), shininessTexA);
+//
         r.setUniform(shader.getUniform("uSpecularNormalTexB"), specularNormalTexB);
-        r.setUniform(shader.getUniform("uSpecularAlbedoTexB"), specularAlbedoTexB);
-        r.setUniform(shader.getUniform("uDiffuseNormalTexB"), diffuseNormalTexB);
-        r.setUniform(shader.getUniform("uDiffuseAlbedoTexB"), diffuseAlbedoTexB);
-        r.setUniform(shader.getUniform("uShininessTexB"), shininessTexB);
-
+//        r.setUniform(shader.getUniform("uSpecularAlbedoTexB"), specularAlbedoTexB);
+//        r.setUniform(shader.getUniform("uDiffuseNormalTexB"), diffuseNormalTexB);
+//        r.setUniform(shader.getUniform("uDiffuseAlbedoTexB"), diffuseAlbedoTexB);
+//        r.setUniform(shader.getUniform("uShininessTexB"), shininessTexB);
+//
         r.setUniform(shader.getUniform("uNormalAlpha"), normalAlpha);
-        r.setUniform(shader.getUniform("uSpecularAlpha"), specularAlbedoAlpha);
-        r.setUniform(shader.getUniform("uDiffuseAlpha"), diffuseAlbedoAlpha);
-        r.setUniform(shader.getUniform("uShininessAlpha"), shininessAlpha);
-
-        r.setUniform(shader.getUniform("uShininessScale"), shininessXScale, shininessYScale);
+//        r.setUniform(shader.getUniform("uSpecularAlpha"), specularAlbedoAlpha);
+//        r.setUniform(shader.getUniform("uDiffuseAlpha"), diffuseAlbedoAlpha);
+//        r.setUniform(shader.getUniform("uShininessAlpha"), shininessAlpha);
+//
+//        r.setUniform(shader.getUniform("uShininessScale"), shininessXScale, shininessYScale);
         r.setUniform(shader.getUniform("uTCScale"), texCoordAScale, texCoordBScale);
-
+//
         r.setUniform(shader.getUniform("uModel"), modelTrackBall.getTransform());
 
         r.bindAttribute(shader.getAttribute("aPos"), shape.getVertices());

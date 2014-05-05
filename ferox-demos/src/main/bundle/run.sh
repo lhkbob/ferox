@@ -19,4 +19,4 @@ done
 progdir=`dirname "$PRG"`
 cd $progdir
 
-java -jar -Djava.library.path="${release.natives}" "${finalJar}" &
+java -Xmx512m -Xms512m -jar -Djava.library.path="${release.natives}" "${finalJar}"

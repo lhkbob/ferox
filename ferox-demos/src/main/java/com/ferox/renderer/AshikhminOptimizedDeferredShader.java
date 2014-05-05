@@ -33,10 +33,7 @@ import com.ferox.input.logic.InputManager;
 import com.ferox.input.logic.InputState;
 import com.ferox.math.*;
 import com.ferox.math.bounds.Frustum;
-import com.ferox.renderer.builder.Builder;
-import com.ferox.renderer.builder.DepthMap2DBuilder;
-import com.ferox.renderer.builder.ShaderBuilder;
-import com.ferox.renderer.builder.Texture2DBuilder;
+import com.ferox.renderer.builder.*;
 import com.ferox.renderer.geom.Geometry;
 import com.ferox.renderer.geom.Shapes;
 import com.ferox.renderer.loader.GeometryLoader;
@@ -65,6 +62,12 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
     private static final int SPHERE_PHI_RES = 128;
     private static final int SPEC_VECTOR_COUNT = 5; // origin, view, reflection, reflected over t, reflected over b
 
+    private static enum RenderMode {
+        CONVOLUTIONS,
+        TEXEL_ITERATION,
+        SAMPLED
+    }
+
     // framework
     private final ControlPanel properties;
     private InputManager input;
@@ -76,18 +79,13 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     private final GBuffer gbuffer;
 
-    private final TextureSurface lightingSurface;
-    private final Texture2D specularLighting;
-    private final Texture2D diffuseLighting;
-
-    private final Texture2D noise;
-
     private final Shader simpleShader;
     private final Shader gbufferShader;
     private final Shader diffuseShader;
     private final Shader lightingShader;
     private final Shader completeShader;
     private final Shader sampleShader;
+    private final Shader luminanceShader;
     private final Shader tonemapShader;
 
     // environment mapping
@@ -122,8 +120,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     private volatile boolean invalidateGbuffer;
     private long gbufferTimeStamp;
-    private boolean renderApproximation;
-    private boolean renderSampledMethod;
+    private RenderMode renderMode;
     private int sample;
 
     // settings and persistent state
@@ -142,6 +139,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
     public AshikhminOptimizedDeferredShader(Framework framework) throws Exception {
         super(framework, new OnscreenSurfaceOptions().withDepthBuffer(24).windowed(WIDTH, HEIGHT).fixedSize(),
               false);
+        System.out.println(framework.getCapabilities().getGlslVersion());
         modelTrackBall = new TrackBall(false);
         viewTrackBall = new TrackBall(true);
 
@@ -151,7 +149,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         cameraDist = 2.5;
 
         gbuffer = new GBuffer(framework);
-
+        renderMode = RenderMode.CONVOLUTIONS;
         fullscreenQuad = Shapes.createRectangle(framework, 0, WIDTH, 0, HEIGHT);
         fullscreenProjection = new Frustum(true, 0, WIDTH, 0, HEIGHT, -1.0, 1.0);
 
@@ -174,6 +172,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         completeShader = loadShader(framework, "ashik-complete").bindColorBuffer("fColor", 0).build();
         sampleShader = loadShader(framework, "ashik-sample").bindColorBuffer("fColor", 0).build();
         tonemapShader = loadShader(framework, "tonemap").bindColorBuffer("fColor", 0).build();
+        luminanceShader = loadShader(framework, "luminance").bindColorBuffer("fLuminance", 0).build();
         gbufferShader = loadShader(framework, "ashik-gbuffer2")
                                 .bindColorBuffer("fNormalTangentXY", GBuffer.NORMAL_TAN_IDX)
                                 .bindColorBuffer("fShininessAndNTZ", GBuffer.SHINE_NTZ_IDX)
@@ -235,27 +234,6 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         probeColors = new VertexAttribute(framework.newVertexBuffer().from(probeColorData).build(), 4);
 
         probeIndices = framework.newElementBuffer().fromUnsigned(indices).build();
-
-        Texture2DBuilder b = framework.newTexture2D();
-        b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
-        specularLighting = b.build();
-
-        b = framework.newTexture2D();
-        b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
-        diffuseLighting = b.build();
-        TextureSurfaceOptions gOpts = new TextureSurfaceOptions().size(WIDTH, HEIGHT)
-                                                                 .colorBuffers(specularLighting
-                                                                                       .getRenderTarget());
-        lightingSurface = framework.createSurface(gOpts);
-
-        float[] noiseData = new float[WIDTH * HEIGHT * 4];
-        for (int i = 0; i < noiseData.length; i++) {
-            noiseData[i] = (float) Math.random();
-        }
-        b = framework.newTexture2D();
-        b.width(WIDTH).height(HEIGHT).interpolated().wrap(Sampler.WrapMode.REPEAT).rgba().mipmap(0)
-         .from(noiseData);
-        noise = b.build();
 
         settings = new Properties();
         properties = new ControlPanel(this);
@@ -551,7 +529,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             ctx.flush();
 
             // now prepare diffuse light source
-            ctx = access.setActiveSurface(lightingSurface, diffuseLighting.getRenderTarget());
+            ctx = access.setActiveSurface(gbuffer.lightingSurface, gbuffer.diffuseLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -579,24 +557,26 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                      fullscreenQuad.getIndexCount());
 
+            ctx.flush();
             Profiler.pop();
 
             invalidateGbuffer = false;
             gbufferTimeStamp = System.currentTimeMillis();
-            renderApproximation = true;
+            //            renderApproximation = true;
             sample = 0;
         } else {
             if (System.currentTimeMillis() - gbufferTimeStamp > 2000) {
-                if (renderApproximation) {
-                    renderApproximation = false;
-                }
+                //                if (renderApproximation) {
+                //                    renderApproximation = false;
+                //                }
             }
         }
 
-        if (renderSampledMethod) {
+        if (sample < 50000 && renderMode == RenderMode.SAMPLED) {
             Profiler.push("sampled");
             // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
+            ctx = access.setActiveSurface(gbuffer.lightingSurface,
+                                          gbuffer.specularLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -618,9 +598,11 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.setUniform(sampleShader.getUniform("uInvView"), invView);
             r.setUniform(sampleShader.getUniform("uEnvTransform"), envTrans);
 
-            r.setUniform(sampleShader.getUniform("uSpecularRadiance"),
-                         environment.envMap); //environment.specularMaps[environment.specularMaps.length - 1]);
-            r.setUniform(sampleShader.getUniform("uNoise"), noise);
+//            r.setUniform(sampleShader.getUniform("uSpecularRadiance"),
+//                         environment.envMap); //environment.specularMaps[environment.specularMaps.length - 1]);
+            r.setUniform(sampleShader.getUniform("uDualNeg"), environment.envParabolaMap[0]);
+            r.setUniform(sampleShader.getUniform("uDualPos"), environment.envParabolaMap[1]);
+            r.setUniform(sampleShader.getUniform("uNoise"), gbuffer.noise);
 
             r.setUniform(sampleShader.getUniform("uNormalAndTangent"), gbuffer.normalTangentXY);
             r.setUniform(sampleShader.getUniform("uShininessAndNTZ"), gbuffer.shininessAndNTZ);
@@ -632,21 +614,24 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             r.bindAttribute(sampleShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
             r.setIndices(fullscreenQuad.getIndices());
 
-            Vector3 rand = new Vector3();
+            Vector4 rand1 = new Vector4();
             for (int i = 0; i < 32; i++) {
-                rand.set(Math.random(), Math.random(), Math.random());
-                r.setUniformArray(sampleShader.getUniform("uSample"), i, rand);
+                rand1.set(Math.random(), Math.random(), Math.random(), Math.random());
+                r.setUniformArray(sampleShader.getUniform("uSample"), i, rand1);
             }
+//            r.setUniform(sampleShader.getUniform("uEnvSize"), environment.envMap.getWidth(), environment.envMap.getHeight());
+//            r.setUniform(sampleShader.getUniform("uTotalSamples"), sample);
             r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
                      fullscreenQuad.getIndexCount());
             sample += 32;
 
             ctx.flush();
             Profiler.pop();
-        } else if (renderApproximation) {
+        } else if (renderMode == RenderMode.CONVOLUTIONS) {
             Profiler.push("approx");
             // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
+            ctx = access.setActiveSurface(gbuffer.lightingSurface,
+                                          gbuffer.specularLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -688,10 +673,11 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
             ctx.flush();
             Profiler.pop();
-        } else if (sample < environment.samples.size()) {
+        } else if (renderMode == RenderMode.TEXEL_ITERATION && sample < environment.samples.size()) {
             Profiler.push("complete");
             // accumulate lighting into another texture (linear pre gamma correction)
-            ctx = access.setActiveSurface(lightingSurface, specularLighting.getRenderTarget());
+            ctx = access.setActiveSurface(gbuffer.lightingSurface,
+                                          gbuffer.specularLighting.getRenderTarget());
             if (ctx == null) {
                 return null;
             }
@@ -746,6 +732,26 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             Profiler.pop();
         }
 
+        Profiler.push("luminance");
+        ctx = access.setActiveSurface(gbuffer.lightingSurface, gbuffer.luminance.getRenderTarget());
+        if (ctx == null) {
+            return null;
+        }
+        r = ctx.getGlslRenderer();
+        r.clear(true, false, false);
+        r.setShader(luminanceShader);
+        r.setUniform(luminanceShader.getUniform("uProjection"), fullscreenProjection.getProjectionMatrix());
+        r.setUniform(luminanceShader.getUniform("uDiffuse"), gbuffer.diffuseLighting);
+        r.setUniform(luminanceShader.getUniform("uSpecular"), gbuffer.specularLighting);
+
+        r.bindAttribute(luminanceShader.getAttribute("aPos"), fullscreenQuad.getVertices());
+        r.bindAttribute(luminanceShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
+        r.setIndices(fullscreenQuad.getIndices());
+        r.render(fullscreenQuad.getPolygonType(), fullscreenQuad.getIndexOffset(),
+                 fullscreenQuad.getIndexCount());
+        ctx.flush(); // MUST DO THIS TO PREPARE MIPMAPS
+        Profiler.pop();
+
         Profiler.push("window");
 
         // display everything to the window
@@ -758,13 +764,21 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         if (!showProbe) {
             r.setShader(tonemapShader);
             r.setUniform(tonemapShader.getUniform("uProjection"), fullscreenProjection.getProjectionMatrix());
-            r.setUniform(tonemapShader.getUniform("uDiffuse"), diffuseLighting);
-            r.setUniform(tonemapShader.getUniform("uSpecular"), specularLighting);
+            r.setUniform(tonemapShader.getUniform("uDiffuse"), gbuffer.diffuseLighting);
+            r.setUniform(tonemapShader.getUniform("uSpecular"), gbuffer.specularLighting);
             r.setUniform(tonemapShader.getUniform("uDepth"), gbuffer.depth);
-            r.setUniform(tonemapShader.getUniform("uGamma"), properties.getEnvTab().getGamma());
-            r.setUniform(tonemapShader.getUniform("uSensitivity"), properties.getEnvTab().getSensitivity());
-            r.setUniform(tonemapShader.getUniform("uExposure"), properties.getEnvTab().getExposure());
-            r.setUniform(tonemapShader.getUniform("uFstop"), properties.getEnvTab().getFStop());
+            r.setUniform(tonemapShader.getUniform("uLuminance"), gbuffer.luminance);
+
+            r.setUniform(tonemapShader.getUniform("uPreScale"), properties.getEnvTab().getPreScale());
+            r.setUniform(tonemapShader.getUniform("uPostScale"), properties.getEnvTab().getPostScale());
+            r.setUniform(tonemapShader.getUniform("uBurn"), properties.getEnvTab().getBurn());
+            if (properties.getEnvTab().isAdaptive()) {
+                r.setUniform(tonemapShader.getUniform("uAvgLuminance"), -1.0);
+            } else {
+                r.setUniform(tonemapShader.getUniform("uAvgLuminance"),
+                             properties.getEnvTab().getAvgLuminance());
+            }
+            r.setUniform(tonemapShader.getUniform("uLocality"), properties.getEnvTab().getLocality());
 
             r.bindAttribute(tonemapShader.getAttribute("aPos"), fullscreenQuad.getVertices());
             r.bindAttribute(tonemapShader.getAttribute("aTC"), fullscreenQuad.getTextureCoordinates());
@@ -830,27 +844,31 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             // draw environment map
             r.setShader(simpleShader);
             r.setDrawStyle(Renderer.DrawStyle.NONE, Renderer.DrawStyle.SOLID);
-            r.setUniform(simpleShader.getUniform("uGamma"), properties.getEnvTab().getGamma());
-            r.setUniform(simpleShader.getUniform("uSensitivity"), properties.getEnvTab().getSensitivity());
-            r.setUniform(simpleShader.getUniform("uExposure"), properties.getEnvTab().getExposure());
-            r.setUniform(simpleShader.getUniform("uFstop"), properties.getEnvTab().getFStop());
+            r.setUniform(simpleShader.getUniform("uPreScale"), properties.getEnvTab().getPreScale());
+            r.setUniform(simpleShader.getUniform("uPostScale"), properties.getEnvTab().getPostScale());
+            r.setUniform(simpleShader.getUniform("uBurn"), properties.getEnvTab().getBurn());
+            r.setUniform(simpleShader.getUniform("uAvgLuminance"), properties.getEnvTab().getAvgLuminance());
+            r.setUniform(simpleShader.getUniform("uEnvLevel"), 0.0);
 
             r.setUniform(simpleShader.getUniform("uModel"), new Matrix4().setIdentity());
             r.setUniform(simpleShader.getUniform("uUseEnvMap"), true);
 
             r.setUniform(simpleShader.getUniform("uEnvTransform"), envTrans);
 
-            int totalEnv = 2 + environment.specularMaps.length; // env + diff + spec
-            int realMode = envMode % totalEnv;
-            if (realMode == 0) {
-                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.envMap);
-            } else if (realMode == 1) {
-                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.diffuseMap);
-            } else {
-                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.specularMaps[realMode - 2]);
-            }
+//            int totalEnv = 2 + environment.specularMaps.length; // env +  diff + spec
+//            int realMode = envMode % totalEnv;
+//            if (realMode == 0) {
+//                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.envMap);
+//            } else if (realMode == 1) {
+//                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.diffuseMap);
+//            } else {
+//                r.setUniform(simpleShader.getUniform("uEnvMap"), environment.specularMaps[realMode - 2]);
+//            }
 
+            r.setUniform(simpleShader.getUniform("uDualNeg"), environment.envParabolaMap[0]);
+            r.setUniform(simpleShader.getUniform("uDualPos"), environment.envParabolaMap[1]);
             r.bindAttribute(simpleShader.getAttribute("aPos"), envCube.getVertices());
+            r.bindAttribute(simpleShader.getAttribute("aTC"), envCube.getTextureCoordinates());
 
             r.setIndices(envCube.getIndices());
             r.render(envCube.getPolygonType(), envCube.getIndexOffset(), envCube.getIndexCount());
@@ -896,9 +914,9 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     @Override
     protected String[] getExtraFPSMessages() {
-        if (renderSampledMethod) {
+        if (renderMode == RenderMode.SAMPLED) {
             return new String[] { String.format("Samples per pixel: %d", sample) };
-        } else if (renderApproximation) {
+        } else if (renderMode == RenderMode.CONVOLUTIONS) {
             return new String[] { "Rendering with convolutions" };
         } else {
             return new String[] { String.format("Texels remaining: %d",
@@ -1113,10 +1131,26 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                 envMode++;
             }
         });
-        input.on(keyPress(KeyEvent.KeyCode.SPACE)).trigger(new Action() {
+
+
+        input.on(keyPress(KeyEvent.KeyCode.F1)).trigger(new Action() {
             @Override
             public void perform(InputState prev, InputState next) {
-                renderSampledMethod = !renderSampledMethod;
+                renderMode = RenderMode.CONVOLUTIONS;
+            }
+        });
+        input.on(keyPress(KeyEvent.KeyCode.F2)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                renderMode = RenderMode.SAMPLED;
+                sample = 0;
+            }
+        });
+        input.on(keyPress(KeyEvent.KeyCode.F3)).trigger(new Action() {
+            @Override
+            public void perform(InputState prev, InputState next) {
+                renderMode = RenderMode.TEXEL_ITERATION;
+                sample = 0;
             }
         });
     }
@@ -1173,6 +1207,13 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
         private final DepthMap2D depth; // DEPTH24
 
+        private final TextureSurface lightingSurface;
+        private final Texture2D specularLighting;
+        private final Texture2D diffuseLighting;
+        private final Texture2D luminance;
+
+        private final Texture2D noise;
+
         public GBuffer(Framework f) {
             Texture2DBuilder b = f.newTexture2D();
             b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).fromHalfFloats(null);
@@ -1206,6 +1247,36 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                                                               )
                                                                  .depthBuffer(depth.getRenderTarget());
             gbuffer = f.createSurface(o);
+
+
+            b = f.newTexture2D();
+            b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
+            specularLighting = b.build();
+
+            b = f.newTexture2D();
+            b.width(WIDTH).height(HEIGHT).rgba().mipmap(0).from((float[]) null);
+            diffuseLighting = b.build();
+            o = new TextureSurfaceOptions().size(WIDTH, HEIGHT)
+                                           .colorBuffers(specularLighting.getRenderTarget());
+            lightingSurface = f.createSurface(o);
+
+            float[] noiseData = new float[WIDTH * HEIGHT * 4];
+            for (int i = 0; i < noiseData.length; i++) {
+                noiseData[i] = (float) Math.random();
+            }
+            b = f.newTexture2D();
+            b.width(WIDTH).height(HEIGHT).interpolated().wrap(Sampler.WrapMode.REPEAT).rgba().mipmap(0)
+             .from(noiseData);
+            noise = b.build();
+
+            b = f.newTexture2D();
+            ImageData<? extends TextureBuilder.BasicColorData> c = b.width(WIDTH).height(HEIGHT)
+                                                                    .interpolated().r();
+            int numMips = (int) Math.floor(Math.log(Math.max(WIDTH, HEIGHT)) / Math.log(2)) + 1;
+            for (int i = 0; i < numMips; i++) {
+                c.mipmap(i).from((float[]) null);
+            }
+            luminance = b.build();
         }
     }
 
@@ -1307,12 +1378,14 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
 
     public static class Environment {
         private final TextureCubeMap envMap;
+        private final Texture2D[] envParabolaMap;
         private final TextureCubeMap diffuseMap;
         private final TextureCubeMap[] specularMaps;
         private final List<EnvironmentMap.Sample> samples;
 
         public Environment() {
             envMap = null;
+            envParabolaMap = new Texture2D[2];
             diffuseMap = null;
             specularMaps = new TextureCubeMap[1];
             samples = new ArrayList<>();
@@ -1322,40 +1395,50 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             EnvironmentMap map = EnvironmentMap.loadFromFile(in);
             specularMaps = map.createSpecularMaps(f);
             envMap = map.createEnvironmentMap(f);
+            envParabolaMap = map.createDualParaboloidMap(f);
             diffuseMap = map.createDiffuseMap(f);
             samples = map.getSamples();
         }
 
 
         public static class Settings {
-            public final double gamma;
-            public final double fstop;
-            public final double exposure;
-            public final double sensitivity;
+            public final double preScale;
+            public final double postScale;
+            public final double burn;
+            public final double avgLuminance;
+            public final double locality;
+            public final boolean adaptive;
             public final boolean flipZAxis;
 
-            public Settings(double gamma, double fstop, double exposure, double sensitivity,
-                            boolean flipZAxis) {
-                this.gamma = gamma;
-                this.fstop = fstop;
-                this.exposure = exposure;
-                this.sensitivity = sensitivity;
+            public Settings(double preScale, double postScale, double burn, double avgLuminance,
+                            double locality, boolean adaptive, boolean flipZAxis) {
+                this.preScale = preScale;
+                this.postScale = postScale;
+                this.burn = burn;
+                this.avgLuminance = avgLuminance;
+                this.locality = locality;
+                this.adaptive = adaptive;
                 this.flipZAxis = flipZAxis;
             }
 
             public Settings(String envFile, Properties props) {
-                gamma = Double.parseDouble(props.getProperty(envFile + "_gamma", "2.2"));
-                fstop = Double.parseDouble(props.getProperty(envFile + "_fstop", "2.0"));
-                exposure = Double.parseDouble(props.getProperty(envFile + "_exposure", "1.0"));
-                sensitivity = Double.parseDouble(props.getProperty(envFile + "_sensitivity", "700"));
+                preScale = Double.parseDouble(props.getProperty(envFile + "_preScale", "1.0"));
+                postScale = Double.parseDouble(props.getProperty(envFile + "_postScale", "1.0"));
+                burn = Double.parseDouble(props.getProperty(envFile + "_burn", "6.0"));
+                avgLuminance = Double.parseDouble(props.getProperty(envFile + "_avgLuminance", "20.0"));
+                locality = Double.parseDouble(props.getProperty(envFile + "_locality", "10.0"));
+
+                adaptive = Boolean.parseBoolean(props.getProperty(envFile + "_adaptive", "true"));
                 flipZAxis = Boolean.parseBoolean(props.getProperty(envFile + "_flipZAxis", "false"));
             }
 
             private void store(String envFile, Properties props) {
-                props.setProperty(envFile + "_gamma", Double.toString(gamma));
-                props.setProperty(envFile + "_fstop", Double.toString(fstop));
-                props.setProperty(envFile + "_exposure", Double.toString(exposure));
-                props.setProperty(envFile + "_sensitivity", Double.toString(sensitivity));
+                props.setProperty(envFile + "_preScale", Double.toString(preScale));
+                props.setProperty(envFile + "_postScale", Double.toString(postScale));
+                props.setProperty(envFile + "_burn", Double.toString(burn));
+                props.setProperty(envFile + "_avgLuminance", Double.toString(avgLuminance));
+                props.setProperty(envFile + "_locality", Double.toString(locality));
+                props.setProperty(envFile + "_adaptive", Boolean.toString(adaptive));
                 props.setProperty(envFile + "_flipZAxis", Boolean.toString(flipZAxis));
             }
         }

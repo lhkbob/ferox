@@ -54,8 +54,9 @@ public class ShadowMapCache {
         db.width(width).height(height).interpolated().borderDepth(1.0).wrap(Sampler.WrapMode.CLAMP_TO_BORDER)
           .depthComparison(Comparison.LEQUAL).depth().mipmap(0).fromUnsignedNormalized((int[]) null);
         depthData = db.build();
-        shadowMap = framework.createSurface(
-                new TextureSurfaceOptions().size(width, height).depthBuffer(depthData.getRenderTarget()));
+        shadowMap = framework.createSurface(new TextureSurfaceOptions().size(width, height)
+                                                                       .depthBuffer(depthData
+                                                                                            .getRenderTarget()));
 
         shadowScenes = new HashMap<>();
     }

@@ -235,7 +235,7 @@ public final class Quat4 implements Cloneable {
      * @param q The other quaternion involved in the dot product
      *
      * @return The dot product between this and <var>q</var>, which is the same as if both were treated as
-     *         4-vectors.
+     * 4-vectors.
      *
      * @throws NullPointerException if q is null
      */
@@ -245,7 +245,7 @@ public final class Quat4 implements Cloneable {
 
     /**
      * @return The rotation, in radians, about the conceptual axis of rotation representing this quaternions
-     *         transform
+     * transform
      */
     public double getAxisAngle() {
         return (2 * Math.acos(w));

@@ -44,7 +44,7 @@ public interface CollisionAlgorithmProvider {
      * @param shapeB The Shape class for the second shape
      *
      * @return A CollisionAlgorithm that can compute intersections between Shapes of type A and type B, or
-     *         null if no supporting algorithm is registered
+     * null if no supporting algorithm is registered
      *
      * @throws NullPointerException if shapeA or shapeB are null
      */

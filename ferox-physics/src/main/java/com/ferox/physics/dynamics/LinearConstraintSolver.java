@@ -134,7 +134,7 @@ public class LinearConstraintSolver {
 
     /**
      * @return True if constraints are shuffled every iteration, ignored if {@link #getShuffleConstraints()}
-     *         is false
+     * is false
      */
     public boolean getShuffleEveryIteration() {
         return shuffleEachIteration;

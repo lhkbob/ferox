@@ -59,7 +59,7 @@ public interface CollisionAlgorithm<A extends Shape, B extends Shape> {
      * @param transB The transform that represents the world-space orientation of shapeB
      *
      * @return The closest pair of points on the surfaces of shapeA and shapeB, or null if no pair could be
-     *         computed
+     * computed
      *
      * @throws NullPointerException if any argument is null
      */

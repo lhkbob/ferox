@@ -142,14 +142,13 @@ public abstract class CollisionTask implements Task {
         }
 
         // get the appropriate algorithm
-        CollisionAlgorithm algorithm = algorithms
-                .getAlgorithm(bodyA.getShape().getClass(), bodyB.getShape().getClass());
+        CollisionAlgorithm algorithm = algorithms.getAlgorithm(bodyA.getShape().getClass(),
+                                                               bodyB.getShape().getClass());
 
         if (algorithm != null) {
             // compute closest pair between the two shapes
-            ClosestPair pair = algorithm
-                    .getClosestPair(bodyA.getShape(), bodyA.getTransform(), bodyB.getShape(),
-                                    bodyB.getTransform());
+            ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(), bodyA.getTransform(),
+                                                        bodyB.getShape(), bodyB.getTransform());
 
             if (pair != null && pair.isIntersecting()) {
                 // add to manifold only when there is an intersection

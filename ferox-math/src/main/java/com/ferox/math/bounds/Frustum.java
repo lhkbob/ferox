@@ -238,13 +238,13 @@ public class Frustum {
     public void setFrustum(boolean ortho, double left, double right, double bottom, double top, double near,
                            double far) {
         if (left > right || bottom > top || near > far) {
-            throw new IllegalArgumentException(
-                    "Frustum values would create an invalid frustum: " + left + " " +
-                    right + " x " + bottom + " " + top + " x " + near + " " + far);
+            throw new IllegalArgumentException("Frustum values would create an invalid frustum: " + left +
+                                               " " +
+                                               right + " x " + bottom + " " + top + " x " + near + " " + far);
         }
         if (near <= 0 && !ortho) {
-            throw new IllegalArgumentException(
-                    "Illegal value for near frustum when using perspective projection: " + near);
+            throw new IllegalArgumentException("Illegal value for near frustum when using perspective projection: " +
+                                               near);
         }
 
         frustumLeft = left;
@@ -422,9 +422,9 @@ public class Frustum {
      */
     public void setOrientation(@Const Vector3 location, @Const Vector3 direction, @Const Vector3 up) {
         if (location == null || direction == null || up == null) {
-            throw new NullPointerException(
-                    "Orientation vectors cannot be null: " + location + " " + direction +
-                    " " + up);
+            throw new NullPointerException("Orientation vectors cannot be null: " + location + " " +
+                                           direction +
+                                           " " + up);
         }
 
         this.location.set(location);

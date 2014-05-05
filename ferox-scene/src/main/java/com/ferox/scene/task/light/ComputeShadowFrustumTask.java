@@ -242,9 +242,12 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
     }
 
     private AxisAlignedBox computeViewBounds(@Const Matrix4 lightMatrix, Frustum f) {
-        AxisAlignedBox extent = new AxisAlignedBox(
-                new Vector3(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY),
-                new Vector3(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY));
+        AxisAlignedBox extent = new AxisAlignedBox(new Vector3(Double.POSITIVE_INFINITY,
+                                                               Double.POSITIVE_INFINITY,
+                                                               Double.POSITIVE_INFINITY),
+                                                   new Vector3(Double.NEGATIVE_INFINITY,
+                                                               Double.NEGATIVE_INFINITY,
+                                                               Double.NEGATIVE_INFINITY));
 
         for (int i = 0; i < 8; i++) {
             Vector3 c = new Vector3();

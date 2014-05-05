@@ -61,7 +61,10 @@ vec3 diffuseAlbedo() {
 
 void main() {
     if (uUseSolidColor) {
-        fColor = uSolidColor;
+        vec3 fN = specularNormal();
+        vec3 fL = normalize(vL);
+        float ndotl = max(dot(fN, fL), 0.0);
+        fColor = ndotl * vec4(vTCa, vTCb) * uSolidColor;
     } else {
         vec2 shine = shininess();
 

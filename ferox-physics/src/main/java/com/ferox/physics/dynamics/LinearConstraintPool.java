@@ -206,7 +206,7 @@ public class LinearConstraintPool {
      * @param impulse The impulse scalar
      *
      * @return The linear impulse to apply to A. This vector is reused if this method is invoked so the result
-     *         must be copied out
+     * must be copied out
      */
     @Const
     public Vector3 getLinearImpulseA(int i, double impulse) {
@@ -218,7 +218,7 @@ public class LinearConstraintPool {
      * @param impulse The impulse scalar
      *
      * @return The linear impulse to apply to B. This vector is reused if this method is invoked so the result
-     *         must be copied out
+     * must be copied out
      */
     @Const
     public Vector3 getLinearImpulseB(int i, double impulse) {
@@ -230,7 +230,7 @@ public class LinearConstraintPool {
      * @param impulse The impulse scalar
      *
      * @return The angular impulse to apply to A. This vector is reused if this method is invoked so the
-     *         result must be copied out
+     * result must be copied out
      */
     @Const
     public Vector3 getAngularImpulseA(int i, double impulse) {
@@ -242,7 +242,7 @@ public class LinearConstraintPool {
      * @param impulse The impulse scalar
      *
      * @return The angular impulse to apply to A. This vector is reused if this method is invoked so the
-     *         result must be copied out
+     * result must be copied out
      */
     @Const
     public Vector3 getAngularImpulseB(int i, double impulse) {
@@ -313,9 +313,9 @@ public class LinearConstraintPool {
             throw new IllegalStateException("Pool does not have a linked pool");
         }
         if (linkedConstraint < 0 || linkedConstraint > dynamicPool.count || scale <= 0) {
-            throw new IllegalArgumentException(
-                    "Constraint index (" + linkedConstraint + ") is invalid, or scale (" +
-                    scale + ") is not positive");
+            throw new IllegalArgumentException("Constraint index (" + linkedConstraint +
+                                               ") is invalid, or scale (" +
+                                               scale + ") is not positive");
         }
         dynamicLimits[i] = linkedConstraint;
         dynamicScaleFactors[i] = scale;
@@ -434,7 +434,7 @@ public class LinearConstraintPool {
      * @param i The constraint index
      *
      * @return The component index of the first RigidBody, or -1 if the constraint didn't have a rigid body at
-     *         this attachment point
+     * this attachment point
      */
     public int getBodyAIndex(int i) {
         return bodyAs[i];
@@ -444,7 +444,7 @@ public class LinearConstraintPool {
      * @param i The constraint index
      *
      * @return The component index of the second RigidBody, or -1 if the constraint didn't have a rigid body
-     *         at this attachment point
+     * at this attachment point
      */
     public int getBodyBIndex(int i) {
         return bodyBs[i];

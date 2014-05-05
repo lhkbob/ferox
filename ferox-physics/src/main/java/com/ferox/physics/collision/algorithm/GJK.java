@@ -59,7 +59,8 @@ public class GJK {
         simplex.setWeight(0, 1.0);
 
         Vector3[] oldSupports = new Vector3[] {
-                new Vector3(ray), new Vector3(ray), new Vector3(ray), new Vector3(ray)
+                                                      new Vector3(ray), new Vector3(ray), new Vector3(ray),
+                                                      new Vector3(ray)
         };
         int lastSupportIndex = 0;
         for (int i = 0; i < GJK_MAX_ITERATIONS; i++) {

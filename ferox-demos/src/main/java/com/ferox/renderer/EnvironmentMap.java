@@ -26,10 +26,9 @@
  */
 package com.ferox.renderer;
 
+import com.ferox.math.Const;
 import com.ferox.math.Vector3;
-import com.ferox.renderer.builder.CubeImageData;
-import com.ferox.renderer.builder.TextureBuilder;
-import com.ferox.renderer.builder.TextureCubeMapBuilder;
+import com.ferox.renderer.builder.*;
 import com.ferox.renderer.loader.RadianceImageLoader;
 
 import java.io.*;
@@ -43,14 +42,17 @@ import java.util.List;
 public class EnvironmentMap {
     public static final double[] SPEC_EXP = { -1.0,
                                               1.0,
-                                              10.0, 20.0,
+                                              10.0,
+                                              20.0,
                                               50.0,
                                               150.0,
                                               300.0,
                                               600.0,
                                               1200.0,
-                                              2400.0, 5000.0,
-                                              8000.0, 10000.0,
+                                              2400.0,
+                                              5000.0,
+                                              8000.0,
+                                              10000.0,
                                               -1.0 };
     public static final int[] SPEC_SIDE = { 64, 64, 64, 64, 64, 64, 64, 128, 128, 128, 256, 256, 256, -1 };
     public static final int SPEC_COUNT = SPEC_EXP.length;
@@ -187,16 +189,144 @@ public class EnvironmentMap {
         }
     }
 
+    private static float[] scale(float[] env, int side, int newSide) {
+        float[] data = new float[newSide * newSide * 3];
+
+        double ratio = side / (double) newSide;
+        for (int y = 0; y < newSide; y++) {
+            for (int x = 0; x < newSide; x++) {
+                // now iterate over the full image data
+                for (double y2 = ratio * y; y2 < (y + 1) * ratio; y2 += 1.0) {
+                    for (double x2 = ratio * x; x2 < (x + 1) * ratio; x2 += 1.0) {
+                        // linear interpolation
+                        double ax = x2 - Math.floor(x2);
+                        double ay = y2 - Math.floor(y2);
+                        int o1 = (int) (Math.max(0, Math.min(Math.floor(y2), side - 1)) * side * 3 +
+                                        Math.max(0, Math.min(Math.floor(x2), side - 1)) * 3);
+                        int o2 = (int) (Math.max(0, Math.min(Math.floor(y2), side - 1)) * side * 3 +
+                                        Math.max(0, Math.min(Math.floor(x2) + 1, side - 1)) * 3);
+                        int o3 = (int) (Math.max(0, Math.min(Math.floor(y2) + 1, side - 1)) * side * 3 +
+                                        Math.max(0, Math.min(Math.floor(x2), side - 1)) * 3);
+                        int o4 = (int) (Math.max(0, Math.min(Math.floor(y2) + 1, side - 1)) * side * 3 +
+                                        Math.max(0, Math.min(Math.floor(x2) + 1, side - 1)) * 3);
+
+                        data[y * newSide * 3 + x * 3] += (1.0 - ay) * ((1.0 - ax) * env[o1] + ax * env[o2]) +
+                                                         ay * ((1.0 - ax) * env[o3] + ax * env[o4]);
+                        data[y * newSide * 3 + x * 3 + 1] += //
+                                (1.0 - ay) * ((1.0 - ax) * env[o1 + 1] + ax * env[o2 + 1]) +
+                                ay * ((1.0 - ax) * env[o3 + 1] + ax * env[o4 + 1]);
+                        data[y * newSide * 3 + x * 3 + 2] += //
+                                (1.0 - ay) * ((1.0 - ax) * env[o1 + 2] + ax * env[o2 + 2]) +
+                                ay * ((1.0 - ax) * env[o3 + 2] + ax * env[o4 + 2]);
+
+                    }
+                }
+
+                // average
+                data[y * newSide * 3 + x * 3] /= (ratio * ratio);
+                data[y * newSide * 3 + x * 3 + 1] /= (ratio * ratio);
+                data[y * newSide * 3 + x * 3 + 2] /= (ratio * ratio);
+            }
+        }
+
+        return data;
+    }
+
+    public Texture2D[] createDualParaboloidMap(Framework framework) {
+        float[] posZ = new float[4 * side * side * 3];
+        float[] negZ = new float[4 * side * side * 3];
+
+        Vector3 negDir = new Vector3();
+        Vector3 posDir = new Vector3();
+
+        Vector3 color = new Vector3();
+
+        double minZ = 10.0;
+        float b = 1.0f; //1.2f;
+        for (int y = 0; y < 2 * side; y++) {
+            for (int x = 0; x < 2 * side; x++) {
+                double s = x / (2.0 * side);
+                double t = y / (2.0 * side);
+
+                //                double alpha = 4 * b * b * ((s - 0.5) * (s - 0.5) + (y - 0.5) * (y - 0.5));
+                //
+                //                double zNeg = (1.0 - alpha) / (alpha + 1.0);
+                //                double zPos = (alpha - 1.0) / (alpha + 1.0);
+                //
+                //                negDir.set(2.0 * b * (s - 0.5) * (1.0 - zNeg), 2.0 * b * (t - 0.5) * (1.0 - zNeg), zNeg)
+                //                      .normalize();
+                //                posDir.set(-2.0 * b * (s - 0.5) * (1.0 + zPos), -2.0 * b * (t - 0.5) * (1.0 + zPos), zPos)
+                //                      .normalize();
+
+                double rx = 2.0 * s - 1.0;
+                double ry = 2.0 * t - 1.0;
+                double zPos = 0.5 - 0.5 * (rx * rx + ry * ry);
+                double zNeg = -zPos;
+
+                posDir.set(rx, ry, zPos).normalize();
+                negDir.set(rx, ry, zNeg).normalize();
+
+                minZ = Math.min(minZ, Math.min(Math.abs(negDir.z), Math.abs(posDir.z)));
+
+                //                color.set(negDir);
+                sample(negDir, color);
+                color.get(negZ, 2 * side * y * 3 + x * 3);
+
+                sample(posDir, color);
+                //                color.set(posDir);
+                color.get(posZ, 2 * side * y * 3 + x * 3);
+            }
+        }
+        System.out.println("MIN Z: " + minZ);
+
+        Texture2DBuilder pos = framework.newTexture2D();
+        pos.width(2 * side).height(2 * side).wrap(Sampler.WrapMode.CLAMP).interpolated();
+        ImageData<? extends TextureBuilder.BasicColorData> posData = pos.rgb();
+
+        posData.mipmap(0).from(posZ);
+        int numMips = (int) Math.floor(Math.log(2 * side) / Math.log(2)) + 1;
+        for (int i = 1; i < numMips; i++) {
+            int s = Math.max(1, (2 * side) >> i);
+            posData.mipmap(i).from(scale(posZ, 2 * side, s));
+        }
+
+        Texture2DBuilder neg = framework.newTexture2D();
+        neg.width(2 * side).height(2 * side).wrap(Sampler.WrapMode.CLAMP).interpolated();
+        ImageData<? extends TextureBuilder.BasicColorData> negData = neg.rgb();
+
+        negData.mipmap(0).from(negZ);
+        for (int i = 1; i < numMips; i++) {
+            int s = Math.max(1, (2 * side) >> i);
+            negData.mipmap(i).from(scale(negZ, 2 * side, s));
+        }
+
+        return new Texture2D[] { neg.build(), pos.build() };
+    }
+
     public TextureCubeMap createEnvironmentMap(Framework framework) {
         TextureCubeMapBuilder cmb = framework.newTextureCubeMap();
         cmb.side(side).wrap(Sampler.WrapMode.CLAMP).interpolated();
         CubeImageData<? extends TextureBuilder.BasicColorData> data = cmb.rgb();
+
+        // FIXME this really needs to be a well labeled method call in sampler
+        int numMips = (int) Math.floor(Math.log(side) / Math.log(2)) + 1;
+
         data.positiveX(0).from(env[PX]);
         data.positiveY(0).from(env[PY]);
         data.positiveZ(0).from(env[PZ]);
         data.negativeX(0).from(env[NX]);
         data.negativeY(0).from(env[NY]);
         data.negativeZ(0).from(env[NZ]);
+
+        for (int i = 1; i < numMips; i++) {
+            int s = Math.max(1, side >> i);
+            data.positiveX(i).from(scale(env[PX], side, s));
+            data.positiveY(i).from(scale(env[PY], side, s));
+            data.positiveZ(i).from(scale(env[PZ], side, s));
+            data.negativeX(i).from(scale(env[NX], side, s));
+            data.negativeY(i).from(scale(env[NY], side, s));
+            data.negativeZ(i).from(scale(env[NZ], side, s));
+        }
         return cmb.build();
     }
 
@@ -340,6 +470,70 @@ public class EnvironmentMap {
             break;
         }
         v.normalize();
+    }
+
+    private void sample(@Const Vector3 coord, Vector3 out) {
+        double sc, tc, ma;
+        int face;
+
+        if (Math.abs(coord.x) > Math.abs(coord.y) && Math.abs(coord.x) > Math.abs(coord.z)) {
+            if (coord.x >= 0.0) {
+                ma = coord.x;
+                sc = -coord.z;
+                tc = -coord.y;
+                face = PX;
+            } else {
+                ma = -coord.x;
+                sc = coord.z;
+                tc = -coord.y;
+                face = NX;
+            }
+        } else if (Math.abs(coord.y) > Math.abs(coord.x) && Math.abs(coord.y) > Math.abs(coord.z)) {
+            if (coord.y >= 0) {
+                ma = coord.y;
+                sc = coord.x;
+                tc = coord.z;
+                face = PY;
+            } else {
+                ma = -coord.y;
+                sc = coord.x;
+                tc = -coord.z;
+                face = NY;
+            }
+        } else {
+            if (coord.z >= 0) {
+                ma = coord.z;
+                sc = coord.x;
+                tc = -coord.y;
+                face = PZ;
+            } else {
+                ma = -coord.z;
+                sc = -coord.x;
+                tc = -coord.y;
+                face = NZ;
+            }
+        }
+
+        double s = Math.max(0.0, Math.min(0.5 * (sc / ma + 1.0) * side, side - 2));
+        double t = Math.max(0.0, Math.min(0.5 * (tc / ma + 1.0) * side, side - 2));
+
+        int x = (int) Math.floor(s);
+        int y = (int) Math.floor(t);
+        s = s - x;
+        t = t - y;
+
+        int o1 = y * side * 3 + x * 3;
+        int o2 = y * side * 3 + (x + 1) * 3;
+        int o3 = (y + 1) * side * 3 + x * 3;
+        int o4 = (y + 1) * side * 3 + (x + 1) * 3;
+
+        out.set((1 - t) * ((1 - s) * env[face][o1] + s * env[face][o2]) +
+                t * ((1 - s) * env[face][o3] + s * env[face][o4]),
+                (1 - t) * ((1 - s) * env[face][o1 + 1] + s * env[face][o2 + 1]) +
+                t * ((1 - s) * env[face][o3 + 1] + s * env[face][o4 + 1]),
+                (1 - t) * ((1 - s) * env[face][o1 + 2] + s * env[face][o2 + 2]) +
+                t * ((1 - s) * env[face][o3 + 2] + s * env[face][o4 + 2])
+               );
     }
 
     // from AMD CubeMapGen

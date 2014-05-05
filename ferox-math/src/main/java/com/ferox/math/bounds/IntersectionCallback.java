@@ -44,10 +44,10 @@ import com.ferox.math.Const;
 public interface IntersectionCallback<T> {
     /**
      * <p/>
-     * Invoked once for each unique pair of intersecting items in the queried SpatialIndex. There is no import
-     * associated with an item being labeled 'a' or 'b', it's merely the order stored within the index.
+     * Invoked once for each unique pair of intersecting items in the queried SpatialIndex. There is no
+     * significance associated with the label 'a' or 'b', it's merely the order stored within the index.
      * <p/>
-     * The AxisAlignedBox instances provided may be reused for future invocations of process(), so they should
+     * The AxisAlignedBox instances provided may be reused by future invocations of process(), so they should
      * be cloned if their state is needed outside of the scope of the method call.
      *
      * @param a       The first item in the pair

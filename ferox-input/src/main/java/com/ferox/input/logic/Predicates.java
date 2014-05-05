@@ -328,7 +328,7 @@ public final class Predicates {
     }
 
     /**
-     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the negative
+     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the positive
      * direction, which is synonymous with scrolling the wheel forward.
      *
      * @return A Predicate matching forward wheel motion
@@ -337,13 +337,13 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() < next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() > prev.getMouseState().getScrollCount();
             }
         };
     }
 
     /**
-     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the positive
+     * Return a Predicate that evaluates to true when the amount of wheel scrolling moves in the negative
      * direction, which is synonymous with scrolling the wheel backward.
      *
      * @return A Predicate matching backward wheel motion
@@ -352,7 +352,7 @@ public final class Predicates {
         return new Predicate() {
             @Override
             public boolean apply(InputState prev, InputState next) {
-                return next.getMouseState().getScrollCount() > next.getMouseState().getScrollCount();
+                return next.getMouseState().getScrollCount() < prev.getMouseState().getScrollCount();
             }
         };
     }

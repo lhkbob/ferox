@@ -370,9 +370,10 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         ColorRGB ambientColor = getAmbientColor(system, camera);
         IntProperty groupAssgn = lightGroups.getAssignmentProperty();
         for (int i = 0; i < lightGroups.getGroupCount(); i++) {
-            smNode.setChild(i, new StateNode(
-                    new LightGroupState(lightGroups.getGroup(i), frame.shadowMap.getShadowCastingLights(),
-                                        ambientColor, 8), frame.textureStates.count()));
+            smNode.setChild(i, new StateNode(new LightGroupState(lightGroups.getGroup(i),
+                                                                 frame.shadowMap.getShadowCastingLights(),
+                                                                 ambientColor, 8),
+                                             frame.textureStates.count()));
         }
 
         // bag to collect transparent entities for sorting
@@ -391,8 +392,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             }
 
             // first node is either the proper light group, or the unlit node
-            StateNode firstNode = (atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0 ? smNode
-                    .getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
+            StateNode firstNode = (atom.diffuseColorVersion >= 0 || atom.specularColorVersion >= 0
+                                   ? smNode.getChild(groupAssgn.get(renderable.getIndex())) : unlitNode);
             addOpaqueAtom(transform, atom, firstNode, frame);
         }
 
@@ -435,15 +436,15 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                 boolean litUpdate = (nodeIsLit ? !atom.isLit : atom.isLit);
                 boolean blendUpdate = (nodeIsAdditive ? !atom.additiveBlending : atom.additiveBlending);
                 if (lastNode == null || litUpdate || blendUpdate) {
-                    StateNode blendNode = new StateNode(
-                            atom.additiveBlending ? TransparentState.ADDITIVE : TransparentState.NORMAL, 1);
+                    StateNode blendNode = new StateNode(atom.additiveBlending ? TransparentState.ADDITIVE
+                                                                              : TransparentState.NORMAL, 1);
                     transparentRoot.addChild(blendNode);
 
                     if (atom.isLit) {
                         StateNode lit = new StateNode(LightingState.LIT, 1);
                         blendNode.addChild(lit);
-                        StateNode sm = new StateNode(
-                                smNode.getChild(groupAssgn.get(renderable.getIndex())).getState(), 1);
+                        StateNode sm = new StateNode(smNode.getChild(groupAssgn.get(renderable.getIndex()))
+                                                           .getState(), 1);
                         lit.addChild(sm);
 
                         lastNode = sm;
@@ -559,8 +560,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             newDecalTexVersion != atom.decalTextureVersion ||
             newEmittedTexVersion != atom.emittedTextureVersion ||
             atom.textureStateIndex < 0) {
-            atom.textureStateIndex = frame
-                    .getTextureState(diffuseTexture, decalTexture, emittedTexture, atom.textureStateIndex);
+            atom.textureStateIndex = frame.getTextureState(diffuseTexture, decalTexture, emittedTexture,
+                                                           atom.textureStateIndex);
         }
 
         // sync color state

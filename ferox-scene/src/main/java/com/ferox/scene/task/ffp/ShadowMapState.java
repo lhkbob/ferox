@@ -37,7 +37,7 @@ import com.ferox.scene.Light;
 
 public class ShadowMapState implements State {
     private static final Matrix4 bias = new Matrix4()
-            .set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
+                                                .set(.5, 0, 0, .5, 0, .5, 0, .5, 0, 0, .5, .5, 0, 0, 0, 1);
 
     private final ShadowMapCache shadowMap;
 

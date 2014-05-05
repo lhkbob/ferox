@@ -67,7 +67,7 @@ public abstract class ConvexShape implements Shape {
      *
      * @throws NullPointerException if v is null
      */
-    public abstract Vector3 computeSupport(@Const Vector3 v, @Const Vector3 result);
+    public abstract Vector3 computeSupport(@Const Vector3 v, Vector3 result);
 
     @Override
     public

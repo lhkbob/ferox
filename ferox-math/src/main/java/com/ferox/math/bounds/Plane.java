@@ -38,8 +38,10 @@ import com.ferox.math.Vector4;
  *
  * @author Michael Ludwig
  */
-public class Plane {
+public final class Plane {
     private static final float ROOT_2_OVER_2 = .7071067811865f;
+
+    private Plane() {}
 
     /**
      * Interpret <var>plane</var> as a plane within the 3D coordinate space. The plane is normalized by

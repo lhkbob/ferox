@@ -45,8 +45,8 @@ class KeyTypedPredicate implements Predicate {
             throw new NullPointerException("KeyCode cannot be null");
         }
         if (typeDuration <= 0) {
-            throw new IllegalArgumentException(
-                    "Type duration must be a positive number of milliseconds, not: " + typeDuration);
+            throw new IllegalArgumentException("Type duration must be a positive number of milliseconds, not: " +
+                                               typeDuration);
         }
 
         this.code = code;

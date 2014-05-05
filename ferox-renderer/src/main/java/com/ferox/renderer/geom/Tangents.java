@@ -1,3 +1,29 @@
+/*
+ * Ferox, a graphics and game library in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.ferox.renderer.geom;
 
 import com.ferox.math.Vector3;
@@ -32,11 +58,6 @@ public final class Tangents {
             double t1 = ti.getTextureCoordinateV(1) - ti.getTextureCoordinateV(0);
             double t2 = ti.getTextureCoordinateV(2) - ti.getTextureCoordinateV(0);
 
-            //            double s1 = d1.x;
-            //            double s2 = d2.x;
-            //            double t1 = d1.y;
-            //            double t2 = d2.y;
-
             double r = 1.0 / (s1 * t2 - s2 * t1);
             // primary tangent direction and accumulate
             dTan.scale(d1, t2).addScaled(-t1, d2).scale(r);
@@ -65,8 +86,10 @@ public final class Tangents {
                 double l = ti.getAttribute("tan", 0, tan).ortho(n).length();
                 if (l > 0.00001) {
                     tan.scale(1.0 / l);
-                    t.set(tan.x, tan.y, tan.z,
-                          d1.cross(n, tan).dot(ti.getAttribute("bitan", 0, d2)) < 0.0 ? -1.0 : 1.0);
+                    t.set(tan.x, tan.y, tan.z, 1.0);
+                    if (d1.cross(n, tan).dot(ti.getAttribute("bitan", 0, d2)) < 0.0) {
+                        t.w *= -1;
+                    }
                     ti.setTangent(0, t);
                 } else {
                     // degenerate triangle
@@ -80,10 +103,11 @@ public final class Tangents {
                 double l = ti.getAttribute("tan", 1, tan).ortho(n).length();
                 if (l > 0.00001) {
                     tan.scale(1.0 / l);
-                    t.set(tan.x, tan.y, tan.z,
-                          d1.cross(n, tan).dot(ti.getAttribute("bitan", 1, d2)) < 0.0 ? -1.0 : 1.0);
+                    t.set(tan.x, tan.y, tan.z, 1.0);
+                    if (d1.cross(n, tan).dot(ti.getAttribute("bitan", 1, d2)) < 0.0) {
+                        t.w *= -1;
+                    }
                     ti.setTangent(1, t);
-
                 } else {
                     // degenerate triangle
                     ti.setTangent(1, t.set(0.0, 0.0, 0.0, 0.0));
@@ -96,10 +120,11 @@ public final class Tangents {
                 double l = ti.getAttribute("tan", 2, tan).ortho(n).length();
                 if (l > 0.00001) {
                     tan.scale(1.0 / l);
-                    t.set(tan.x, tan.y, tan.z,
-                          d1.cross(n, tan).dot(ti.getAttribute("bitan", 2, d2)) < 0.0 ? -1.0 : 1.0);
+                    t.set(tan.x, tan.y, tan.z, 1.0);
+                    if (d1.cross(n, tan).dot(ti.getAttribute("bitan", 2, d2)) < 0.0) {
+                        t.w *= -1;
+                    }
                     ti.setTangent(2, t);
-
                 } else {
                     // degenerate triangle
                     ti.setTangent(2, t.set(0.0, 0.0, 0.0, 0.0));
