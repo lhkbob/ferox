@@ -42,7 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * RadianceImageLoader loads 2D textures in high dynamic range from the Radiance (.hdr) file format.
  */
 public class RadianceImageLoader implements ImageFileLoader {
     private static final Pattern COMMON_RES = Pattern.compile("-Y (\\d+) \\+X (\\d+)");
@@ -73,8 +73,6 @@ public class RadianceImageLoader implements ImageFileLoader {
         return builder;
     }
 
-    public static boolean PRINT_NEGATIVES = false;
-
     public Image read(BufferedInputStream stream) throws IOException {
         stream.mark(128);
         if (!processMagicNumber(stream)) {
@@ -91,13 +89,6 @@ public class RadianceImageLoader implements ImageFileLoader {
         int height = Integer.parseInt(vars.get("HEIGHT"));
         float[] data = readImage(width, height, true, true, stream);
 
-        if (PRINT_NEGATIVES) {
-            for (int i = 0; i < data.length; i++) {
-                if (data[i] < 0.0) {
-                    System.out.println("Negative values: " + data[i]);
-                }
-            }
-        }
         return new Image(width, height, data);
     }
 
