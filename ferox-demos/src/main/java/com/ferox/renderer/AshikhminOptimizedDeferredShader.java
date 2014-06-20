@@ -412,6 +412,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
         }
     }
 
+    static final double[] seq = Hammersley.compute(32 * 500);
     @Override
     public Void run(HardwareAccessLayer access) {
         input.process();
@@ -572,7 +573,8 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             }
         }
 
-        if (sample < 50000 && renderMode == RenderMode.SAMPLED) {
+//        if (sample < 50000 && renderMode == RenderMode.SAMPLED) {
+        if (sample < 32 * 500 && renderMode == RenderMode.SAMPLED) {
             Profiler.push("sampled");
             // accumulate lighting into another texture (linear pre gamma correction)
             ctx = access.setActiveSurface(gbuffer.lightingSurface,
@@ -617,6 +619,7 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
             Vector4 rand1 = new Vector4();
             for (int i = 0; i < 32; i++) {
                 rand1.set(Math.random(), Math.random(), Math.random(), Math.random());
+//                rand1.set(seq[sample + i * 2], seq[sample + i * 2 + 1], 0.0, 0.0);
                 r.setUniformArray(sampleShader.getUniform("uSample"), i, rand1);
             }
 //            r.setUniform(sampleShader.getUniform("uEnvSize"), environment.envMap.getWidth(), environment.envMap.getHeight());
@@ -1260,8 +1263,14 @@ public class AshikhminOptimizedDeferredShader extends ApplicationStub implements
                                            .colorBuffers(specularLighting.getRenderTarget());
             lightingSurface = f.createSurface(o);
 
+            double[] seq = Hammersley.compute(WIDTH * HEIGHT);
             float[] noiseData = new float[WIDTH * HEIGHT * 4];
             for (int i = 0; i < noiseData.length; i++) {
+//            for (int i = 0; i < WIDTH * HEIGHT; i++) {
+//                noiseData[i * 4] = (float) seq[i * 2];
+//                noiseData[i * 4 + 1] = (float) seq[i * 2 + 1];
+//                noiseData[i * 4 + 2] = 0f;
+//                noiseData[i * 4 + 3] = 0f;
                 noiseData[i] = (float) Math.random();
             }
             b = f.newTexture2D();

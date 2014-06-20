@@ -69,12 +69,12 @@ void main() {
         for (int i = 0; i < SAMPLES; i++) {
             vec4 u2 = uSample[i];
             // hack to get per-pixel random variables from the uniform samples that change
-//            float e1 = fract(377.23 * (u2.x * u1.x + u2.z * u1.y));
-//            float e2 = fract(541.34 * (u2.y * u1.z + u2.z * u1.w));
-//            float e1 = fract(u2.x + u1.x + u2.z * u1.z);
-//            float e2 = fract(u2.y + u1.y + u2.w * u1.w);
-            float e1 = u2.x;
-            float e2 = u2.y;
+            float e1 = fract(u2.x + u1.x + u2.z * u1.z);
+            float e2 = fract(u2.y + u1.y + u2.w * u1.w);
+//            float e1 = fract(u1.x + u2.x);
+//            float e2 = fract(u1.y + u2.y);
+//            float e1 = u2.x;
+//            float e2 = u2.y;
 
             float phi = samplePhi(e1, shine);
 
