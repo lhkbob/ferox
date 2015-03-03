@@ -30,37 +30,51 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.lhkbob.entreri.property.*;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import java.util.Arrays;
 
 /**
- * Vector3Property is a caching property that wraps a DoubleProperty as a Vector3.
+ * Vector3Property is a value-semantics Property for handling Vector3 instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(Vector3Property.Factory.class)
-public class Vector3Property implements ShareableProperty<Vector3> {
+public class Vector3Property implements Property<Vector3Property>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 3;
+
+    private final Vector3 dflt;
+    private final boolean clone;
 
     private double[] data;
 
     /**
-     * Create a new Vector3Property.
+     * Create a new Vector3Property using the 0 vector as its default.
      */
     public Vector3Property() {
+        this(new Vector3(), true);
+    }
+
+    /**
+     * Create a new Vector3Property with the selected default and clone policy.
+     * @param dflt The default vector
+     * @param clone True if the property clones the value
+     */
+    public Vector3Property(Vector3 dflt, boolean clone) {
+        this.dflt = dflt;
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
-    public Vector3 createShareableInstance() {
-        return new Vector3();
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dflt
+     * @param clonePolicy
+     */
+    public Vector3Property(DefaultVector3 dflt, DoNotClone clonePolicy) {
+        this((dflt == null ? new Vector3() : new Vector3(dflt.x(), dflt.y(), dflt.z())), clonePolicy == null);
     }
 
-    @Override
-    public void get(int index, Vector3 result) {
+     public void get(int index, Vector3 result) {
         result.set(data, index * REQUIRED_ELEMENTS);
     }
 
@@ -96,12 +110,27 @@ public class Vector3Property implements ShareableProperty<Vector3> {
         }
     }
 
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(Vector3Property src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
+        }
+    }
+
     /**
      * Attribute annotation to apply to Vector3Property declarations.
      *
      * @author Michael Ludwig
      */
     @Attribute
+    @Documented
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultVector3 {
@@ -119,55 +148,5 @@ public class Vector3Property implements ShareableProperty<Vector3> {
          * @return Default z coordinate
          */
         double z();
-    }
-
-    /**
-     * Default factory implementation for Vector3Properties, supports the {@link DefaultVector3} annotation to
-     * specify the default vector coordinates.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<Vector3Property> {
-        private final Vector3 dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            if (attrs.hasAttribute(DefaultVector3.class)) {
-                DefaultVector3 v = attrs.getAttribute(DefaultVector3.class);
-                dflt = new Vector3(v.x(), v.y(), v.z());
-            } else {
-                dflt = new Vector3();
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const Vector3 v) {
-            dflt = new Vector3(v);
-            disableClone = false;
-        }
-
-        @Override
-        public Vector3Property create() {
-            return new Vector3Property();
-        }
-
-        @Override
-        public void setDefaultValue(Vector3Property property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(Vector3Property src, int srcIndex, Vector3Property dst, int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }
