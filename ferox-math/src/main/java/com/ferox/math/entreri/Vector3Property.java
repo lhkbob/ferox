@@ -60,7 +60,7 @@ public class Vector3Property implements Property<Vector3Property>, Property.Valu
      * @param clone True if the property clones the value
      */
     public Vector3Property(Vector3 dflt, boolean clone) {
-        this.dflt = dflt;
+        this.dflt = new Vector3(dflt);
         this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
@@ -74,7 +74,7 @@ public class Vector3Property implements Property<Vector3Property>, Property.Valu
         this((dflt == null ? new Vector3() : new Vector3(dflt.x(), dflt.y(), dflt.z())), clonePolicy == null);
     }
 
-     public void get(int index, Vector3 result) {
+    public void get(int index, Vector3 result) {
         result.set(data, index * REQUIRED_ELEMENTS);
     }
 

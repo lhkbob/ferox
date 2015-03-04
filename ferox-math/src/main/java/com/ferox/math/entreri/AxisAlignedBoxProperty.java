@@ -27,7 +27,9 @@
 package com.ferox.math.entreri;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
@@ -37,25 +39,48 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * AxisAlignedBoxProperty is a property that wraps a {@link DoubleProperty} as a AxisAlginedBox.
+ * AxisAlignedBoxProperty is a value-semantics Property for handling AxisAlignedBox instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(AxisAlignedBoxProperty.Factory.class)
-public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox> {
+public class AxisAlignedBoxProperty implements Property<AxisAlignedBoxProperty>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 6;
     private static final int OFFSET = 3;
 
+    private final AxisAlignedBox dflt;
+    private final boolean clone;
     private double[] data;
 
     /**
      * Create a new AxisAlignedBoxProperty.
      */
     public AxisAlignedBoxProperty() {
+        this(new AxisAlignedBox(), true);
+    }
+
+    /**
+     * Create a new AxisAlignedBoxProperty with the selected default and clone policy.
+     * @param dflt The default aabb
+     * @param clone True if the property clones the value
+     */
+    public AxisAlignedBoxProperty(AxisAlignedBox dflt, boolean clone) {
+        this.dflt = new AxisAlignedBox(dflt);
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dfltMin
+     * @param dfltMax
+     * @param clonePolicy
+     */
+    public AxisAlignedBoxProperty(DefaultMin dfltMin, DefaultMax dfltMax, DoNotClone clonePolicy) {
+        this(new AxisAlignedBox((dfltMin == null ? new Vector3() : new Vector3(dfltMin.x(), dfltMin.y(), dfltMin.z())),
+                (dfltMax == null ? new Vector3() : new Vector3(dfltMax.x(), dfltMax.y(), dfltMax.z()))), clonePolicy == null);
+    }
+
     public void get(int index, AxisAlignedBox result) {
         result.min.set(data, index * REQUIRED_ELEMENTS);
         result.max.set(data, index * REQUIRED_ELEMENTS + OFFSET);
@@ -70,11 +95,6 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
         AxisAlignedBox a = new AxisAlignedBox();
         get(index, a);
         return a;
-    }
-
-    @Override
-    public AxisAlignedBox createShareableInstance() {
-        return new AxisAlignedBox();
     }
 
     @Override
@@ -96,6 +116,20 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
             double t = data[ia + i];
             data[ia + i] = data[ib + i];
             data[ib + i] = t;
+        }
+    }
+
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(AxisAlignedBoxProperty src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
         }
     }
 
@@ -149,61 +183,5 @@ public class AxisAlignedBoxProperty implements ShareableProperty<AxisAlignedBox>
          * @return Default z coordinate
          */
         double z();
-    }
-
-    /**
-     * Default factory implementation for AxisAlignedBoxProperties, supports the {@link DefaultMin} and {@link
-     * DefaultMax} annotations to specify the default bounding box.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<AxisAlignedBoxProperty> {
-        private final AxisAlignedBox dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            dflt = new AxisAlignedBox();
-
-            if (attrs.hasAttribute(DefaultMin.class)) {
-                DefaultMin min = attrs.getAttribute(DefaultMin.class);
-                dflt.min.set(min.x(), min.y(), min.z());
-            }
-
-            if (attrs.hasAttribute(DefaultMax.class)) {
-                DefaultMax max = attrs.getAttribute(DefaultMax.class);
-                dflt.min.set(max.x(), max.y(), max.z());
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const AxisAlignedBox v) {
-            dflt = new AxisAlignedBox(v);
-            disableClone = false;
-        }
-
-        @Override
-        public AxisAlignedBoxProperty create() {
-            return new AxisAlignedBoxProperty();
-        }
-
-        @Override
-        public void setDefaultValue(AxisAlignedBoxProperty property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(AxisAlignedBoxProperty src, int srcIndex, AxisAlignedBoxProperty dst,
-                          int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }
