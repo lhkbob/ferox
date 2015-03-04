@@ -29,7 +29,7 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * <p/>
@@ -47,9 +47,7 @@ public interface EmittedColor extends Component {
      *
      * @return This component's color
      */
-    @Const
-    @SharedInstance
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the color of this component.

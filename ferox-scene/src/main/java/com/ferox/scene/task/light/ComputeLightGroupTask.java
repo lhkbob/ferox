@@ -46,18 +46,8 @@ import com.lhkbob.entreri.task.Task;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class ComputeLightGroupTask implements Task, ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(InfluenceRegion.class);
-        types.add(Light.class);
-        types.add(Renderable.class);
-        types.add(Transform.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
+@ParallelAware(readOnlyComponents = {InfluenceRegion.class, Light.class, Transform.class}, modifiedComponents = {Renderable.class}, entitySetModified = false)
+public class ComputeLightGroupTask implements Task {
     private final SpatialIndex<LightSource> lightIndex;
     private IntProperty assignments;
 
@@ -70,9 +60,6 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     private InfluenceRegion influenceRegion;
     private Light light;
 
-    private CollectionIterator pvsIterator;
-    private Renderable pvsRenderable;
-
     public ComputeLightGroupTask() {
         this.lightIndex = new QuadTree<>(new AxisAlignedBox(), 2);
         allVisibleSets = new ArrayList<>();
@@ -81,7 +68,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     @Override
     public void reset(EntitySystem system) {
         if (assignments == null) {
-            assignments = system.decorate(Renderable.class, new IntProperty.Factory(-1));
+            assignments = system.decorate(Renderable.class, new IntProperty(-1, false));
 
             iterator = system.fastIterator();
             light = iterator.addRequired(Light.class);
@@ -96,16 +83,17 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     }
 
     private void convertToLightSources(List<LightSource> globalLights, List<LightSource> allLights) {
+        Matrix4 t = new Matrix4();
         while (iterator.next()) {
             // we don't take advantage of some light types requiring a transform,
             // because we process ambient lights with this same code
-            Matrix4 t = transform.getMatrix();
+            transform.getMatrix(t);
             AxisAlignedBox bounds = null;
             boolean invertBounds = false;
 
             double falloff = light.getFalloffDistance();
             if (influenceRegion.isAlive()) {
-                bounds = new AxisAlignedBox().transform(influenceRegion.getBounds(), t);
+                bounds = influenceRegion.getBounds(new AxisAlignedBox()).transform(t);
                 invertBounds = influenceRegion.isNegated();
             } else if (falloff >= 0) {
                 // compute bounds from the falloff distance to limit query size
@@ -265,7 +253,7 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
         }
 
         public void set(Renderable r) {
-            entityBounds.set(r.getWorldBounds());
+            r.getWorldBounds(entityBounds);
             lights.clear();
         }
 
@@ -295,15 +283,5 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
             this.bounds = bounds;
             this.invertBounds = invertBounds;
         }
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

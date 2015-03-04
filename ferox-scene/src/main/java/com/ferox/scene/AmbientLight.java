@@ -30,7 +30,7 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * AmbientLight represents a source of ambient light in a scene. Ambient lights contribute an equal amount of
@@ -43,10 +43,8 @@ public interface AmbientLight extends Component {
     /**
      * @return The color of this Light
      */
-    @Const
-    @SharedInstance
     @ColorRGBProperty.DefaultColor(red = 0.2, green = 0.2, blue = 0.2)
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the color of this Light.

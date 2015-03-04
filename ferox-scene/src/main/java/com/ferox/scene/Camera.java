@@ -28,11 +28,12 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Surface;
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Named;
 import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.Validate;
-import com.lhkbob.entreri.Within;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.Named;
+import com.lhkbob.entreri.property.DefaultDouble;
+import com.lhkbob.entreri.property.Reference;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * <p/>
@@ -77,7 +78,7 @@ public interface Camera extends Component {
      *
      * @return This Camera for chaining purposes
      */
-    @Validate(value = "$1 < $2", errorMsg = "znear must be less than zfar")
+    @Validate(value = "${1} < ${2}", errorMsg = "znear must be less than zfar")
     public Camera setZDistances(@Named("nearZDistance") @Within(min = Double.MIN_VALUE) double znear,
                                 @Named("farZDistance") @Within(min = Double.MIN_VALUE) double zfar);
 
@@ -92,6 +93,7 @@ public interface Camera extends Component {
      *
      * @return The Surface of this Camera
      */
+    @Reference(nullable = false)
     public Surface getSurface();
 
     /**

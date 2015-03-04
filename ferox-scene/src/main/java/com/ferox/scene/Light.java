@@ -31,9 +31,9 @@ import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
+import com.lhkbob.entreri.property.DefaultBoolean;
+import com.lhkbob.entreri.property.DefaultDouble;
 
 /**
  * The Light component represents a simple light within a scene.  Depending on its configuration, it can
@@ -54,10 +54,8 @@ public interface Light extends Component {
     /**
      * @return The color of this Light
      */
-    @Const
-    @SharedInstance
     @DefaultColor(red = 0.2, green = 0.2, blue = 0.2)
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the color of this Light.

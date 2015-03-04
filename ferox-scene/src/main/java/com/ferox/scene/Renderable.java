@@ -30,12 +30,8 @@ import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.ferox.renderer.Renderer.DrawStyle;
 import com.ferox.renderer.geom.Geometry;
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NoAutoVersion;
-import com.lhkbob.entreri.NotNull;
-import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.property.Named;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.Reference;
 
 /**
  * Renderable is a Component that enables an Entity to be rendered. It provides a {@link Geometry} containing
@@ -78,6 +74,7 @@ public interface Renderable extends Component {
      *
      * @return The geometry of the entity
      */
+    @Reference(nullable = false)
     public Geometry getGeometry();
 
     /**
@@ -87,7 +84,7 @@ public interface Renderable extends Component {
      *
      * @return This component
      */
-    public Renderable setGeometry(@NotNull Geometry g);
+    public Renderable setGeometry(Geometry g);
 
     /**
      * Return the world bounds of this Renderable. The returned AxisAlignedBox instance is reused by this
@@ -95,10 +92,8 @@ public interface Renderable extends Component {
      *
      * @return A cached world bounds instance
      */
-    @Const
-    @SharedInstance
-    @NoAutoVersion
-    public AxisAlignedBox getWorldBounds();
+    @DoNotAutoVersion
+    public AxisAlignedBox getWorldBounds(@ReturnValue AxisAlignedBox result);
 
     /**
      * Set the world bounds of this entity. The bounds should contain the entire geometry of the Entity,

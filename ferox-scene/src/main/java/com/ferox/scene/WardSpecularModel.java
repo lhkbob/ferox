@@ -29,7 +29,7 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * WardSpecularModel is a component that adds specular lighting to an entity. It uses the Ward anisotropic
@@ -53,9 +53,7 @@ public interface WardSpecularModel extends Component {
      *
      * @return The specular color
      */
-    @Const
-    @SharedInstance
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the specular color for this entity.

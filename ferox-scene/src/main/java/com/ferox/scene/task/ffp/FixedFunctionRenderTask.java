@@ -38,11 +38,9 @@ import com.ferox.scene.task.light.LightGroupResult;
 import com.ferox.util.Bag;
 import com.ferox.util.HashFunction;
 import com.ferox.util.profile.Profiler;
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.property.Clone;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.task.Job;
@@ -52,7 +50,11 @@ import com.lhkbob.entreri.task.Task;
 import java.util.*;
 import java.util.concurrent.Future;
 
-public class FixedFunctionRenderTask implements Task, ParallelAware {
+@ParallelAware(readOnlyComponents = {LambertianDiffuseModel.class, BlinnPhongSpecularModel.class,
+EmittedColor.class, DiffuseColorMap.class, EmittedColorMap.class, DecalColorMap.class, Transparent.class, AtmosphericFog.class,
+AmbientLight.class, Light.class, Transform.class, Camera.class, OrenNayarDiffuseModel.class, CookTorrenceSpecularModel.class,
+InfluenceRegion.class}, modifiedComponents = {Renderable.class}, entitySetModified = false)
+public class FixedFunctionRenderTask implements Task {
     public static final int DIFFUSE_TEXTURE_UNIT = 0;
     public static final int DECAL_TEXTURE_UNIT = 1;
     public static final int EMISSIVE_TEXTURE_UNIT = 2;
@@ -84,6 +86,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     private Transparent transparent;
     //    types.add(OrenNayarDiffuseModel.class);
     //    types.add(CookTorrenceSpecularModel.class);
+
+    private final Matrix4 tmpMatrix = new Matrix4();
 
     public FixedFunctionRenderTask(Framework framework) {
         this(framework, 1024, true);
@@ -163,16 +167,6 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     }
 
     @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
-    }
-
-    @Override
     public Task process(EntitySystem system, Job job) {
         Profiler.push("render");
         Frame currentFrame = (inuseFrame == frameA ? frameB : frameA);
@@ -241,6 +235,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     private StateNode getFogNode(EntitySystem system, Frustum frustum) {
         AxisAlignedBox bounds = new AxisAlignedBox();
+        ColorRGB fogColor = new ColorRGB();
 
         FogState bestState = null;
         double bestVolume = Double.POSITIVE_INFINITY; // select min
@@ -254,9 +249,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         while (it.next()) {
             double volume = Double.POSITIVE_INFINITY;
             if (influence.isAlive()) {
-                bounds.set(influence.getBounds());
+                influence.getBounds(bounds);
                 if (transform.isAlive()) {
-                    bounds.transform(transform.getMatrix());
+                    bounds.transform(transform.getMatrix(tmpMatrix));
                 }
 
                 FrustumIntersection fi = frustum.intersects(bounds, null);
@@ -281,10 +276,10 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
             // compare
             if (bestState == null || volume < bestVolume ||
-                (Math.abs(volume - bestVolume) < .001 && fog.getColor().luminance() > bestLuminance)) {
-                bestState = new FogState(fog.getColor(), fog.getFalloff(), fog.getOpaqueDistance());
+                (Math.abs(volume - bestVolume) < .001 && fog.getColor(fogColor).luminance() > bestLuminance)) {
+                bestState = new FogState(fogColor, fog.getFalloff(), fog.getOpaqueDistance());
                 bestVolume = volume;
-                bestLuminance = fog.getColor().luminance();
+                bestLuminance = fogColor.luminance();
             }
         }
 
@@ -294,6 +289,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
     private ColorRGB getAmbientColor(EntitySystem system, Frustum frustum) {
         AxisAlignedBox bounds = new AxisAlignedBox();
         ColorRGB bestColor = new ColorRGB();
+        ColorRGB currentColor = new ColorRGB();
         double bestVolume = Double.POSITIVE_INFINITY; // select min
 
         ComponentIterator it = system.fastIterator();
@@ -304,9 +300,9 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         while (it.next()) {
             double volume = Double.POSITIVE_INFINITY;
             if (influence.isAlive()) {
-                bounds.set(influence.getBounds());
+                influence.getBounds(bounds);
                 if (transform.isAlive()) {
-                    bounds.transform(transform.getMatrix());
+                    bounds.transform(transform.getMatrix(tmpMatrix));
                 }
 
                 FrustumIntersection fi = frustum.intersects(bounds, null);
@@ -331,8 +327,8 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
             // compare
             if (volume < bestVolume || (Math.abs(volume - bestVolume) < .001 &&
-                                        light.getColor().luminance() > bestColor.luminance())) {
-                bestColor.set(light.getColor());
+                                        light.getColor(currentColor).luminance() > bestColor.luminance())) {
+                bestColor.set(currentColor);
                 bestVolume = volume;
             }
         }
@@ -403,7 +399,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
             transparentEntities.sort(new HashFunction<Entity>() {
                 @Override
                 public int hashCode(Entity value) {
-                    Matrix4 m = value.get(Transform.class).getMatrix();
+                    Matrix4 m = value.get(Transform.class).getMatrix(tmpMatrix);
                     Matrix4 v = camera.getViewMatrix();
                     // transformed z value is 3rd row of view dotted with 4th col of the model
                     double cameraDepth = m.m03 * v.m20 + m.m13 * v.m21 + m.m23 * v.m22 + m.m33 + v.m23;
@@ -505,7 +501,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         colorNode.setChild(0, new StateNode(geom));
 
         // now record transform into the state
-        leaf.add(transform.getMatrix());
+        leaf.add(transform.getMatrix(tmpMatrix));
     }
 
     private void addOpaqueAtom(Transform transform, RenderAtom atom, StateNode firstNode, Frame frame) {
@@ -542,7 +538,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         }
 
         // now record the transform into the render node's state
-        leaf.add(transform.getMatrix());
+        leaf.add(transform.getMatrix(tmpMatrix));
     }
 
     private void syncEntityState(RenderAtom atom, Frame frame) {
@@ -594,6 +590,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
     private static class Frame {
         final ShadowMapCache shadowMap;
+        final ColorRGB cachedColor;
 
         StateCache<TextureState> textureStates;
         StateCache<GeometryState> geometryStates;
@@ -603,6 +600,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
         ObjectProperty atoms;
 
         Frame(ShadowMapCache map) {
+            cachedColor = new ColorRGB();
             shadowMap = map;
 
             textureStates = new StateCache<>(TextureState.class);
@@ -636,13 +634,13 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
                           EmittedColor emitted, Transparent transparent, int oldIndex) {
             double alpha = (transparent.isAlive() ? transparent.getOpacity() : 1.0);
             double shininess = 0.0;
-            ColorRGB d = (diffuse.isAlive() ? diffuse.getColor() : null);
+            ColorRGB d = (diffuse.isAlive() ? diffuse.getColor(cachedColor) : null);
             ColorRGB s = null;
-            ColorRGB e = (emitted.isAlive() ? emitted.getColor() : null);
+            ColorRGB e = (emitted.isAlive() ? emitted.getColor(cachedColor) : null);
 
             if (specular.isAlive()) {
                 shininess = specular.getShininess();
-                s = specular.getColor();
+                s = specular.getColor(cachedColor);
             }
 
             ColorState state = new ColorState();
@@ -668,7 +666,7 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         @SuppressWarnings("unchecked")
         void decorate(EntitySystem system) {
-            atoms = system.decorate(Renderable.class, new ObjectProperty.Factory(Clone.Policy.DISABLE));
+            atoms = system.decorate(Renderable.class, new ObjectProperty<>(RenderAtom.class, false));
         }
     }
 
@@ -690,28 +688,5 @@ public class FixedFunctionRenderTask implements Task, ParallelAware {
 
         boolean additiveBlending = false;
         boolean isLit = false;
-    }
-
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(AmbientLight.class);
-        types.add(Light.class);
-        types.add(Renderable.class);
-        types.add(Transform.class);
-        types.add(LambertianDiffuseModel.class);
-        types.add(OrenNayarDiffuseModel.class);
-        types.add(BlinnPhongSpecularModel.class);
-        types.add(CookTorrenceSpecularModel.class);
-        types.add(EmittedColor.class);
-        types.add(DiffuseColorMap.class);
-        types.add(EmittedColorMap.class);
-        types.add(DecalColorMap.class);
-        types.add(Transparent.class);
-        types.add(Camera.class);
-        types.add(AtmosphericFog.class);
-        types.add(InfluenceRegion.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
     }
 }

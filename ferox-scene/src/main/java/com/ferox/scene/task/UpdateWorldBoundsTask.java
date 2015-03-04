@@ -27,6 +27,8 @@
 package com.ferox.scene.task;
 
 import com.ferox.math.AxisAlignedBox;
+import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.Renderable;
 import com.ferox.scene.Transform;
@@ -42,17 +44,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class UpdateWorldBoundsTask implements Task, ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(Renderable.class);
-        types.add(Transform.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
-    // cached local instances
+@ParallelAware(readOnlyComponents = {Transform.class}, modifiedComponents = {Renderable.class}, entitySetModified = false)
+public class UpdateWorldBoundsTask implements Task {
+     // cached local instances
     private Renderable renderable;
     private Transform transform;
     private ComponentIterator iterator;
@@ -75,9 +69,10 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
         AxisAlignedBox worldBounds = new AxisAlignedBox();
         AxisAlignedBox sceneBounds = new AxisAlignedBox();
         boolean first = true;
+        Matrix4 mat = new Matrix4();
 
         while (iterator.next()) {
-            worldBounds.transform(renderable.getGeometry().getBounds(), transform.getMatrix());
+            worldBounds.transform(renderable.getGeometry().getBounds(), transform.getMatrix(mat));
             renderable.setWorldBounds(worldBounds);
 
             if (first) {
@@ -92,15 +87,5 @@ public class UpdateWorldBoundsTask implements Task, ParallelAware {
 
         Profiler.pop();
         return null;
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

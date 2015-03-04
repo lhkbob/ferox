@@ -29,12 +29,10 @@ package com.ferox.scene;
 import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 public interface InfluenceRegion extends Component {
-    @Const
-    @SharedInstance
-    public AxisAlignedBox getBounds();
+    public AxisAlignedBox getBounds(@ReturnValue AxisAlignedBox result);
 
     public InfluenceRegion setBounds(@Const AxisAlignedBox bounds);
 

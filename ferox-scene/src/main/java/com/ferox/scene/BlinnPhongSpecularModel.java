@@ -29,8 +29,8 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Within;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * BlinnPhongSpecularModel is a component that adds specular lighting to an entity. It uses the Blinn-Phong
@@ -69,9 +69,7 @@ public interface BlinnPhongSpecularModel extends Component {
      *
      * @return The specular color
      */
-    @Const
-    @SharedInstance
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the specular color for this entity.

@@ -27,8 +27,8 @@
 package com.ferox.scene;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
+import com.lhkbob.entreri.property.DefaultBoolean;
+import com.lhkbob.entreri.property.DefaultDouble;
 
 /**
  * <p/>
