@@ -196,7 +196,8 @@ public class SimpleTest {
         System.out.printf("%s - total time: %.2f, avg: %.2f\n", label, millis, avg);
     }
 
-    public static class AnimationController implements Task, ParallelAware {
+    @ParallelAware(readOnlyComponents = {}, modifiedComponents = {Animation.class, Transform.class}, entitySetModified = false)
+    public static class AnimationController implements Task {
         public static double SPEED = 4;
 
         private double dt;
@@ -215,12 +216,14 @@ public class SimpleTest {
             Transform t = it.addRequired(Transform.class);
             Animation anim = it.addRequired(Animation.class);
 
+            Vector3 d = new Vector3();
+            Matrix4 m = new Matrix4();
             while (it.next()) {
-                Vector3 d = anim.getDirection();
+                anim.getDirection(d);
 
-                if (anim.getDirection().lengthSquared() > 0.00001) {
+                if (d.lengthSquared() > 0.00001) {
                     // have a direction, assume its normalized
-                    Matrix4 m = t.getMatrix();
+                    t.getMatrix(m);
 
                     m.m03 += SPEED * dt * d.x;
                     m.m13 += SPEED * dt * d.y;
@@ -254,17 +257,6 @@ public class SimpleTest {
             }
 
             return null;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Set<Class<? extends Component>> getAccessedComponents() {
-            return new HashSet<>(Arrays.asList(Animation.class, Transform.class));
-        }
-
-        @Override
-        public boolean isEntitySetModified() {
-            return false;
         }
     }
 
