@@ -26,6 +26,8 @@
  */
 package com.ferox.physics.task;
 
+import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionAlgorithm;
 import com.ferox.physics.collision.CollisionAlgorithmProvider;
@@ -65,6 +67,10 @@ public abstract class CollisionTask implements Task {
     private final LinearConstraintPool frictionGroup;
 
     protected double dt;
+
+    private final Matrix4 tmpMatA = new Matrix4();
+    private final Matrix4 tmpMatB = new Matrix4();
+
 
     /**
      * Create a new CollisionTask that uses the given algorithm provider.
@@ -147,8 +153,8 @@ public abstract class CollisionTask implements Task {
 
         if (algorithm != null) {
             // compute closest pair between the two shapes
-            ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(), bodyA.getTransform(),
-                                                        bodyB.getShape(), bodyB.getTransform());
+            ClosestPair pair = algorithm.getClosestPair(bodyA.getShape(), bodyA.getTransform(tmpMatA),
+                                                        bodyB.getShape(), bodyB.getTransform(tmpMatB));
 
             if (pair != null && pair.isIntersecting()) {
                 // add to manifold only when there is an intersection
@@ -157,17 +163,8 @@ public abstract class CollisionTask implements Task {
         }
     }
 
-    private class WarmstartTask implements Task, ParallelAware {
-        @Override
-        public Set<Class<? extends Component>> getAccessedComponents() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public boolean isEntitySetModified() {
-            return false;
-        }
-
+    @ParallelAware(modifiedComponents = {}, readOnlyComponents = {}, entitySetModified = false)
+    private class WarmstartTask implements Task {
         @Override
         public Task process(EntitySystem system, Job job) {
             // read back computed impulses from constraint solving controller

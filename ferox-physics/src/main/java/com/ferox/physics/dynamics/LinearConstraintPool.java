@@ -27,6 +27,7 @@
 package com.ferox.physics.dynamics;
 
 import com.ferox.math.Const;
+import com.ferox.math.Matrix3;
 import com.ferox.math.Vector3;
 
 import java.util.Arrays;
@@ -78,6 +79,9 @@ public class LinearConstraintPool {
     private final Vector3 linearB = new Vector3();
     private final Vector3 angularA = new Vector3();
     private final Vector3 angularB = new Vector3();
+
+    private final Matrix3 inertiaA = new Matrix3();
+    private final Matrix3 inertiaB = new Matrix3();
 
     /**
      * Create a new constraint pool that is optionally linked with {@code linkedPool}. If the linked pool is
@@ -163,7 +167,7 @@ public class LinearConstraintPool {
             linearDirAs[veci + 1] = direction.y * imA;
             linearDirAs[veci + 2] = direction.z * imA;
 
-            this.torqueA.mul(bodyA.getInertiaTensorInverse(), torqueA);
+            this.torqueA.mul(bodyA.getInertiaTensorInverse(inertiaA), torqueA);
             this.torqueA.get(angleDirAs, veci);
         } else {
             // assign negative id
@@ -178,7 +182,7 @@ public class LinearConstraintPool {
             linearDirBs[veci + 1] = direction.y * imB;
             linearDirBs[veci + 2] = direction.z * imB;
 
-            this.torqueB.mul(bodyB.getInertiaTensorInverse(), torqueB);
+            this.torqueB.mul(bodyB.getInertiaTensorInverse(inertiaB), torqueB);
             this.torqueB.get(angleDirBs, veci);
         } else {
             // assign negative id

@@ -55,17 +55,8 @@ import java.util.Set;
  *
  * @author Michael Ludwig
  */
-public class SpatialIndexCollisionTask extends CollisionTask implements ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(CollisionBody.class);
-        // notifyPotentialContact looks up RigidBody so we do have a dependency on that type
-        types.add(RigidBody.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
+@ParallelAware(readOnlyComponents = {RigidBody.class, CollisionBody.class}, modifiedComponents = {}, entitySetModified = false)
+public class SpatialIndexCollisionTask extends CollisionTask {
     private final SpatialIndex<Entity> index;
 
     // cached instances that are normally local to process()
@@ -121,8 +112,9 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
 
         // fill the index with all collision bodies
         Profiler.push("build-index");
+        AxisAlignedBox aabb = new AxisAlignedBox();
         while (iterator.next()) {
-            index.add(body.getEntity(), body.getWorldBounds());
+            index.add(body.getEntity(), body.getWorldBounds(aabb));
         }
         Profiler.pop();
 
@@ -146,15 +138,5 @@ public class SpatialIndexCollisionTask extends CollisionTask implements Parallel
             // we need to test for collision against their actual shapes
             notifyPotentialContact(a.get(CollisionBody.class), b.get(CollisionBody.class));
         }
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

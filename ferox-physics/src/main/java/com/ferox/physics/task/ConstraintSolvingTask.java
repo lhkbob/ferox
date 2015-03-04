@@ -52,7 +52,8 @@ import java.util.Set;
  *
  * @author Michael Ludwig
  */
-public class ConstraintSolvingTask implements Task, ParallelAware {
+@ParallelAware(readOnlyComponents = {}, modifiedComponents = {RigidBody.class}, entitySetModified = false)
+public class ConstraintSolvingTask implements Task {
     private final LinearConstraintSolver solver;
 
     private List<LinearConstraintPool> groups;
@@ -75,9 +76,8 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
             iterator = system.fastIterator();
             rigidBody = iterator.addRequired(RigidBody.class);
 
-            deltaLinearImpulse = system.decorate(RigidBody.class, new Vector3Property.Factory(new Vector3()));
-            deltaAngularImpulse = system.decorate(RigidBody.class,
-                                                  new Vector3Property.Factory(new Vector3()));
+            deltaLinearImpulse = system.decorate(RigidBody.class, new Vector3Property(new Vector3(), false));
+            deltaAngularImpulse = system.decorate(RigidBody.class, new Vector3Property(new Vector3(), false));
 
             solver.setDeltaLinearImpulseProperty(deltaLinearImpulse);
             solver.setDeltaAngularImpulseProperty(deltaAngularImpulse);
@@ -97,15 +97,16 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
         Profiler.pop();
 
         // now apply all of the delta impulses back to the rigid bodies
+        Vector3 vel = new Vector3();
         Profiler.push("apply-constraints");
         while (iterator.next()) {
             // linear velocity
             deltaLinearImpulse.get(rigidBody.getIndex(), delta);
-            rigidBody.setVelocity(delta.add(rigidBody.getVelocity()));
+            rigidBody.setVelocity(delta.add(rigidBody.getVelocity(vel)));
 
             // angular velocity
             deltaAngularImpulse.get(rigidBody.getIndex(), delta);
-            rigidBody.setAngularVelocity(delta.add(rigidBody.getAngularVelocity()));
+            rigidBody.setAngularVelocity(delta.add(rigidBody.getAngularVelocity(vel)));
 
             // 0 out delta impulse for next frame
             delta.set(0, 0, 0);
@@ -121,15 +122,5 @@ public class ConstraintSolvingTask implements Task, ParallelAware {
 
     public void report(ConstraintResult r) {
         groups.add(r.getConstraints());
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return Collections.<Class<? extends Component>>singleton(RigidBody.class);
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }
