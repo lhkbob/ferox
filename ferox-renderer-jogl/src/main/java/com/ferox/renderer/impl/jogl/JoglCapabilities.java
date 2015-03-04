@@ -62,6 +62,7 @@ public class JoglCapabilities extends Capabilities {
         GLDrawableFactory factory = GLDrawableFactory.getFactory(profile);
 
         JoglCapabilities caps = new JoglCapabilities();
+        caps.isDebugEnabled = Boolean.getBoolean(Framework.Factory.DEBUG_PROPERTY);
         caps.availableModes = availableModes;
 
         caps.pbuffersSupported = !forceNoPBuffer && factory.canCreateGLPbuffer(factory.getDefaultDevice());

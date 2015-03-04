@@ -85,6 +85,15 @@ public abstract class Capabilities {
 
     protected boolean supportsMultipleOnscreenSurfaces;
 
+    protected boolean isDebugEnabled;
+
+    /**
+     * @return True if the renderers of this framework will check for opengl errors after every operation
+     */
+    public boolean isDebugEnabled() {
+        return isDebugEnabled;
+    }
+
     /**
      * @return True if multiple non-fullscreen onscreen surfaces can exist at the same time with this
      * framework

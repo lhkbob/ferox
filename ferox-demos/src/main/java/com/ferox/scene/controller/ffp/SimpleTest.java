@@ -63,8 +63,7 @@ public class SimpleTest {
 
     public static void main(String[] args) {
         Framework framework = Framework.Factory.create();
-        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().windowed(800, 600)
-                                                                                      .fixedSize());
+        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().windowed(800, 600));
         //        surface.setVSyncEnabled(true);
 
         EntitySystem system = EntitySystem.Factory.create();
@@ -137,7 +136,7 @@ public class SimpleTest {
         system.addEntity().add(AmbientLight.class).setColor(new ColorRGB(0.2, 0.2, 0.2));
 
         Entity inf = system.addEntity();
-        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setCutoffAngle(Double.NaN)
+        inf.add(Light.class).setColor(new ColorRGB(.3, .3, .3)).setCutoffAngle(Double.NaN)
            .setShadowCaster(false);
         inf.add(Transform.class).setMatrix(new Matrix4().lookAt(new Vector3(),
                                                                 new Vector3(.3 * BOUNDS, .3 * BOUNDS,

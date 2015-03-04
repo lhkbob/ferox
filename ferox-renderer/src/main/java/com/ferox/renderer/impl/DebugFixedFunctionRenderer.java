@@ -35,7 +35,7 @@ import com.ferox.renderer.*;
 /**
  *
  */
-public class DebugFixedFunctionRenderer implements FixedFunctionRenderer {
+public class DebugFixedFunctionRenderer implements FixedFunctionRenderer, Activateable {
     private final FixedFunctionRenderer renderer;
     private final OpenGLContext context;
 
@@ -454,5 +454,12 @@ public class DebugFixedFunctionRenderer implements FixedFunctionRenderer {
     public void setViewport(int x, int y, int width, int height) {
         renderer.setViewport(x, y, width, height);
         checkGLErrors();
+    }
+
+    @Override
+    public void activate(AbstractSurface active) {
+        if (renderer instanceof Activateable) {
+            ((Activateable) renderer).activate(active);
+        }
     }
 }

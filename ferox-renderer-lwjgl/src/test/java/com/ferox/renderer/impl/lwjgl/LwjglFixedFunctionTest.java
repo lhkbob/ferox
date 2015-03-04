@@ -42,9 +42,10 @@ public class LwjglFixedFunctionTest {
     static double x = 0;
 
     public static void main(String[] args) throws Exception {
+        Framework.Factory.enableDebugMode();
         final Framework framework = Framework.Factory.create();
-        final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().withDepthBuffer(24)
-                                                                                      .fixedSize());
+        System.out.println(framework.getCapabilities().getMajorVersion() + "." + framework.getCapabilities().getMinorVersion());
+        final OnscreenSurface s = framework.createSurface(new OnscreenSurfaceOptions().withDepthBuffer(24).fixedSize());
         s.setTitle("Hello World");
         s.setVSyncEnabled(true);
 
@@ -72,6 +73,9 @@ public class LwjglFixedFunctionTest {
                     @Override
                     public Void run(HardwareAccessLayer access) {
                         Context c = access.setActiveSurface(s);
+                        if (c == null)
+                            return null;
+
                         FixedFunctionRenderer r = c.getFixedFunctionRenderer();
                         r.clear(true, true, true, new Vector4(.3, .2, .5, 1), 1.0, 0);
 

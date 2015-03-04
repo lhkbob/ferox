@@ -55,6 +55,7 @@ public class LwjglCapabilities extends Capabilities {
         // LWJGL seems to create valid enough contexts to get away with not forcing pbuffers to false
 
         LwjglCapabilities caps = new LwjglCapabilities();
+        caps.isDebugEnabled = Boolean.getBoolean(Framework.Factory.DEBUG_PROPERTY);
         caps.availableModes = availableModes;
         caps.pbuffersSupported =
                 !forceNoPBuffer && (Pbuffer.getCapabilities() & Pbuffer.PBUFFER_SUPPORTED) != 0;

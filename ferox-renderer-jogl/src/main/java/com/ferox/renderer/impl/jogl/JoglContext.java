@@ -30,9 +30,7 @@ import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ShaderFixedFunctionEmulator;
-import com.ferox.renderer.impl.SharedState;
+import com.ferox.renderer.impl.*;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -56,7 +54,7 @@ public class JoglContext implements OpenGLContext {
 
     private final SharedState sharedState;
     private final FixedFunctionRenderer fixed;
-    private final JoglGlslRenderer glsl;
+    private final GlslRenderer glsl;
 
     private int fbo;
     private int vao;
@@ -82,12 +80,16 @@ public class JoglContext implements OpenGLContext {
         sharedState = new SharedState(caps.getMaxTextureUnits());
 
         JoglRendererDelegate shared = new JoglRendererDelegate(this, sharedState);
-        glsl = new JoglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
+        JoglGlslRenderer baseGlsl = new JoglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
+        glsl = (caps.isDebugEnabled() ? new DebugGlslRenderer(this, baseGlsl) : baseGlsl);
+
         if (caps.getMajorVersion() < 3) {
             vao = 0; // do not use vao's at all
-            fixed = new JoglFixedFunctionRenderer(this, shared);
+            JoglFixedFunctionRenderer baseFixed = new JoglFixedFunctionRenderer(this, shared);
+            fixed = (caps.isDebugEnabled() ? new DebugFixedFunctionRenderer(this, baseFixed) : baseFixed);
         } else {
             vao = -1; // specify that vao needs to be created first time this context is made current
+            // don't bothe wrapping this in a debug renderer since glsl already will be
             fixed = new ShaderFixedFunctionEmulator(glsl);
         }
     }

@@ -66,13 +66,12 @@ public class ComputeCameraFrustumTask implements Task {
     @Override
     public Task process(EntitySystem system, Job job) {
         Profiler.push("compute-camera-frustum");
-
         Matrix4 m = new Matrix4();
         while (iterator.next()) {
             double aspect = camera.getSurface().getWidth() / (double) camera.getSurface().getHeight();
+
             Frustum f = new Frustum(camera.getFieldOfView(), aspect, camera.getNearZDistance(),
                                     camera.getFarZDistance());
-
             transform.getMatrix(m);
             f.setOrientation(new Vector3(m.m03, m.m13, m.m23), new Vector3(m.m02, m.m12, m.m22),
                              new Vector3(m.m01, m.m11, m.m21));
