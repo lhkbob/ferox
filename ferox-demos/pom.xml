@@ -12,13 +12,6 @@
     <packaging>jar</packaging>
     <name>Ferox Demo Applications</name>
 
-    <properties>
-        <main.class>com.ferox.renderer.AshikhminOptimizedDeferredShader</main.class>
-        <natives>${basedir}/target/natives</natives>
-        <release.natives>natives/</release.natives>
-        <finalJar>${build.finalName}.jar</finalJar>
-    </properties>
-
     <build>
         <plugins>
             <plugin>

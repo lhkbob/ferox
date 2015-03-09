@@ -123,17 +123,6 @@ public class JoglFboTextureSurface extends AbstractTextureSurface {
         fbo.bind(this, jctx);
     }
 
-    @Override
-    public void onSurfaceDeactivate(OpenGLContext context) {
-        JoglContext jctx = (JoglContext) context;
-        FBODestructible.FrameBufferObject fbo = impl.fbos.get(jctx);
-        if (fbo != null) {
-            jctx.bindFbo(0);
-        }
-
-        super.onSurfaceDeactivate(context);
-    }
-
     private static class FBODestructible extends SurfaceDestructible {
         // one real fbo per context, vague documentation in object sharing
         // makes it sound as though fbo's aren't shared

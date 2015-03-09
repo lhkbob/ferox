@@ -70,9 +70,6 @@ public class ComputeLightGroupTask implements Task, ParallelAware {
     private InfluenceRegion influenceRegion;
     private Light light;
 
-    private CollectionIterator pvsIterator;
-    private Renderable pvsRenderable;
-
     public ComputeLightGroupTask() {
         this.lightIndex = new QuadTree<>(new AxisAlignedBox(), 2);
         allVisibleSets = new ArrayList<>();

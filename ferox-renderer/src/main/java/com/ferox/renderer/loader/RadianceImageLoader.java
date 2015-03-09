@@ -82,7 +82,7 @@ public class RadianceImageLoader implements ImageFileLoader {
 
         Map<String, String> vars = processVariables(stream);
         if (!"32-bit_rle_rgbe".equals(vars.get("FORMAT"))) {
-            throw new IOException("Format must be 32-bit-rle-rgbe, not: " + vars.get("FORMAT"));
+            throw new IOException("Format must be 32-bit_rle_rgbe, not: " + vars.get("FORMAT"));
         }
 
         int width = Integer.parseInt(vars.get("WIDTH"));
@@ -174,6 +174,8 @@ public class RadianceImageLoader implements ImageFileLoader {
             // real pixel
             float v = (float) Math.pow(2.0, (0xff & rgbe[offset + 3]) - 128) / 256f;
             // these are meant to be unsigned bytes
+            // FIXME rereading the text, there might need to be a + 0.5
+            // inside the expression multiplied by v
             image[imgOffset] = v * ((0xff & rgbe[offset]));
             image[imgOffset + 1] = v * ((0xff & rgbe[offset + 1]));
             image[imgOffset + 2] = v * ((0xff & rgbe[offset + 2]));
