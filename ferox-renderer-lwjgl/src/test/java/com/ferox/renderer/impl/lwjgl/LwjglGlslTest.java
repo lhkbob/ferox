@@ -79,6 +79,7 @@ public class LwjglGlslTest {
 
         if (framework.getCapabilities().getMajorVersion() >= 3) {
             System.out.println("ONLY #120 defined");
+            framework.destroy();
             return;
         } else {
             shader = framework.newShader().withVertexShader(VERTEX_120).withFragmentShader(FRAGMENT_120)

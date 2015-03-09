@@ -30,9 +30,9 @@ import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.ferox.math.entreri.ColorRGBProperty.DefaultColor;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Within;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
+import com.lhkbob.entreri.property.DefaultDouble;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * <p/>
@@ -94,7 +94,7 @@ public interface AtmosphericFog extends Component {
     /**
      * Set the maximum distance that light can travel through the fog before being completely obscured. Any
      * object that's closer to the edge of the fog, or the viewer if within the fog, will be combined with the
-     * {@link #getColor() fog color} based on its distance and the {@link #getFalloff() falloff}.
+     * {@link #getColor(com.ferox.math.ColorRGB) fog color} based on its distance and the {@link #getFalloff() falloff}.
      *
      * @param dist The new opaque distance
      *
@@ -127,8 +127,6 @@ public interface AtmosphericFog extends Component {
      *
      * @return The fog color
      */
-    @Const
-    @SharedInstance
     @DefaultColor(red = 0.5, green = 0.5, blue = 0.5)
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 }

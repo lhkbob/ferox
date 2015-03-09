@@ -30,7 +30,7 @@ import com.ferox.math.Const;
 import com.ferox.math.Vector3;
 import com.ferox.math.entreri.Vector3Property.DefaultVector3;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * Gravity is a component that can be added to a rigid body entity to give it a unique gravity acceleration
@@ -43,12 +43,12 @@ import com.lhkbob.entreri.property.SharedInstance;
  */
 public interface Gravity extends Component {
     /**
+     * Get the custom gravity vector, copying it into `result`.
+     * @param result The output value
      * @return The current custom gravity acceleration vector
      */
-    @Const
-    @SharedInstance
     @DefaultVector3(x = 0.0, y = -9.8, z = 0.0)
-    public Vector3 getGravity();
+    public Vector3 getGravity(@ReturnValue Vector3 result);
 
     /**
      * Set the custom gravity acceleration vector.

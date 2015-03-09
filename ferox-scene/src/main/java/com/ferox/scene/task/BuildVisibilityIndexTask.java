@@ -26,6 +26,7 @@
  */
 package com.ferox.scene.task;
 
+import com.ferox.math.AxisAlignedBox;
 import com.ferox.math.bounds.SpatialIndex;
 import com.ferox.math.entreri.BoundsResult;
 import com.ferox.scene.Renderable;
@@ -41,7 +42,8 @@ import com.lhkbob.entreri.task.Task;
 import java.util.Collections;
 import java.util.Set;
 
-public class BuildVisibilityIndexTask implements Task, ParallelAware {
+@ParallelAware(readOnlyComponents = {Renderable.class}, modifiedComponents = {}, entitySetModified = false)
+public class BuildVisibilityIndexTask implements Task {
     private final SpatialIndex<Entity> index;
 
     // could be local scope but we can save GC work
@@ -73,8 +75,9 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
     public Task process(EntitySystem system, Job job) {
         Profiler.push("build-visibility-index");
 
+        AxisAlignedBox bounds = new AxisAlignedBox();
         while (iterator.next()) {
-            index.add(renderable.getEntity(), renderable.getWorldBounds());
+            index.add(renderable.getEntity(), renderable.getWorldBounds(bounds));
         }
 
         // send the built index to everyone listened
@@ -82,15 +85,5 @@ public class BuildVisibilityIndexTask implements Task, ParallelAware {
 
         Profiler.pop();
         return null;
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return Collections.<Class<? extends Component>>singleton(Renderable.class);
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

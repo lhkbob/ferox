@@ -44,7 +44,8 @@ import com.lhkbob.entreri.task.Task;
 import java.util.Collections;
 import java.util.Set;
 
-public class ComputePVSTask implements Task, ParallelAware {
+@ParallelAware(readOnlyComponents = {Renderable.class}, modifiedComponents = {}, entitySetModified = false)
+public class ComputePVSTask implements Task {
     // results
     private final Bag<FrustumResult> frustums;
     private SpatialIndex<Entity> index;
@@ -104,15 +105,5 @@ public class ComputePVSTask implements Task, ParallelAware {
         public void process(Entity r, @Const AxisAlignedBox bounds) {
             pvs.add(r);
         }
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return Collections.<Class<? extends Component>>singleton(Renderable.class);
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

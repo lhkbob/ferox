@@ -27,6 +27,7 @@
 package com.ferox.math.entreri;
 
 import com.ferox.math.Const;
+import com.ferox.math.Vector3;
 import com.ferox.math.Vector4;
 import com.lhkbob.entreri.property.*;
 
@@ -37,13 +38,16 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * Vector4Property is a caching property that wraps a DoubleProperty as a Vector4.
+ * Vector4Property is a value-semantics Property for handling Vector4 instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(Vector4Property.Factory.class)
-public class Vector4Property implements ShareableProperty<Vector4> {
+public class Vector4Property implements Property<Vector4Property>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 4;
+
+    private final Vector4 dflt;
+    private final boolean clone;
 
     private double[] data;
 
@@ -51,10 +55,29 @@ public class Vector4Property implements ShareableProperty<Vector4> {
      * Create a new Vector4Property.
      */
     public Vector4Property() {
+        this(new Vector4(), true);
+    }
+
+    /**
+     * Create a new Vector4Property with the selected default and clone policy.
+     * @param dflt The default vector
+     * @param clone True if the property clones the value
+     */
+    public Vector4Property(Vector4 dflt, boolean clone) {
+        this.dflt = new Vector4(dflt);
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dflt
+     * @param clonePolicy
+     */
+    public Vector4Property(DefaultVector4 dflt, DoNotClone clonePolicy) {
+        this((dflt == null ? new Vector4() : new Vector4(dflt.x(), dflt.y(), dflt.z(), dflt.w())), clonePolicy == null);
+    }
+
     public void get(int index, Vector4 result) {
         result.set(data, index * REQUIRED_ELEMENTS);
     }
@@ -67,11 +90,6 @@ public class Vector4Property implements ShareableProperty<Vector4> {
         Vector4 v = new Vector4();
         get(index, v);
         return v;
-    }
-
-    @Override
-    public Vector4 createShareableInstance() {
-        return new Vector4();
     }
 
     @Override
@@ -93,6 +111,20 @@ public class Vector4Property implements ShareableProperty<Vector4> {
             double t = data[ia + i];
             data[ia + i] = data[ib + i];
             data[ib + i] = t;
+        }
+    }
+
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(Vector4Property src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
         }
     }
 
@@ -124,55 +156,5 @@ public class Vector4Property implements ShareableProperty<Vector4> {
          * @return Default w coordinate
          */
         double w();
-    }
-
-    /**
-     * Default factory implementation for Vector4Properties, supports the {@link DefaultVector4} annotation to
-     * specify the default vector coordinates.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<Vector4Property> {
-        private final Vector4 dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            if (attrs.hasAttribute(DefaultVector4.class)) {
-                DefaultVector4 v = attrs.getAttribute(DefaultVector4.class);
-                dflt = new Vector4(v.x(), v.y(), v.z(), v.w());
-            } else {
-                dflt = new Vector4();
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const Vector4 v) {
-            dflt = new Vector4(v);
-            disableClone = false;
-        }
-
-        @Override
-        public Vector4Property create() {
-            return new Vector4Property();
-        }
-
-        @Override
-        public void setDefaultValue(Vector4Property property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(Vector4Property src, int srcIndex, Vector4Property dst, int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }

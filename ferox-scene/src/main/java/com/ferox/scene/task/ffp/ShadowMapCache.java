@@ -26,6 +26,7 @@
  */
 package com.ferox.scene.task.ffp;
 
+import com.ferox.math.Matrix4;
 import com.ferox.math.bounds.Frustum;
 import com.ferox.renderer.*;
 import com.ferox.renderer.Renderer.Comparison;
@@ -130,6 +131,7 @@ public class ShadowMapCache {
         Transform transform = it.addRequired(Transform.class);
         Transparent transparent = it.addOptional(Transparent.class);
 
+        Matrix4 t = new Matrix4();
         Map<GeometryState, Integer> geomState = new HashMap<>();
         while (it.next()) {
             // skip transparent entities, as its somewhat physically plausible that
@@ -168,7 +170,7 @@ public class ShadowMapCache {
                 leaf = (RenderState) geomNode.getChild(0).getState();
             }
 
-            leaf.add(transform.getMatrix());
+            leaf.add(transform.getMatrix(t));
         }
 
         Light source = (Light) pvs.getSource();

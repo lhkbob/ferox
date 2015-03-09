@@ -43,7 +43,6 @@ import java.util.concurrent.Future;
  */
 public class FrameworkImpl implements Framework {
     private final ManagedFramework impl;
-    private final boolean debugMode;
 
     // fullscreen support
     private volatile WeakReference<OnscreenSurface> fullscreenSurface;
@@ -66,7 +65,6 @@ public class FrameworkImpl implements Framework {
             throw new NullPointerException("ResourceFactory cannot be null");
         }
 
-        debugMode = Boolean.getBoolean(Factory.DEBUG_PROPERTY);
         ContextManager contextManager = new ContextManager();
         impl = new ManagedFramework(surfaceFactory, new LifeCycleManager(getClass().getSimpleName()),
                                     new DestructibleManager(), resourceFactory, contextManager);
@@ -279,7 +277,7 @@ public class FrameworkImpl implements Framework {
 
         @Override
         public T call() throws Exception {
-            T value = task.run(new HardwareAccessLayerImpl(FrameworkImpl.this, debugMode));
+            T value = task.run(new HardwareAccessLayerImpl(FrameworkImpl.this));
             OpenGLContext ctx = impl.contextManager.getCurrentContext();
             if (ctx != null) {
                 String error = ctx.checkGLErrors();

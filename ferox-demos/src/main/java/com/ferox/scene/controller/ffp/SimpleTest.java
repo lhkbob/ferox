@@ -63,8 +63,7 @@ public class SimpleTest {
 
     public static void main(String[] args) {
         Framework framework = Framework.Factory.create();
-        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().windowed(800, 600)
-                                                                                      .fixedSize());
+        OnscreenSurface surface = framework.createSurface(new OnscreenSurfaceOptions().windowed(800, 600));
         //        surface.setVSyncEnabled(true);
 
         EntitySystem system = EntitySystem.Factory.create();
@@ -137,7 +136,7 @@ public class SimpleTest {
         system.addEntity().add(AmbientLight.class).setColor(new ColorRGB(0.2, 0.2, 0.2));
 
         Entity inf = system.addEntity();
-        inf.add(Light.class).setColor(new ColorRGB(1, 1, 1)).setCutoffAngle(Double.NaN)
+        inf.add(Light.class).setColor(new ColorRGB(.3, .3, .3)).setCutoffAngle(Double.NaN)
            .setShadowCaster(false);
         inf.add(Transform.class).setMatrix(new Matrix4().lookAt(new Vector3(),
                                                                 new Vector3(.3 * BOUNDS, .3 * BOUNDS,
@@ -196,7 +195,8 @@ public class SimpleTest {
         System.out.printf("%s - total time: %.2f, avg: %.2f\n", label, millis, avg);
     }
 
-    public static class AnimationController implements Task, ParallelAware {
+    @ParallelAware(readOnlyComponents = {}, modifiedComponents = {Animation.class, Transform.class}, entitySetModified = false)
+    public static class AnimationController implements Task {
         public static double SPEED = 4;
 
         private double dt;
@@ -215,12 +215,14 @@ public class SimpleTest {
             Transform t = it.addRequired(Transform.class);
             Animation anim = it.addRequired(Animation.class);
 
+            Vector3 d = new Vector3();
+            Matrix4 m = new Matrix4();
             while (it.next()) {
-                Vector3 d = anim.getDirection();
+                anim.getDirection(d);
 
-                if (anim.getDirection().lengthSquared() > 0.00001) {
+                if (d.lengthSquared() > 0.00001) {
                     // have a direction, assume its normalized
-                    Matrix4 m = t.getMatrix();
+                    t.getMatrix(m);
 
                     m.m03 += SPEED * dt * d.x;
                     m.m13 += SPEED * dt * d.y;
@@ -254,17 +256,6 @@ public class SimpleTest {
             }
 
             return null;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Set<Class<? extends Component>> getAccessedComponents() {
-            return new HashSet<>(Arrays.asList(Animation.class, Transform.class));
-        }
-
-        @Override
-        public boolean isEntitySetModified() {
-            return false;
         }
     }
 

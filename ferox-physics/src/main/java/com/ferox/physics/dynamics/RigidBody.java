@@ -32,9 +32,9 @@ import com.ferox.math.Vector3;
 import com.ferox.physics.collision.CollisionBody;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.Within;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
+import com.lhkbob.entreri.property.DefaultDouble;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * <p/>
@@ -47,11 +47,11 @@ import com.lhkbob.entreri.property.SharedInstance;
 @Requires(CollisionBody.class)
 public interface RigidBody extends Component {
     /**
-     * @return Get the inverse of the body's inertia tensor matrix
+     * Copy out the inertia tensor into the provided matrix.
+     * @param result The matrix that is updated with the tensor
+     * @return Get the inverse of the body's inertia tensor matrix, stored in result
      */
-    @Const
-    @SharedInstance
-    public Matrix3 getInertiaTensorInverse();
+    public Matrix3 getInertiaTensorInverse(@ReturnValue Matrix3 result);
 
     /**
      * Set the inverse of the body's inertia tensor matrix. This must be computed by a task, which by default
@@ -99,50 +99,16 @@ public interface RigidBody extends Component {
     public double getMass();
 
     /**
+     * Get the current linear velocity, copying it into `result`.
+     * @param result The vector updated to store the velocity
      * @return The current linear velocity
      */
-    @Const
-    @SharedInstance
-    public Vector3 getVelocity();
+    public Vector3 getVelocity(@ReturnValue Vector3 result);
 
     /**
+     * Get the current angular velocity, copying it into `result`.
+     * @param result The vector updated to store the velocity
      * @return The current angular velocity
      */
-    @Const
-    @SharedInstance
-    public Vector3 getAngularVelocity();
-
-    /**
-     * Utils contains static methods to operate on RigidBodies in a useful manner, but that can't be placed
-     * directly in RigidBody because it is an interface.
-     */
-    public static final class Utils {
-        private Utils() {
-        }
-
-        /**
-         * Apply the given impulse to the rigid body. This will update both the velocity and angular velocity
-         * based on the mass of the object. An impulse is a force integrated over a time step. If {@code
-         * relPos} is null, it is assumed the impulse is applied to the center of mass.
-         *
-         * @param body    The rigid body to modify
-         * @param impulse The impulse applied to the body
-         * @param relPos  The relative position the impulse affects, or null for the center of mass
-         */
-        public static void addImpulse(RigidBody body, @Const Vector3 impulse, @Const Vector3 relPos) {
-            Vector3 velocity = body.getVelocity();
-            velocity.addScaled(1.0 / body.getMass(), impulse);
-            body.setVelocity(velocity);
-
-            if (relPos != null) {
-                // use the same reuse trick as in addForce()
-                velocity.cross(relPos, impulse);
-                velocity.mul(body.getInertiaTensorInverse(), velocity);
-
-                Vector3 angular = body.getAngularVelocity();
-                angular.add(velocity);
-                body.setAngularVelocity(angular);
-            }
-        }
-    }
+    public Vector3 getAngularVelocity(@ReturnValue Vector3 result);
 }

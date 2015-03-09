@@ -26,10 +26,7 @@
  */
 package com.ferox.physics.dynamics;
 
-import com.ferox.math.Const;
-import com.ferox.math.Matrix4;
-import com.ferox.math.Vector3;
-import com.ferox.math.Vector4;
+import com.ferox.math.*;
 import com.ferox.math.bounds.Plane;
 import com.ferox.physics.collision.ClosestPair;
 import com.ferox.physics.collision.CollisionBody;
@@ -104,7 +101,8 @@ public class ContactManifoldPool {
     private final Vector4 localB = new Vector4();
     private final Vector3 normalInB = new Vector3();
 
-    private final Matrix4 transform = new Matrix4();
+    private final Matrix4 transformA = new Matrix4();
+    private final Matrix4 transformB = new Matrix4();
 
     /**
      * Create a new pool that uses a default processing threshold of {@code 0.1} and a breaking threshold of
@@ -243,6 +241,9 @@ public class ContactManifoldPool {
         Vector3 t1 = new Vector3();
         Vector3 t2 = new Vector3();
 
+        Vector3 vel = new Vector3();
+        Matrix3 inertia = new Matrix3();
+
         for (int manifold = 0; manifold < maxAliveContact; manifold++) {
             if (alive[manifold]) {
                 // load in component data
@@ -258,8 +259,8 @@ public class ContactManifoldPool {
                     continue;
                 }
 
-                Matrix4 ta = bodyA.getTransform();
-                Matrix4 tb = bodyB.getTransform();
+                Matrix4 ta = bodyA.getTransform(transformA);
+                Matrix4 tb = bodyB.getTransform(transformB);
 
                 // update all manifold points that are alive, and generate
                 // constraints for those that are within range
@@ -284,20 +285,20 @@ public class ContactManifoldPool {
                             int contact = setupConstraint(rbA, rbB, normalInB, relPosA, relPosB, t1, t2,
                                                           -mfDistances[index] * ERP / dt,
                                                           mfAppliedContactImpulses[index], mfLifetimes[index],
-                                                          combinedRestitutions[manifold], contactPool);
+                                                          combinedRestitutions[manifold], contactPool, vel, inertia);
                             mfContactConstraints[index] = contact;
 
                             if (!mfFrictionComputed[index]) {
                                 // compute lateral friction direction
                                 Vector3 velA, velB;
                                 if (rbA != null) {
-                                    velA = t1.cross(rbA.getAngularVelocity(), relPosA).add(rbA.getVelocity());
+                                    velA = t1.cross(rbA.getAngularVelocity(vel), relPosA).add(rbA.getVelocity(vel));
                                 } else {
                                     velA = t1.set(0, 0, 0);
                                 }
 
                                 if (rbB != null) {
-                                    velB = t2.cross(rbB.getAngularVelocity(), relPosB).add(rbB.getVelocity());
+                                    velB = t2.cross(rbB.getAngularVelocity(vel), relPosB).add(rbB.getVelocity(vel));
                                 } else {
                                     velB = t2.set(0, 0, 0);
                                 }
@@ -323,7 +324,7 @@ public class ContactManifoldPool {
                             normalInB.set(mfFrictionDirs, vec3Index);
                             int friction = setupConstraint(rbA, rbB, normalInB, relPosA, relPosB, t1, t2, 0.0,
                                                            mfAppliedFrictionImpulses[index], -1,
-                                                           combinedRestitutions[manifold], frictionPool);
+                                                           combinedRestitutions[manifold], frictionPool, vel, inertia);
                             mfFrictionConstraints[index] = friction;
                             frictionPool.setDynamicLimits(friction, contact, combinedFrictions[manifold]);
                         }
@@ -393,10 +394,9 @@ public class ContactManifoldPool {
 
     private int setupConstraint(RigidBody rbA, RigidBody rbB, @Const Vector3 constraintAxis,
                                 @Const Vector3 relPosA, @Const Vector3 relPosB, Vector3 torqueA,
-                                Vector3 torqueB,
-                                // torqueA,B are computed in here
+                                Vector3 torqueB,  // torqueA,B are computed in here
                                 double positionalError, double appliedImpulse, int lifetime,
-                                double combinedRestitution, LinearConstraintPool pool) {
+                                double combinedRestitution, LinearConstraintPool pool, Vector3 tmp, Matrix3 tmpInertia) {
         torqueA.cross(relPosA, constraintAxis);
         torqueB.cross(relPosB, constraintAxis);
 
@@ -406,18 +406,18 @@ public class ContactManifoldPool {
         double denom = 0.0;
 
         if (rbA != null) {
-            relativeVelocity += (constraintAxis.dot(rbA.getVelocity()) +
-                                 torqueA.dot(rbA.getAngularVelocity()));
+            relativeVelocity += (constraintAxis.dot(rbA.getVelocity(tmp)) +
+                                 torqueA.dot(rbA.getAngularVelocity(tmp)));
             // we don't need torqueA anymore, so the multiply and cross can be in-place
             denom += (1.0 / rbA.getMass() +
-                      torqueA.mul(rbA.getInertiaTensorInverse(), torqueA).cross(relPosA).dot(constraintAxis));
+                      torqueA.mul(rbA.getInertiaTensorInverse(tmpInertia), torqueA).cross(relPosA).dot(constraintAxis));
         }
         if (rbB != null) {
-            relativeVelocity -= (constraintAxis.dot(rbB.getVelocity()) +
-                                 torqueB.dot(rbB.getAngularVelocity()));
+            relativeVelocity -= (constraintAxis.dot(rbB.getVelocity(tmp)) +
+                                 torqueB.dot(rbB.getAngularVelocity(tmp)));
             // we don't need torqueB anymore, so the multiply and cross can be in-place
             denom += (1.0 / rbB.getMass() +
-                      torqueB.mul(rbB.getInertiaTensorInverse(), torqueB).cross(relPosB).dot(constraintAxis));
+                      torqueB.mul(rbB.getInertiaTensorInverse(tmpInertia), torqueB).cross(relPosB).dot(constraintAxis));
         }
 
         double jacobian = 1.0 / denom;
@@ -457,8 +457,8 @@ public class ContactManifoldPool {
         localA.set(mfLocalAs, vec4Offset);
         localB.set(mfLocalBs, vec4Offset);
 
-        worldA.mul(bodyA.getTransform(), localA);
-        worldB.mul(bodyB.getTransform(), localB);
+        worldA.mul(bodyA.getTransform(transformA), localA);
+        worldB.mul(bodyB.getTransform(transformB), localB);
 
         worldA.get(mfWorldAs, vec4Offset);
         worldB.get(mfWorldBs, vec4Offset);
@@ -585,15 +585,15 @@ public class ContactManifoldPool {
             worldB.set(pa.x, pa.y, pa.z, 1.0);
             normalInB.set(pair.getContactNormal());
 
-            localA.mul(transform.inverse(bodyB.getTransform()), worldA);
-            localB.mul(transform.inverse(bodyA.getTransform()), worldB);
+            localA.mul(bodyB.getTransform(transformB).inverse(), worldA);
+            localB.mul(bodyA.getTransform(transformA).inverse(), worldB);
         } else {
             worldA.set(pa.x, pa.y, pa.z, 1.0);
             worldB.set(pb.x, pb.y, pb.z, 1.0);
             normalInB.scale(pair.getContactNormal(), -1.0);
 
-            localA.mul(transform.inverse(bodyA.getTransform()), worldA);
-            localB.mul(transform.inverse(bodyB.getTransform()), worldB);
+            localA.mul(bodyA.getTransform(transformA).inverse(), worldA);
+            localB.mul(bodyB.getTransform(transformB).inverse(), worldB);
         }
 
         // find an index to store the point in

@@ -54,17 +54,8 @@ import java.util.Set;
  *
  * @author Michael Ludwig
  */
-public class IntegrationTask implements Task, ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(CollisionBody.class);
-        types.add(RigidBody.class);
-        types.add(Gravity.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
+@ParallelAware(readOnlyComponents = {Gravity.class, CollisionBody.class}, modifiedComponents = {RigidBody.class}, entitySetModified = false)
+public class IntegrationTask implements Task {
     private final Integrator integrator;
     private final Vector3 defaultGravity;
 
@@ -130,16 +121,21 @@ public class IntegrationTask implements Task, ParallelAware {
         AxisAlignedBox union = new AxisAlignedBox();
         boolean firstBounds = true;
 
+        Matrix4 transform = new Matrix4();
+        Vector3 velocity = new Vector3();
+        Vector3 angVelocity = new Vector3();
+        Matrix3 tensor = new Matrix3();
+
         while (iterator.next()) {
-            Matrix4 transform = collisionBody.getTransform();
+            collisionBody.getTransform(transform);
 
             if (rigidBody.isAlive()) {
                 // 1. Integrate velocities accumulated from previous time step
                 predictedRotation.setUpper(transform);
                 predictedPosition.set(transform.m03, transform.m13, transform.m23);
 
-                integrator.integrateLinearVelocity(rigidBody.getVelocity(), dt, predictedPosition);
-                integrator.integrateAngularVelocity(rigidBody.getAngularVelocity(), dt, predictedRotation);
+                integrator.integrateLinearVelocity(rigidBody.getVelocity(velocity), dt, predictedPosition);
+                integrator.integrateAngularVelocity(rigidBody.getAngularVelocity(angVelocity), dt, predictedRotation);
 
                 // push values back into transform
                 setTransform(predictedRotation, predictedPosition, transform);
@@ -158,7 +154,7 @@ public class IntegrationTask implements Task, ParallelAware {
 
             if (rigidBody.isAlive()) {
                 // 3. Compute inertia tensors for bodies
-                Matrix3 tensor = rigidBody.getInertiaTensorInverse();
+                rigidBody.getInertiaTensorInverse(tensor);
 
                 collisionBody.getShape().getInertiaTensor(rigidBody.getMass(), inertia);
                 inertia.set(1.0 / inertia.x, 1.0 / inertia.y, 1.0 / inertia.z);
@@ -169,12 +165,12 @@ public class IntegrationTask implements Task, ParallelAware {
 
                 // 4. Compute and apply gravity force
                 if (gravity.isAlive()) {
-                    force.scale(gravity.getGravity(), rigidBody.getMass());
+                    force.scale(gravity.getGravity(velocity), rigidBody.getMass());
                 } else {
                     force.scale(defaultGravity, rigidBody.getMass());
                 }
 
-                Vector3 lv = rigidBody.getVelocity();
+                Vector3 lv = rigidBody.getVelocity(velocity);
                 integrator.integrateLinearAcceleration(force.scale(force, 1.0 / rigidBody.getMass()), dt, lv);
                 rigidBody.setVelocity(lv);
             }
@@ -210,15 +206,5 @@ public class IntegrationTask implements Task, ParallelAware {
         }
 
         iterator.reset();
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

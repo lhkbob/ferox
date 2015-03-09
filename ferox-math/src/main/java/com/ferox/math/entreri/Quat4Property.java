@@ -28,6 +28,7 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.Const;
 import com.ferox.math.Quat4;
+import com.ferox.math.Vector4;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
@@ -37,24 +38,45 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * Quat4Property is a caching property that wraps a DoubleProperty as a Quat4.
+ * Quat4Property is a value-semantics Property for handling Quat4 instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(Quat4Property.Factory.class)
-public class Quat4Property implements ShareableProperty<Quat4> {
+public class Quat4Property implements Property<Quat4Property>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 4;
 
+    private final Quat4 dflt;
+    private final boolean clone;
     private double[] data;
 
     /**
      * Create a new Quat4Property.
      */
     public Quat4Property() {
+        this(new Quat4(), true);
+    }
+
+    /**
+     * Create a new Quat4Property with the selected default and clone policy.
+     * @param dflt The default quaternion
+     * @param clone True if the property clones the value
+     */
+    public Quat4Property(Quat4 dflt, boolean clone) {
+        this.dflt = new Quat4(dflt);
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dflt
+     * @param clonePolicy
+     */
+    public Quat4Property(DefaultQuat4 dflt, DoNotClone clonePolicy) {
+        this((dflt == null ? new Quat4() : new Quat4(dflt.x(), dflt.y(), dflt.z(), dflt.w())), clonePolicy == null);
+    }
+
     public void get(int index, Quat4 result) {
         result.set(data, index * REQUIRED_ELEMENTS);
     }
@@ -67,11 +89,6 @@ public class Quat4Property implements ShareableProperty<Quat4> {
         Quat4 q = new Quat4();
         get(index, q);
         return q;
-    }
-
-    @Override
-    public Quat4 createShareableInstance() {
-        return new Quat4();
     }
 
     @Override
@@ -93,6 +110,20 @@ public class Quat4Property implements ShareableProperty<Quat4> {
             double t = data[ia + i];
             data[ia + i] = data[ib + i];
             data[ib + i] = t;
+        }
+    }
+
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(Quat4Property src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
         }
     }
 
@@ -124,55 +155,5 @@ public class Quat4Property implements ShareableProperty<Quat4> {
          * @return Default w coordinate
          */
         double w();
-    }
-
-    /**
-     * Default factory implementation for Quat4Properties, supports the {@link DefaultQuat4} annotation to
-     * specify the default quaternion coordinates.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<Quat4Property> {
-        private final Quat4 dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            if (attrs.hasAttribute(DefaultQuat4.class)) {
-                DefaultQuat4 v = attrs.getAttribute(DefaultQuat4.class);
-                dflt = new Quat4(v.x(), v.y(), v.z(), v.w());
-            } else {
-                dflt = new Quat4();
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const Quat4 v) {
-            dflt = new Quat4(v);
-            disableClone = false;
-        }
-
-        @Override
-        public Quat4Property create() {
-            return new Quat4Property();
-        }
-
-        @Override
-        public void setDefaultValue(Quat4Property property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(Quat4Property src, int srcIndex, Quat4Property dst, int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }

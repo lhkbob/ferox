@@ -31,10 +31,11 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NoAutoVersion;
-import com.lhkbob.entreri.Within;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.DoNotAutoVersion;
+import com.lhkbob.entreri.ReturnValue;
+import com.lhkbob.entreri.property.DefaultDouble;
+import com.lhkbob.entreri.property.Reference;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * <p/>
@@ -88,17 +89,15 @@ public interface CollisionBody extends Component {
     public CollisionBody setRestitution(@Within(min = 0.0) double restitution);
 
     /**
-     * Return the matrix instance holding this Collidable's world transform.
-     *
-     * @return The world transform of the Collidable
+     * Return the world transform of this collision body, storing it within result.
+     * @param result The output
+     * @return The same instance as passed in
      */
-    @Const
-    @SharedInstance
     @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0, //
-                    m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0, //
-                    m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0, //
-                    m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
-    public Matrix4 getTransform();
+            m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0, //
+            m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0, //
+            m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
+    public Matrix4 getTransform(@ReturnValue Matrix4 result);
 
     /**
      * Assign a new Shape to use for this Collidable.
@@ -109,6 +108,7 @@ public interface CollisionBody extends Component {
      *
      * @throws NullPointerException if shape is null
      */
+    @Reference
     public CollisionBody setShape(Shape shape);
 
     /**
@@ -130,13 +130,11 @@ public interface CollisionBody extends Component {
     public CollisionBody setTransform(@Const Matrix4 t);
 
     /**
-     * Return the current world bounds of this CollisionBody.
+     * Return the current world bounds of this CollisionBody, storing it in the result AABB
      *
      * @return The world bounds of this CollisionBody
      */
-    @Const
-    @SharedInstance
-    public AxisAlignedBox getWorldBounds();
+    public AxisAlignedBox getWorldBounds(@ReturnValue AxisAlignedBox result);
 
     /**
      * Set the world transform of this collision body. A task is responsible for computing the world bounds
@@ -148,6 +146,6 @@ public interface CollisionBody extends Component {
      *
      * @return This component
      */
-    @NoAutoVersion
+    @DoNotAutoVersion
     public CollisionBody setWorldBounds(@Const AxisAlignedBox bounds);
 }

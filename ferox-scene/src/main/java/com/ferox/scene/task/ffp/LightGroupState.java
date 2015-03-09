@@ -57,6 +57,8 @@ public class LightGroupState implements State {
         LightBatch currentState = new LightBatch(maxLights); // always have one state, even if empty
         states.add(currentState);
 
+        ColorRGB color = new ColorRGB();
+        Matrix4 transform = new Matrix4();
         int index = 0;
         for (Light light : lightGroup) {
             Transform t = light.getEntity().get(Transform.class);
@@ -64,9 +66,9 @@ public class LightGroupState implements State {
 
             double cutoff = light.getCutoffAngle();
             if (Double.isNaN(cutoff)) {
-                gl.setDirectionLight(light, t.getMatrix());
+                gl.setDirectionLight(light, t.getMatrix(transform), color);
             } else {
-                gl.setSpotOrPointLight(light, t.getMatrix());
+                gl.setSpotOrPointLight(light, t.getMatrix(transform), color);
             }
 
             if (index >= maxLights) {
@@ -202,16 +204,16 @@ public class LightGroupState implements State {
 
         Light source;
 
-        public void setDirectionLight(Light light, Matrix4 transform) {
+        public void setDirectionLight(Light light, Matrix4 transform, ColorRGB color) {
             position = new Vector4(-transform.m02, -transform.m12, -transform.m22, 0.0);
-            this.color = convertColor(light.getColor());
+            this.color = convertColor(light.getColor(color));
             spotlightDirection = null;
             source = light;
         }
 
-        public void setSpotOrPointLight(Light light, Matrix4 transform) {
+        public void setSpotOrPointLight(Light light, Matrix4 transform, ColorRGB color) {
             position = new Vector4(transform.m03, transform.m13, transform.m23, 1.0);
-            this.color = convertColor(light.getColor());
+            this.color = convertColor(light.getColor(color));
             spotlightDirection = new Vector3(transform.m02, transform.m12, transform.m22);
             this.cutoffAngle = light.getCutoffAngle();
             this.falloff = light.getFalloffDistance();

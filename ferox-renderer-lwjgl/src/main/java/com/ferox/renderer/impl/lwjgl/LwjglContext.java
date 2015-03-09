@@ -30,9 +30,7 @@ import com.ferox.renderer.Capabilities;
 import com.ferox.renderer.FixedFunctionRenderer;
 import com.ferox.renderer.FrameworkException;
 import com.ferox.renderer.GlslRenderer;
-import com.ferox.renderer.impl.OpenGLContext;
-import com.ferox.renderer.impl.ShaderFixedFunctionEmulator;
-import com.ferox.renderer.impl.SharedState;
+import com.ferox.renderer.impl.*;
 import com.ferox.renderer.impl.resources.BufferImpl;
 import com.ferox.renderer.impl.resources.ShaderImpl;
 import com.ferox.renderer.impl.resources.TextureImpl;
@@ -54,7 +52,7 @@ public class LwjglContext implements OpenGLContext {
 
     private final SharedState sharedState;
     private final FixedFunctionRenderer fixed;
-    private final LwjglGlslRenderer glsl;
+    private final GlslRenderer glsl;
 
     private int fbo;
     private int vao;
@@ -86,13 +84,16 @@ public class LwjglContext implements OpenGLContext {
         sharedState = new SharedState(caps.getMaxTextureUnits());
 
         LwjglRendererDelegate shared = new LwjglRendererDelegate(this, sharedState);
-        glsl = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
+        LwjglGlslRenderer baseRenderer = new LwjglGlslRenderer(this, shared, caps.getMaxVertexAttributes());
+        glsl = (caps.isDebugEnabled() ? new DebugGlslRenderer(this, baseRenderer) : baseRenderer);
 
         if (caps.getMajorVersion() < 3) {
             vao = 0; // set to 0 so we don't use the vao when rendering
-            fixed = new LwjglFixedFunctionRenderer(this, shared);
+            LwjglFixedFunctionRenderer baseFFP = new LwjglFixedFunctionRenderer(this, shared);
+            fixed = (caps.isDebugEnabled() ? new DebugFixedFunctionRenderer(this, baseFFP) : baseFFP);
         } else {
             vao = -1; // set to negative to create when we're first made current
+            // we don't bother wrapping this in a debug ffp renderer since glsl will already be debug
             fixed = new ShaderFixedFunctionEmulator(glsl);
         }
     }

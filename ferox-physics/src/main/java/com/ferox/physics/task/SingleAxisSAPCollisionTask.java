@@ -52,16 +52,8 @@ import java.util.Set;
  *
  * @author Michael Ludwig
  */
-public class SingleAxisSAPCollisionTask extends CollisionTask implements ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(CollisionBody.class);
-        types.add(RigidBody.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
+@ParallelAware(readOnlyComponents = { CollisionBody.class, RigidBody.class}, modifiedComponents = {}, entitySetModified = false)
+public class SingleAxisSAPCollisionTask extends CollisionTask {
     private final Bag<Entity> bodies;
 
     // cached instances that are normally local to process()
@@ -115,8 +107,10 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
 
         iterator.reset();
         int i = 0;
+        AxisAlignedBox aabb = new AxisAlignedBox();
+        AxisAlignedBox aabb2 = new AxisAlignedBox();
         while (iterator.next()) {
-            AxisAlignedBox aabb = body.getWorldBounds();
+            body.getWorldBounds(aabb);
             edges[(i << 1)] = Functions.sortableFloatToIntBits((float) aabb.min.x);
             edges[(i << 1) + 1] = Functions.sortableFloatToIntBits((float) aabb.max.x);
             edgeLabels[(i << 1)] = i;
@@ -165,7 +159,7 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
                     CollisionBody bodyA = bodies.get(edgeLabels[openIndex]).get(CollisionBody.class);
                     CollisionBody bodyB = bodies.get(currLabel).get(CollisionBody.class);
 
-                    if (bodyA.getWorldBounds().intersects(bodyB.getWorldBounds())) {
+                    if (bodyA.getWorldBounds(aabb).intersects(bodyB.getWorldBounds(aabb2))) {
                         notifyPotentialContact(bodyA, bodyB);
                     }
 
@@ -185,16 +179,6 @@ public class SingleAxisSAPCollisionTask extends CollisionTask implements Paralle
 
         Profiler.pop();
         return super.process(system, job);
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 
     // use quick sort to sort elements in x, swapping y along with it

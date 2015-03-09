@@ -28,7 +28,7 @@ package com.ferox.scene;
 
 import com.ferox.renderer.Texture;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NotNull;
+import com.lhkbob.entreri.property.Reference;
 
 /**
  * <p/>
@@ -71,6 +71,7 @@ public interface NormalMap extends Component {
      *
      * @return This TextureMap's texture
      */
+    @Reference(nullable = false)
     public Texture getTexture();
 
     /**
@@ -80,5 +81,5 @@ public interface NormalMap extends Component {
      *
      * @return This component for chaining purposes
      */
-    public NormalMap setTexture(@NotNull Texture texture);
+    public NormalMap setTexture(Texture texture);
 }

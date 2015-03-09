@@ -29,7 +29,7 @@ package com.ferox.scene;
 import com.ferox.math.ColorRGB;
 import com.ferox.math.Const;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * LambertianDiffuseModel is a component that adds diffuse lighting to an entity. It uses the Lambertian model
@@ -50,9 +50,7 @@ public interface LambertianDiffuseModel extends Component {
      *
      * @return The diffuse color
      */
-    @Const
-    @SharedInstance
-    public ColorRGB getColor();
+    public ColorRGB getColor(@ReturnValue ColorRGB result);
 
     /**
      * Set the diffuse color for this entity.

@@ -32,7 +32,7 @@ import com.ferox.renderer.*;
 /**
  *
  */
-public class DebugGlslRenderer implements GlslRenderer {
+public class DebugGlslRenderer implements GlslRenderer, Activateable {
     private final GlslRenderer delegate;
     private final OpenGLContext context;
 
@@ -635,5 +635,12 @@ public class DebugGlslRenderer implements GlslRenderer {
     public void setViewport(int x, int y, int width, int height) {
         delegate.setViewport(x, y, width, height);
         checkGLErrors();
+    }
+
+    @Override
+    public void activate(AbstractSurface active) {
+        if (delegate instanceof Activateable) {
+            ((Activateable) delegate).activate(active);
+        }
     }
 }

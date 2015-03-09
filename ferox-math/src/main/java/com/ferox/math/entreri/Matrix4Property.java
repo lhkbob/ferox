@@ -28,6 +28,7 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
+import com.ferox.math.Quat4;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
@@ -37,28 +38,50 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * Matrix4Property is a caching property that wraps a DoubleProperty as a Matrix4.
+ * Matrix4Property is a value-semantics Property for handling Matrix4 instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(Matrix4Property.Factory.class)
-public class Matrix4Property implements ShareableProperty<Matrix4> {
+public class Matrix4Property implements Property<Matrix4Property>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 16;
 
+    private final Matrix4 dflt;
+    private final boolean clone;
     private double[] data;
 
     /**
      * Create a new Matrix4Property.
      */
     public Matrix4Property() {
+        this(new Matrix4(), true);
+    }
+
+    /**
+     * Create a new Matrix4Property with the selected default and clone policy.
+     * @param dflt The default matrix
+     * @param clone True if the property clones the value
+     */
+    public Matrix4Property(Matrix4 dflt, boolean clone) {
+        this.dflt = new Matrix4(dflt);
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dflt
+     * @param clonePolicy
+     */
+    public Matrix4Property(DefaultMatrix4 dflt, DoNotClone clonePolicy) {
+        this((dflt == null ? new Matrix4() : new Matrix4(dflt.m00(), dflt.m01(), dflt.m02(), dflt.m03(),
+                dflt.m10(), dflt.m11(), dflt.m12(), dflt.m13(), dflt.m20(), dflt.m21(), dflt.m22(), dflt.m23(),
+                dflt.m30(), dflt.m31(), dflt.m32(), dflt.m33())), clonePolicy == null);
+    }
+
     public void get(int index, Matrix4 result) {
         result.set(data, index * REQUIRED_ELEMENTS, false);
     }
-
 
     public void set(int index, @Const Matrix4 v) {
         v.get(data, index * REQUIRED_ELEMENTS, false);
@@ -68,11 +91,6 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
         Matrix4 m = new Matrix4();
         get(index, m);
         return m;
-    }
-
-    @Override
-    public Matrix4 createShareableInstance() {
-        return new Matrix4();
     }
 
     @Override
@@ -94,6 +112,20 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
             double t = data[ia + i];
             data[ia + i] = data[ib + i];
             data[ib + i] = t;
+        }
+    }
+
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(Matrix4Property src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
         }
     }
 
@@ -185,56 +217,5 @@ public class Matrix4Property implements ShareableProperty<Matrix4> {
          * @return Default m33 value
          */
         double m33();
-    }
-
-    /**
-     * Default factory implementation for Matrix4Properties, supports the {@link DefaultMatrix4} annotation to
-     * specify the default matrix coordinates.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<Matrix4Property> {
-        private final Matrix4 dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            if (attrs.hasAttribute(DefaultMatrix4.class)) {
-                DefaultMatrix4 v = attrs.getAttribute(DefaultMatrix4.class);
-                dflt = new Matrix4(v.m00(), v.m01(), v.m02(), v.m03(), v.m10(), v.m11(), v.m12(), v.m13(),
-                                   v.m20(), v.m21(), v.m22(), v.m23(), v.m30(), v.m31(), v.m32(), v.m33());
-            } else {
-                dflt = new Matrix4();
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const Matrix4 v) {
-            dflt = new Matrix4(v);
-            disableClone = false;
-        }
-
-        @Override
-        public Matrix4Property create() {
-            return new Matrix4Property();
-        }
-
-        @Override
-        public void setDefaultValue(Matrix4Property property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(Matrix4Property src, int srcIndex, Matrix4Property dst, int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }

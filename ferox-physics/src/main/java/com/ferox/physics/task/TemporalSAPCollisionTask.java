@@ -32,11 +32,13 @@ import com.ferox.physics.collision.CollisionAlgorithmProvider;
 import com.ferox.physics.collision.CollisionBody;
 import com.ferox.physics.collision.CollisionPair;
 import com.ferox.physics.collision.DefaultCollisionAlgorithmProvider;
+import com.ferox.physics.dynamics.RigidBody;
 import com.ferox.util.profile.Profiler;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.task.Job;
+import com.lhkbob.entreri.task.ParallelAware;
 import com.lhkbob.entreri.task.Task;
 
 import java.util.Arrays;
@@ -50,6 +52,7 @@ import java.util.Set;
  *
  * @author Michael Ludwig
  */
+@ParallelAware(readOnlyComponents = {RigidBody.class}, modifiedComponents = {CollisionBody.class}, entitySetModified = false)
 public class TemporalSAPCollisionTask extends CollisionTask {
     private final EdgeStore[] edges;
     private final Set<CollisionPair> overlappingPairCache;
@@ -100,8 +103,8 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             body = bodyIterator.addRequired(CollisionBody.class);
 
             for (int i = 0; i < edges.length; i++) {
-                edges[i].maxBodyEdges = system.decorate(CollisionBody.class, new IntProperty.Factory(-1));
-                edges[i].minBodyEdges = system.decorate(CollisionBody.class, new IntProperty.Factory(-1));
+                edges[i].maxBodyEdges = system.decorate(CollisionBody.class, new IntProperty(-1, false));
+                edges[i].minBodyEdges = system.decorate(CollisionBody.class, new IntProperty(-1, false));
             }
         }
 
@@ -119,8 +122,10 @@ public class TemporalSAPCollisionTask extends CollisionTask {
             edges[i].removeDeadEdges();
         }
 
+        AxisAlignedBox aabb1 = new AxisAlignedBox();
+        AxisAlignedBox aabb2 = new AxisAlignedBox();
         while (bodyIterator.next()) {
-            AxisAlignedBox aabb = body.getWorldBounds();
+            AxisAlignedBox aabb = body.getWorldBounds(aabb1);
 
             if (edges[0].minBodyEdges.get(body.getIndex()) < 0) {
                 // add body to edge lists
@@ -143,7 +148,7 @@ public class TemporalSAPCollisionTask extends CollisionTask {
         for (CollisionPair pair : overlappingPairCache) {
             if (pair.getBodyA().isAlive() && pair.getBodyB().isAlive()) {
                 // both components are still valid check world bounds and then do further tests
-                if (pair.getBodyA().getWorldBounds().intersects(pair.getBodyB().getWorldBounds())) {
+                if (pair.getBodyA().getWorldBounds(aabb1).intersects(pair.getBodyB().getWorldBounds(aabb2))) {
                     notifyPotentialContact(pair.getBodyA(), pair.getBodyB());
                 }
             }

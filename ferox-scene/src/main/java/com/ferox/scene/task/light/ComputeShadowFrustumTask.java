@@ -49,16 +49,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ComputeShadowFrustumTask implements Task, ParallelAware {
-    private static final Set<Class<? extends Component>> COMPONENTS;
-
-    static {
-        Set<Class<? extends Component>> types = new HashSet<>();
-        types.add(Light.class);
-        types.add(Transform.class);
-        COMPONENTS = Collections.unmodifiableSet(types);
-    }
-
+@ParallelAware(readOnlyComponents = {Light.class, Transform.class}, modifiedComponents = {}, entitySetModified = false)
+public class ComputeShadowFrustumTask implements Task {
     private AxisAlignedBox sceneBounds;
     private FrustumResult camera;
 
@@ -114,16 +106,16 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         }
 
         Profiler.push("compute-shadow-frustum");
-
+        Matrix4 lightMatrix = new Matrix4();
         while (iterator.next()) {
             if (light.isShadowCaster()) {
                 Frustum smFrustum = null;
                 if (Double.isNaN(light.getCutoffAngle())) {
                     // direction light
-                    smFrustum = computeDirectionLightFrustum(light, transform);
+                    smFrustum = computeDirectionLightFrustum(light, transform, lightMatrix);
                 } else if (light.getCutoffAngle() >= 0 && light.getCutoffAngle() <= 90) {
                     // spot light
-                    smFrustum = computeSpotLightFrustum(light, transform);
+                    smFrustum = computeSpotLightFrustum(light, transform, lightMatrix);
                 }
 
                 if (smFrustum != null) {
@@ -138,12 +130,12 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         return null;
     }
 
-    private Frustum computeDirectionLightFrustum(Light light, Transform t) {
+    private Frustum computeDirectionLightFrustum(Light light, Transform t, Matrix4 lightMatrix) {
         // Implement basic frustum improvement techniques from:
         // http://msdn.microsoft.com/en-us/library/windows/desktop/ee416324(v=vs.85).aspx
         Frustum v = camera.getFrustum();
         //        Surface s = ((Component<Camera>) camera.getSource()).getData().getSurface();
-        Matrix4 lightMatrix = t.getMatrix();
+        t.getMatrix(lightMatrix);
 
         Frustum f = new Frustum(true, -1, 1, -1, 1, -1, 1);
         f.setOrientation(new Vector3(), lightMatrix.getUpperMatrix());
@@ -275,23 +267,13 @@ public class ComputeShadowFrustumTask implements Task, ParallelAware {
         return extent;
     }
 
-    private Frustum computeSpotLightFrustum(Light light, Transform t) {
+    private Frustum computeSpotLightFrustum(Light light, Transform t, Matrix4 lightMatrix) {
         // clamp near and far planes to the falloff distance if possible, 
         // otherwise select a depth range that likely will not cause any problems
         double near = (light.getFalloffDistance() > 0 ? Math.min(.1 * light.getFalloffDistance(), .1) : .1);
         double far = (light.getFalloffDistance() > 0 ? light.getFalloffDistance() : 1000);
         Frustum f = new Frustum(light.getCutoffAngle() * 2, 1.0, near, far);
-        f.setOrientation(t.getMatrix());
+        f.setOrientation(t.getMatrix(lightMatrix));
         return f;
-    }
-
-    @Override
-    public Set<Class<? extends Component>> getAccessedComponents() {
-        return COMPONENTS;
-    }
-
-    @Override
-    public boolean isEntitySetModified() {
-        return false;
     }
 }

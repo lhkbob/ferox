@@ -38,13 +38,11 @@ import com.ferox.renderer.impl.resources.AbstractResource;
  */
 public class HardwareAccessLayerImpl implements HardwareAccessLayer {
     private final FrameworkImpl framework;
-    private final boolean useDebugRenderers;
 
     private ContextImpl currentContext;
 
-    public HardwareAccessLayerImpl(FrameworkImpl framework, boolean useDebugRenderers) {
+    public HardwareAccessLayerImpl(FrameworkImpl framework) {
         this.framework = framework;
-        this.useDebugRenderers = useDebugRenderers;
     }
 
     @Override
@@ -125,11 +123,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                     ((Activateable) selectedRenderer).activate(surface);
                 }
 
-                // we wrap in debug mode afterwards because it does not implement activateable
-                if (useDebugRenderers) {
-                    selectedRenderer = new DebugGlslRenderer(context, (GlslRenderer) selectedRenderer);
-                }
-
                 selectedRenderer.reset();
             }
 
@@ -147,12 +140,6 @@ public class HardwareAccessLayerImpl implements HardwareAccessLayer {
                 selectedRenderer = context.getFixedFunctionRenderer();
                 if (selectedRenderer instanceof Activateable) {
                     ((Activateable) selectedRenderer).activate(surface);
-                }
-
-                // we wrap in debug mode afterwards because it does not implement activateable
-                if (useDebugRenderers) {
-                    selectedRenderer = new DebugFixedFunctionRenderer(context,
-                                                                      (FixedFunctionRenderer) selectedRenderer);
                 }
 
                 selectedRenderer.reset();

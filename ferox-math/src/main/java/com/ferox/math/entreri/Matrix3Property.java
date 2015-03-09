@@ -28,6 +28,7 @@ package com.ferox.math.entreri;
 
 import com.ferox.math.Const;
 import com.ferox.math.Matrix3;
+import com.ferox.math.Matrix4;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.ElementType;
@@ -37,24 +38,46 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 
 /**
- * Matrix3Property is a caching property that wraps a DoubleProperty as a Matrix3.
+ * Matrix3Property is a value-semantics Property for handling Matrix3 instances.
+ * Internally it packs them into a single array for more efficient storage.
  *
  * @author Michael Ludwig
  */
-@Factory(Matrix3Property.Factory.class)
-public class Matrix3Property implements ShareableProperty<Matrix3> {
+public class Matrix3Property implements Property<Matrix3Property>, Property.ValueSemantics {
     private static final int REQUIRED_ELEMENTS = 9;
 
+    private final Matrix3 dflt;
+    private final boolean clone;
     private double[] data;
 
     /**
      * Create a new Matrix3Property.
      */
     public Matrix3Property() {
+        this(new Matrix3(), true);
+    }
+
+    /**
+     * Create a new Matrix3Property with the selected default and clone policy.
+     * @param dflt The default matrix
+     * @param clone True if the property clones the value
+     */
+    public Matrix3Property(Matrix3 dflt, boolean clone) {
+        this.dflt = new Matrix3(dflt);
+        this.clone = clone;
         data = new double[REQUIRED_ELEMENTS];
     }
 
-    @Override
+    /**
+     * Constructor suitable for code generation with entreri.
+     * @param dflt
+     * @param clonePolicy
+     */
+    public Matrix3Property(DefaultMatrix3 dflt, DoNotClone clonePolicy) {
+        this((dflt == null ? new Matrix3() : new Matrix3(dflt.m00(), dflt.m01(), dflt.m02(),
+                dflt.m10(), dflt.m11(), dflt.m12(), dflt.m20(), dflt.m21(), dflt.m22())), clonePolicy == null);
+    }
+
     public void get(int index, Matrix3 result) {
         result.set(data, index * REQUIRED_ELEMENTS, false);
     }
@@ -67,11 +90,6 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
         Matrix3 m = new Matrix3();
         get(index, m);
         return m;
-    }
-
-    @Override
-    public Matrix3 createShareableInstance() {
-        return new Matrix3();
     }
 
     @Override
@@ -93,6 +111,20 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
             double t = data[ia + i];
             data[ia + i] = data[ib + i];
             data[ib + i] = t;
+        }
+    }
+
+    @Override
+    public void setDefaultValue(int index) {
+        set(index, dflt);
+    }
+
+    @Override
+    public void clone(Matrix3Property src, int srcIndex, int dstIndex) {
+        if (!src.clone || !clone) {
+            setDefaultValue(dstIndex);
+        } else {
+            System.arraycopy(src.data, srcIndex * REQUIRED_ELEMENTS, data, dstIndex * REQUIRED_ELEMENTS, REQUIRED_ELEMENTS);
         }
     }
 
@@ -149,56 +181,5 @@ public class Matrix3Property implements ShareableProperty<Matrix3> {
          * @return Default m22 value
          */
         double m22();
-    }
-
-    /**
-     * Default factory implementation for Matrix3Properties, supports the {@link DefaultMatrix3} annotation to
-     * specify the default matrix coordinates.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<Matrix3Property> {
-        private final Matrix3 dflt;
-        private final boolean disableClone;
-
-        public Factory(Attributes attrs) {
-            if (attrs.hasAttribute(DefaultMatrix3.class)) {
-                DefaultMatrix3 v = attrs.getAttribute(DefaultMatrix3.class);
-                dflt = new Matrix3(v.m00(), v.m01(), v.m02(), v.m10(), v.m11(), v.m12(), v.m20(), v.m21(),
-                                   v.m22());
-            } else {
-                dflt = new Matrix3();
-            }
-
-            disableClone = attrs.hasAttribute(Clone.class) &&
-                           attrs.getAttribute(Clone.class).value() == Clone.Policy.DISABLE;
-        }
-
-        public Factory(@Const Matrix3 v) {
-            dflt = new Matrix3(v);
-            disableClone = false;
-        }
-
-        @Override
-        public Matrix3Property create() {
-            return new Matrix3Property();
-        }
-
-        @Override
-        public void setDefaultValue(Matrix3Property property, int index) {
-            property.set(index, dflt);
-        }
-
-        @Override
-        public void clone(Matrix3Property src, int srcIndex, Matrix3Property dst, int dstIndex) {
-            if (disableClone) {
-                setDefaultValue(dst, dstIndex);
-            } else {
-                int ia = srcIndex * REQUIRED_ELEMENTS;
-                int ib = dstIndex * REQUIRED_ELEMENTS;
-
-                System.arraycopy(src.data, ia, dst.data, ib, REQUIRED_ELEMENTS);
-            }
-        }
     }
 }

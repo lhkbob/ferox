@@ -30,7 +30,7 @@ import com.ferox.math.Const;
 import com.ferox.math.Matrix4;
 import com.ferox.math.entreri.Matrix4Property.DefaultMatrix4;
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.ReturnValue;
 
 /**
  * <p/>
@@ -58,11 +58,9 @@ public interface Transform extends Component {
      *
      * @return The current world affine transform matrix
      */
-    @Const
-    @SharedInstance
     @DefaultMatrix4(m00 = 1.0, m01 = 0.0, m02 = 0.0, m03 = 0.0,
                     m10 = 0.0, m11 = 1.0, m12 = 0.0, m13 = 0.0,
                     m20 = 0.0, m21 = 0.0, m22 = 1.0, m23 = 0.0,
                     m30 = 0.0, m31 = 0.0, m32 = 0.0, m33 = 1.0)
-    public Matrix4 getMatrix();
+    public Matrix4 getMatrix(@ReturnValue Matrix4 result);
 }

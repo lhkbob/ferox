@@ -57,6 +57,7 @@ import java.util.concurrent.CancellationException;
  * @author Michael Ludwig
  */
 public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
+    // implementation note, mutating the static Display must be done on the context thread on Windows, or it will lock up
     private final LwjglStaticDisplayDestructible impl;
 
     private final DisplayMode displayMode;
@@ -320,10 +321,15 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
                 impl.parentFrame.setTitle(title);
             }
         } else {
-            synchronized (impl) {
-                // Display.setTitle() does not require the display to be current.
-                Display.setTitle(title);
-            }
+            getFramework().getContextManager().invokeOnContextThread(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    synchronized (impl) {
+                        Display.setTitle(title);
+                    }
+                    return null;
+                }
+            }, false);
         }
     }
 
@@ -355,32 +361,44 @@ public class LwjglStaticDisplaySurface extends AbstractOnscreenSurface {
             throw new IllegalArgumentException("Dimensions must be at least 1");
         }
 
-        synchronized (impl) {
-            if (impl.parentFrame != null) {
+        if (impl.parentFrame != null) {
+            synchronized (impl) {
                 impl.parentFrame.setSize(width, height);
-            } else if (!Display.isFullscreen()) {
-                try {
-                    Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(width, height));
-                } catch (LWJGLException e) {
-                    throw new FrameworkException("Unexpected error changing window size", e);
-                }
-            } else {
-                throw new IllegalStateException("Surface is fullscreen");
             }
+        } else if (!Display.isFullscreen()) {
+            getFramework().getContextManager().invokeOnContextThread(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    try {
+                        Display.setDisplayMode(new org.lwjgl.opengl.DisplayMode(width, height));
+                    } catch (LWJGLException e) {
+                        throw new FrameworkException("Unexpected error changing window size", e);
+                    }
+                    return null;
+                }
+            }, false);
+        } else {
+            throw new IllegalStateException("Surface is fullscreen");
         }
     }
 
     @Override
     public void setLocation(final int x, final int y) {
-        synchronized (impl) {
             if (impl.parentFrame != null) {
-                impl.parentFrame.setLocation(x, y);
+                synchronized (impl) {
+                    impl.parentFrame.setLocation(x, y);
+                }
             } else if (!Display.isFullscreen()) {
-                Display.setLocation(x, y);
+                getFramework().getContextManager().invokeOnContextThread(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        Display.setLocation(x, y);
+                        return null;
+                    }
+                }, false);
             } else {
                 throw new IllegalStateException("Surface is fullscreen");
             }
-        }
     }
 
     @Override

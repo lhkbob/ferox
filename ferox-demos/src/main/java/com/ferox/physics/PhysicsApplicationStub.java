@@ -253,8 +253,9 @@ public class PhysicsApplicationStub extends ApplicationStub {
             CollisionBody cb = it.addRequired(CollisionBody.class);
             Transform t = it.addRequired(Transform.class);
 
+            Matrix4 m = new Matrix4();
             while (it.next()) {
-                t.setMatrix(cb.getTransform());
+                t.setMatrix(cb.getTransform(m));
             }
             return null;
         }
