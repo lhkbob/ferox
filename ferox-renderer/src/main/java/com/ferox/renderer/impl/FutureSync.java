@@ -34,6 +34,8 @@ import java.util.concurrent.TimeoutException;
 /**
  * FutureSync is a Future implementation that relies on a {@link Sync} to manage the Future's state and
  * provide the final value to return from {@link #get()}.
+ * TODO: re-evaluate if this is necessary, or if we can use FutureTask and/or
+ * CompleteableFuture?
  *
  * @param <V>
  *

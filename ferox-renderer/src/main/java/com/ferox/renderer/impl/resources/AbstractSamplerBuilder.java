@@ -61,6 +61,7 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     private final Vector4 borderColor;
     private boolean interpolated;
     private Sampler.WrapMode wrapMode;
+    private boolean generateMipmaps;
 
     private Renderer.Comparison depthComparison;
 
@@ -98,6 +99,11 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
 
     public B borderColor(@Const Vector4 color) {
         borderColor.set(color);
+        return builderType.cast(this);
+    }
+
+    public B generateMipmaps(boolean generate) {
+        generateMipmaps = generate;
         return builderType.cast(this);
     }
 
@@ -305,6 +311,21 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             }
         }
 
+        // if we are generating mipmaps, make sure the 0th level is formatted, copy its format into all the
+        // lower levels and erase image data in the lower levels
+        if (generateMipmaps) {
+            for (int i = 0; i < imageFormats.length; i++) {
+                if (imageFormats[i][0] == null) {
+                    throw new ResourceException("Must specify image format for 0th level when generating mipmaps");
+                }
+                TextureImpl.FullFormat format = imageFormats[i][0];
+                for (int j = 1; j < imageFormats[i].length; j++) {
+                    imageFormats[i][j] = format;
+                    imageData[i][j] = null;
+                }
+            }
+        }
+
         // detect base and max mipmap ranges (using format and not image array since
         // the array can be null for RTT textures)
         detectedBaseMipmap = Integer.MAX_VALUE;
@@ -425,6 +446,10 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
             }
         }
 
+        if (generateMipmaps) {
+            generateMipmaps(ctx);
+        }
+
         setBorderColor(ctx, borderColor);
         setAnisotropy(ctx, anisotropy);
         setWrapMode(ctx, wrapMode);
@@ -434,6 +459,8 @@ public abstract class AbstractSamplerBuilder<T extends Sampler, B extends Sample
     }
 
     protected abstract int generateTextureID(OpenGLContext context);
+
+    protected abstract void generateMipmaps(OpenGLContext context);
 
     protected abstract void pushImage(OpenGLContext context, int image, int mipmap, ByteBuffer imageData,
                                       TextureImpl.FullFormat format, int width, int height, int depth);

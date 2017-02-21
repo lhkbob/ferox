@@ -901,7 +901,7 @@ public interface Renderer {
      * @param width  The width of the new viewport
      * @param height The height of the new viewport
      *
-     * @throws IllegalArgumentException if any argument is less than 0
+     * @throws IllegalArgumentException if width or height is less than 0
      */
     public void setViewport(int x, int y, int width, int height);
 }

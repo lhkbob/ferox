@@ -185,8 +185,16 @@ public interface Shader extends Resource {
      * Variable type representing uniforms in a shader.
      */
     public static interface Uniform extends Variable {
+        /**
+         * @param index The logical element of the array
+         * @return The GLSL-index of the ith element of the uniform array
+         */
+        public int getIndex(int index);
     }
 
+    /**
+     * Variable type representing attributes in a shader.
+     */
     public static interface Attribute extends Variable {
     }
 
@@ -219,7 +227,6 @@ public interface Shader extends Resource {
      * name.
      *
      * @param name The uniform variable name
-     *
      * @return The Uniform for the given name, or null if it doesn't exist
      */
     public Uniform getUniform(String name);
@@ -235,7 +242,6 @@ public interface Shader extends Resource {
      * index.
      *
      * @param name The attribute variable name
-     *
      * @return The Attribute for the given name, or null if it doesn't exist
      */
     public Attribute getAttribute(String name);
@@ -251,7 +257,6 @@ public interface Shader extends Resource {
      * return {@code n}.
      *
      * @param outVariableName The output variable name
-     *
      * @return The color buffer the output is stored into, or -1 if no mapping is found for that variable
      */
     //

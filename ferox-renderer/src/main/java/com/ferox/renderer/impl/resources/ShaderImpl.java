@@ -114,8 +114,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         private final VariableType type;
         private final String name;
-        private final int index;
-        private final int length;
+        private final int[] indices;
 
         public final FloatBuffer floatValues; // non-null for float types only
         public final IntBuffer intValues; // non-null for int and sampler types only
@@ -126,14 +125,13 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         public boolean initialized;
 
-        public UniformImpl(ShaderHandle owner, VariableType type, int length, String name, int index) {
+        public UniformImpl(ShaderHandle owner, VariableType type, String name, int[] indices) {
             this.owner = owner;
             this.type = type;
-            this.length = length;
             this.name = name;
-            this.index = index;
+            this.indices = indices;
 
-            int bufferSize = type.getPrimitiveCount() * length;
+            int bufferSize = type.getPrimitiveCount() * indices.length;
             if (type.getPrimitiveType() == DataType.FLOAT) {
                 floatValues = BufferUtil.newByteBuffer(DataType.FLOAT, bufferSize).asFloatBuffer();
                 intValues = null;
@@ -145,7 +143,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
             if (type.getPrimitiveType() == null) {
                 // sampler type
-                textures = new TextureImpl.TextureHandle[length];
+                textures = new TextureImpl.TextureHandle[indices.length];
             } else {
                 textures = null;
             }
@@ -157,8 +155,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
             owner = u.owner;
             type = u.type;
             name = u.name;
-            index = u.index;
-            length = u.length;
+            indices = u.indices;
 
             if (u.textures == null) {
                 textures = null;
@@ -188,7 +185,7 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         @Override
         public int getLength() {
-            return length;
+            return indices.length;
         }
 
         @Override
@@ -198,7 +195,12 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         @Override
         public int getIndex() {
-            return index;
+            return indices[0];
+        }
+
+        @Override
+        public int getIndex(int index) {
+            return indices[index];
         }
 
         @Override
@@ -208,10 +210,10 @@ public class ShaderImpl extends AbstractResource<ShaderImpl.ShaderHandle> implem
 
         @Override
         public String toString() {
-            if (length > 1) {
-                return String.format("uniform %s[%d] %s at %d", type, length, name, index);
+            if (indices.length > 1) {
+                return String.format("uniform %s[%d] %s at %d", type, indices.length, name, indices[0]);
             } else {
-                return String.format("uniform %s %s at %d", type, name, index);
+                return String.format("uniform %s %s at %d", type, name, indices[0]);
             }
         }
     }

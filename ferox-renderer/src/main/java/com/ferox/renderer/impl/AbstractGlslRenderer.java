@@ -113,8 +113,9 @@ public abstract class AbstractGlslRenderer extends AbstractRenderer implements G
         return attr.getIndex() + index * attr.getType().getColumnCount() + column;
     }
 
-    private static int ix(Shader.Uniform uniform, int index) {
-        return uniform.getIndex() + index;
+    private static int ix(ShaderImpl.Uniform uniform, int index) {
+
+        return uniform.getIndex(index);
     }
 
     private void setCurrentState(ShaderOnlyState shaderState, SharedState sharedState,

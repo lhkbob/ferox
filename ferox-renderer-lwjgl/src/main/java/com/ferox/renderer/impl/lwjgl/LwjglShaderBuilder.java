@@ -154,9 +154,17 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
             GL20.glGetActiveUniform(programID, i, nameLen, len, type, name);
             String uniformName = getSafeName(name, nameLen.get(0));
 
-            int location = GL20.glGetUniformLocation(programID, uniformName);
+            int[] indices = new int[len.get(0)];
+            if (indices.length == 1) {
+                indices[0] = GL20.glGetUniformLocation(programID, uniformName);
+            } else {
+                for (int j = 0; j < indices.length; j++) {
+                    indices[j] = GL20.glGetUniformLocation(programID, uniformName + "[" + j + "]");
+                }
+            }
+
             ShaderImpl.UniformImpl u = new ShaderImpl.UniformImpl(handle, Utils.getVariableType(type.get(0)),
-                                                                  len.get(0), uniformName, location);
+                                                                  uniformName, indices);
             ShaderImpl.UniformImpl old = uniforms.get(uniformName);
             if (old == null || old.getLength() < u.getLength()) {
                 uniforms.put(uniformName, u);
@@ -183,7 +191,7 @@ public class LwjglShaderBuilder extends AbstractShaderBuilder {
         IntBuffer len = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         IntBuffer type = BufferUtil.newByteBuffer(DataType.INT, 1).asIntBuffer();
         for (int i = 0; i < numAttrs; i++) {
-            // read uniform properties
+            // read attribute properties
             name.clear();
             GL20.glGetActiveAttrib(programID, i, nameLen, len, type, name);
             String attrName = getSafeName(name, nameLen.get(0));

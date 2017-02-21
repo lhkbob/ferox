@@ -74,6 +74,8 @@ public interface TextureBuilder<T extends TextureBuilder<T>> extends SamplerBuil
      */
     public T borderColor(@Const Vector4 color);
 
+    public T generateMipmaps(boolean generate);
+
     /**
      * BasicColorData represents the acceptable data types shared across all color texture formats. The size
      * of the input arrays depends on the configured width and height of the texture, on the mipmap selected

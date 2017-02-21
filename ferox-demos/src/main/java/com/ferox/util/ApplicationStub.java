@@ -46,6 +46,8 @@ public abstract class ApplicationStub {
     private final OnscreenSurfaceOptions opts;
     private final boolean processInputAutomatically;
 
+    private final boolean disableDebugScreenMessages;
+
     private boolean showFPS;
     private boolean showProfiling;
 
@@ -55,9 +57,14 @@ public abstract class ApplicationStub {
         this(framework, new OnscreenSurfaceOptions().windowed(800, 600).withDepthBuffer(24), true);
     }
 
+    public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts, boolean processInputAutomatically) {
+        this(framework, opts, processInputAutomatically, false);
+    }
+
     public ApplicationStub(Framework framework, OnscreenSurfaceOptions opts,
-                           boolean processInputAutomatically) {
+                           boolean processInputAutomatically, boolean disableDebugScreenMessages) {
         this.processInputAutomatically = processInputAutomatically;
+        this.disableDebugScreenMessages = disableDebugScreenMessages;
         this.framework = framework;
         this.opts = opts;
         showFPS = true;
@@ -126,25 +133,41 @@ public abstract class ApplicationStub {
 
     private TextRenderer formatFPS(double fps, CharacterSet charSet) {
         String[] extra = getExtraFPSMessages();
-        String[] total = new String[extra.length + 1];
-        total[0] = String.format("FPS: %.2f", fps);
-        for (int i = 0; i < extra.length; i++) {
-            total[i + 1] = extra[i];
+        if (disableDebugScreenMessages) {
+            if (extra.length == 0) {
+                return null;
+            } else {
+                return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, extra);
+            }
+        } else {
+            String[] total = new String[extra.length + 1];
+            total[0] = String.format("FPS: %.2f", fps);
+            for (int i = 0; i < extra.length; i++) {
+                total[i + 1] = extra[i];
+            }
+            return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, total);
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_LEFT, total);
     }
 
     private TextRenderer formatProfiling(long heap, long maxHeap, CharacterSet charSet) {
-        double heapM = heap / (1024.0 * 1024.0);
-        double maxM = maxHeap / (1024.0 * 1024.0);
-
         String[] extra = getExtraProfilingMessages();
-        String[] total = new String[extra.length + 1];
-        total[0] = String.format("MEM: %.2f / %.2f M", heapM, maxM);
-        for (int i = 0; i < extra.length; i++) {
-            total[i + 1] = extra[i];
+        if (disableDebugScreenMessages) {
+            if (extra.length == 0)
+                return null;
+            else {
+                return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, extra);
+            }
+        } else {
+            double heapM = heap / (1024.0 * 1024.0);
+            double maxM = maxHeap / (1024.0 * 1024.0);
+
+            String[] total = new String[extra.length + 1];
+            total[0] = String.format("MEM: %.2f / %.2f M", heapM, maxM);
+            for (int i = 0; i < extra.length; i++) {
+                total[i + 1] = extra[i];
+            }
+            return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, total);
         }
-        return new TextRenderer(charSet, new ColorRGB(1, 1, 1), Anchor.BOTTOM_RIGHT, total);
     }
 
     protected String[] getExtraFPSMessages() {

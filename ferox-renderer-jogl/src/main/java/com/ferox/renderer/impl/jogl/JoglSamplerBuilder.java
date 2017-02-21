@@ -38,11 +38,12 @@ import com.ferox.renderer.impl.OpenGLContext;
 import com.ferox.renderer.impl.resources.AbstractSamplerBuilder;
 import com.ferox.renderer.impl.resources.TextureImpl;
 
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 
 /**
  *
@@ -63,6 +64,16 @@ public abstract class JoglSamplerBuilder<T extends Sampler, B extends SamplerBui
         int[] query = new int[1];
         getGL(context).glGenTextures(1, query, 0);
         return query[0];
+    }
+
+    @Override
+    protected void generateMipmaps(OpenGLContext context) {
+        // glGenerateMipmaps operates on an entire cube map so we don't split on faces
+        int target = Utils.getGLTextureTarget(this.target);
+        if (framework.getCapabilities().getMajorVersion() >= 3) {
+            getGL(context).glGenerateMipmap(target);
+        }
+        // FIXME figure out how to generate them in CPU if necessary
     }
 
     private static void glUnpackRegion(GL2GL3 gl, int xOffset, int yOffset, int zOffset, int blockWidth,

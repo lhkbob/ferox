@@ -69,6 +69,8 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
     }
 
+    // FIXME remember mipmap generation requests to either do the manual call on refresh, or enable GENERATE_MIPMAP
+    // in deprecated mode.
     public static void refreshTexture(OpenGLContext context, Sampler sampler) {
         TextureImpl t = (TextureImpl) sampler;
         TextureImpl.TextureHandle h = t.getHandle();
@@ -155,6 +157,16 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
             }
             break;
         }
+    }
+
+    @Override
+    protected void generateMipmaps(OpenGLContext context) {
+        // glGenerateMipmaps operates on an entire cube map so we don't split on faces
+        int target = Utils.getGLTextureTarget(this.target);
+        if (framework.getCapabilities().getMajorVersion() >= 3) {
+            GL30.glGenerateMipmap(target);
+        }
+        // FIXME figure out how to generate them in CPU if necessary
     }
 
     @Override

@@ -499,9 +499,8 @@ public abstract class RendererDelegate {
                                             StencilUpdate depthPass, boolean isFront);
 
     public void setViewport(int x, int y, int width, int height) {
-        if (x < 0 || y < 0 || width < 0 || height < 0) {
-            throw new IllegalArgumentException("Invalid arguments, all must be positive: " + x + ", " + y +
-                                               ", " +
+        if (width < 0 || height < 0) {
+            throw new IllegalArgumentException("Invalid size, dimensions must be positive: " +
                                                width + ", " + height);
         }
         if (x != state.viewX || y != state.viewY || width != state.viewWidth ||

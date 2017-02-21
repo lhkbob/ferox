@@ -97,6 +97,32 @@ public final class Functions {
         return (num & (num - 1)) == 0;
     }
 
+    // From ImfTiledMisc.cpp
+    public static int floorLog2(int x) {
+        // floor(log(x)/log(2))
+        int y = 0;
+        while(x > 1) {
+            y += 1;
+            x >>= 1;
+        }
+        return y;
+    }
+
+    public static int ceilLog2(int x) {
+        // ceil(log(x)/log(2))
+        // FIXME compare this to log2(x), if the same can we also implement floorLog2 in terms of it?
+        int y = 0;
+        int r = 0;
+        while(x > 1) {
+            if ((x & 1) != 0) {
+                r = 1;
+            }
+            y += 1;
+            y >>= 1;
+        }
+        return y + r;
+    }
+
     public static int sortableFloatToIntBits(float v) {
         int bits = Float.floatToIntBits(v);
         if ((bits & INT_SIGN_BIT) != 0) {
