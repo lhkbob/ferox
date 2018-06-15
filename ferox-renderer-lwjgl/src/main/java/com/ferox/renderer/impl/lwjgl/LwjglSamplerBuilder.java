@@ -81,6 +81,14 @@ public abstract class LwjglSamplerBuilder<T extends Sampler, B extends SamplerBu
             type = Utils.getGLDataTypeForPackedTextureFormat(t.getFullFormat());
         }
 
+        // FIXME must restore the previously bound handle otherwise the refresh,
+        // when run on the context thread can have unintended impacts on the state
+        // of opengl -> or otherwise think about how the state needs to be maintained 
+        // for live refreshes.
+        //
+        // Specifically, since the glsl renderer tracks texture state based on handle,
+        // if something changes what is bound to a unit, even subsequent sets from
+        // the renderer API will not trigger a rebind since the renderer was not aware.
         context.bindTexture(0, h);
         switch (h.target) {
         case TEX_1D:

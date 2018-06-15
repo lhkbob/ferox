@@ -26,8 +26,6 @@
  */
 package com.ferox.math;
 
-import com.ferox.math.bounds.Plane;
-
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 
@@ -98,26 +96,25 @@ public final class Quat4 implements Cloneable {
      * @throws NullPointerException if a or b are null
      */
     public Quat4 arc(@Const Vector3 a, @Const Vector3 b) {
-        // make sure that both this and v are normalized
-        // if they aren't unit length, get the normalized version as new vectors
-        double da = a.lengthSquared();
-        double db = b.lengthSquared();
-        Vector3 na = (Math.abs(da - 1.0) < .00001 ? a : new Vector3().scale(a, 1 / Math.sqrt(da)));
-        Vector3 nb = (Math.abs(db - 1.0) < .00001 ? b : new Vector3().scale(b, 1 / Math.sqrt(db)));
+        w = Math.sqrt(a.lengthSquared() * b.lengthSquared()) + a.dot(b);
 
-        double d = na.dot(nb);
-        if (d < 1.0) {
-            Vector3 n = new Vector3();
-            Plane.getTangentSpace(na, n, new Vector3()); // FIXME
+        // Preserve a's original state and compute cross product in place
+        double ax = a.x;
+        double ay = a.y;
+        double az = a.z;
 
-            return set(n.x, n.y, n.z, 0.0);
-        } else {
-            Vector3 c = new Vector3().cross(na, nb);
-            double s = Math.sqrt(2.0 * (1.0 + d));
-            double rs = 1.0 / s;
+        a.cross(b);
+        x = a.x;
+        y = a.y;
+        z = a.z;
 
-            return set(c.x * rs, c.y * rs, c.z * rs, .5 * s);
-        }
+        // Restore a's state
+        a.x = ax;
+        a.y = ay;
+        a.z = az;
+
+        // Normalize the quaternion
+        return normalize();
     }
 
     /**
